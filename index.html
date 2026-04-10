@@ -3,22 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DUNA Branding</title>
+  <title>DUNA Player</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <main class="center-box">
-    <div class="card">
-      <h1>DUNA Branding</h1>
-      <p>Digite o código para abrir o player.</p>
-      <form id="codeForm">
-        <input id="codigo" type="text" placeholder="Ex.: abc123" required>
-        <button type="submit">Entrar</button>
-      </form>
-      <p id="mensagem" class="mensagem"></p>
-    </div>
-  </main>
+<body class="player-body">
+  <div id="loading" class="loading">Carregando playlist...</div>
+  <div id="erro" class="loading hidden"></div>
 
-  <script src="app.js"></script>
+  <video id="player" autoplay muted playsinline></video>
+
+  <script src="player.js"></script>
 </body>
 </html>
