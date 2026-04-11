@@ -255,8 +255,47 @@ body {
   color: var(--muted);
 }
 
+/* NOVO: botão voltar no topo */
+.playlist-topbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 18px;
+}
+
+.playlist-topbar #btnVoltar,
+.playlist-topbar .btn-secundario {
+  min-width: 140px;
+  height: 46px;
+  border: none;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.18s ease;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.playlist-topbar #btnVoltar:hover,
+.playlist-topbar .btn-secundario:hover {
+  background: rgba(255,255,255,0.16);
+}
+
+/* NOVO: grid principal de 2 colunas */
+.playlist-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.4fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.playlist-coluna-esquerda,
+.playlist-coluna-direita {
+  min-width: 0;
+}
+
 .midia-toolbar {
-  margin-bottom: 22px;
+  margin-bottom: 0;
 }
 
 .upload-card {
@@ -264,6 +303,7 @@ body {
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 22px;
   padding: 20px;
+  height: 100%;
 }
 
 .upload-card-topo {
@@ -336,6 +376,7 @@ body {
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 22px;
   padding: 20px;
+  min-height: 100%;
 }
 
 .playlist-area-topo {
@@ -455,6 +496,12 @@ body {
 @media (max-width: 1100px) {
   .pontos-box {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .playlist-grid {
+    grid-template-columns: 1fr;
   }
 }
 
