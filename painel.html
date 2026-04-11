@@ -1,44 +1,84 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Duna Branding | Painel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duna Player</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  <link rel="stylesheet" href="painel.css" />
+    body {
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .player-wrap {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: #000;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    .erro {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #fff;
+      padding: 30px;
+      font-size: 1.2rem;
+      background: #000;
+    }
+  </style>
 </head>
 <body>
-
-  <img src="logo.png" class="logo-top">
-
-  <div class="container">
-
-    <h1>Painel de Playlists</h1>
-
-    <div class="card">
-      <h2>Criar / Atualizar Estabelecimento</h2>
-
-      <input type="text" id="nome" placeholder="Nome do estabelecimento" />
-      <input type="text" id="codigo" placeholder="Código (ex: loja1)" />
-
-      <textarea id="links" placeholder="Cole os links dos vídeos (1 por linha)"></textarea>
-
-      <button onclick="salvar()">Salvar / Atualizar</button>
-
-      <p id="mensagem"></p>
-    </div>
-
-    <div class="card">
-      <h2>clientes.json</h2>
-
-      <textarea id="json"></textarea>
-
-      <button onclick="formatar()">Formatar</button>
-      <button onclick="copiar()">Copiar</button>
-    </div>
-
+  <div class="player-wrap">
+    <video id="videoPlayer" autoplay muted loop playsinline></video>
+    <div id="erro" class="erro"></div>
   </div>
 
-  <script src="painel.js"></script>
+  <script>
+    const video = document.getElementById("videoPlayer");
+    const erro = document.getElementById("erro");
+
+    const codigoAtivo = localStorage.getItem("codigoAtivo");
+    const dados = JSON.parse(localStorage.getItem("dunaPastas")) || {};
+
+    function mostrarErro(texto) {
+      erro.style.display = "flex";
+      erro.textContent = texto;
+      video.style.display = "none";
+    }
+
+    if (!codigoAtivo) {
+      mostrarErro("Nenhum código ativo encontrado.");
+    } else if (!dados[codigoAtivo]) {
+      mostrarErro("Código não encontrado.");
+    } else if (!dados[codigoAtivo].video || !dados[codigoAtivo].video.trim()) {
+      mostrarErro("Nenhum vídeo cadastrado para este código.");
+    } else {
+      video.src = dados[codigoAtivo].video;
+
+      video.play().catch(() => {
+        mostrarErro("Não foi possível reproduzir o vídeo.");
+      });
+    }
+  </script>
 </body>
 </html>
