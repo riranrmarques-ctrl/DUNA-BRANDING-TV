@@ -13,23 +13,68 @@
   </div>
 
   <div class="page-title">
-    <h1>Painel de Playlists</h1>
-    <p>Gerencie os códigos fixos e envie vídeos direto para o Supabase.</p>
+    <h1>Painel de Pontos</h1>
+    <p>Escolha um dos 5 códigos fixos para gerenciar a playlist.</p>
   </div>
 
   <div class="painel-box">
-    <div class="painel-topo">
-      <div class="campo">
-        <label for="codigoSelect">Selecione o código</label>
-        <select id="codigoSelect">
-          <option value="0001">0001</option>
-          <option value="0002">0002</option>
-          <option value="0003">0003</option>
-          <option value="0004">0004</option>
-          <option value="0005">0005</option>
-        </select>
-      </div>
+    <div id="status" class="status-box">Painel pronto.</div>
+  </div>
 
+  <div id="listaPontos" class="pontos-box">
+    <div class="card-ponto" data-codigo="0001">
+      <div class="card-codigo">0001</div>
+      <div class="card-nome">Carregando...</div>
+      <div class="card-acoes">
+        <button class="btn-copiar" data-codigo="0001">Copiar código</button>
+        <button class="btn-abrir" data-codigo="0001">Abrir</button>
+      </div>
+    </div>
+
+    <div class="card-ponto" data-codigo="0002">
+      <div class="card-codigo">0002</div>
+      <div class="card-nome">Carregando...</div>
+      <div class="card-acoes">
+        <button class="btn-copiar" data-codigo="0002">Copiar código</button>
+        <button class="btn-abrir" data-codigo="0002">Abrir</button>
+      </div>
+    </div>
+
+    <div class="card-ponto" data-codigo="0003">
+      <div class="card-codigo">0003</div>
+      <div class="card-nome">Carregando...</div>
+      <div class="card-acoes">
+        <button class="btn-copiar" data-codigo="0003">Copiar código</button>
+        <button class="btn-abrir" data-codigo="0003">Abrir</button>
+      </div>
+    </div>
+
+    <div class="card-ponto" data-codigo="0004">
+      <div class="card-codigo">0004</div>
+      <div class="card-nome">Carregando...</div>
+      <div class="card-acoes">
+        <button class="btn-copiar" data-codigo="0004">Copiar código</button>
+        <button class="btn-abrir" data-codigo="0004">Abrir</button>
+      </div>
+    </div>
+
+    <div class="card-ponto" data-codigo="0005">
+      <div class="card-codigo">0005</div>
+      <div class="card-nome">Carregando...</div>
+      <div class="card-acoes">
+        <button class="btn-copiar" data-codigo="0005">Copiar código</button>
+        <button class="btn-abrir" data-codigo="0005">Abrir</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+    <div class="playlist-header">
+      <h2>Ponto <span id="codigoAtual">0001</span></h2>
+      <p id="nomeAtual">Nome do ponto</p>
+    </div>
+
+    <div class="painel-topo">
       <div class="campo">
         <label for="videoInput">Escolha o vídeo</label>
         <input type="file" id="videoInput" accept="video/*">
@@ -39,14 +84,11 @@
         <label>&nbsp;</label>
         <button id="btnUpload">Enviar vídeo</button>
       </div>
-    </div>
 
-    <div id="status" class="status-box">Selecione um código para carregar a playlist.</div>
-  </div>
-
-  <div class="playlist-box">
-    <div class="playlist-header">
-      <h2>Playlist do código <span id="codigoAtual">0001</span></h2>
+      <div class="campo campo-botao">
+        <label>&nbsp;</label>
+        <button id="btnVoltar" type="button">Voltar</button>
+      </div>
     </div>
 
     <div id="playlistLista" class="playlist-lista">
