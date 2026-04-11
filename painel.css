@@ -12,6 +12,7 @@ body {
   padding: 30px 20px 60px;
 }
 
+/* LOGO */
 .logo-top {
   text-align: center;
   margin-bottom: 24px;
@@ -23,13 +24,14 @@ body {
   height: auto;
 }
 
+/* TITULO */
 .page-title {
   text-align: center;
   margin-bottom: 30px;
 }
 
 .page-title h1 {
-  font-size: 56px;
+  font-size: 52px;
   font-weight: 800;
   margin-bottom: 10px;
 }
@@ -39,211 +41,150 @@ body {
   color: #d7e3ff;
 }
 
+/* BOX PADRÃO */
 .painel-box,
 .playlist-box {
   width: 100%;
   max-width: 980px;
   margin: 0 auto 28px;
   background: rgba(18, 30, 53, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   padding: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
+/* STATUS */
 .status-box {
-  width: 100%;
-  padding: 16px 18px;
+  padding: 16px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #eaf2ff;
-  font-size: 16px;
+  background: rgba(255,255,255,0.06);
 }
 
 .status-box.ok {
-  background: rgba(16, 185, 129, 0.16);
-  color: #a7f3d0;
+  background: rgba(16,185,129,0.2);
 }
 
 .status-box.erro {
-  background: rgba(239, 68, 68, 0.16);
-  color: #fecaca;
+  background: rgba(239,68,68,0.2);
 }
 
+/* GRID DOS PONTOS */
 .pontos-box {
-  width: 100%;
   max-width: 980px;
-  margin: 0 auto 28px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
 }
 
+/* CARD */
 .card-ponto {
   background: rgba(21, 33, 58, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 22px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.28);
 }
 
+/* CODIGO */
 .card-codigo {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   margin-bottom: 10px;
-  color: #ffffff;
+}
+
+/* NOME + LAPIS */
+.card-nome-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
 }
 
 .card-nome {
   font-size: 15px;
   color: #c8d5f0;
-  min-height: 40px;
-  margin-bottom: 18px;
 }
 
+/* BOTAO EDITAR */
+.btn-editar-nome {
+  background: #334155;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* AÇÕES */
 .card-acoes {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
 button {
   border: none;
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 15px;
-  font-weight: 700;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: bold;
   cursor: pointer;
-  transition: 0.2s ease;
-}
-
-button:hover {
-  transform: translateY(-1px);
 }
 
 .btn-copiar {
-  background: #334155;
-  color: #fff;
-}
-
-.btn-abrir,
-#btnUpload {
-  background: #2f95ff;
-  color: #fff;
-}
-
-#btnVoltar {
   background: #475569;
   color: #fff;
 }
 
-.painel-topo {
-  display: grid;
-  grid-template-columns: 1.5fr 180px 140px;
-  gap: 16px;
-  align-items: end;
-  margin-top: 18px;
-  margin-bottom: 22px;
-}
-
-.campo {
-  display: flex;
-  flex-direction: column;
-}
-
-.campo label {
-  font-size: 14px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #dbe7ff;
-}
-
-.campo input[type="file"] {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06);
+.btn-abrir {
+  background: #3b82f6;
   color: #fff;
 }
 
-.campo-botao button {
-  width: 100%;
-}
-
+/* PLAYLIST */
 .playlist-header h2 {
-  font-size: 34px;
+  font-size: 28px;
   margin-bottom: 6px;
-}
-
-.playlist-header p {
-  color: #c8d5f0;
-  font-size: 16px;
 }
 
 .playlist-lista {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .playlist-item {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
-  padding: 18px;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.playlist-item-topo {
-  margin-bottom: 10px;
-  font-size: 18px;
-}
-
-.playlist-item-url {
-  margin-bottom: 14px;
-}
-
-.playlist-item-url a {
-  color: #60a5fa;
-  text-decoration: none;
-}
-
-.playlist-item-url a:hover {
-  text-decoration: underline;
+  background: rgba(255,255,255,0.05);
+  border-radius: 14px;
+  padding: 14px;
 }
 
 .playlist-item-acoes {
+  margin-top: 10px;
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.playlist-item-acoes button {
-  background: #374151;
-  color: #fff;
+/* INPUT */
+input[type="file"] {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  border: none;
 }
 
-.playlist-item-acoes button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+/* TOPO DA PASTA */
+.painel-topo {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
 }
 
+/* RESPONSIVO */
 @media (max-width: 768px) {
-  .page-title h1 {
-    font-size: 38px;
-  }
-
   .painel-topo {
-    grid-template-columns: 1fr;
-  }
-
-  .card-acoes,
-  .playlist-item-acoes {
     flex-direction: column;
   }
 
-  .card-acoes button,
-  .playlist-item-acoes button {
-    width: 100%;
+  .card-acoes {
+    flex-direction: column;
   }
 }
