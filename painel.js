@@ -82,10 +82,10 @@ function itemEstaInativo(item) {
   if (!item.data_fim) return false;
 
   const hoje = new Date();
-  hoje.setHours(0,0,0,0);
+  hoje.setHours(0, 0, 0, 0);
 
   const fim = new Date(item.data_fim);
-  fim.setHours(23,59,59,999);
+  fim.setHours(23, 59, 59, 999);
 
   return fim < hoje;
 }
@@ -113,7 +113,7 @@ async function buscarPontos() {
 
 function renderizarCardsPontos(lista) {
   pontosMap = {};
-  lista.forEach(p => pontosMap[p.codigo] = p);
+  lista.forEach(p => (pontosMap[p.codigo] = p));
 
   document.querySelectorAll(".card-ponto").forEach(card => {
     const codigo = card.dataset.codigo;
@@ -131,7 +131,6 @@ function abrirPonto(codigo) {
 
   codigoAtual.textContent = codigoSelecionado;
 
-  // 🔥 NOVO TÍTULO (COM NOME)
   tituloPasta.textContent =
     "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
 
@@ -159,7 +158,8 @@ async function uploadMidia() {
 
   const codigo = codigoSelecionado;
 
-  const dataInicio = normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
+  const dataInicio =
+    normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
   const dataFim = normalizarDataInput(dataFimInput.value);
 
   const path = `${codigo}/${Date.now()}-${file.name}`;
@@ -211,7 +211,9 @@ function renderizarPlaylistAtiva(lista) {
     return;
   }
 
-  playlistAtiva.innerHTML = lista.map((item, i) => `
+  playlistAtiva.innerHTML = lista
+    .map(
+      (item, i) => `
     <div class="playlist-item" draggable="true" data-index="${i}">
       <div class="playlist-item-handle">⋮⋮</div>
 
@@ -225,7 +227,9 @@ function renderizarPlaylistAtiva(lista) {
         <button onclick="removerItem(${item.id}, '${item.storage_path}')">🗑</button>
       </div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
   ativarDrag(lista);
 }
@@ -237,11 +241,15 @@ function renderizarHistorico(lista) {
     return;
   }
 
-  playlistInativa.innerHTML = lista.map(item => `
+  playlistInativa.innerHTML = lista
+    .map(
+      item => `
     <div>
       ${item.nome} — ${formatarData(item.data_fim)}
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 }
 
 /* DRAG */
@@ -303,7 +311,7 @@ async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
 
-  document.querySelectorAll(".btn-abrir").forEach(btn =>
-    btn.onclick = () => abrirPonto(btn.dataset.codigo)
+  document.querySelectorAll(".btn-abrir").forEach(
+    btn => (btn.onclick = () => abrirPonto(btn.dataset.codigo))
   );
 }
