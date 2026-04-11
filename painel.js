@@ -1,153 +1,119 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
-const BUCKET = "videos";
+const TABELA = "playlists";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const tituloPasta = document.getElementById("tituloPasta");
-const subtituloPasta = document.getElementById("subtituloPasta");
-const arquivoInput = document.getElementById("arquivoInput");
-const arquivoNome = document.getElementById("arquivoNome");
-const btnEnviar = document.getElementById("btnEnviar");
-const btnVoltar = document.getElementById("btnVoltar");
-const playlistLista = document.getElementById("playlistLista");
-const contadorPlaylist = document.getElementById("contadorPlaylist");
-const toast = document.getElementById("toast");
+const video = document.getElementById("videoPlayer");
 
 let codigoAtual = null;
-let nomePontoAtual = "Sem nome";
 let playlistAtual = [];
-let draggedIndex = null;
+let indiceAtual = 0;
+let timeoutMidia = null;
 
-function mostrarToast(texto, erro = false) {
-  toast.textContent = texto;
-  toast.className = erro ? "toast show error" : "toast show";
-
-  clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(() => {
-    toast.className = "toast";
-  }, 2600);
+/* =========================
+   HELPERS
+========================= */
+function mostrarMensagem(texto) {
+  document.body.innerHTML = `
+    <div class="mensagem">${texto}</div>
+  `;
 }
 
-function getCodigoAtual() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("codigo") || "";
+function normalizarLista(registros) {
+  return (registros || [])
+    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+    .map(item => ({
+      id: item.id,
+      nome: item.nome,
+      url: item.video_url,
+      tipo: item.tipo || "video"
+    }));
 }
 
-function atualizarCabecalho() {
-  tituloPasta.textContent = `Ponto ${codigoAtual}`;
-}
-
-async function carregarPlaylist() {
-  const { data, error } = await supabaseClient
-    .from("playlists")
+async function buscarPlaylist() {
+  const { data } = await supabaseClient
+    .from(TABELA)
     .select("*")
     .eq("codigo", codigoAtual)
     .order("ordem", { ascending: true });
 
-  if (error) {
-    console.error(error);
-    mostrarToast("Erro ao carregar playlist", true);
-    return;
-  }
-
-  playlistAtual = data || [];
-  renderizarPlaylist();
+  playlistAtual = normalizarLista(data);
 }
 
-function renderizarPlaylist() {
-  contadorPlaylist.textContent = `${playlistAtual.length} itens`;
-
-  if (!playlistAtual.length) {
-    playlistLista.innerHTML = `<div class="playlist-vazia">Sem itens</div>`;
-    return;
-  }
-
-  playlistLista.innerHTML = playlistAtual.map((item, index) => `
-    <div class="playlist-item">
-      <div class="item-main">
-        <div class="item-title">${item.nome}</div>
-      </div>
-
-      <div class="item-actions">
-        <button onclick="renomearItem(${index})">Renomear</button>
-        <button onclick="excluirItem(${index})">Excluir</button>
-      </div>
+/* =========================
+   PLAYER INTELIGENTE
+========================= */
+function limparTela() {
+  clearTimeout(timeoutMidia);
+  document.body.innerHTML = `
+    <div class="player-container">
+      <video id="videoPlayer" autoplay muted playsinline></video>
     </div>
-  `).join("");
+  `;
 }
 
-async function enviarMidia() {
-  const file = arquivoInput.files[0];
-  if (!file) return;
-
-  const nome = file.name;
-  const path = `${codigoAtual}/${Date.now()}-${nome}`;
-
-  const { error: uploadError } = await supabaseClient.storage
-    .from(BUCKET)
-    .upload(path, file);
-
-  if (uploadError) {
-    mostrarToast("Erro upload", true);
+function tocarMidia() {
+  if (!playlistAtual.length) {
+    mostrarMensagem("Sem conteúdo");
     return;
   }
 
-  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+  const item = playlistAtual[indiceAtual];
 
-  await supabaseClient.from("playlists").insert({
-    codigo: codigoAtual,
-    nome: nome,
-    video_url: data.publicUrl,
-    storage_path: path,
-    ordem: playlistAtual.length + 1,
-    tipo: "video"
-  });
+  if (!item) return;
 
-  mostrarToast("Enviado");
-  carregarPlaylist();
+  if (item.tipo === "video") {
+    limparTela();
+
+    const vid = document.getElementById("videoPlayer");
+    vid.src = item.url;
+    vid.play();
+
+    vid.onended = proximo;
+
+  } else if (item.tipo === "imagem") {
+    document.body.innerHTML = `
+      <img src="${item.url}" style="width:100vw;height:100vh;object-fit:cover">
+    `;
+
+    timeoutMidia = setTimeout(proximo, 20000);
+
+  } else if (item.tipo === "site") {
+    document.body.innerHTML = `
+      <iframe src="${item.url}" style="width:100vw;height:100vh;border:none"></iframe>
+    `;
+
+    timeoutMidia = setTimeout(proximo, 20000);
+  }
 }
 
-async function renomearItem(index) {
-  const item = playlistAtual[index];
-  const novo = prompt("Novo nome:", item.nome);
-  if (!novo) return;
-
-  await supabaseClient
-    .from("playlists")
-    .update({ nome: novo })
-    .eq("id", item.id);
-
-  carregarPlaylist();
+function proximo() {
+  indiceAtual++;
+  if (indiceAtual >= playlistAtual.length) {
+    indiceAtual = 0;
+  }
+  tocarMidia();
 }
 
-async function excluirItem(index) {
-  const item = playlistAtual[index];
-
-  await supabaseClient.storage
-    .from(BUCKET)
-    .remove([item.storage_path]);
-
-  await supabaseClient
-    .from("playlists")
-    .delete()
-    .eq("id", item.id);
-
-  carregarPlaylist();
-}
-
-btnEnviar.onclick = enviarMidia;
-
-function iniciar() {
-  codigoAtual = getCodigoAtual();
+/* =========================
+   INIT
+========================= */
+async function iniciar() {
+  const params = new URLSearchParams(window.location.search);
+  codigoAtual = params.get("codigo");
 
   if (!codigoAtual) {
-    alert("Sem código");
+    mostrarMensagem("Código não informado");
     return;
   }
 
-  atualizarCabecalho();
-  carregarPlaylist();
+  await buscarPlaylist();
+  tocarMidia();
+
+  setInterval(async () => {
+    await buscarPlaylist();
+  }, 15000);
 }
 
 iniciar();
