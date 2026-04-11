@@ -1,155 +1,91 @@
-const form = document.getElementById('codeForm');
-const dispositivoInput = document.getElementById('dispositivo');
-const codigoInput = document.getElementById('codigo');
-const mensagem = document.getElementById('mensagem');
-const contadorTexto = document.getElementById('contadorTexto');
+const video = document.getElementById('player');
+const loading = document.getElementById('loading');
 
-const CODIGO_KEY = 'duna_codigo';
-const DISPOSITIVO_KEY = 'duna_dispositivo';
-const TEMPO_AUTOMATICO = 30;
+const params = new URLSearchParams(window.location.search);
+const codigo = (params.get('codigo') || '').trim().toLowerCase();
 
-let countdownInterval = null;
-let autoStartTimeout = null;
+let playlist = [];
+let indexAtual = 0;
 
-function limparTimers() {
-  if (countdownInterval) clearInterval(countdownInterval);
-  if (autoStartTimeout) clearTimeout(autoStartTimeout);
+function mostrarLoading(texto) {
+  loading.textContent = texto;
+  loading.classList.remove('hidden');
 }
 
-async function carregarPontos() {
-  const response = await fetch('clientes.json', { cache: 'no-store' });
-  if (!response.ok) {
-    throw new Error('Erro ao carregar clientes.json');
-  }
-  return await response.json();
+function esconderLoading() {
+  loading.classList.add('hidden');
 }
 
-async function validarCodigo(codigo) {
-  const dados = await carregarPontos();
-  return dados.find(item => item.codigo.toLowerCase() === codigo.toLowerCase());
+function mostrarErro(texto) {
+  mostrarLoading(texto);
 }
 
-function abrirPlayer(codigo, dispositivo) {
-  const params = new URLSearchParams();
-  params.set('codigo', codigo);
-
-  if (dispositivo && dispositivo.trim()) {
-    params.set('dispositivo', dispositivo.trim());
-  }
-
-  window.location.href = `player.html?${params.toString()}`;
-}
-
-function salvarCampos() {
-  const dispositivo = dispositivoInput.value.trim();
-  const codigo = codigoInput.value.trim();
-
-  localStorage.setItem(DISPOSITIVO_KEY, dispositivo);
-  localStorage.setItem(CODIGO_KEY, codigo);
-}
-
-function preencherCamposSalvos() {
-  const dispositivoSalvo = localStorage.getItem(DISPOSITIVO_KEY) || '';
-  const codigoSalvo = localStorage.getItem(CODIGO_KEY) || '';
-
-  dispositivoInput.value = dispositivoSalvo;
-  codigoInput.value = codigoSalvo;
-}
-
-function iniciarContagem(codigo, dispositivo) {
-  limparTimers();
-
-  let segundos = TEMPO_AUTOMATICO;
-  contadorTexto.classList.remove('hidden');
-  contadorTexto.textContent = `Iniciando automaticamente em ${segundos}s`;
-
-  countdownInterval = setInterval(() => {
-    segundos -= 1;
-    contadorTexto.textContent = `Iniciando automaticamente em ${segundos}s`;
-
-    if (segundos <= 0) {
-      clearInterval(countdownInterval);
-    }
-  }, 1000);
-
-  autoStartTimeout = setTimeout(() => {
-    abrirPlayer(codigo, dispositivo);
-  }, TEMPO_AUTOMATICO * 1000);
-}
-
-function reiniciarAutoInicioSePossivel() {
-  const codigo = codigoInput.value.trim();
-  const dispositivo = dispositivoInput.value.trim();
-
-  salvarCampos();
-
-  if (!codigo) {
-    limparTimers();
-    contadorTexto.classList.add('hidden');
-    contadorTexto.textContent = '';
+function tocarAtual() {
+  if (!playlist.length) {
+    mostrarErro('Nenhum vídeo cadastrado para este ponto.');
     return;
   }
 
-  iniciarContagem(codigo, dispositivo);
+  video.controls = false;
+  video.removeAttribute('controls');
+  video.src = playlist[indexAtual];
+  video.load();
+
+  const playPromise = video.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        esconderLoading();
+      })
+      .catch((error) => {
+        console.error(error);
+        proximoVideo();
+      });
+  } else {
+    esconderLoading();
+  }
 }
 
-dispositivoInput.addEventListener('input', () => {
-  reiniciarAutoInicioSePossivel();
-});
+function proximoVideo() {
+  indexAtual = (indexAtual + 1) % playlist.length;
+  tocarAtual();
+}
 
-codigoInput.addEventListener('input', () => {
-  mensagem.textContent = '';
-  reiniciarAutoInicioSePossivel();
-});
+video.addEventListener('ended', proximoVideo);
+video.addEventListener('error', proximoVideo);
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const codigo = codigoInput.value.trim();
-  const dispositivo = dispositivoInput.value.trim();
-
+async function iniciarPlayer() {
   if (!codigo) {
-    mensagem.textContent = 'Digite um código válido.';
+    mostrarErro('Código não informado.');
     return;
   }
 
   try {
-    const ponto = await validarCodigo(codigo);
+    const response = await fetch('clientes.json', { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error('Erro ao carregar clientes.json');
+    }
+
+    const dados = await response.json();
+    const ponto = dados.find(item => item.codigo.toLowerCase() === codigo);
 
     if (!ponto) {
-      mensagem.textContent = 'Código inválido.';
+      mostrarErro('Ponto não encontrado.');
       return;
     }
 
-    salvarCampos();
-    abrirPlayer(codigo, dispositivo);
-  } catch (error) {
-    console.error(error);
-    mensagem.textContent = 'Erro ao validar o código.';
-  }
-});
+    playlist = Array.isArray(ponto.videos) ? ponto.videos : [];
 
-window.addEventListener('load', async () => {
-  preencherCamposSalvos();
-
-  const codigoSalvo = codigoInput.value.trim();
-  const dispositivoSalvo = dispositivoInput.value.trim();
-
-  if (!codigoSalvo) {
-    contadorTexto.classList.add('hidden');
-    return;
-  }
-
-  try {
-    const ponto = await validarCodigo(codigoSalvo);
-
-    if (ponto) {
-      iniciarContagem(codigoSalvo, dispositivoSalvo);
-    } else {
-      contadorTexto.classList.add('hidden');
+    if (!playlist.length) {
+      mostrarErro('Nenhum vídeo cadastrado para este ponto.');
+      return;
     }
+
+    tocarAtual();
   } catch (error) {
     console.error(error);
-    contadorTexto.classList.add('hidden');
+    mostrarErro('Erro ao carregar a playlist.');
   }
-});
+}
+
+iniciarPlayer();
