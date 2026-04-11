@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+
 const BUCKET = "videos";
 const TABELA_PLAYLISTS = "playlists";
 const TABELA_PONTOS = "pontos";
@@ -7,9 +8,7 @@ const SENHA_PAINEL = "@Helena";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* =========================
-   ELEMENTOS
-========================= */
+/* ELEMENTOS */
 const loginBox = document.getElementById("loginBox");
 const conteudoPainel = document.getElementById("conteudoPainel");
 const senhaInput = document.getElementById("senhaInput");
@@ -25,665 +24,165 @@ const videoInput = document.getElementById("videoInput");
 const btnUpload = document.getElementById("btnUpload");
 const btnVoltar = document.getElementById("btnVoltar");
 const playlistLista = document.getElementById("playlistLista");
-const statusBox = document.getElementById("status");
 
 let codigoSelecionado = null;
-let pontosMap = {};
 let playlistAtual = [];
 let dragItemId = null;
 
-/* =========================
-   HELPERS
-========================= */
-function setStatus(texto, tipo = "ok") {
-  if (!statusBox) return;
-  statusBox.textContent = texto;
-  statusBox.style.background = tipo === "erro" ? "#dc2626" : "#16a34a";
-}
-
-function escapeHtml(texto) {
-  return String(texto || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function normalizarNomeArquivo(nome) {
-  return String(nome || "arquivo")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9._-]/g, "");
-}
-
-function detectarTipoPorArquivo(file) {
-  const nome = String(file?.name || "").toLowerCase();
-
-  if (nome.endsWith(".mp4")) return "video";
-  if (
-    nome.endsWith(".jpg") ||
-    nome.endsWith(".jpeg") ||
-    nome.endsWith(".png") ||
-    nome.endsWith(".webp")
-  ) {
-    return "imagem";
-  }
-  if (nome.endsWith(".txt")) return "site";
-
-  return "";
-}
-
-function detectarTipoPorItem(item) {
-  if (item?.tipo) return item.tipo;
-
-  const nome = String(item?.nome || "").toLowerCase();
-  if (nome.endsWith(".mp4")) return "video";
-  if (
-    nome.endsWith(".jpg") ||
-    nome.endsWith(".jpeg") ||
-    nome.endsWith(".png") ||
-    nome.endsWith(".webp")
-  ) {
-    return "imagem";
-  }
-  if (nome.endsWith(".txt")) return "site";
-
-  return "arquivo";
-}
-
-function formatarTipo(tipo) {
-  if (tipo === "video") return "Vídeo";
-  if (tipo === "imagem") return "Imagem";
-  if (tipo === "site") return "Site";
-  return "Arquivo";
-}
-
-function obterIconeTipo(tipo) {
-  if (tipo === "video") return "🎬";
-  if (tipo === "imagem") return "🖼";
-  if (tipo === "site") return "🌐";
-  return "📄";
-}
-
-/* =========================
-   LOGIN
-========================= */
-function validarLogin() {
-  const senha = String(senhaInput?.value || "").trim();
-
-  if (senha !== SENHA_PAINEL) {
-    if (loginErro) loginErro.textContent = "Código inválido.";
-    setStatus("Código inválido.", "erro");
+/* LOGIN */
+btnLogin.onclick = () => {
+  if (senhaInput.value !== SENHA_PAINEL) {
+    loginErro.textContent = "Código inválido";
     return;
   }
+  loginBox.style.display = "none";
+  conteudoPainel.style.display = "block";
+  carregarPontos();
+};
 
-  if (loginErro) loginErro.textContent = "";
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
+/* PONTOS */
+async function carregarPontos() {
+  const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
 
-  setStatus("Painel liberado.", "ok");
-  iniciarPainel();
-}
-
-function configurarLogin() {
-  if (btnLogin) {
-    btnLogin.addEventListener("click", validarLogin);
-  }
-
-  if (senhaInput) {
-    senhaInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        validarLogin();
-      }
-    });
-  }
-}
-
-/* =========================
-   PONTOS
-========================= */
-async function buscarPontos() {
-  const { data, error } = await supabaseClient
-    .from(TABELA_PONTOS)
-    .select("codigo, nome")
-    .order("codigo", { ascending: true });
-
-  if (error) throw error;
-  return data || [];
-}
-
-function renderizarNomesDosCards(pontos) {
-  pontosMap = {};
-
-  pontos.forEach((ponto) => {
-    pontosMap[ponto.codigo] = ponto;
-  });
-
-  document.querySelectorAll(".card-ponto").forEach((card) => {
+  document.querySelectorAll(".card-ponto").forEach(card => {
     const codigo = card.dataset.codigo;
-    const nomeEl = card.querySelector(".card-nome");
+    const ponto = data.find(p => p.codigo === codigo);
 
-    if (!nomeEl) return;
-
-    const nomeBanco = pontosMap[codigo]?.nome;
-    nomeEl.textContent = nomeBanco || `Ponto ${codigo}`;
+    if (ponto) {
+      card.querySelector(".card-nome").textContent = ponto.nome;
+    }
   });
 }
 
-async function renomearPonto(codigo) {
-  const nomeAtualPonto = pontosMap[codigo]?.nome || `Ponto ${codigo}`;
-  const novoNome = window.prompt(`Novo nome para o ponto ${codigo}:`, nomeAtualPonto);
+/* ABRIR */
+document.querySelectorAll(".btn-abrir").forEach(btn => {
+  btn.onclick = () => {
+    codigoSelecionado = btn.dataset.codigo;
+    codigoAtual.textContent = codigoSelecionado;
+    listaPontos.style.display = "none";
+    pontoDetalhe.style.display = "block";
+    carregarPlaylist();
+  };
+});
 
-  if (novoNome === null) return;
+btnVoltar.onclick = () => {
+  pontoDetalhe.style.display = "none";
+  listaPontos.style.display = "grid";
+};
 
-  const nomeLimpo = String(novoNome).trim();
-
-  if (!nomeLimpo) {
-    setStatus("Digite um nome válido.", "erro");
-    return;
-  }
-
-  try {
-    setStatus("Salvando nome...");
-
-    const { error } = await supabaseClient
-      .from(TABELA_PONTOS)
-      .update({ nome: nomeLimpo })
-      .eq("codigo", codigo);
-
-    if (error) throw error;
-
-    if (!pontosMap[codigo]) {
-      pontosMap[codigo] = { codigo, nome: nomeLimpo };
-    } else {
-      pontosMap[codigo].nome = nomeLimpo;
-    }
-
-    document.querySelectorAll(".card-ponto").forEach((card) => {
-      if (card.dataset.codigo === codigo) {
-        const nomeEl = card.querySelector(".card-nome");
-        if (nomeEl) nomeEl.textContent = nomeLimpo;
-      }
-    });
-
-    if (codigoSelecionado === codigo && nomeAtual) {
-      nomeAtual.textContent = nomeLimpo;
-    }
-
-    setStatus("Nome atualizado com sucesso.", "ok");
-  } catch (error) {
-    console.error("Erro ao salvar nome:", error);
-    setStatus("Erro ao salvar nome: " + error.message, "erro");
-  }
-}
-
-function abrirPonto(codigo) {
-  codigoSelecionado = codigo;
-
-  if (codigoAtual) codigoAtual.textContent = codigo;
-  if (nomeAtual) nomeAtual.textContent = pontosMap[codigo]?.nome || `Ponto ${codigo}`;
-
-  if (listaPontos) listaPontos.style.display = "none";
-  if (pontoDetalhe) pontoDetalhe.style.display = "block";
-
-  setStatus(`Pasta ${codigo} aberta.`, "ok");
-  carregarPlaylist();
-}
-
-function voltarParaPontos() {
-  codigoSelecionado = null;
-  playlistAtual = [];
-  dragItemId = null;
-
-  if (pontoDetalhe) pontoDetalhe.style.display = "none";
-  if (listaPontos) listaPontos.style.display = "grid";
-
-  setStatus("Voltou para os pontos.", "ok");
-}
-
-/* =========================
-   PLAYLIST
-========================= */
-async function buscarPlaylist(codigo) {
-  const { data, error } = await supabaseClient
+/* PLAYLIST */
+async function carregarPlaylist() {
+  const { data } = await supabaseClient
     .from(TABELA_PLAYLISTS)
     .select("*")
-    .eq("codigo", codigo)
-    .order("ordem", { ascending: true })
-    .order("id", { ascending: true });
+    .eq("codigo", codigoSelecionado)
+    .order("ordem");
 
-  if (error) throw error;
-  return data || [];
+  playlistAtual = data;
+  renderPlaylist();
 }
 
-function montarHtmlPlaylistVazia() {
-  return `
-    <div class="playlist-item vazio">
-      <div class="playlist-item-main">
-        <div class="playlist-handle">—</div>
-        <div class="playlist-textos">
-          <div class="playlist-nome">Nenhum item na playlist</div>
-          <div class="playlist-meta">Envie uma mídia para começar</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
+function renderPlaylist() {
+  if (!playlistAtual.length) {
+    playlistLista.innerHTML = `<div class="playlist-item vazio">Sem itens</div>`;
+    return;
+  }
 
-function montarHtmlItemPlaylist(item) {
-  const tipo = detectarTipoPorItem(item);
-  const nomeSeguro = escapeHtml(item.nome || "Sem nome");
-  const tipoSeguro = escapeHtml(formatarTipo(tipo));
-  const icone = escapeHtml(obterIconeTipo(tipo));
-  const nomeJs = JSON.stringify(item.nome || "Sem nome");
-  const pathJs = JSON.stringify(item.storage_path || "");
-
-  return `
+  playlistLista.innerHTML = playlistAtual.map(item => `
     <div class="playlist-item" draggable="true" data-id="${item.id}">
       <div class="playlist-item-main">
-        <div class="playlist-handle" title="Arrastar">⋮⋮</div>
-
+        <div class="playlist-handle">⋮⋮</div>
         <div class="playlist-textos">
-          <div class="playlist-nome">${icone} ${nomeSeguro}</div>
-          <div class="playlist-meta">${tipoSeguro}</div>
+          <div class="playlist-nome">${item.nome}</div>
         </div>
       </div>
 
       <div class="playlist-acoes">
-        <button
-          type="button"
-          class="btn-playlist-acao"
-          onclick="renomearItem(${item.id}, ${nomeJs})"
-          title="Renomear"
-        >
-          ✎
-        </button>
-
-        <button
-          type="button"
-          class="btn-playlist-acao btn-excluir-item"
-          onclick="excluirItem(${item.id}, ${pathJs})"
-          title="Excluir"
-        >
-          🗑
-        </button>
+        <button onclick="renomearItem(${item.id}, '${item.nome}')">✎</button>
+        <button onclick="excluirItem(${item.id}, '${item.storage_path}')">🗑</button>
       </div>
     </div>
-  `;
+  `).join("");
+
+  ativarDrag();
 }
 
-function renderizarPlaylist(lista) {
-  if (!playlistLista) return;
+/* DRAG */
+function ativarDrag() {
+  const itens = document.querySelectorAll(".playlist-item");
 
-  playlistAtual = Array.isArray(lista) ? [...lista] : [];
+  itens.forEach(el => {
+    el.ondragstart = () => dragItemId = el.dataset.id;
 
-  if (!playlistAtual.length) {
-    playlistLista.innerHTML = montarHtmlPlaylistVazia();
-    return;
-  }
+    el.ondragover = e => e.preventDefault();
 
-  playlistLista.innerHTML = playlistAtual.map(montarHtmlItemPlaylist).join("");
-  configurarDragAndDropPlaylist();
-}
+    el.ondrop = async () => {
+      const origem = playlistAtual.findIndex(i => i.id == dragItemId);
+      const destino = playlistAtual.findIndex(i => i.id == el.dataset.id);
 
-async function carregarPlaylist() {
-  if (!codigoSelecionado) return;
+      const item = playlistAtual.splice(origem, 1)[0];
+      playlistAtual.splice(destino, 0, item);
 
-  try {
-    setStatus("Carregando playlist...");
-    const lista = await buscarPlaylist(codigoSelecionado);
-    renderizarPlaylist(lista);
-    setStatus("Playlist carregada.", "ok");
-  } catch (error) {
-    console.error("Erro ao carregar playlist:", error);
-    setStatus("Erro ao carregar playlist: " + error.message, "erro");
-  }
-}
+      renderPlaylist();
 
-/* =========================
-   DRAG AND DROP
-========================= */
-function configurarDragAndDropPlaylist() {
-  const itens = playlistLista?.querySelectorAll(".playlist-item[data-id]");
-
-  if (!itens || !itens.length) return;
-
-  itens.forEach((itemEl) => {
-    itemEl.addEventListener("dragstart", onDragStartPlaylist);
-    itemEl.addEventListener("dragover", onDragOverPlaylist);
-    itemEl.addEventListener("drop", onDropPlaylist);
-    itemEl.addEventListener("dragend", onDragEndPlaylist);
-    itemEl.addEventListener("dragenter", onDragEnterPlaylist);
-    itemEl.addEventListener("dragleave", onDragLeavePlaylist);
-  });
-}
-
-function onDragStartPlaylist(event) {
-  const el = event.currentTarget;
-  dragItemId = Number(el.dataset.id);
-
-  el.classList.add("dragging");
-
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", String(dragItemId));
-  }
-}
-
-function onDragOverPlaylist(event) {
-  event.preventDefault();
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = "move";
-  }
-}
-
-function onDragEnterPlaylist(event) {
-  const el = event.currentTarget;
-  if (!el.classList.contains("dragging")) {
-    el.classList.add("drag-over");
-  }
-}
-
-function onDragLeavePlaylist(event) {
-  event.currentTarget.classList.remove("drag-over");
-}
-
-async function onDropPlaylist(event) {
-  event.preventDefault();
-
-  const destinoEl = event.currentTarget;
-  destinoEl.classList.remove("drag-over");
-
-  const destinoId = Number(destinoEl.dataset.id);
-  const origemId = Number(dragItemId);
-
-  if (!origemId || !destinoId || origemId === destinoId) {
-    return;
-  }
-
-  const origemIndex = playlistAtual.findIndex((item) => Number(item.id) === origemId);
-  const destinoIndex = playlistAtual.findIndex((item) => Number(item.id) === destinoId);
-
-  if (origemIndex === -1 || destinoIndex === -1) return;
-
-  const novaLista = [...playlistAtual];
-  const [itemMovido] = novaLista.splice(origemIndex, 1);
-  novaLista.splice(destinoIndex, 0, itemMovido);
-
-  playlistAtual = novaLista;
-  renderizarPlaylist(playlistAtual);
-
-  try {
-    setStatus("Salvando nova ordem...");
-
-    for (let i = 0; i < playlistAtual.length; i++) {
-      const item = playlistAtual[i];
-
-      const { error } = await supabaseClient
-        .from(TABELA_PLAYLISTS)
-        .update({ ordem: i })
-        .eq("id", item.id);
-
-      if (error) throw error;
-    }
-
-    setStatus("Ordem atualizada.", "ok");
-    await carregarPlaylist();
-  } catch (error) {
-    console.error("Erro ao salvar nova ordem:", error);
-    setStatus("Erro ao salvar ordem: " + error.message, "erro");
-    await carregarPlaylist();
-  }
-}
-
-function onDragEndPlaylist(event) {
-  dragItemId = null;
-
-  document.querySelectorAll(".playlist-item").forEach((el) => {
-    el.classList.remove("dragging");
-    el.classList.remove("drag-over");
-  });
-}
-
-/* =========================
-   UPLOAD
-========================= */
-async function pegarProximaOrdem(codigo) {
-  const lista = await buscarPlaylist(codigo);
-
-  if (!lista.length) return 0;
-
-  const maior = Math.max(...lista.map((item) => Number(item.ordem) || 0));
-  return maior + 1;
-}
-
-async function uploadMidia() {
-  const arquivo = videoInput?.files?.[0];
-
-  if (!codigoSelecionado) {
-    setStatus("Abra uma pasta antes de enviar mídia.", "erro");
-    return;
-  }
-
-  if (!arquivo) {
-    setStatus("Selecione um arquivo.", "erro");
-    return;
-  }
-
-  const tipo = detectarTipoPorArquivo(arquivo);
-
-  if (!tipo) {
-    setStatus("Formato inválido. Use MP4, JPG, JPEG, PNG, WEBP ou TXT.", "erro");
-    return;
-  }
-
-  try {
-    if (btnUpload) btnUpload.disabled = true;
-    setStatus("Enviando mídia...");
-
-    let urlFinal = "";
-    let storagePath = "";
-
-    if (tipo === "site") {
-      const texto = await arquivo.text();
-      let urlLida = String(texto || "").trim();
-
-      if (!urlLida) {
-        throw new Error("O arquivo TXT está vazio.");
+      for (let i = 0; i < playlistAtual.length; i++) {
+        await supabaseClient
+          .from(TABELA_PLAYLISTS)
+          .update({ ordem: i })
+          .eq("id", playlistAtual[i].id);
       }
 
-      const match = urlLida.match(/URL\s*=\s*(.+)/i);
-      if (match && match[1]) {
-        urlLida = match[1].trim();
-      }
-
-      if (!/^https?:\/\//i.test(urlLida)) {
-        urlLida = "https://" + urlLida;
-      }
-
-      urlFinal = urlLida;
-      storagePath = "";
-    } else {
-      const nomeSeguro = normalizarNomeArquivo(arquivo.name);
-      const nomeFinal = `${Date.now()}-${nomeSeguro}`;
-      const caminho = `${codigoSelecionado}/${nomeFinal}`;
-
-      const { error: uploadError } = await supabaseClient
-        .storage
-        .from(BUCKET)
-        .upload(caminho, arquivo, {
-          cacheControl: "3600",
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicData } = supabaseClient
-        .storage
-        .from(BUCKET)
-        .getPublicUrl(caminho);
-
-      urlFinal = publicData.publicUrl;
-      storagePath = caminho;
-    }
-
-    const ordem = await pegarProximaOrdem(codigoSelecionado);
-
-    const { error: insertError } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .insert({
-        codigo: codigoSelecionado,
-        nome: arquivo.name,
-        video_url: urlFinal,
-        storage_path: storagePath,
-        ordem: ordem,
-        tipo: tipo
-      });
-
-    if (insertError) throw insertError;
-
-    if (videoInput) videoInput.value = "";
-
-    setStatus("Mídia enviada com sucesso.", "ok");
-    await carregarPlaylist();
-  } catch (error) {
-    console.error("Erro ao enviar mídia:", error);
-    setStatus("Erro ao enviar: " + error.message, "erro");
-  } finally {
-    if (btnUpload) btnUpload.disabled = false;
-  }
+      carregarPlaylist();
+    };
+  });
 }
 
-/* =========================
-   RENOMEAR ITEM
-========================= */
-async function renomearItem(id, nomeAtualItem) {
-  const novoNome = window.prompt("Novo nome do item:", nomeAtualItem);
+/* UPLOAD */
+btnUpload.onclick = async () => {
+  const file = videoInput.files[0];
+  if (!file) return;
 
-  if (novoNome === null) return;
+  const nome = Date.now() + "-" + file.name;
+  const path = `${codigoSelecionado}/${nome}`;
 
-  const nomeLimpo = String(novoNome || "").trim();
+  await supabaseClient.storage.from(BUCKET).upload(path, file);
 
-  if (!nomeLimpo) {
-    setStatus("Nome inválido.", "erro");
-    return;
-  }
+  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
 
-  try {
-    const { error } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .update({ nome: nomeLimpo })
-      .eq("id", id);
-
-    if (error) throw error;
-
-    setStatus("Nome atualizado.", "ok");
-    await carregarPlaylist();
-  } catch (error) {
-    console.error("Erro ao renomear item:", error);
-    setStatus("Erro ao renomear item: " + error.message, "erro");
-  }
-}
-
-/* =========================
-   EXCLUIR ITEM
-========================= */
-async function excluirItem(id, storagePath) {
-  const confirmar = window.confirm("Deseja excluir este item?");
-  if (!confirmar) return;
-
-  try {
-    setStatus("Excluindo item...");
-
-    if (storagePath) {
-      const { error: storageError } = await supabaseClient
-        .storage
-        .from(BUCKET)
-        .remove([storagePath]);
-
-      if (storageError) throw storageError;
-    }
-
-    const { error: deleteError } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .delete()
-      .eq("id", id);
-
-    if (deleteError) throw deleteError;
-
-    setStatus("Item excluído.", "ok");
-    await carregarPlaylist();
-  } catch (error) {
-    console.error("Erro ao excluir item:", error);
-    setStatus("Erro ao excluir item: " + error.message, "erro");
-  }
-}
-
-/* =========================
-   COPIAR CÓDIGO
-========================= */
-function copiarCodigoPonto(codigo) {
-  navigator.clipboard.writeText(codigo)
-    .then(() => {
-      setStatus("Código copiado.", "ok");
-    })
-    .catch(() => {
-      setStatus("Não foi possível copiar o código.", "erro");
-    });
-}
-
-/* =========================
-   EVENTOS
-========================= */
-function configurarEventos() {
-  document.querySelectorAll(".btn-abrir").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      abrirPonto(btn.dataset.codigo);
-    });
+  await supabaseClient.from(TABELA_PLAYLISTS).insert({
+    codigo: codigoSelecionado,
+    nome: file.name,
+    video_url: data.publicUrl,
+    storage_path: path,
+    ordem: playlistAtual.length
   });
 
-  document.querySelectorAll(".btn-copiar").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      copiarCodigoPonto(btn.dataset.codigo);
-    });
-  });
+  videoInput.value = "";
+  carregarPlaylist();
+};
 
-  document.querySelectorAll(".btn-editar-nome").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      renomearPonto(btn.dataset.codigo);
-    });
-  });
+/* RENOMEAR */
+window.renomearItem = async (id, nome) => {
+  const novo = prompt("Novo nome:", nome);
+  if (!novo) return;
 
-  if (btnVoltar) {
-    btnVoltar.addEventListener("click", voltarParaPontos);
+  await supabaseClient
+    .from(TABELA_PLAYLISTS)
+    .update({ nome: novo })
+    .eq("id", id);
+
+  carregarPlaylist();
+};
+
+/* EXCLUIR */
+window.excluirItem = async (id, path) => {
+  if (!confirm("Excluir?")) return;
+
+  if (path) {
+    await supabaseClient.storage.from(BUCKET).remove([path]);
   }
 
-  if (btnUpload) {
-    btnUpload.addEventListener("click", uploadMidia);
-  }
-}
+  await supabaseClient.from(TABELA_PLAYLISTS).delete().eq("id", id);
 
-/* =========================
-   INIT
-========================= */
-window.renomearItem = renomearItem;
-window.excluirItem = excluirItem;
-
-async function iniciarPainel() {
-  try {
-    configurarEventos();
-    setStatus("Carregando pontos...");
-
-    const pontos = await buscarPontos();
-    renderizarNomesDosCards(pontos);
-
-    setStatus("Painel ativo.", "ok");
-  } catch (error) {
-    console.error("Erro ao iniciar painel:", error);
-    setStatus("Erro ao carregar pontos: " + error.message, "erro");
-  }
-}
-
-configurarLogin();
+  carregarPlaylist();
+};
