@@ -1,188 +1,242 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
-
 const BUCKET = "videos";
-const TABELA_PLAYLISTS = "playlists";
+const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
+
 const SENHA_PAINEL = "@Helena";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ELEMENTOS */
 const loginBox = document.getElementById("loginBox");
 const conteudoPainel = document.getElementById("conteudoPainel");
 const senhaInput = document.getElementById("senhaInput");
 const btnLogin = document.getElementById("btnLogin");
 const loginErro = document.getElementById("loginErro");
 
+const statusEl = document.getElementById("status");
 const listaPontos = document.getElementById("listaPontos");
 const pontoDetalhe = document.getElementById("pontoDetalhe");
 const codigoAtual = document.getElementById("codigoAtual");
 const nomeAtual = document.getElementById("nomeAtual");
-
 const videoInput = document.getElementById("videoInput");
 const btnUpload = document.getElementById("btnUpload");
 const btnVoltar = document.getElementById("btnVoltar");
 const playlistLista = document.getElementById("playlistLista");
 
 let codigoSelecionado = null;
-let playlistAtual = [];
-let dragItemId = null;
+let pontosMap = {};
+let dragIndex = null;
+
+/* STATUS */
+function setStatus(texto, tipo = "normal") {
+  statusEl.textContent = texto;
+  statusEl.className = "status-box";
+  if (tipo === "ok") statusEl.classList.add("ok");
+  if (tipo === "erro") statusEl.classList.add("erro");
+}
 
 /* LOGIN */
-btnLogin.onclick = () => {
-  if (senhaInput.value !== SENHA_PAINEL) {
+function validarLogin() {
+  if (senhaInput.value.trim() !== SENHA_PAINEL) {
     loginErro.textContent = "Código inválido";
     return;
   }
+
   loginBox.style.display = "none";
   conteudoPainel.style.display = "block";
-  carregarPontos();
-};
+  setStatus("Painel Ativo", "ok");
+  iniciarPainel();
+}
+
+btnLogin.onclick = validarLogin;
 
 /* PONTOS */
-async function carregarPontos() {
+async function buscarPontos() {
   const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
+  return data || [];
+}
+
+function renderizarCardsPontos(lista) {
+  pontosMap = {};
+  lista.forEach(p => pontosMap[p.codigo] = p);
 
   document.querySelectorAll(".card-ponto").forEach(card => {
     const codigo = card.dataset.codigo;
-    const ponto = data.find(p => p.codigo === codigo);
-
-    if (ponto) {
-      card.querySelector(".card-nome").textContent = ponto.nome;
-    }
+    const nomeEl = card.querySelector(".card-nome");
+    nomeEl.textContent = pontosMap[codigo]?.nome || `Ponto ${codigo}`;
   });
 }
 
-/* ABRIR */
-document.querySelectorAll(".btn-abrir").forEach(btn => {
-  btn.onclick = () => {
-    codigoSelecionado = btn.dataset.codigo;
-    codigoAtual.textContent = codigoSelecionado;
-    listaPontos.style.display = "none";
-    pontoDetalhe.style.display = "block";
-    carregarPlaylist();
-  };
-});
+/* ABRIR PASTA */
+function abrirPonto(codigo) {
+  codigoSelecionado = codigo;
+  listaPontos.style.display = "none";
+  pontoDetalhe.style.display = "block";
+  codigoAtual.textContent = codigo;
+  nomeAtual.textContent = pontosMap[codigo]?.nome || codigo;
+  carregarPlaylist();
+}
 
+/* VOLTAR */
 btnVoltar.onclick = () => {
-  pontoDetalhe.style.display = "none";
   listaPontos.style.display = "grid";
+  pontoDetalhe.style.display = "none";
 };
+
+/* UPLOAD */
+async function uploadMidia() {
+  const file = videoInput.files[0];
+  if (!file) return setStatus("Selecione um arquivo", "erro");
+
+  const ext = file.name.split(".").pop().toLowerCase();
+  let tipo = "";
+  let urlFinal = "";
+  let storagePath = "";
+
+  try {
+    if (ext === "txt") {
+      const text = await file.text();
+      const match = text.match(/URL=(.*)/i);
+      urlFinal = match ? match[1].trim() : text.trim();
+      tipo = "site";
+    } else {
+      tipo = ext === "mp4" ? "video" : "imagem";
+
+      const path = `${codigoSelecionado}/${Date.now()}-${file.name}`;
+      storagePath = path;
+
+      await supabaseClient.storage.from(BUCKET).upload(path, file);
+      const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+      urlFinal = data.publicUrl;
+    }
+
+    await supabaseClient.from(TABELA).insert({
+      codigo: codigoSelecionado,
+      nome: file.name,
+      video_url: urlFinal,
+      storage_path: storagePath,
+      ordem: Date.now(),
+      tipo: tipo
+    });
+
+    setStatus("Enviado com sucesso", "ok");
+    videoInput.value = "";
+    carregarPlaylist();
+
+  } catch (e) {
+    setStatus("Erro upload", "erro");
+    console.error(e);
+  }
+}
+
+btnUpload.onclick = uploadMidia;
 
 /* PLAYLIST */
 async function carregarPlaylist() {
   const { data } = await supabaseClient
-    .from(TABELA_PLAYLISTS)
+    .from(TABELA)
     .select("*")
     .eq("codigo", codigoSelecionado)
-    .order("ordem");
+    .order("ordem", { ascending: true });
 
-  playlistAtual = data;
-  renderPlaylist();
-}
-
-function renderPlaylist() {
-  if (!playlistAtual.length) {
-    playlistLista.innerHTML = `<div class="playlist-item vazio">Sem itens</div>`;
+  if (!data.length) {
+    playlistLista.innerHTML = "<p>Nenhum item</p>";
     return;
   }
 
-  playlistLista.innerHTML = playlistAtual.map(item => `
-    <div class="playlist-item" draggable="true" data-id="${item.id}">
-      <div class="playlist-item-main">
-        <div class="playlist-handle">⋮⋮</div>
-        <div class="playlist-textos">
-          <div class="playlist-nome">${item.nome}</div>
-        </div>
+  playlistLista.innerHTML = data.map((item, index) => `
+    <div class="playlist-item" draggable="true" data-index="${index}" data-id="${item.id}">
+      <div class="playlist-item-topo">
+        <strong contenteditable="true" onblur="renomearItem(${item.id}, this.innerText)">
+          ${item.nome}
+        </strong>
       </div>
 
-      <div class="playlist-acoes">
-        <button onclick="renomearItem(${item.id}, '${item.nome}')">✎</button>
-        <button onclick="excluirItem(${item.id}, '${item.storage_path}')">🗑</button>
+      <div class="playlist-item-acoes">
+        <button onclick="removerItem(${item.id}, '${item.storage_path}')">Remover</button>
       </div>
     </div>
   `).join("");
 
-  ativarDrag();
+  ativarDrag(data);
 }
 
 /* DRAG */
-function ativarDrag() {
-  const itens = document.querySelectorAll(".playlist-item");
+function ativarDrag(lista) {
+  const items = document.querySelectorAll(".playlist-item");
 
-  itens.forEach(el => {
-    el.ondragstart = () => dragItemId = el.dataset.id;
+  items.forEach(item => {
+    item.addEventListener("dragstart", () => {
+      dragIndex = item.dataset.index;
+      item.classList.add("dragging");
+    });
 
-    el.ondragover = e => e.preventDefault();
+    item.addEventListener("dragend", () => {
+      item.classList.remove("dragging");
+    });
 
-    el.ondrop = async () => {
-      const origem = playlistAtual.findIndex(i => i.id == dragItemId);
-      const destino = playlistAtual.findIndex(i => i.id == el.dataset.id);
+    item.addEventListener("dragover", e => e.preventDefault());
 
-      const item = playlistAtual.splice(origem, 1)[0];
-      playlistAtual.splice(destino, 0, item);
+    item.addEventListener("drop", async () => {
+      const targetIndex = item.dataset.index;
 
-      renderPlaylist();
+      const novo = [...lista];
+      const movido = novo.splice(dragIndex, 1)[0];
+      novo.splice(targetIndex, 0, movido);
 
-      for (let i = 0; i < playlistAtual.length; i++) {
+      for (let i = 0; i < novo.length; i++) {
         await supabaseClient
-          .from(TABELA_PLAYLISTS)
+          .from(TABELA)
           .update({ ordem: i })
-          .eq("id", playlistAtual[i].id);
+          .eq("id", novo[i].id);
       }
 
       carregarPlaylist();
-    };
+    });
   });
 }
 
-/* UPLOAD */
-btnUpload.onclick = async () => {
-  const file = videoInput.files[0];
-  if (!file) return;
-
-  const nome = Date.now() + "-" + file.name;
-  const path = `${codigoSelecionado}/${nome}`;
-
-  await supabaseClient.storage.from(BUCKET).upload(path, file);
-
-  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
-
-  await supabaseClient.from(TABELA_PLAYLISTS).insert({
-    codigo: codigoSelecionado,
-    nome: file.name,
-    video_url: data.publicUrl,
-    storage_path: path,
-    ordem: playlistAtual.length
-  });
-
-  videoInput.value = "";
-  carregarPlaylist();
-};
-
-/* RENOMEAR */
-window.renomearItem = async (id, nome) => {
-  const novo = prompt("Novo nome:", nome);
-  if (!novo) return;
-
-  await supabaseClient
-    .from(TABELA_PLAYLISTS)
-    .update({ nome: novo })
-    .eq("id", id);
-
-  carregarPlaylist();
-};
-
-/* EXCLUIR */
-window.excluirItem = async (id, path) => {
-  if (!confirm("Excluir?")) return;
+/* REMOVER */
+async function removerItem(id, path) {
+  if (!confirm("Remover?")) return;
 
   if (path) {
     await supabaseClient.storage.from(BUCKET).remove([path]);
   }
 
-  await supabaseClient.from(TABELA_PLAYLISTS).delete().eq("id", id);
-
+  await supabaseClient.from(TABELA).delete().eq("id", id);
   carregarPlaylist();
-};
+}
+
+/* RENOMEAR */
+async function renomearItem(id, nome) {
+  await supabaseClient.from(TABELA).update({ nome }).eq("id", id);
+  setStatus("Nome atualizado", "ok");
+}
+
+/* EVENTOS */
+function configurarEventos() {
+  document.querySelectorAll(".btn-abrir").forEach(btn =>
+    btn.onclick = () => abrirPonto(btn.dataset.codigo)
+  );
+
+  document.querySelectorAll(".btn-editar-nome").forEach(btn =>
+    btn.onclick = () => {
+      const novo = prompt("Novo nome:");
+      if (novo) {
+        supabaseClient.from(TABELA_PONTOS)
+          .update({ nome: novo })
+          .eq("codigo", btn.dataset.codigo);
+        iniciarPainel();
+      }
+    }
+  );
+}
+
+/* INIT */
+async function iniciarPainel() {
+  configurarEventos();
+  const pontos = await buscarPontos();
+  renderizarCardsPontos(pontos);
+}
