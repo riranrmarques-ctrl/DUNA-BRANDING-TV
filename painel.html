@@ -4,216 +4,188 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-
-  <link rel="stylesheet" href="painel.css?v=3">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="painel.css?v=90">
 </head>
 <body>
 
-  <!-- LOGIN / PÁGINA INICIAL -->
   <div id="loginBox" class="login-screen">
     <div class="login-card">
-      <div class="login-brand">Duna TV</div>
       <h2>Acesso ao Painel</h2>
-      <p class="login-subtitle">Digite o código para entrar</p>
-
       <input type="password" id="senhaInput" placeholder="Digite o código">
-      <button id="btnLogin">Entrar</button>
+      <button id="btnLogin" type="button">Entrar</button>
       <p id="loginErro" class="login-erro"></p>
     </div>
   </div>
 
-  <!-- PAINEL -->
   <div id="conteudoPainel" style="display:none;">
-
     <div class="logo-top">
-      <h2>Duna TV</h2>
+      <img src="logo.png" alt="Duna TV">
     </div>
 
     <div class="painel-shell">
-
       <div class="painel-header">
-        <div>
-          <h1>Painel de Pontos</h1>
-          <p>Gerencie seus pontos e playlists.</p>
-        </div>
+        <h1>Painel de Pontos</h1>
+        <p>Gerencie seus pontos e playlists.</p>
       </div>
 
       <div id="listaPontos" class="pontos-box">
-
         <div class="card-ponto" data-codigo="H4E9L2A">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="H4E9L2A" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="H4E9L2A" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">H4E9L2A</div>
-            <button class="btn-icon btn-copiar" data-codigo="H4E9L2A" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="H4E9L2A" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="H4E9L2A">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="H4E9L2A" type="button">Abrir pasta</button>
           </div>
         </div>
 
         <div class="card-ponto" data-codigo="N7H3E8L">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="N7H3E8L" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="N7H3E8L" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">N7H3E8L</div>
-            <button class="btn-icon btn-copiar" data-codigo="N7H3E8L" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="N7H3E8L" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="N7H3E8L">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="N7H3E8L" type="button">Abrir pasta</button>
           </div>
         </div>
 
         <div class="card-ponto" data-codigo="E2A6H9N">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="E2A6H9N" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="E2A6H9N" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">E2A6H9N</div>
-            <button class="btn-icon btn-copiar" data-codigo="E2A6H9N" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="E2A6H9N" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="E2A6H9N">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="E2A6H9N" type="button">Abrir pasta</button>
           </div>
         </div>
 
         <div class="card-ponto" data-codigo="L8E1N5A">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="L8E1N5A" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="L8E1N5A" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">L8E1N5A</div>
-            <button class="btn-icon btn-copiar" data-codigo="L8E1N5A" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="L8E1N5A" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="L8E1N5A">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="L8E1N5A" type="button">Abrir pasta</button>
           </div>
         </div>
 
         <div class="card-ponto" data-codigo="H6N4E7A">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="H6N4E7A" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="H6N4E7A" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">H6N4E7A</div>
-            <button class="btn-icon btn-copiar" data-codigo="H6N4E7A" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="H6N4E7A" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="H6N4E7A">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="H6N4E7A" type="button">Abrir pasta</button>
           </div>
         </div>
 
         <div class="card-ponto" data-codigo="A9L3E2H">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="A9L3E2H" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="A9L3E2H" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">A9L3E2H</div>
-            <button class="btn-icon btn-copiar" data-codigo="A9L3E2H" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="A9L3E2H" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="A9L3E2H">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="A9L3E2H" type="button">Abrir pasta</button>
           </div>
         </div>
 
         <div class="card-ponto" data-codigo="E5H8A1N">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="E5H8A1N" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="E5H8A1N" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">E5H8A1N</div>
-            <button class="btn-icon btn-copiar" data-codigo="E5H8A1N" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="E5H8A1N" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="E5H8A1N">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="E5H8A1N" type="button">Abrir pasta</button>
           </div>
         </div>
 
         <div class="card-ponto" data-codigo="N2E7L4A">
           <div class="card-topo">
-            <div class="card-nome-wrap">
-              <div class="card-nome">Carregando...</div>
-            </div>
-            <button class="btn-icon btn-editar-nome" data-codigo="N2E7L4A" title="Trocar nome">✎</button>
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="N2E7L4A" title="Renomear ponto" type="button">✎</button>
           </div>
-          <div class="card-codigo-box">
+          <div class="card-codigo-linha">
             <div class="card-codigo">N2E7L4A</div>
-            <button class="btn-icon btn-copiar" data-codigo="N2E7L4A" title="Copiar código">⧉</button>
+            <button class="btn-copiar" data-codigo="N2E7L4A" title="Copiar código" type="button">⧉</button>
           </div>
           <div class="card-acoes">
-            <button class="btn-abrir" data-codigo="N2E7L4A">abrir pasta</button>
+            <button class="btn-abrir" data-codigo="N2E7L4A" type="button">Abrir pasta</button>
           </div>
         </div>
-
       </div>
 
       <div id="pontoDetalhe" class="playlist-box" style="display:none;">
         <div class="playlist-header">
-          <div>
+          <div class="playlist-header-textos">
             <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
             <p id="nomeAtual"></p>
           </div>
         </div>
 
-        <div class="playlist-grid">
+        <div class="midia-toolbar">
           <div class="upload-card">
-            <h3>Adicionar mídia</h3>
-            <p class="card-subtext">Envie vídeo, imagem ou TXT com URL.</p>
+            <div class="upload-card-topo">
+              <h3>Adicionar mídia</h3>
+              <span class="upload-info">Aceita MP4, JPG e TXT com URL</span>
+            </div>
 
-            <input type="file" id="videoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
-
-            <div class="upload-actions">
-              <button id="btnUpload">Enviar mídia</button>
-              <button id="btnVoltar" class="btn-secundario">Voltar</button>
+            <div class="upload-linha">
+              <input type="file" id="videoInput" accept=".mp4,.jpg,.txt">
+              <button id="btnUpload" type="button">Enviar mídia</button>
+              <button id="btnVoltar" type="button" class="btn-secundario">Voltar</button>
             </div>
           </div>
+        </div>
 
-          <div class="playlist-area">
-            <div class="playlist-area-topo">
-              <div>
-                <h3>Playlist</h3>
-                <p class="card-subtext">Arraste os itens para mudar a ordem.</p>
-              </div>
-            </div>
+        <div class="playlist-area">
+          <div class="playlist-area-topo">
+            <h3>Playlist</h3>
+            <p>Arraste para reordenar. Clique no nome para renomear depois.</p>
+          </div>
 
-            <div id="playlistLista">
-              <div class="playlist-item vazio">
-                <span>Nenhum item carregado.</span>
+          <div id="playlistLista" class="playlist-lista">
+            <div class="playlist-item">
+              <div class="playlist-item-topo">
+                <strong>Nenhum item carregado.</strong>
               </div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
 
-    <div id="status" class="status-box">Painel ativo</div>
+    <div id="status" class="status-box">Painel Ativo</div>
   </div>
 
-  <script src="painel.js?v=2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="painel.js?v=90"></script>
 </body>
 </html>
