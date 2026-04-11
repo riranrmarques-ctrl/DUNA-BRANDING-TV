@@ -733,3 +733,18 @@ body {
     flex-direction: column;
   }
 }
+
+/* NOVO LAYOUT DA PLAYLIST */
+.playlist-layout-novo {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.playlist-coluna-direita {
+  order: 1;
+}
+
+.playlist-coluna-ativa {
+  order: 2;
+}
