@@ -1,253 +1,58 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* ===== NOVO LAYOUT DOS PONTOS ===== */
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: radial-gradient(circle at top, #03142f 0%, #020b1d 55%, #010611 100%);
-  color: #ffffff;
-  min-height: 100vh;
-  padding: 40px 20px 60px;
-}
-
-.logo-top {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 30px;
-}
-
-.logo-top img {
-  max-width: 170px;
-  width: 100%;
-  height: auto;
-}
-
-.page-title {
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto 35px;
-}
-
-.page-title h1 {
-  font-size: 52px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.page-title p {
-  font-size: 20px;
-  color: #c7d4f3;
-}
-
-.painel-box,
-.playlist-box {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto 28px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 22px;
-  padding: 28px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
-}
-
-.painel-topo {
+.pontos-box {
   display: grid;
-  grid-template-columns: 1fr 1.4fr auto;
-  gap: 18px;
-  align-items: end;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 30px auto;
 }
 
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.campo label {
-  font-size: 15px;
-  font-weight: 600;
-  color: #dfe8ff;
-}
-
-select,
-input[type="file"] {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.09);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+.card-ponto {
+  background: #1c2a3a;
   border-radius: 12px;
-  padding: 14px 16px;
-  font-size: 15px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 
-select:focus,
-input[type="file"]:focus {
-  outline: none;
-  border-color: #4da3ff;
-  box-shadow: 0 0 0 3px rgba(77, 163, 255, 0.18);
-}
-
-button {
-  border: none;
-  border-radius: 12px;
-  padding: 14px 18px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-button:hover {
-  transform: translateY(-1px);
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-#btnUpload {
-  background: linear-gradient(135deg, #0f7bff, #2ea7ff);
-  color: #fff;
-  min-width: 170px;
-}
-
-#btnUpload:hover {
-  filter: brightness(1.08);
-}
-
-.status-box {
-  margin-top: 20px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  font-size: 15px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #dfe8ff;
-}
-
-.status-box.ok {
-  background: rgba(20, 160, 90, 0.16);
-  border: 1px solid rgba(20, 160, 90, 0.35);
-  color: #8ff0b4;
-}
-
-.status-box.erro {
-  background: rgba(220, 60, 60, 0.14);
-  border: 1px solid rgba(220, 60, 60, 0.35);
-  color: #ffb3b3;
-}
-
-.playlist-header {
-  margin-bottom: 18px;
-}
-
-.playlist-header h2 {
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.playlist-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.playlist-item {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 18px;
-  padding: 18px;
-}
-
-.playlist-item-topo {
+.card-codigo {
+  font-size: 22px;
+  font-weight: bold;
   margin-bottom: 10px;
-  font-size: 18px;
-}
-
-.playlist-item-url {
-  margin-bottom: 14px;
-  word-break: break-word;
-}
-
-.playlist-item-url a {
-  color: #78b8ff;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.playlist-item-url a:hover {
-  text-decoration: underline;
-}
-
-.playlist-item-acoes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.playlist-item-acoes button {
-  background: rgba(255, 255, 255, 0.09);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  padding: 10px 14px;
+}
+
+.card-nome {
   font-size: 14px;
+  color: #aaa;
+  margin-bottom: 15px;
 }
 
-.playlist-item-acoes button:hover {
-  background: rgba(255, 255, 255, 0.14);
+.card-acoes {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
-.playlist-lista p {
-  color: #c7d4f3;
-  font-size: 16px;
+.btn-copiar {
+  background: #2f3e50;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
 }
 
-@media (max-width: 900px) {
-  .painel-topo {
-    grid-template-columns: 1fr;
-  }
-
-  #btnUpload {
-    width: 100%;
-  }
-
-  .page-title h1 {
-    font-size: 38px;
-  }
-
-  .page-title p {
-    font-size: 17px;
-  }
-
-  .painel-box,
-  .playlist-box {
-    padding: 20px;
-  }
+.btn-abrir {
+  background: #3b82f6;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
 }
 
-@media (max-width: 600px) {
-  body {
-    padding: 24px 14px 40px;
-  }
-
-  .page-title h1 {
-    font-size: 30px;
-  }
-
-  .playlist-header h2 {
-    font-size: 22px;
-  }
-
-  .playlist-item-acoes {
-    flex-direction: column;
-  }
-
-  .playlist-item-acoes button {
-    width: 100%;
-  }
+.btn-abrir:hover {
+  background: #2563eb;
 }
