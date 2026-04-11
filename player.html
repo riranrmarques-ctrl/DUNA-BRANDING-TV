@@ -3,324 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Duna Branding | Painel</title>
+  <title>Duna TV Player</title>
   <style>
-    * {
+    html, body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    body {
-      background: linear-gradient(180deg, #020817, #071426);
-      color: #fff;
-      min-height: 100vh;
-      padding: 24px;
-    }
-
-    .logo-top {
-      margin-bottom: 30px;
-    }
-
-    .logo-top h2 {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #fff;
-    }
-
-    .logo-top span {
-      color: #60a5fa;
-    }
-
-    .page-title {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .page-title h1 {
-      font-size: 2.2rem;
-      margin-bottom: 8px;
-    }
-
-    .page-title p {
-      color: #cbd5e1;
-      font-size: 1rem;
-    }
-
-    .grid {
-      max-width: 1300px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: rgba(15, 23, 42, 0.95);
-      border-radius: 18px;
-      padding: 20px;
-      border: 1px solid rgba(148, 163, 184, 0.15);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    }
-
-    .card h3 {
-      font-size: 1.2rem;
-      margin-bottom: 12px;
-      color: #fff;
-    }
-
-    .codigo {
-      display: inline-block;
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: #93c5fd;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-weight: bold;
-      margin-bottom: 16px;
-    }
-
-    .field {
-      margin-bottom: 14px;
-    }
-
-    .field label {
-      display: block;
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: #cbd5e1;
-      margin-bottom: 6px;
-    }
-
-    .field input {
       width: 100%;
-      padding: 12px 14px;
-      border: none;
-      border-radius: 10px;
-      outline: none;
-      font-size: 0.95rem;
-      background: #e5e7eb;
-      color: #111827;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
     }
 
-    .field input[type="file"] {
-      padding: 10px;
-      background: transparent;
-      color: #cbd5e1;
-      border: 1px dashed #475569;
-    }
-
-    .video-info {
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 10px;
-      background: rgba(59, 130, 246, 0.08);
-      border: 1px solid rgba(96,165,250,0.2);
-      color: #bfdbfe;
-      font-size: 0.85rem;
-      word-break: break-word;
-      min-height: 45px;
-    }
-
-    .buttons {
+    .player-container {
+      width: 100vw;
+      height: 100vh;
       display: flex;
-      gap: 10px;
-      margin-top: 16px;
-      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      background: #000;
     }
 
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s;
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
     }
 
-    .btn-save {
-      background: #2563eb;
+    .mensagem {
       color: #fff;
-    }
-
-    .btn-save:hover {
-      background: #1d4ed8;
-    }
-
-    .btn-clear {
-      background: #1e293b;
-      color: #e2e8f0;
-      border: 1px solid #334155;
-    }
-
-    .btn-clear:hover {
-      background: #334155;
-    }
-
-    .status {
-      margin-top: 10px;
-      font-size: 0.88rem;
-      color: #86efac;
-      min-height: 18px;
-      font-weight: 600;
-    }
-
-    .info-box {
-      max-width: 1300px;
-      margin: 30px auto 0;
-      background: rgba(15, 23, 42, 0.95);
-      border-radius: 18px;
-      padding: 20px;
-      border: 1px solid rgba(148, 163, 184, 0.15);
-    }
-
-    .info-box h4 {
-      margin-bottom: 10px;
-      font-size: 1.1rem;
-    }
-
-    .info-box p {
-      color: #cbd5e1;
-      line-height: 1.6;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 24px;
+      text-align: center;
+      padding: 24px;
     }
   </style>
 </head>
 <body>
-
-  <div class="logo-top">
-    <h2>Duna <span>Branding</span></h2>
+  <div class="player-container">
+    <video id="videoPlayer" autoplay muted playsinline></video>
   </div>
 
-  <div class="page-title">
-    <h1>Painel de Pastas Fixas</h1>
-    <p>5 códigos fixos para organizar seus estabelecimentos e links de vídeo MP4.</p>
-  </div>
-
-  <div class="grid" id="gridPastas"></div>
-
-  <div class="info-box">
-    <h4>Importante</h4>
-    <p>
-      Aqui você pode renomear a pasta e salvar o link do vídeo MP4.
-      O campo de arquivo local serve apenas para selecionar um vídeo no navegador.
-      Para reprodução real nas TVs, o ideal é usar um link direto do arquivo MP4.
-    </p>
-  </div>
-
-  <script>
-    const pastasFixas = [
-      { codigo: "0001", nomePadrao: "Pasta 1" },
-      { codigo: "0002", nomePadrao: "Pasta 2" },
-      { codigo: "0003", nomePadrao: "Pasta 3" },
-      { codigo: "0004", nomePadrao: "Pasta 4" },
-      { codigo: "0005", nomePadrao: "Pasta 5" }
-    ];
-
-    function carregarDados() {
-      return JSON.parse(localStorage.getItem("dunaPastas")) || {};
-    }
-
-    function salvarDados(dados) {
-      localStorage.setItem("dunaPastas", JSON.stringify(dados));
-    }
-
-    function renderizarPastas() {
-      const grid = document.getElementById("gridPastas");
-      const dados = carregarDados();
-      grid.innerHTML = "";
-
-      pastasFixas.forEach((pasta) => {
-        const item = dados[pasta.codigo] || {};
-        const nome = item.nome || pasta.nomePadrao;
-        const video = item.video || "";
-        const arquivo = item.arquivo || "";
-
-        const card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML = `
-          <h3>${nome}</h3>
-          <div class="codigo">Código fixo: ${pasta.codigo}</div>
-
-          <div class="field">
-            <label>Nome da pasta</label>
-            <input type="text" id="nome-${pasta.codigo}" value="${nome}" placeholder="Digite o nome da pasta">
-          </div>
-
-          <div class="field">
-            <label>Link do vídeo MP4</label>
-            <input type="text" id="video-${pasta.codigo}" value="${video}" placeholder="https://site.com/video.mp4">
-          </div>
-
-          <div class="field">
-            <label>Selecionar vídeo MP4 do computador</label>
-            <input type="file" id="arquivo-${pasta.codigo}" accept="video/mp4">
-          </div>
-
-          <div class="video-info" id="info-${pasta.codigo}">
-            ${
-              video || arquivo
-                ? `<strong>Vídeo salvo:</strong><br>${video ? video : "Arquivo local: " + arquivo}`
-                : "Nenhum vídeo salvo."
-            }
-          </div>
-
-          <div class="buttons">
-            <button class="btn-save" onclick="salvarPasta('${pasta.codigo}')">Salvar</button>
-            <button class="btn-clear" onclick="limparPasta('${pasta.codigo}')">Limpar vídeo</button>
-          </div>
-
-          <div class="status" id="status-${pasta.codigo}"></div>
-        `;
-
-        grid.appendChild(card);
-      });
-    }
-
-    function salvarPasta(codigo) {
-      const dados = carregarDados();
-      const base = pastasFixas.find(p => p.codigo === codigo);
-
-      const nome = document.getElementById(`nome-${codigo}`).value.trim() || base.nomePadrao;
-      const video = document.getElementById(`video-${codigo}`).value.trim();
-      const arquivoInput = document.getElementById(`arquivo-${codigo}`);
-      const arquivo = arquivoInput.files[0] ? arquivoInput.files[0].name : (dados[codigo]?.arquivo || "");
-
-      dados[codigo] = {
-        codigo,
-        nome,
-        video,
-        arquivo
-      };
-
-      salvarDados(dados);
-      renderizarPastas();
-
-      setTimeout(() => {
-        const status = document.getElementById(`status-${codigo}`);
-        if (status) status.textContent = "Salvo com sucesso.";
-      }, 50);
-    }
-
-    function limparPasta(codigo) {
-      const dados = carregarDados();
-
-      if (!dados[codigo]) dados[codigo] = {};
-      dados[codigo].video = "";
-      dados[codigo].arquivo = "";
-
-      salvarDados(dados);
-      renderizarPastas();
-
-      setTimeout(() => {
-        const status = document.getElementById(`status-${codigo}`);
-        if (status) status.textContent = "Vídeo removido.";
-      }, 50);
-    }
-
-    renderizarPastas();
-  </script>
-
+  <script src="player.js"></script>
 </body>
 </html>
