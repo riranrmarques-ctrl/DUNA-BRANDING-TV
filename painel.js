@@ -22,7 +22,10 @@ const nomeAtual = document.getElementById("nomeAtual");
 const videoInput = document.getElementById("videoInput");
 const btnUpload = document.getElementById("btnUpload");
 const btnVoltar = document.getElementById("btnVoltar");
-const playlistLista = document.getElementById("playlistLista");
+const dataInicioInput = document.getElementById("dataInicio");
+const dataFimInput = document.getElementById("dataFim");
+const playlistAtiva = document.getElementById("playlistAtiva");
+const playlistInativa = document.getElementById("playlistInativa");
 
 let codigoSelecionado = null;
 let pontosMap = {};
@@ -34,6 +37,63 @@ function setStatus(texto, tipo = "normal") {
   statusEl.className = "status-box";
   if (tipo === "ok") statusEl.classList.add("ok");
   if (tipo === "erro") statusEl.classList.add("erro");
+}
+
+/* HELPERS */
+function escapeHtml(texto) {
+  return String(texto || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatarData(valor) {
+  if (!valor) return "";
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "";
+  return data.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function normalizarDataInput(valor) {
+  if (!valor) return null;
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return null;
+  return data.toISOString();
+}
+
+function montarLinhaDatas(item) {
+  const postado = formatarData(item.created_at);
+  const encerrado = formatarData(item.data_fim);
+
+  if (postado && encerrado) {
+    return `Postado em: ${postado} • Encerrado em: ${encerrado}`;
+  }
+
+  if (postado) {
+    return `Postado em: ${postado}`;
+  }
+
+  if (encerrado) {
+    return `Encerrado em: ${encerrado}`;
+  }
+
+  return "Sem informações de data";
+}
+
+function itemEstaInativo(item) {
+  if (!item.data_fim) return false;
+  const agora = new Date();
+  const dataFim = new Date(item.data_fim);
+  if (Number.isNaN(dataFim.getTime())) return false;
+  return dataFim < agora;
 }
 
 /* LOGIN */
@@ -59,7 +119,9 @@ async function buscarPontos() {
 
 function renderizarCardsPontos(lista) {
   pontosMap = {};
-  lista.forEach(p => pontosMap[p.codigo] = p);
+  lista.forEach(p => {
+    pontosMap[p.codigo] = p;
+  });
 
   document.querySelectorAll(".card-ponto").forEach(card => {
     const codigo = card.dataset.codigo;
@@ -92,6 +154,13 @@ async function uploadMidia() {
   const codigoLimpo = String(codigoSelecionado || "").trim();
   if (!codigoLimpo) return setStatus("Erro: ponto não selecionado", "erro");
 
+  const dataInicio = normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
+  const dataFim = normalizarDataInput(dataFimInput.value);
+
+  if (dataFim && new Date(dataFim) < new Date(dataInicio)) {
+    return setStatus("A data de encerramento não pode ser menor que a data de início", "erro");
+  }
+
   const ext = file.name.split(".").pop().toLowerCase();
   let tipo = "";
   let urlFinal = "";
@@ -103,6 +172,7 @@ async function uploadMidia() {
       const match = text.match(/URL=(.*)/i);
       urlFinal = match ? match[1].trim() : text.trim();
       tipo = "site";
+      storagePath = `url/${codigoLimpo}/${Date.now()}-${file.name}`;
     } else {
       tipo = ext === "mp4" ? "video" : "imagem";
 
@@ -114,17 +184,23 @@ async function uploadMidia() {
       urlFinal = data.publicUrl;
     }
 
-    await supabaseClient.from(TABELA).insert({
+    const { error } = await supabaseClient.from(TABELA).insert({
       codigo: codigoLimpo,
       nome: file.name,
       video_url: urlFinal,
       storage_path: storagePath,
       ordem: Date.now(),
-      tipo: tipo
+      tipo: tipo,
+      data_inicio: dataInicio,
+      data_fim: dataFim
     });
+
+    if (error) throw error;
 
     setStatus("Enviado com sucesso", "ok");
     videoInput.value = "";
+    dataInicioInput.value = "";
+    dataFimInput.value = "";
     carregarPlaylist();
 
   } catch (e) {
@@ -139,41 +215,102 @@ btnUpload.onclick = uploadMidia;
 async function carregarPlaylist() {
   const codigoLimpo = String(codigoSelecionado || "").trim();
 
-  const { data } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from(TABELA)
     .select("*")
     .eq("codigo", codigoLimpo)
     .order("ordem", { ascending: true });
 
-  if (!data || !data.length) {
-    playlistLista.innerHTML = "<p>Nenhum item</p>";
+  if (error) {
+    playlistAtiva.innerHTML = `<div class="playlist-vazia">Erro ao carregar playlist.</div>`;
+    playlistInativa.innerHTML = `<div class="playlist-vazia">Erro ao carregar playlist.</div>`;
+    console.error(error);
     return;
   }
 
-  playlistLista.innerHTML = data.map((item, index) => `
-    <div class="playlist-item" draggable="true" data-index="${index}" data-id="${item.id}">
-      <div class="playlist-item-topo">
-        <strong contenteditable="true" onblur="renomearItem(${item.id}, this.innerText)">
-          ${item.nome}
-        </strong>
+  const lista = data || [];
+  const ativos = lista.filter(item => !itemEstaInativo(item));
+  const inativos = lista.filter(item => itemEstaInativo(item));
+
+  renderizarPlaylistAtiva(ativos);
+  renderizarPlaylistInativa(inativos);
+}
+
+function renderizarPlaylistAtiva(lista) {
+  if (!lista.length) {
+    playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo.</div>`;
+    return;
+  }
+
+  playlistAtiva.innerHTML = lista.map((item, index) => `
+    <div class="playlist-item playlist-item-ativo" draggable="true" data-index="${index}" data-id="${item.id}">
+      <div class="playlist-item-handle" title="Arrastar">⋮⋮</div>
+
+      <div class="playlist-item-conteudo">
+        <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
+        <div class="playlist-item-info">${escapeHtml(montarLinhaDatas(item))}</div>
       </div>
 
-      <div class="playlist-item-acoes">
-        <button onclick="removerItem(${item.id}, '${item.storage_path || ""}')">Remover</button>
+      <div class="playlist-item-acoes-laterais">
+        <button
+          class="playlist-acao"
+          type="button"
+          title="Renomear"
+          onclick="editarNomeItem(${item.id}, ${JSON.stringify(item.nome || "")})"
+        >✎</button>
+
+        <button
+          class="playlist-acao playlist-acao-danger"
+          type="button"
+          title="Excluir"
+          onclick="removerItem(${item.id}, ${JSON.stringify(item.storage_path || "")})"
+        >🗑</button>
       </div>
     </div>
   `).join("");
 
-  ativarDrag(data);
+  ativarDrag(lista);
+}
+
+function renderizarPlaylistInativa(lista) {
+  if (!lista.length) {
+    playlistInativa.innerHTML = `<div class="playlist-vazia">Nenhum item inativo.</div>`;
+    return;
+  }
+
+  playlistInativa.innerHTML = lista.map(item => `
+    <div class="playlist-item playlist-item-inativo" data-id="${item.id}">
+      <div class="playlist-item-conteudo">
+        <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
+        <div class="playlist-item-info">${escapeHtml(montarLinhaDatas(item))}</div>
+      </div>
+
+      <div class="playlist-item-acoes-laterais">
+        <button
+          class="playlist-acao playlist-acao-return"
+          type="button"
+          title="Retornar para ativa"
+          onclick="reativarItem(${item.id})"
+        >↩</button>
+
+        <button
+          class="playlist-acao playlist-acao-danger"
+          type="button"
+          title="Excluir"
+          onclick="removerItem(${item.id}, ${JSON.stringify(item.storage_path || "")})"
+        >🗑</button>
+      </div>
+    </div>
+  `).join("");
 }
 
 /* DRAG */
 function ativarDrag(lista) {
-  const items = document.querySelectorAll(".playlist-item");
+  const items = playlistAtiva.querySelectorAll('.playlist-item[draggable="true"]');
 
   items.forEach(item => {
     item.addEventListener("dragstart", () => {
-      dragIndex = item.dataset.index;
+      dragIndex = Number(item.dataset.index);
       item.classList.add("dragging");
     });
 
@@ -181,10 +318,13 @@ function ativarDrag(lista) {
       item.classList.remove("dragging");
     });
 
-    item.addEventListener("dragover", e => e.preventDefault());
+    item.addEventListener("dragover", e => {
+      e.preventDefault();
+    });
 
     item.addEventListener("drop", async () => {
-      const targetIndex = item.dataset.index;
+      const targetIndex = Number(item.dataset.index);
+      if (dragIndex === null || dragIndex === targetIndex) return;
 
       const novo = [...lista];
       const movido = novo.splice(dragIndex, 1)[0];
@@ -197,6 +337,7 @@ function ativarDrag(lista) {
           .eq("id", novo[i].id);
       }
 
+      dragIndex = null;
       carregarPlaylist();
     });
   });
@@ -204,9 +345,9 @@ function ativarDrag(lista) {
 
 /* REMOVER */
 async function removerItem(id, path) {
-  if (!confirm("Remover?")) return;
+  if (!confirm("Remover este item?")) return;
 
-  if (path) {
+  if (path && !String(path).startsWith("url/")) {
     await supabaseClient.storage.from(BUCKET).remove([path]);
   }
 
@@ -215,13 +356,39 @@ async function removerItem(id, path) {
 }
 
 /* RENOMEAR */
+async function editarNomeItem(id, nomeAtualItem) {
+  const novoNome = prompt("Novo nome do arquivo:", nomeAtualItem || "");
+  if (!novoNome || !novoNome.trim()) return;
+
+  await renomearItem(id, novoNome.trim());
+}
+
 async function renomearItem(id, nome) {
   await supabaseClient.from(TABELA).update({ nome }).eq("id", id);
   setStatus("Nome atualizado", "ok");
+  carregarPlaylist();
+}
+
+/* RETORNAR PARA ATIVA */
+async function reativarItem(id) {
+  const agora = new Date().toISOString();
+
+  await supabaseClient
+    .from(TABELA)
+    .update({
+      data_inicio: agora,
+      data_fim: null
+    })
+    .eq("id", id);
+
+  setStatus("Item retornou para a playlist ativa", "ok");
+  carregarPlaylist();
 }
 
 window.removerItem = removerItem;
 window.renomearItem = renomearItem;
+window.editarNomeItem = editarNomeItem;
+window.reativarItem = reativarItem;
 
 /* EVENTOS */
 function configurarEventos() {
@@ -230,10 +397,11 @@ function configurarEventos() {
   );
 
   document.querySelectorAll(".btn-editar-nome").forEach(btn =>
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const novo = prompt("Novo nome:");
       if (novo) {
-        supabaseClient.from(TABELA_PONTOS)
+        await supabaseClient
+          .from(TABELA_PONTOS)
           .update({ nome: novo })
           .eq("codigo", btn.dataset.codigo);
         iniciarPainel();
