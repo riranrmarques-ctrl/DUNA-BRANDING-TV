@@ -16,22 +16,19 @@ body {
   overflow: hidden;
 }
 
-/* 🔥 LOGO PROFISSIONAL (TAMANHO IDEAL) */
+/* LOGO */
 .logo-top {
   position: fixed;
-  top: 28px;
-  left: 36px;
+  top: 12px;
+  left: 18px;
   z-index: 30;
 }
 
 .logo-top img {
-  height: 150px; /* 🔥 TAMANHO IDEAL */
+  height: 128px;
   width: auto;
   display: block;
-
   opacity: 0.95;
-
-  /* acabamento premium */
   filter: drop-shadow(0 0 12px rgba(0,0,0,0.6));
 }
 
@@ -192,12 +189,12 @@ video::-webkit-media-controls-enclosure {
 /* RESPONSIVO */
 @media (max-width: 900px) {
   .logo-top {
-    top: 18px;
-    left: 18px;
+    top: 10px;
+    left: 12px;
   }
 
   .logo-top img {
-    height: 100px;
+    height: 88px;
   }
 
   .card {
