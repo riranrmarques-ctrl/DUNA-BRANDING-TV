@@ -1,9 +1,16 @@
-[
-  {
-    "nome": "Ponto Teste",
-    "codigo": "abc123",
-    "videos": [
-      "https://www.w3schools.com/html/mov_bbb.mp4"
+{
+  "loja1": {
+    "nome": "Loja Centro",
+    "playlist": [
+      "https://seudominio.com/videos/video1.mp4",
+      "https://seudominio.com/videos/video2.mp4"
+    ]
+  },
+  "praia": {
+    "nome": "Loja Praia",
+    "playlist": [
+      "https://seudominio.com/videos/praia1.mp4",
+      "https://seudominio.com/videos/praia2.mp4"
     ]
   }
-]
+}
