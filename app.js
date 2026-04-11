@@ -11,6 +11,7 @@ function mostrarMensagem(texto, cor = "#ff6b6b") {
   mensagem.style.color = cor;
 }
 
+// 🔹 Carrega dados salvos nos inputs
 function carregarDadosSalvos() {
   const nomeSalvo = localStorage.getItem("nomeDispositivo") || "";
   const codigoSalvo = localStorage.getItem("codigoAtivo") || "";
@@ -19,21 +20,44 @@ function carregarDadosSalvos() {
   inputCodigo.value = codigoSalvo;
 }
 
+// 🔥 AUTO ENTRADA COM TEMPO (1 MINUTO)
 function autoEntrar() {
   const codigoSalvo = localStorage.getItem("codigoAtivo");
 
   if (codigoSalvo && codigosValidos.includes(codigoSalvo)) {
-    console.log("Código salvo encontrado:", codigoSalvo);
+    let segundos = 60;
 
-    mostrarMensagem("Reconectando automaticamente...", "#86efac");
+    mostrarMensagem("Modo automático ativado", "#86efac");
 
-    setTimeout(() => {
-      window.location.href = `player.html?codigo=${codigoSalvo}`;
+    contadorTexto.classList.remove("hidden");
+    contadorTexto.textContent = `Entrando automaticamente em ${segundos}s...`;
+
+    const intervalo = setInterval(() => {
+      segundos--;
+      contadorTexto.textContent = `Entrando automaticamente em ${segundos}s...`;
+
+      // 🛑 Se usuário interagir, cancela auto entrada
+      if (
+        document.activeElement === inputCodigo ||
+        document.activeElement === inputDispositivo ||
+        inputCodigo.value.trim() !== codigoSalvo
+      ) {
+        clearInterval(intervalo);
+        contadorTexto.textContent = "Auto entrada cancelada.";
+        mostrarMensagem("Você pode alterar o código.", "#facc15");
+        return;
+      }
+
+      // ⏱️ Tempo acabou → entra
+      if (segundos <= 0) {
+        clearInterval(intervalo);
+        window.location.href = `player.html?codigo=${codigoSalvo}`;
+      }
     }, 1000);
   }
 }
 
-// salva automaticamente ao digitar
+// 🔹 Salva automaticamente ao digitar
 inputDispositivo.addEventListener("input", () => {
   localStorage.setItem("nomeDispositivo", inputDispositivo.value.trim());
 });
@@ -42,6 +66,7 @@ inputCodigo.addEventListener("input", () => {
   localStorage.setItem("codigoAtivo", inputCodigo.value.trim());
 });
 
+// 🔹 Submit manual
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
@@ -62,7 +87,7 @@ form.addEventListener("submit", function (e) {
     return;
   }
 
-  // salva dados
+  // 💾 salva dados
   localStorage.setItem("codigoAtivo", codigo);
   localStorage.setItem("nomeDispositivo", dispositivo);
 
@@ -87,7 +112,7 @@ form.addEventListener("submit", function (e) {
 carregarDadosSalvos();
 autoEntrar();
 
-// 🔒 OPCIONAL: resetar acesso
+// 🔒 OPCIONAL: botão reset
 function limparAcesso() {
   localStorage.removeItem("codigoAtivo");
   localStorage.removeItem("nomeDispositivo");
