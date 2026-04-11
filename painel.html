@@ -3,79 +3,182 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Duna TV | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=70">
+  <title>Duna Branding | Painel</title>
+  <link rel="stylesheet" href="painel.css?v=80">
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginBox" class="login-box">
-  <h2>Acesso ao Painel</h2>
-  <input type="password" id="senhaInput" placeholder="Digite o código">
-  <button id="btnLogin">Entrar</button>
-  <p id="loginErro"></p>
-</div>
-
-<!-- PAINEL -->
-<div id="conteudoPainel" style="display:none;">
-
-  <div class="logo-top">
-    <img src="logo.png">
+  <div id="loginBox" class="login-screen">
+    <div class="login-card">
+      <h2>Acesso ao Painel</h2>
+      <input type="password" id="senhaInput" placeholder="Digite o código">
+      <button id="btnLogin" type="button">Entrar</button>
+      <p id="loginErro" class="login-erro"></p>
+    </div>
   </div>
 
-  <div class="header">
-    <h1>Painel de Pontos</h1>
-    <p>Gerencie seus pontos e playlists</p>
-  </div>
+  <div id="conteudoPainel" style="display:none;">
+    <div class="logo-top">
+      <img src="logo.png" alt="Duna TV">
+    </div>
 
-  <div id="status" class="status-box">Painel Ativo</div>
+    <div class="painel-shell">
+      <div class="painel-header">
+        <h1>Painel de Pontos</h1>
+        <p>Gerencie seus pontos e playlists.</p>
+      </div>
 
-  <div id="listaPontos" class="grid">
-
-    <!-- CARD -->
-    <script>
-      const CODIGOS = [
-        "H4E9L2A","N7H3E8L","E2A6H9N","L8E1N5A",
-        "H6N4E7A","A9L3E2H","E5H8A1N","N2E7L4A"
-      ];
-
-      document.write(CODIGOS.map(c => `
-        <div class="card-ponto" data-codigo="${c}">
-          
-          <div class="topo">
-            <span class="nome">Carregando...</span>
-            <button class="edit" data-codigo="${c}">✏</button>
+      <div id="listaPontos" class="pontos-box">
+        <div class="card-ponto" data-codigo="H4E9L2A">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="H4E9L2A" title="Renomear ponto" type="button">✎</button>
           </div>
-
-          <div class="codigo-linha">
-            <span class="codigo">${c}</span>
-            <button class="copy" data-codigo="${c}">📋</button>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">H4E9L2A</div>
+            <button class="btn-copiar" data-codigo="H4E9L2A" title="Copiar código" type="button">⧉</button>
           </div>
-
-          <button class="abrir" data-codigo="${c}">Abrir pasta</button>
-
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="H4E9L2A" type="button">Abrir pasta</button>
+          </div>
         </div>
-      `).join(""));
-    </script>
 
+        <div class="card-ponto" data-codigo="N7H3E8L">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="N7H3E8L" title="Renomear ponto" type="button">✎</button>
+          </div>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">N7H3E8L</div>
+            <button class="btn-copiar" data-codigo="N7H3E8L" title="Copiar código" type="button">⧉</button>
+          </div>
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="N7H3E8L" type="button">Abrir pasta</button>
+          </div>
+        </div>
+
+        <div class="card-ponto" data-codigo="E2A6H9N">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="E2A6H9N" title="Renomear ponto" type="button">✎</button>
+          </div>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">E2A6H9N</div>
+            <button class="btn-copiar" data-codigo="E2A6H9N" title="Copiar código" type="button">⧉</button>
+          </div>
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="E2A6H9N" type="button">Abrir pasta</button>
+          </div>
+        </div>
+
+        <div class="card-ponto" data-codigo="L8E1N5A">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="L8E1N5A" title="Renomear ponto" type="button">✎</button>
+          </div>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">L8E1N5A</div>
+            <button class="btn-copiar" data-codigo="L8E1N5A" title="Copiar código" type="button">⧉</button>
+          </div>
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="L8E1N5A" type="button">Abrir pasta</button>
+          </div>
+        </div>
+
+        <div class="card-ponto" data-codigo="H6N4E7A">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="H6N4E7A" title="Renomear ponto" type="button">✎</button>
+          </div>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">H6N4E7A</div>
+            <button class="btn-copiar" data-codigo="H6N4E7A" title="Copiar código" type="button">⧉</button>
+          </div>
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="H6N4E7A" type="button">Abrir pasta</button>
+          </div>
+        </div>
+
+        <div class="card-ponto" data-codigo="A9L3E2H">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="A9L3E2H" title="Renomear ponto" type="button">✎</button>
+          </div>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">A9L3E2H</div>
+            <button class="btn-copiar" data-codigo="A9L3E2H" title="Copiar código" type="button">⧉</button>
+          </div>
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="A9L3E2H" type="button">Abrir pasta</button>
+          </div>
+        </div>
+
+        <div class="card-ponto" data-codigo="E5H8A1N">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="E5H8A1N" title="Renomear ponto" type="button">✎</button>
+          </div>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">E5H8A1N</div>
+            <button class="btn-copiar" data-codigo="E5H8A1N" title="Copiar código" type="button">⧉</button>
+          </div>
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="E5H8A1N" type="button">Abrir pasta</button>
+          </div>
+        </div>
+
+        <div class="card-ponto" data-codigo="N2E7L4A">
+          <div class="card-topo">
+            <div class="card-nome">Carregando...</div>
+            <button class="btn-editar-nome" data-codigo="N2E7L4A" title="Renomear ponto" type="button">✎</button>
+          </div>
+          <div class="card-codigo-linha">
+            <div class="card-codigo">N2E7L4A</div>
+            <button class="btn-copiar" data-codigo="N2E7L4A" title="Copiar código" type="button">⧉</button>
+          </div>
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="N2E7L4A" type="button">Abrir pasta</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+        <div class="playlist-header">
+          <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
+          <p id="nomeAtual"></p>
+        </div>
+
+        <div class="painel-topo">
+          <div class="campo campo-arquivo">
+            <label for="videoInput">Escolha o vídeo</label>
+            <input type="file" id="videoInput" accept="video/*">
+          </div>
+
+          <div class="campo campo-botao">
+            <label>&nbsp;</label>
+            <button id="btnUpload" type="button">Enviar vídeo</button>
+          </div>
+
+          <div class="campo campo-botao">
+            <label>&nbsp;</label>
+            <button id="btnVoltar" type="button">Voltar</button>
+          </div>
+        </div>
+
+        <div id="playlistLista" class="playlist-lista">
+          <div class="playlist-item">
+            <div class="playlist-item-topo">
+              <strong>Nenhum vídeo carregado.</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="status" class="status-box">Painel Ativo</div>
   </div>
 
-  <!-- PLAYLIST -->
-  <div id="pontoDetalhe" style="display:none;">
-    <h2>Pasta <span id="codigoAtual"></span></h2>
-    <p id="nomeAtual"></p>
-
-    <input type="file" id="videoInput">
-    <button id="btnUpload">Enviar</button>
-    <button id="btnVoltar">Voltar</button>
-
-    <div id="playlistLista"></div>
-  </div>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="painel.js?v=70"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="painel.js?v=80"></script>
 </body>
 </html>
