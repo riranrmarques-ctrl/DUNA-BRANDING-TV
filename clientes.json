@@ -1,16 +1,22 @@
 {
-  "loja1": {
+  "loja-centro": {
     "nome": "Loja Centro",
     "playlist": [
-      "https://seudominio.com/videos/video1.mp4",
-      "https://seudominio.com/videos/video2.mp4"
+      "https://seudominio.com/videos/centro1.mp4",
+      "https://seudominio.com/videos/centro2.mp4"
     ]
   },
-  "praia": {
-    "nome": "Loja Praia",
+  "academia-orla": {
+    "nome": "Academia Orla",
     "playlist": [
-      "https://seudominio.com/videos/praia1.mp4",
-      "https://seudominio.com/videos/praia2.mp4"
+      "https://seudominio.com/videos/orla1.mp4",
+      "https://seudominio.com/videos/orla2.mp4"
+    ]
+  },
+  "farmacia-praia": {
+    "nome": "Farmácia Praia",
+    "playlist": [
+      "https://seudominio.com/videos/praia1.mp4"
     ]
   }
 }
