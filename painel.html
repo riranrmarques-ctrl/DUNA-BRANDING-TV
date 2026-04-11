@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=91">
+  <link rel="stylesheet" href="painel.css?v=92">
 </head>
 <body>
 
@@ -166,20 +166,40 @@
                 <input type="file" id="videoInput" accept=".mp4,.jpg,.txt">
                 <button id="btnUpload" type="button">Adicionar</button>
               </div>
+
+              <div class="upload-datas">
+                <div class="upload-data-campo">
+                  <label for="dataInicio">Início</label>
+                  <input type="datetime-local" id="dataInicio">
+                </div>
+
+                <div class="upload-data-campo">
+                  <label for="dataFim">Encerramento</label>
+                  <input type="datetime-local" id="dataFim">
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="playlist-area">
             <div class="playlist-area-topo">
               <h3>Playlist</h3>
-              <p>Arraste para reordenar. Use os botões para renomear ou remover cada item.</p>
+              <p>Ativos podem ser arrastados. Inativos podem ser retornados.</p>
             </div>
 
-            <div id="playlistLista" class="playlist-lista">
-              <div class="playlist-item">
-                <div class="playlist-item-topo">
-                  <strong>Nenhum item carregado.</strong>
+            <div class="playlist-duas-colunas">
+              <div class="playlist-secao playlist-secao-ativa">
+                <div class="playlist-secao-topo">
+                  <h4>Playlist ativa</h4>
                 </div>
+                <div id="playlistAtiva" class="playlist-lista"></div>
+              </div>
+
+              <div class="playlist-secao playlist-secao-inativa">
+                <div class="playlist-secao-topo">
+                  <h4>Playlist inativa</h4>
+                </div>
+                <div id="playlistInativa" class="playlist-lista"></div>
               </div>
             </div>
           </div>
@@ -191,6 +211,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=91"></script>
+  <script src="painel.js?v=92"></script>
 </body>
 </html>
