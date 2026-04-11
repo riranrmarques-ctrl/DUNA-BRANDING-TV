@@ -1,208 +1,214 @@
-const form = document.getElementById("codeForm");
-const codigoInput = document.getElementById("codigo");
-const dispositivoInput = document.getElementById("dispositivo");
-const mensagem = document.getElementById("mensagem");
-const contadorTexto = document.getElementById("contadorTexto");
-
-let countdown = 30;
-let countdownInterval = null;
-let codigosValidos = null;
-
-/* CARREGA DADOS SALVOS */
-const codigoSalvo = localStorage.getItem("codigoEstabelecimento") || "";
-const dispositivoSalvo = localStorage.getItem("nomeDispositivo") || "";
-
-codigoInput.value = codigoSalvo;
-dispositivoInput.value = dispositivoSalvo;
-
-/* SALVA AUTOMATICAMENTE */
-function salvarDados() {
-  localStorage.setItem("codigoEstabelecimento", codigoInput.value.trim());
-  localStorage.setItem("nomeDispositivo", dispositivoInput.value.trim());
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* CARREGA CLIENTES UMA VEZ */
-async function carregarCodigos() {
-  if (codigosValidos) return codigosValidos;
-
-  try {
-    const resposta = await fetch("clientes.json", { cache: "no-store" });
-
-    if (!resposta.ok) {
-      throw new Error("Erro ao carregar clientes.json");
-    }
-
-    const dados = await resposta.json();
-
-    if (Array.isArray(dados)) {
-      codigosValidos = dados
-        .map(item => String(item.codigo || "").trim().toLowerCase())
-        .filter(Boolean);
-      return codigosValidos;
-    }
-
-    if (typeof dados === "object" && dados !== null) {
-      codigosValidos = Object.keys(dados)
-        .map(item => String(item).trim().toLowerCase())
-        .filter(Boolean);
-      return codigosValidos;
-    }
-
-    codigosValidos = [];
-    return codigosValidos;
-  } catch (erro) {
-    console.error("Erro ao carregar códigos:", erro);
-    codigosValidos = [];
-    return codigosValidos;
-  }
+html, body {
+  width: 100%;
+  height: 100%;
 }
 
-/* VERIFICA SE O CÓDIGO EXISTE */
-async function codigoExiste(codigo) {
-  const lista = await carregarCodigos();
-  return lista.includes(codigo.trim().toLowerCase());
+body {
+  font-family: Arial, sans-serif;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
 }
 
-/* CONTADOR */
-function pararContador() {
-  clearInterval(countdownInterval);
-  countdownInterval = null;
-  countdown = 30;
-  contadorTexto.textContent = "";
-  contadorTexto.classList.add("hidden");
+/* LOGO */
+.logo-top {
+  position: fixed;
+  top: 8px;
+  left: 14px;
+  z-index: 30;
 }
 
-function iniciarContador() {
-  clearInterval(countdownInterval);
-  countdown = 30;
-
-  contadorTexto.classList.remove("hidden");
-  contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
-
-  countdownInterval = setInterval(async () => {
-    countdown--;
-    contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
-
-    if (countdown <= 0) {
-      clearInterval(countdownInterval);
-      countdownInterval = null;
-      await entrarNoPlayer();
-    }
-  }, 1000);
+.logo-top img {
+  height: 118px;
+  width: auto;
+  display: block;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.6));
 }
 
-/* DECIDE SE MOSTRA CONTAGEM */
-async function atualizarEstadoContador() {
-  const codigo = codigoInput.value.trim();
-
-  if (!codigo) {
-    pararContador();
-    return;
-  }
-
-  const existe = await codigoExiste(codigo);
-
-  if (existe) {
-    if (!countdownInterval) {
-      iniciarContador();
-    }
-  } else {
-    pararContador();
-  }
+/* CENTRO */
+.center-box {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
-/* VALIDAÇÃO EM TEMPO REAL */
-async function validarCodigoAoDigitar() {
-  const codigo = codigoInput.value.trim();
-
-  if (!codigo) {
-    mensagem.textContent = "";
-    pararContador();
-    return;
-  }
-
-  const existe = await codigoExiste(codigo);
-
-  if (existe) {
-    mensagem.textContent = "";
-    if (!countdownInterval) {
-      iniciarContador();
-    }
-  } else {
-    mensagem.textContent = "Código incorreto!";
-    pararContador();
-  }
+/* CARD */
+.card {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(18, 18, 18, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 28px;
+  padding: 34px;
+  text-align: left;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
 }
 
-/* ENTRA NO PLAYER */
-async function entrarNoPlayer() {
-  const codigo = codigoInput.value.trim();
-  const dispositivo = dispositivoInput.value.trim();
-
-  if (!codigo) {
-    mensagem.textContent = "Informe o código do estabelecimento.";
-    pararContador();
-    return;
-  }
-
-  localStorage.setItem("codigoEstabelecimento", codigo);
-  localStorage.setItem("nomeDispositivo", dispositivo);
-
-  const existe = await codigoExiste(codigo);
-
-  if (!existe) {
-    mensagem.textContent = "Código incorreto!";
-    pararContador();
-    return;
-  }
-
-  mensagem.textContent = "";
-  window.location.href = `player.html?codigo=${encodeURIComponent(codigo)}`;
+h1 {
+  font-size: 32px;
+  line-height: 1.1;
+  margin-bottom: 8px;
 }
 
-/* SUBMIT */
-form.addEventListener("submit", async function (e) {
-  e.preventDefault();
-  await entrarNoPlayer();
-});
-
-/* INPUT CÓDIGO */
-codigoInput.addEventListener("input", async () => {
-  salvarDados();
-  await validarCodigoAoDigitar();
-});
-
-/* INPUT NOME DO DISPOSITIVO */
-dispositivoInput.addEventListener("input", () => {
-  salvarDados();
-});
-
-/* AO SAIR DO CAMPO */
-codigoInput.addEventListener("blur", async () => {
-  await validarCodigoAoDigitar();
-});
-
-/* INÍCIO */
-async function iniciarSistema() {
-  await carregarCodigos();
-
-  const codigoAtual = codigoInput.value.trim();
-
-  if (!codigoAtual) {
-    pararContador();
-    mensagem.textContent = "";
-    return;
-  }
-
-  const existe = await codigoExiste(codigoAtual);
-
-  if (existe) {
-    mensagem.textContent = "";
-    iniciarContador();
-  } else {
-    mensagem.textContent = "Código incorreto!";
-    pararContador();
-  }
+.sub {
+  color: #b7b7b7;
+  margin-bottom: 22px;
+  font-size: 15px;
 }
 
-iniciarSistema();
+/* FORM */
+#codeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+input {
+  width: 100%;
+  height: 58px;
+  border-radius: 16px;
+  border: 1px solid #2f2f2f;
+  background: #0d0d0d;
+  color: #fff;
+  padding: 0 18px;
+  font-size: 17px;
+}
+
+input::placeholder {
+  color: #8f8f8f;
+}
+
+input:focus {
+  border-color: #5f5f5f;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  height: 58px;
+  border-radius: 16px;
+  border: none;
+  background: #fff;
+  color: #000;
+  font-weight: 700;
+  font-size: 18px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.92;
+}
+
+.mensagem {
+  margin-top: 12px;
+  min-height: 22px;
+  color: #ff7b7b;
+  font-size: 15px;
+}
+
+.contador {
+  margin-top: 8px;
+  color: #d0d0d0;
+  font-size: 15px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* RODAPÉ */
+.footer {
+  position: fixed;
+  bottom: 30px;
+  right: 40px;
+  text-align: right;
+  color: #b3b3b3;
+  font-size: 14px;
+  line-height: 1.5;
+  z-index: 30;
+}
+
+/* PLAYER */
+.player-body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+  cursor: none;
+}
+
+.player-stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+}
+
+#player {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  background: #000;
+  display: block;
+}
+
+/* Esconde controles nativos */
+video::-webkit-media-controls {
+  display: none !important;
+}
+
+video::-webkit-media-controls-enclosure {
+  display: none !important;
+}
+
+.loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  color: #fff;
+  font-size: 28px;
+  z-index: 20;
+  text-align: center;
+  padding: 20px;
+}
+
+/* RESPONSIVO */
+@media (max-width: 900px) {
+  .logo-top {
+    top: 8px;
+    left: 10px;
+  }
+
+  .logo-top img {
+    height: 82px;
+  }
+
+  .card {
+    max-width: 92%;
+    padding: 24px;
+  }
+
+  .footer {
+    right: 20px;
+    bottom: 20px;
+    font-size: 12px;
+  }
+}
