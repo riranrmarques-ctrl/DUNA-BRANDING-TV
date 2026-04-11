@@ -11,6 +11,14 @@ function mostrarMensagem(texto, cor = "#ff6b6b") {
   mensagem.style.color = cor;
 }
 
+function carregarDadosSalvos() {
+  const nomeSalvo = localStorage.getItem("nomeDispositivo") || "";
+  const codigoSalvo = localStorage.getItem("codigoAtivo") || "";
+
+  inputDispositivo.value = nomeSalvo;
+  inputCodigo.value = codigoSalvo;
+}
+
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
@@ -31,11 +39,9 @@ form.addEventListener("submit", function (e) {
     return;
   }
 
+  // salva sempre, mesmo se o nome estiver vazio
   localStorage.setItem("codigoAtivo", codigo);
-
-  if (dispositivo) {
-    localStorage.setItem("nomeDispositivo", dispositivo);
-  }
+  localStorage.setItem("nomeDispositivo", dispositivo);
 
   mostrarMensagem("Código válido. Redirecionando...", "#86efac");
 
@@ -53,3 +59,6 @@ form.addEventListener("submit", function (e) {
     }
   }, 1000);
 });
+
+// carrega os dados assim que a página abre
+carregarDadosSalvos();
