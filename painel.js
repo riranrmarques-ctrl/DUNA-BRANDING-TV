@@ -4,7 +4,15 @@ const BUCKET = "videos";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 
+const SENHA_PAINEL = "@Helena";
+
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const loginBox = document.getElementById("loginBox");
+const conteudoPainel = document.getElementById("conteudoPainel");
+const senhaInput = document.getElementById("senhaInput");
+const btnLogin = document.getElementById("btnLogin");
+const loginErro = document.getElementById("loginErro");
 
 const statusEl = document.getElementById("status");
 const listaPontos = document.getElementById("listaPontos");
@@ -40,6 +48,35 @@ function escaparHtml(texto) {
 
 function pegarCodigoAtual() {
   return codigoSelecionado;
+}
+
+function validarLogin() {
+  const senha = (senhaInput?.value || "").trim();
+
+  if (senha !== SENHA_PAINEL) {
+    if (loginErro) loginErro.textContent = "Código inválido.";
+    return;
+  }
+
+  if (loginErro) loginErro.textContent = "";
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
+
+  iniciarPainel();
+}
+
+function configurarLogin() {
+  if (btnLogin) {
+    btnLogin.addEventListener("click", validarLogin);
+  }
+
+  if (senhaInput) {
+    senhaInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        validarLogin();
+      }
+    });
+  }
 }
 
 async function buscarPontos() {
@@ -439,4 +476,4 @@ async function iniciarPainel() {
   }
 }
 
-iniciarPainel();
+configurarLogin();
