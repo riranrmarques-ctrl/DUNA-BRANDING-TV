@@ -8,9 +8,10 @@
 </head>
 <body class="player-body">
   <div id="loading" class="loading">Carregando playlist...</div>
-  <div id="erro" class="loading hidden"></div>
 
-  <video id="player" autoplay muted playsinline></video>
+  <main class="player-stage">
+    <video id="player" autoplay muted playsinline preload="auto"></video>
+  </main>
 
   <script src="player.js"></script>
 </body>
