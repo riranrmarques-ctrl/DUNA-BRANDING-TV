@@ -31,6 +31,7 @@
       height: 100%;
       object-fit: cover;
       background: #000;
+      display: none;
     }
 
     .erro {
@@ -42,42 +43,75 @@
       text-align: center;
       color: #fff;
       padding: 30px;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       background: #000;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .debug {
+      font-size: 0.9rem;
+      color: #93c5fd;
+      word-break: break-word;
+      max-width: 90%;
     }
   </style>
 </head>
 <body>
   <div class="player-wrap">
-    <video id="videoPlayer" autoplay muted loop playsinline></video>
-    <div id="erro" class="erro"></div>
+    <video id="videoPlayer" autoplay muted loop playsinline controls></video>
+    <div id="erro" class="erro">
+      <div id="erroTexto"></div>
+      <div id="debug" class="debug"></div>
+    </div>
   </div>
 
   <script>
     const video = document.getElementById("videoPlayer");
     const erro = document.getElementById("erro");
+    const erroTexto = document.getElementById("erroTexto");
+    const debug = document.getElementById("debug");
 
     const codigoAtivo = localStorage.getItem("codigoAtivo");
     const dados = JSON.parse(localStorage.getItem("dunaPastas")) || {};
 
-    function mostrarErro(texto) {
+    function mostrarErro(texto, detalhe = "") {
       erro.style.display = "flex";
-      erro.textContent = texto;
+      erroTexto.textContent = texto;
+      debug.textContent = detalhe;
       video.style.display = "none";
     }
 
     if (!codigoAtivo) {
       mostrarErro("Nenhum código ativo encontrado.");
     } else if (!dados[codigoAtivo]) {
-      mostrarErro("Código não encontrado.");
+      mostrarErro("Código não encontrado.", "Código usado: " + codigoAtivo);
     } else if (!dados[codigoAtivo].video || !dados[codigoAtivo].video.trim()) {
-      mostrarErro("Nenhum vídeo cadastrado para este código.");
+      mostrarErro("Nenhum link cadastrado para este código.", "Código usado: " + codigoAtivo);
     } else {
-      video.src = dados[codigoAtivo].video;
+      const linkSalvo = dados[codigoAtivo].video.trim();
+      const linkLower = linkSalvo.toLowerCase();
 
-      video.play().catch(() => {
-        mostrarErro("Não foi possível reproduzir o vídeo.");
-      });
+      debug.textContent = "Link carregado: " + linkSalvo;
+
+      if (
+        linkLower.includes("painel.html") ||
+        linkLower.includes("player.html")
+      ) {
+        mostrarErro(
+          "O link salvo está apontando para uma página do sistema.",
+          "Use um link direto .mp4 ou uma página de conteúdo real."
+        );
+      } else if (linkLower.endsWith(".mp4")) {
+        video.style.display = "block";
+        video.src = linkSalvo;
+
+        video.play().catch(() => {
+          mostrarErro("Não foi possível reproduzir o vídeo.", "Link carregado: " + linkSalvo);
+        });
+      } else {
+        window.location.href = linkSalvo;
+      }
     }
   </script>
 </body>
