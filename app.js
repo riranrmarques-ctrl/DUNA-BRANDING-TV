@@ -6,7 +6,7 @@ const contadorTexto = document.getElementById("contadorTexto");
 
 let countdown = 30;
 let countdownInterval = null;
-let codigosValidos = null;
+let clientesData = null;
 
 /* CHAVES DE STORAGE */
 const STORAGE_CODIGO = "codigoEstabelecimento";
@@ -62,12 +62,14 @@ function iniciarContador() {
   }, 1000);
 }
 
-/* CARREGA CÓDIGOS */
-async function carregarCodigos() {
-  if (codigosValidos) return codigosValidos;
+/* CARREGA CLIENTES */
+async function carregarClientes() {
+  if (clientesData) return clientesData;
 
   try {
-    const resposta = await fetch("clientes.json", { cache: "no-store" });
+    const resposta = await fetch(`clientes.json?v=${Date.now()}`, {
+      cache: "no-store"
+    });
 
     if (!resposta.ok) {
       throw new Error("Erro ao carregar clientes.json");
@@ -75,36 +77,26 @@ async function carregarCodigos() {
 
     const dados = await resposta.json();
 
-    if (Array.isArray(dados)) {
-      codigosValidos = dados
-        .map(item => normalizarCodigo(item.codigo))
-        .filter(Boolean);
-
-      return codigosValidos;
-    }
-
     if (typeof dados === "object" && dados !== null) {
-      codigosValidos = Object.keys(dados)
-        .map(chave => normalizarCodigo(chave))
-        .filter(Boolean);
-
-      return codigosValidos;
+      clientesData = dados;
+      return clientesData;
     }
 
-    codigosValidos = [];
-    return codigosValidos;
+    clientesData = {};
+    return clientesData;
   } catch (erro) {
-    console.error("Erro ao carregar códigos:", erro);
-    codigosValidos = [];
-    return codigosValidos;
+    console.error("Erro ao carregar clientes:", erro);
+    clientesData = {};
+    return clientesData;
   }
 }
 
 /* VERIFICA CÓDIGO */
 async function codigoExiste(codigo) {
   const codigoNormalizado = normalizarCodigo(codigo);
-  const lista = await carregarCodigos();
-  return lista.includes(codigoNormalizado);
+  const clientes = await carregarClientes();
+
+  return Object.prototype.hasOwnProperty.call(clientes, codigoNormalizado);
 }
 
 /* ENTRAR */
@@ -180,7 +172,7 @@ codigoInput.addEventListener("blur", async () => {
 /* INÍCIO */
 async function iniciarSistema() {
   pararContador();
-  await carregarCodigos();
+  await carregarClientes();
 
   if (!historicoLoginValido) {
     return;
