@@ -2,20 +2,26 @@ const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const BUCKET = "videos";
 const TABELA = "playlists";
+const TABELA_PONTOS = "pontos";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const codigoSelect = document.getElementById("codigoSelect");
+const statusEl = document.getElementById("status");
+const listaPontos = document.getElementById("listaPontos");
+const pontoDetalhe = document.getElementById("pontoDetalhe");
 const codigoAtual = document.getElementById("codigoAtual");
+const nomeAtual = document.getElementById("nomeAtual");
 const videoInput = document.getElementById("videoInput");
 const btnUpload = document.getElementById("btnUpload");
-const statusEl = document.getElementById("status");
+const btnVoltar = document.getElementById("btnVoltar");
 const playlistLista = document.getElementById("playlistLista");
+
+let codigoSelecionado = null;
+let pontosMap = {};
 
 function setStatus(texto, tipo = "normal") {
   statusEl.textContent = texto;
   statusEl.className = "status-box";
-
   if (tipo === "erro") statusEl.classList.add("erro");
   if (tipo === "ok") statusEl.classList.add("ok");
 }
@@ -30,7 +36,17 @@ function escaparHtml(texto) {
 }
 
 function pegarCodigoAtual() {
-  return codigoSelect.value;
+  return codigoSelecionado;
+}
+
+async function buscarPontos() {
+  const { data, error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .select("*")
+    .order("codigo", { ascending: true });
+
+  if (error) throw error;
+  return data || [];
 }
 
 async function buscarPlaylist(codigo) {
@@ -41,16 +57,12 @@ async function buscarPlaylist(codigo) {
     .order("ordem", { ascending: true })
     .order("id", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data || [];
 }
 
 async function pegarProximaOrdem(codigo) {
   const lista = await buscarPlaylist(codigo);
-
   if (!lista.length) return 0;
 
   const maior = Math.max(...lista.map(item => Number(item.ordem) || 0));
@@ -82,9 +94,31 @@ function montarItemHtml(item, indice, total) {
   `;
 }
 
+function renderizarCardsPontos(lista) {
+  pontosMap = {};
+
+  lista.forEach(ponto => {
+    pontosMap[ponto.codigo] = ponto;
+  });
+
+  document.querySelectorAll(".card-ponto").forEach(card => {
+    const codigo = card.dataset.codigo;
+    const nomeEl = card.querySelector(".card-nome");
+
+    if (pontosMap[codigo]) {
+      nomeEl.textContent = pontosMap[codigo].nome || `Ponto ${codigo}`;
+    } else {
+      nomeEl.textContent = `Ponto ${codigo}`;
+    }
+  });
+}
+
 async function renderizarPlaylist() {
   const codigo = pegarCodigoAtual();
+  if (!codigo) return;
+
   codigoAtual.textContent = codigo;
+  nomeAtual.textContent = pontosMap[codigo]?.nome || `Ponto ${codigo}`;
   playlistLista.innerHTML = "<p>Carregando playlist...</p>";
 
   try {
@@ -105,9 +139,33 @@ async function renderizarPlaylist() {
   }
 }
 
+function abrirPonto(codigo) {
+  codigoSelecionado = codigo;
+  codigoAtual.textContent = codigo;
+  nomeAtual.textContent = pontosMap[codigo]?.nome || `Ponto ${codigo}`;
+
+  listaPontos.style.display = "none";
+  pontoDetalhe.style.display = "block";
+
+  setStatus(`Ponto ${codigo} aberto.`, "ok");
+  renderizarPlaylist();
+}
+
+function voltarParaPontos() {
+  codigoSelecionado = null;
+  pontoDetalhe.style.display = "none";
+  listaPontos.style.display = "grid";
+  setStatus("Painel pronto.", "ok");
+}
+
 async function uploadVideo() {
   const codigo = pegarCodigoAtual();
   const arquivo = videoInput.files[0];
+
+  if (!codigo) {
+    setStatus("Abra um ponto antes de enviar vídeo.", "erro");
+    return;
+  }
 
   if (!arquivo) {
     setStatus("Selecione um vídeo antes de enviar.", "erro");
@@ -135,9 +193,7 @@ async function uploadVideo() {
         upsert: false
       });
 
-    if (uploadError) {
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
 
     const { data: publicData } = supabaseClient
       .storage
@@ -157,9 +213,7 @@ async function uploadVideo() {
         ordem: ordem
       });
 
-    if (insertError) {
-      throw insertError;
-    }
+    if (insertError) throw insertError;
 
     videoInput.value = "";
     setStatus("Vídeo enviado com sucesso.", "ok");
@@ -184,18 +238,14 @@ async function removerVideo(id, storagePath) {
       .from(BUCKET)
       .remove([storagePath]);
 
-    if (storageError) {
-      throw storageError;
-    }
+    if (storageError) throw storageError;
 
     const { error: deleteError } = await supabaseClient
       .from(TABELA)
       .delete()
       .eq("id", id);
 
-    if (deleteError) {
-      throw deleteError;
-    }
+    if (deleteError) throw deleteError;
 
     await reordenarCodigo(pegarCodigoAtual());
     setStatus("Vídeo removido com sucesso.", "ok");
@@ -215,7 +265,6 @@ async function moverVideo(id, direcao) {
     if (indiceAtualLista === -1) return;
 
     const novoIndice = direcao === "up" ? indiceAtualLista - 1 : indiceAtualLista + 1;
-
     if (novoIndice < 0 || novoIndice >= lista.length) return;
 
     const atual = lista[indiceAtualLista];
@@ -275,24 +324,41 @@ function copiarLinkPlayer(codigo) {
     });
 }
 
-codigoSelect.addEventListener("change", async () => {
-  codigoAtual.textContent = pegarCodigoAtual();
-  setStatus("Carregando playlist...");
-  await renderizarPlaylist();
-  setStatus("Playlist carregada.", "ok");
-});
+function configurarEventos() {
+  document.querySelectorAll(".btn-copiar").forEach(btn => {
+    btn.addEventListener("click", () => {
+      copiarLinkPlayer(btn.dataset.codigo);
+    });
+  });
 
-btnUpload.addEventListener("click", uploadVideo);
+  document.querySelectorAll(".btn-abrir").forEach(btn => {
+    btn.addEventListener("click", () => {
+      abrirPonto(btn.dataset.codigo);
+    });
+  });
+
+  btnUpload.addEventListener("click", uploadVideo);
+  btnVoltar.addEventListener("click", voltarParaPontos);
+}
 
 window.removerVideo = removerVideo;
 window.moverVideo = moverVideo;
 window.copiarLinkPlayer = copiarLinkPlayer;
 
 async function iniciarPainel() {
-  codigoAtual.textContent = pegarCodigoAtual();
-  setStatus("Carregando playlist inicial...");
-  await renderizarPlaylist();
-  setStatus("Painel pronto.", "ok");
+  try {
+    setStatus("Carregando pontos...");
+
+    configurarEventos();
+
+    const pontos = await buscarPontos();
+    renderizarCardsPontos(pontos);
+
+    setStatus("Painel pronto.", "ok");
+  } catch (error) {
+    console.error("Erro ao iniciar painel:", error);
+    setStatus("Erro ao carregar pontos: " + error.message, "erro");
+  }
 }
 
 iniciarPainel();
