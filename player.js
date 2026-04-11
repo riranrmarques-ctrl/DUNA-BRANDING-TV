@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const TABELA = "playlists";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const video = document.getElementById("videoPlayer");
 
@@ -67,7 +67,7 @@ function listasIguais(listaA, listaB) {
 }
 
 async function buscarPlaylist(codigo) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from(TABELA)
     .select("id, nome, video_url, ordem, codigo")
     .eq("codigo", codigo)
@@ -126,10 +126,6 @@ function proximoVideo() {
   tocarIndice(indiceAtual);
 }
 
-function encontrarIndicePorId(id) {
-  return playlistAtual.findIndex(item => item.id === id);
-}
-
 async function aplicarPlaylistNova(forcarTroca = false) {
   try {
     const novaLista = await buscarPlaylist(codigoAtual);
@@ -142,7 +138,9 @@ async function aplicarPlaylistNova(forcarTroca = false) {
     }
 
     const idAtual = playlistAtual[indiceAtual]?.id ?? null;
-    const indiceCorrespondente = idAtual ? novaLista.findIndex(item => item.id === idAtual) : 0;
+    const indiceCorrespondente = idAtual
+      ? novaLista.findIndex(item => item.id === idAtual)
+      : 0;
 
     const mudou = !listasIguais(playlistAtual, novaLista);
 
@@ -168,6 +166,7 @@ async function aplicarPlaylistNova(forcarTroca = false) {
     }
   } catch (erro) {
     console.error("Erro ao atualizar playlist:", erro);
+    mostrarMensagem("Erro ao carregar a playlist.");
   }
 }
 
@@ -184,11 +183,11 @@ function iniciarEventosDoVideo() {
 
 function iniciarRealtime() {
   if (realtimeChannel) {
-    supabase.removeChannel(realtimeChannel);
+    supabaseClient.removeChannel(realtimeChannel);
     realtimeChannel = null;
   }
 
-  realtimeChannel = supabase
+  realtimeChannel = supabaseClient
     .channel(`playlist-${codigoAtual}`)
     .on(
       "postgres_changes",
@@ -247,7 +246,7 @@ async function carregarPlaylist() {
 
 window.addEventListener("beforeunload", () => {
   if (realtimeChannel) {
-    supabase.removeChannel(realtimeChannel);
+    supabaseClient.removeChannel(realtimeChannel);
   }
 
   if (pollingInterval) {
