@@ -1,221 +1,160 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duna Branding | Painel</title>
 
-:root {
-  --bg-1: #03122f;
-  --bg-2: #061d4f;
-  --card: rgba(3, 15, 40, 0.72);
-  --stroke: rgba(255, 255, 255, 0.08);
-  --text: #f6f8ff;
-  --muted: #a9b8df;
-  --primary: #6d8cff;
-  --danger: #ff5d73;
-  --shadow: 0 20px 60px rgba(0,0,0,0.35);
-  --radius: 20px;
-}
+  <link rel="stylesheet" href="painel.css?v=2">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
-body {
-  font-family: Arial, sans-serif;
-  background:
-    radial-gradient(circle at top left, #0a2c74 0%, transparent 30%),
-    radial-gradient(circle at bottom right, #0a1d4f 0%, transparent 25%),
-    linear-gradient(135deg, var(--bg-1), #000814);
-  color: var(--text);
-  min-height: 100vh;
-}
+  <!-- LOGIN -->
+  <div id="loginBox" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">Duna TV</div>
+      <h2>Acesso ao Painel</h2>
+      <p class="login-subtitle">Digite o código para entrar</p>
 
-/* LOGIN */
-.login-screen {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+      <input type="password" id="senhaInput" placeholder="Digite o código">
+      <button id="btnLogin">Entrar</button>
+      <p id="loginErro" class="login-erro"></p>
+    </div>
+  </div>
 
-.login-card {
-  background: var(--card);
-  padding: 30px;
-  border-radius: var(--radius);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow);
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
+  <!-- PAINEL -->
+  <div id="conteudoPainel" style="display:none;">
 
-.login-card input {
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-}
+    <div class="logo-top">
+      <h2>Duna TV</h2>
+    </div>
 
-.login-card button {
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  background: var(--primary);
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-}
+    <div class="painel-shell">
 
-.login-erro {
-  color: var(--danger);
-}
+      <!-- HEADER -->
+      <div class="painel-header">
+        <div>
+          <span class="painel-kicker">Painel</span>
+          <h1>Pontos de acesso</h1>
+          <p>Gerencie nomes, códigos e playlists com um visual mais limpo.</p>
+        </div>
+      </div>
 
-/* HEADER */
-.logo-top {
-  padding: 30px;
-  text-align: right;
-  font-size: 26px;
-  font-weight: bold;
-}
+      <!-- LISTA DE PONTOS -->
+      <div id="listaPontos" class="pontos-box">
 
-/* CONTAINER */
-.painel-shell {
-  max-width: 1100px;
-  margin: auto;
-  padding: 20px;
-}
+        <!-- PONTO -->
+        <div class="card-ponto" data-codigo="H4E9L2A">
+          <div class="card-topo">
+            <div class="card-nome-wrap">
+              <div class="card-label">Ponto</div>
+              <div class="card-nome">Carregando...</div>
+            </div>
 
-/* HEADER */
-.painel-header {
-  margin-bottom: 30px;
-}
+            <button class="btn-icon btn-editar-nome" data-codigo="H4E9L2A" title="Trocar nome">
+              ✎
+            </button>
+          </div>
 
-.painel-header h1 {
-  font-size: 48px;
-  margin-bottom: 10px;
-}
+          <div class="card-codigo-box">
+            <div class="card-codigo-info">
+              <div class="card-codigo-label">Código</div>
+              <div class="card-codigo">H4E9L2A</div>
+            </div>
 
-.painel-header p {
-  color: var(--muted);
-}
+            <button class="btn-icon btn-copiar" data-codigo="H4E9L2A" title="Copiar código">
+              ⧉
+            </button>
+          </div>
 
-/* PONTOS */
-.pontos-box {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-  gap: 20px;
-}
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="H4E9L2A">Abrir pasta</button>
+          </div>
+        </div>
 
-/* CARD */
-.card-ponto {
-  background: linear-gradient(180deg, rgba(26,48,101,0.8), rgba(17,33,72,0.95));
-  border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: var(--shadow);
-  transition: 0.2s;
-}
+        <!-- PONTO -->
+        <div class="card-ponto" data-codigo="N7H3E8L">
+          <div class="card-topo">
+            <div class="card-nome-wrap">
+              <div class="card-label">Ponto</div>
+              <div class="card-nome">Carregando...</div>
+            </div>
 
-.card-ponto:hover {
-  transform: translateY(-4px);
-}
+            <button class="btn-icon btn-editar-nome" data-codigo="N7H3E8L" title="Trocar nome">
+              ✎
+            </button>
+          </div>
 
-/* TOPO */
-.card-topo {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
+          <div class="card-codigo-box">
+            <div class="card-codigo-info">
+              <div class="card-codigo-label">Código</div>
+              <div class="card-codigo">N7H3E8L</div>
+            </div>
 
-.card-nome {
-  font-size: 18px;
-  font-weight: bold;
-}
+            <button class="btn-icon btn-copiar" data-codigo="N7H3E8L" title="Copiar código">
+              ⧉
+            </button>
+          </div>
 
-/* CÓDIGO */
-.card-codigo-linha {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  color: var(--muted);
-}
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="N7H3E8L">Abrir pasta</button>
+          </div>
+        </div>
 
-/* BOTÕES */
-button {
-  cursor: pointer;
-}
+      </div>
 
-.btn-abrir {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  background: var(--primary);
-  color: white;
-  font-weight: bold;
-}
+      <!-- PASTA -->
+      <div id="pontoDetalhe" class="playlist-box" style="display:none;">
 
-/* PASTA */
-.playlist-box {
-  margin-top: 30px;
-}
+        <div class="playlist-header">
+          <div>
+            <span class="painel-kicker">Playlist</span>
+            <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
+            <p id="nomeAtual"></p>
+          </div>
+        </div>
 
-/* HEADER PASTA */
-.playlist-header h2 {
-  font-size: 28px;
-}
+        <div class="playlist-grid">
+          <!-- COLUNA ESQUERDA -->
+          <div class="upload-card">
+            <h3>Adicionar mídia</h3>
+            <p class="card-subtext">
+              Envie vídeo, imagem ou TXT com URL.
+            </p>
 
-.playlist-header p {
-  color: var(--muted);
-  margin-bottom: 20px;
-}
+            <input type="file" id="videoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
 
-/* UPLOAD */
-.upload-card {
-  background: var(--card);
-  padding: 20px;
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-}
+            <div class="upload-actions">
+              <button id="btnUpload">Enviar mídia</button>
+              <button id="btnVoltar" class="btn-secundario">Voltar</button>
+            </div>
+          </div>
 
-.upload-card input {
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
+          <!-- COLUNA DIREITA -->
+          <div class="playlist-area">
+            <div class="playlist-area-topo">
+              <div>
+                <h3>Playlist</h3>
+                <p class="card-subtext">Arraste os itens para mudar a ordem.</p>
+              </div>
+            </div>
 
-.upload-card button {
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  margin-right: 10px;
-  background: var(--primary);
-  color: white;
-}
+            <div id="playlistLista">
+              <div class="playlist-item vazio">
+                <span>Nenhum item carregado.</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-/* PLAYLIST */
-.playlist-area {
-  background: var(--card);
-  padding: 20px;
-  border-radius: var(--radius);
-}
+      </div>
 
-.playlist-area h3 {
-  margin-bottom: 10px;
-}
+    </div>
 
-.playlist-item {
-  background: rgba(255,255,255,0.05);
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-}
+    <div id="status" class="status-box">Painel ativo</div>
+  </div>
 
-/* STATUS */
-.status-box {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #16a34a;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-weight: bold;
-}
+  <script src="painel.js?v=2"></script>
+</body>
+</html>
