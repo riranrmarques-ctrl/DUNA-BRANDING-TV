@@ -29,6 +29,8 @@ const statusBox = document.getElementById("status");
 
 let codigoSelecionado = null;
 let pontosMap = {};
+let playlistAtual = [];
+let dragItemId = null;
 
 /* =========================
    HELPERS
@@ -96,6 +98,13 @@ function formatarTipo(tipo) {
   if (tipo === "imagem") return "Imagem";
   if (tipo === "site") return "Site";
   return "Arquivo";
+}
+
+function obterIconeTipo(tipo) {
+  if (tipo === "video") return "🎬";
+  if (tipo === "imagem") return "🖼";
+  if (tipo === "site") return "🌐";
+  return "📄";
 }
 
 /* =========================
@@ -225,6 +234,8 @@ function abrirPonto(codigo) {
 
 function voltarParaPontos() {
   codigoSelecionado = null;
+  playlistAtual = [];
+  dragItemId = null;
 
   if (pontoDetalhe) pontoDetalhe.style.display = "none";
   if (listaPontos) listaPontos.style.display = "grid";
@@ -247,34 +258,74 @@ async function buscarPlaylist(codigo) {
   return data || [];
 }
 
+function montarHtmlPlaylistVazia() {
+  return `
+    <div class="playlist-item vazio">
+      <div class="playlist-item-main">
+        <div class="playlist-handle">—</div>
+        <div class="playlist-textos">
+          <div class="playlist-nome">Nenhum item na playlist</div>
+          <div class="playlist-meta">Envie uma mídia para começar</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function montarHtmlItemPlaylist(item) {
+  const tipo = detectarTipoPorItem(item);
+  const nomeSeguro = escapeHtml(item.nome || "Sem nome");
+  const tipoSeguro = escapeHtml(formatarTipo(tipo));
+  const icone = escapeHtml(obterIconeTipo(tipo));
+  const nomeJs = JSON.stringify(item.nome || "Sem nome");
+  const pathJs = JSON.stringify(item.storage_path || "");
+
+  return `
+    <div class="playlist-item" draggable="true" data-id="${item.id}">
+      <div class="playlist-item-main">
+        <div class="playlist-handle" title="Arrastar">⋮⋮</div>
+
+        <div class="playlist-textos">
+          <div class="playlist-nome">${icone} ${nomeSeguro}</div>
+          <div class="playlist-meta">${tipoSeguro}</div>
+        </div>
+      </div>
+
+      <div class="playlist-acoes">
+        <button
+          type="button"
+          class="btn-playlist-acao"
+          onclick="renomearItem(${item.id}, ${nomeJs})"
+          title="Renomear"
+        >
+          ✎
+        </button>
+
+        <button
+          type="button"
+          class="btn-playlist-acao btn-excluir-item"
+          onclick="excluirItem(${item.id}, ${pathJs})"
+          title="Excluir"
+        >
+          🗑
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderizarPlaylist(lista) {
   if (!playlistLista) return;
 
-  if (!lista.length) {
-    playlistLista.innerHTML = `
-      <div class="playlist-item">
-        <span>Nenhum item</span>
-      </div>
-    `;
+  playlistAtual = Array.isArray(lista) ? [...lista] : [];
+
+  if (!playlistAtual.length) {
+    playlistLista.innerHTML = montarHtmlPlaylistVazia();
     return;
   }
 
-  playlistLista.innerHTML = lista.map((item) => {
-    const nomeSeguro = escapeHtml(item.nome || "Sem nome");
-    const tipoSeguro = escapeHtml(formatarTipo(detectarTipoPorItem(item)));
-    const nomeJs = JSON.stringify(item.nome || "Sem nome");
-    const pathJs = JSON.stringify(item.storage_path || "");
-
-    return `
-      <div class="playlist-item">
-        <span>${nomeSeguro} • ${tipoSeguro}</span>
-        <div>
-          <button type="button" onclick="renomearItem(${item.id}, ${nomeJs})">✎</button>
-          <button type="button" onclick="excluirItem(${item.id}, ${pathJs})">X</button>
-        </div>
-      </div>
-    `;
-  }).join("");
+  playlistLista.innerHTML = playlistAtual.map(montarHtmlItemPlaylist).join("");
+  configurarDragAndDropPlaylist();
 }
 
 async function carregarPlaylist() {
@@ -292,6 +343,111 @@ async function carregarPlaylist() {
 }
 
 /* =========================
+   DRAG AND DROP
+========================= */
+function configurarDragAndDropPlaylist() {
+  const itens = playlistLista?.querySelectorAll(".playlist-item[data-id]");
+
+  if (!itens || !itens.length) return;
+
+  itens.forEach((itemEl) => {
+    itemEl.addEventListener("dragstart", onDragStartPlaylist);
+    itemEl.addEventListener("dragover", onDragOverPlaylist);
+    itemEl.addEventListener("drop", onDropPlaylist);
+    itemEl.addEventListener("dragend", onDragEndPlaylist);
+    itemEl.addEventListener("dragenter", onDragEnterPlaylist);
+    itemEl.addEventListener("dragleave", onDragLeavePlaylist);
+  });
+}
+
+function onDragStartPlaylist(event) {
+  const el = event.currentTarget;
+  dragItemId = Number(el.dataset.id);
+
+  el.classList.add("dragging");
+
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", String(dragItemId));
+  }
+}
+
+function onDragOverPlaylist(event) {
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "move";
+  }
+}
+
+function onDragEnterPlaylist(event) {
+  const el = event.currentTarget;
+  if (!el.classList.contains("dragging")) {
+    el.classList.add("drag-over");
+  }
+}
+
+function onDragLeavePlaylist(event) {
+  event.currentTarget.classList.remove("drag-over");
+}
+
+async function onDropPlaylist(event) {
+  event.preventDefault();
+
+  const destinoEl = event.currentTarget;
+  destinoEl.classList.remove("drag-over");
+
+  const destinoId = Number(destinoEl.dataset.id);
+  const origemId = Number(dragItemId);
+
+  if (!origemId || !destinoId || origemId === destinoId) {
+    return;
+  }
+
+  const origemIndex = playlistAtual.findIndex((item) => Number(item.id) === origemId);
+  const destinoIndex = playlistAtual.findIndex((item) => Number(item.id) === destinoId);
+
+  if (origemIndex === -1 || destinoIndex === -1) return;
+
+  const novaLista = [...playlistAtual];
+  const [itemMovido] = novaLista.splice(origemIndex, 1);
+  novaLista.splice(destinoIndex, 0, itemMovido);
+
+  playlistAtual = novaLista;
+  renderizarPlaylist(playlistAtual);
+
+  try {
+    setStatus("Salvando nova ordem...");
+
+    for (let i = 0; i < playlistAtual.length; i++) {
+      const item = playlistAtual[i];
+
+      const { error } = await supabaseClient
+        .from(TABELA_PLAYLISTS)
+        .update({ ordem: i })
+        .eq("id", item.id);
+
+      if (error) throw error;
+    }
+
+    setStatus("Ordem atualizada.", "ok");
+    await carregarPlaylist();
+  } catch (error) {
+    console.error("Erro ao salvar nova ordem:", error);
+    setStatus("Erro ao salvar ordem: " + error.message, "erro");
+    await carregarPlaylist();
+  }
+}
+
+function onDragEndPlaylist(event) {
+  dragItemId = null;
+
+  document.querySelectorAll(".playlist-item").forEach((el) => {
+    el.classList.remove("dragging");
+    el.classList.remove("drag-over");
+  });
+}
+
+/* =========================
    UPLOAD
 ========================= */
 async function pegarProximaOrdem(codigo) {
@@ -299,7 +455,7 @@ async function pegarProximaOrdem(codigo) {
 
   if (!lista.length) return 0;
 
-  const maior = Math.max(...lista.map(item => Number(item.ordem) || 0));
+  const maior = Math.max(...lista.map((item) => Number(item.ordem) || 0));
   return maior + 1;
 }
 
