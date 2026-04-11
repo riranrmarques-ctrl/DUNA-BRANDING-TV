@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=80">
+  <link rel="stylesheet" href="painel.css?v=90">
 </head>
 <body>
 
@@ -144,31 +144,38 @@
 
       <div id="pontoDetalhe" class="playlist-box" style="display:none;">
         <div class="playlist-header">
-          <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
-          <p id="nomeAtual"></p>
-        </div>
-
-        <div class="painel-topo">
-          <div class="campo campo-arquivo">
-            <label for="videoInput">Escolha o vídeo</label>
-            <input type="file" id="videoInput" accept="video/*">
-          </div>
-
-          <div class="campo campo-botao">
-            <label>&nbsp;</label>
-            <button id="btnUpload" type="button">Enviar vídeo</button>
-          </div>
-
-          <div class="campo campo-botao">
-            <label>&nbsp;</label>
-            <button id="btnVoltar" type="button">Voltar</button>
+          <div class="playlist-header-textos">
+            <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
+            <p id="nomeAtual"></p>
           </div>
         </div>
 
-        <div id="playlistLista" class="playlist-lista">
-          <div class="playlist-item">
-            <div class="playlist-item-topo">
-              <strong>Nenhum vídeo carregado.</strong>
+        <div class="midia-toolbar">
+          <div class="upload-card">
+            <div class="upload-card-topo">
+              <h3>Adicionar mídia</h3>
+              <span class="upload-info">Aceita MP4, JPG e TXT com URL</span>
+            </div>
+
+            <div class="upload-linha">
+              <input type="file" id="videoInput" accept=".mp4,.jpg,.txt">
+              <button id="btnUpload" type="button">Enviar mídia</button>
+              <button id="btnVoltar" type="button" class="btn-secundario">Voltar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="playlist-area">
+          <div class="playlist-area-topo">
+            <h3>Playlist</h3>
+            <p>Arraste para reordenar. Clique no nome para renomear depois.</p>
+          </div>
+
+          <div id="playlistLista" class="playlist-lista">
+            <div class="playlist-item">
+              <div class="playlist-item-topo">
+                <strong>Nenhum item carregado.</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -179,6 +186,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=80"></script>
+  <script src="painel.js?v=90"></script>
 </body>
 </html>
