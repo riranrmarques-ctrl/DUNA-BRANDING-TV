@@ -692,3 +692,39 @@ body {
     flex-direction: column;
   }
 }
+.playlist-grid-novo {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 20px;
+}
+
+.coluna-direita {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.btn-voltar-topo {
+  margin-bottom: 10px;
+}
+
+.codigo-linha {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #aaa;
+}
+
+.historico-box {
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.historico-lista div {
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
