@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Duna TV | Painel</title>
+  <title>Duna Branding | Painel</title>
 
-  <link rel="stylesheet" href="painel.css">
+  <link rel="stylesheet" href="painel.css?v=1">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- 🔐 LOGIN -->
+<!-- LOGIN -->
 <div id="loginBox" class="login-screen">
   <div class="login-card">
     <h2>Acesso ao Painel</h2>
@@ -21,26 +21,25 @@
   </div>
 </div>
 
-<!-- 🧠 CONTEÚDO -->
+<!-- PAINEL -->
 <div id="conteudoPainel" style="display:none;">
 
-  <!-- HEADER -->
-  <header class="topbar">
-    <div class="brand">Duna TV</div>
-  </header>
+  <div class="logo-top">
+    <h2>Duna TV</h2>
+  </div>
 
-  <main class="page">
+  <div class="painel-shell">
 
-    <!-- HERO -->
-    <section class="hero">
+    <!-- HEADER -->
+    <div class="painel-header">
       <h1>Painel de Pontos</h1>
       <p>Gerencie seus pontos e playlists.</p>
-    </section>
+    </div>
 
-    <!-- 📦 LISTA DE PONTOS -->
-    <section id="listaPontos" class="pontos-box">
+    <!-- LISTA DE PONTOS -->
+    <div id="listaPontos" class="pontos-box">
 
-      <!-- CARD -->
+      <!-- PONTO -->
       <div class="card-ponto" data-codigo="H4E9L2A">
         <div class="card-topo">
           <div class="card-nome">Carregando...</div>
@@ -52,70 +51,68 @@
           <button class="btn-copiar" data-codigo="H4E9L2A">⧉</button>
         </div>
 
-        <button class="btn-abrir" data-codigo="H4E9L2A">Abrir pasta</button>
+        <div class="card-acoes">
+          <button class="btn-abrir" data-codigo="H4E9L2A">Abrir pasta</button>
+        </div>
       </div>
 
-      <!-- DUPLICA OS CARDS -->
+      <!-- DUPLICA -->
       <div class="card-ponto" data-codigo="N7H3E8L">
         <div class="card-topo">
           <div class="card-nome">Carregando...</div>
           <button class="btn-editar-nome" data-codigo="N7H3E8L">✎</button>
         </div>
+
         <div class="card-codigo-linha">
           <div class="card-codigo">N7H3E8L</div>
           <button class="btn-copiar" data-codigo="N7H3E8L">⧉</button>
         </div>
-        <button class="btn-abrir" data-codigo="N7H3E8L">Abrir pasta</button>
+
+        <div class="card-acoes">
+          <button class="btn-abrir" data-codigo="N7H3E8L">Abrir pasta</button>
+        </div>
       </div>
 
-    </section>
+    </div>
 
-    <!-- 📁 DETALHE DA PASTA -->
-    <section id="pontoDetalhe" style="display:none;">
+    <!-- PASTA -->
+    <div id="pontoDetalhe" class="playlist-box" style="display:none;">
 
-      <div class="folder-header">
+      <div class="playlist-header">
         <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
         <p id="nomeAtual"></p>
       </div>
 
-      <div class="folder-grid">
+      <!-- UPLOAD -->
+      <div class="upload-card">
+        <h3>Adicionar mídia</h3>
 
-        <!-- ESQUERDA -->
-        <div class="left-column">
-          <div class="card">
+        <input type="file" id="videoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
 
-            <h3>Adicionar mídia</h3>
-
-            <input type="file" id="videoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
-
-            <button id="btnUpload" class="btn btn-primary">Enviar mídia</button>
-
-            <button id="btnVoltar" class="btn btn-secondary">Voltar</button>
-
-          </div>
-        </div>
-
-        <!-- DIREITA -->
-        <div class="right-column">
-          <div class="card">
-
-            <h3>Playlist</h3>
-
-            <div id="playlistLista"></div>
-
-          </div>
-        </div>
-
+        <button id="btnUpload">Enviar mídia</button>
+        <button id="btnVoltar">Voltar</button>
       </div>
 
-    </section>
+      <!-- PLAYLIST -->
+      <div class="playlist-area">
+        <h3>Playlist</h3>
 
-  </main>
+        <div id="playlistLista">
+          <div class="playlist-item">
+            Nenhum item carregado.
+          </div>
+        </div>
+      </div>
 
-  <div id="status" class="status-box">Painel Ativo</div>
+    </div>
+
+  </div>
+
+  <div id="status" class="status-box">Painel ativo</div>
 
 </div>
 
-<script src="painel.js"></script>
+<script src="painel.js?v=1"></script>
+
 </body>
 </html>
