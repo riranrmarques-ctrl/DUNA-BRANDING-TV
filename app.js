@@ -19,6 +19,29 @@ function carregarDadosSalvos() {
   inputCodigo.value = codigoSalvo;
 }
 
+function autoEntrar() {
+  const codigoSalvo = localStorage.getItem("codigoAtivo");
+
+  if (codigoSalvo && codigosValidos.includes(codigoSalvo)) {
+    console.log("Código salvo encontrado:", codigoSalvo);
+
+    mostrarMensagem("Reconectando automaticamente...", "#86efac");
+
+    setTimeout(() => {
+      window.location.href = `player.html?codigo=${codigoSalvo}`;
+    }, 1000);
+  }
+}
+
+// salva automaticamente ao digitar
+inputDispositivo.addEventListener("input", () => {
+  localStorage.setItem("nomeDispositivo", inputDispositivo.value.trim());
+});
+
+inputCodigo.addEventListener("input", () => {
+  localStorage.setItem("codigoAtivo", inputCodigo.value.trim());
+});
+
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
@@ -39,7 +62,7 @@ form.addEventListener("submit", function (e) {
     return;
   }
 
-  // salva sempre, mesmo se o nome estiver vazio
+  // salva dados
   localStorage.setItem("codigoAtivo", codigo);
   localStorage.setItem("nomeDispositivo", dispositivo);
 
@@ -60,5 +83,13 @@ form.addEventListener("submit", function (e) {
   }, 1000);
 });
 
-// carrega os dados assim que a página abre
+// 🔥 ORDEM IMPORTANTE
 carregarDadosSalvos();
+autoEntrar();
+
+// 🔒 OPCIONAL: resetar acesso
+function limparAcesso() {
+  localStorage.removeItem("codigoAtivo");
+  localStorage.removeItem("nomeDispositivo");
+  location.reload();
+}
