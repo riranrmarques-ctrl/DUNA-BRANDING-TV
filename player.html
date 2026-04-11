@@ -1,18 +1,391 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DUNA Player</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duna Branding | Painel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(180deg, #020817, #071426);
+      color: #fff;
+      min-height: 100vh;
+      padding: 30px 20px 60px;
+    }
+
+    .topbar {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .logo span {
+      color: #60a5fa;
+    }
+
+    .title-area {
+      max-width: 1200px;
+      margin: 0 auto 30px;
+      text-align: center;
+    }
+
+    .title-area h1 {
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+
+    .title-area p {
+      color: #cbd5e1;
+      font-size: 1rem;
+    }
+
+    .grid {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+
+    .code-badge {
+      display: inline-block;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #93c5fd;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    .field input[type="text"],
+    .field input[type="url"] {
+      width: 100%;
+      border: none;
+      outline: none;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #e5e7eb;
+      color: #111827;
+      font-size: 0.95rem;
+    }
+
+    .upload-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed #475569;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+
+    .upload-box input[type="file"] {
+      width: 100%;
+      color: #cbd5e1;
+    }
+
+    .file-note {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .current-video {
+      margin-top: 10px;
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(96,165,250,0.25);
+      color: #bfdbfe;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      word-break: break-word;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      outline: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+
+    .btn-save {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-save:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-clear {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+    }
+
+    .btn-clear:hover {
+      background: #334155;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #86efac;
+      min-height: 18px;
+    }
+
+    .footer-box {
+      width: 100%;
+      max-width: 1200px;
+      margin: 35px auto 0;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .footer-box h3 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .footer-box p {
+      color: #cbd5e1;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 700px) {
+      .title-area h1 {
+        font-size: 1.7rem;
+      }
+
+      .logo {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
 </head>
-<body class="player-body">
-  <div id="loading" class="loading">Carregando playlist...</div>
+<body>
 
-  <main class="player-stage">
-    <video id="player" autoplay muted playsinline preload="auto"></video>
-  </main>
+  <div class="topbar">
+    <div class="logo">Duna <span>Branding</span></div>
+  </div>
 
-  <script src="player.js"></script>
+  <div class="title-area">
+    <h1>Painel de Pastas Fixas</h1>
+    <p>Edite apenas o nome da pasta e informe o link do vídeo MP4 para cada código fixo.</p>
+  </div>
+
+  <div class="grid" id="foldersGrid"></div>
+
+  <div class="footer-box">
+    <h3>Importante</h3>
+    <p>
+      O campo de arquivo MP4 abaixo serve apenas para você selecionar um vídeo localmente no navegador.
+      Para a TV reproduzir de qualquer lugar, o ideal é usar o <strong>link direto do MP4</strong>.
+      Se quiser, no próximo passo eu monto isso ligado ao <strong>Firebase Storage</strong> para você subir o vídeo de verdade.
+    </p>
+  </div>
+
+  <script>
+    const fixedFolders = [
+      { code: "0001", defaultName: "Pasta 1" },
+      { code: "0002", defaultName: "Pasta 2" },
+      { code: "0003", defaultName: "Pasta 3" },
+      { code: "0004", defaultName: "Pasta 4" },
+      { code: "0005", defaultName: "Pasta 5" }
+    ];
+
+    function getStorageData() {
+      const saved = localStorage.getItem("duna_folders_fixed");
+      return saved ? JSON.parse(saved) : {};
+    }
+
+    function saveStorageData(data) {
+      localStorage.setItem("duna_folders_fixed", JSON.stringify(data));
+    }
+
+    function createFolderCard(folder, savedData = {}) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const currentName = savedData.name || folder.defaultName;
+      const currentUrl = savedData.videoUrl || "";
+
+      card.innerHTML = `
+        <h2>${currentName}</h2>
+        <div class="code-badge">Código fixo: ${folder.code}</div>
+
+        <div class="field">
+          <label>Nome da pasta / estabelecimento</label>
+          <input type="text" id="name-${folder.code}" value="${currentName}" placeholder="Digite o nome" />
+        </div>
+
+        <div class="field">
+          <label>Link direto do vídeo MP4</label>
+          <input type="url" id="url-${folder.code}" value="${currentUrl}" placeholder="https://site.com/video.mp4" />
+        </div>
+
+        <div class="field">
+          <label>Selecionar MP4 do computador</label>
+          <div class="upload-box">
+            <input type="file" id="file-${folder.code}" accept="video/mp4" />
+            <div class="file-note">
+              Selecionar um arquivo aqui não envia ele para a internet. Serve apenas como apoio visual local.
+            </div>
+          </div>
+        </div>
+
+        <div class="current-video" id="current-${folder.code}">
+          ${currentUrl ? `<strong>Vídeo atual:</strong><br>${currentUrl}` : "Nenhum vídeo salvo ainda."}
+        </div>
+
+        <div class="actions">
+          <button class="btn-save" onclick="saveFolder('${folder.code}')">Salvar</button>
+          <button class="btn-clear" onclick="clearFolder('${folder.code}')">Limpar vídeo</button>
+        </div>
+
+        <div class="status" id="status-${folder.code}"></div>
+      `;
+
+      return card;
+    }
+
+    function renderFolders() {
+      const grid = document.getElementById("foldersGrid");
+      grid.innerHTML = "";
+
+      const data = getStorageData();
+
+      fixedFolders.forEach(folder => {
+        const card = createFolderCard(folder, data[folder.code]);
+        grid.appendChild(card);
+      });
+    }
+
+    function saveFolder(code) {
+      const data = getStorageData();
+      const folderBase = fixedFolders.find(item => item.code === code);
+
+      const nameInput = document.getElementById(`name-${code}`);
+      const urlInput = document.getElementById(`url-${code}`);
+      const fileInput = document.getElementById(`file-${code}`);
+      const status = document.getElementById(`status-${code}`);
+      const currentBox = document.getElementById(`current-${code}`);
+
+      const name = nameInput.value.trim() || folderBase.defaultName;
+      const videoUrl = urlInput.value.trim();
+
+      let selectedFileName = "";
+      if (fileInput.files.length > 0) {
+        selectedFileName = fileInput.files[0].name;
+      }
+
+      data[code] = {
+        code,
+        name,
+        videoUrl,
+        selectedFileName
+      };
+
+      saveStorageData(data);
+
+      currentBox.innerHTML = videoUrl
+        ? `<strong>Vídeo atual:</strong><br>${videoUrl}${selectedFileName ? `<br><br><strong>Arquivo local selecionado:</strong><br>${selectedFileName}` : ""}`
+        : `Nenhum vídeo salvo ainda.${selectedFileName ? `<br><br><strong>Arquivo local selecionado:</strong><br>${selectedFileName}` : ""}`;
+
+      status.textContent = "Salvo com sucesso.";
+      setTimeout(() => {
+        status.textContent = "";
+      }, 2500);
+
+      renderFolders();
+    }
+
+    function clearFolder(code) {
+      const data = getStorageData();
+      const folderBase = fixedFolders.find(item => item.code === code);
+
+      if (!data[code]) {
+        data[code] = {
+          code,
+          name: folderBase.defaultName,
+          videoUrl: "",
+          selectedFileName: ""
+        };
+      } else {
+        data[code].videoUrl = "";
+        data[code].selectedFileName = "";
+      }
+
+      saveStorageData(data);
+      renderFolders();
+
+      const status = document.getElementById(`status-${code}`);
+      if (status) {
+        status.textContent = "Vídeo removido.";
+        setTimeout(() => {
+          status.textContent = "";
+        }, 2500);
+      }
+    }
+
+    renderFolders();
+  </script>
 </body>
 </html>
