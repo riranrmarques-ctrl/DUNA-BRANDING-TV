@@ -16,17 +16,23 @@ body {
   overflow: hidden;
 }
 
-/* LOGO LATERAL ESQUERDA, MAIOR E DISCRETA */
+/* 🔥 LOGO LATERAL ESQUERDA (CORRIGIDA DE VERDADE) */
 .logo-top {
   position: fixed;
-  top: 28px;
-  left: 36px;
+  top: 20px;
+  left: 20px;
+  width: 280px; /* área maior */
+  overflow: hidden;
   z-index: 30;
 }
 
 .logo-top img {
-  height: 140px;
-  width: auto;
+  width: 100%;
+  height: auto;
+
+  transform: scale(2.2); /* 🔥 AQUI RESOLVE */
+  transform-origin: left top;
+
   display: block;
 }
 
@@ -186,12 +192,13 @@ video::-webkit-media-controls-enclosure {
 /* RESPONSIVO */
 @media (max-width: 900px) {
   .logo-top {
-    top: 20px;
-    left: 20px;
+    top: 15px;
+    left: 15px;
+    width: 180px;
   }
 
   .logo-top img {
-    height: 95px;
+    transform: scale(2);
   }
 
   .card {
