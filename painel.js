@@ -131,6 +131,7 @@ function abrirPonto(codigo) {
 
   codigoAtual.textContent = codigoSelecionado;
 
+  // 🔥 NOVO TÍTULO (COM NOME)
   tituloPasta.textContent =
     "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
 
