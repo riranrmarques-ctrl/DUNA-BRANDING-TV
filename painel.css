@@ -734,7 +734,6 @@ body {
   }
 }
 
-/* NOVO LAYOUT DA PLAYLIST */
 .playlist-layout-novo {
   display: flex;
   flex-direction: column;
