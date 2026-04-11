@@ -3,116 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Duna Player</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <title>Duna Branding | Painel</title>
 
-    body {
-      width: 100vw;
-      height: 100vh;
-      background: #000;
-      overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    .player-wrap {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      background: #000;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background: #000;
-      display: none;
-    }
-
-    .erro {
-      position: absolute;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: #fff;
-      padding: 30px;
-      font-size: 1.1rem;
-      background: #000;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .debug {
-      font-size: 0.9rem;
-      color: #93c5fd;
-      word-break: break-word;
-      max-width: 90%;
-    }
-  </style>
+  <link rel="stylesheet" href="painel.css">
 </head>
 <body>
-  <div class="player-wrap">
-    <video id="videoPlayer" autoplay muted loop playsinline controls></video>
-    <div id="erro" class="erro">
-      <div id="erroTexto"></div>
-      <div id="debug" class="debug"></div>
+
+  <img src="logo.png" class="logo-top">
+
+  <div class="container">
+
+    <h1>Painel de Playlists</h1>
+
+    <div class="card">
+      <h2>Criar / Atualizar Estabelecimento</h2>
+
+      <input type="text" id="nome" placeholder="Nome do estabelecimento">
+      <input type="text" id="codigo" placeholder="Código (ex: 0001)">
+
+      <textarea id="links" placeholder="Cole os links dos vídeos (1 por linha)"></textarea>
+
+      <button onclick="salvar()">Salvar / Atualizar</button>
+
+      <p id="mensagem"></p>
     </div>
+
+    <div class="card">
+      <h2>clientes.json</h2>
+
+      <textarea id="json"></textarea>
+
+      <button onclick="formatar()">Formatar</button>
+      <button onclick="copiar()">Copiar</button>
+    </div>
+
   </div>
 
-  <script>
-    const video = document.getElementById("videoPlayer");
-    const erro = document.getElementById("erro");
-    const erroTexto = document.getElementById("erroTexto");
-    const debug = document.getElementById("debug");
-
-    const codigoAtivo = localStorage.getItem("codigoAtivo");
-    const dados = JSON.parse(localStorage.getItem("dunaPastas")) || {};
-
-    function mostrarErro(texto, detalhe = "") {
-      erro.style.display = "flex";
-      erroTexto.textContent = texto;
-      debug.textContent = detalhe;
-      video.style.display = "none";
-    }
-
-    if (!codigoAtivo) {
-      mostrarErro("Nenhum código ativo encontrado.");
-    } else if (!dados[codigoAtivo]) {
-      mostrarErro("Código não encontrado.", "Código usado: " + codigoAtivo);
-    } else if (!dados[codigoAtivo].video || !dados[codigoAtivo].video.trim()) {
-      mostrarErro("Nenhum link cadastrado para este código.", "Código usado: " + codigoAtivo);
-    } else {
-      const linkSalvo = dados[codigoAtivo].video.trim();
-      const linkLower = linkSalvo.toLowerCase();
-
-      debug.textContent = "Link carregado: " + linkSalvo;
-
-      if (
-        linkLower.includes("painel.html") ||
-        linkLower.includes("player.html")
-      ) {
-        mostrarErro(
-          "O link salvo está apontando para uma página do sistema.",
-          "Use um link direto .mp4 ou uma página de conteúdo real."
-        );
-      } else if (linkLower.endsWith(".mp4")) {
-        video.style.display = "block";
-        video.src = linkSalvo;
-
-        video.play().catch(() => {
-          mostrarErro("Não foi possível reproduzir o vídeo.", "Link carregado: " + linkSalvo);
-        });
-      } else {
-        window.location.href = linkSalvo;
-      }
-    }
-  </script>
+  <script src="painel.js"></script>
 </body>
 </html>
