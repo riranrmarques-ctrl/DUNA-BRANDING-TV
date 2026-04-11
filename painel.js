@@ -31,6 +31,8 @@ const dataFimInput = document.getElementById("dataFim");
 const playlistAtiva = document.getElementById("playlistAtiva");
 const playlistInativa = document.getElementById("playlistInativa");
 
+const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
+
 let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
@@ -51,16 +53,15 @@ function escapeHtml(texto) {
     .replace(/>/g, "&gt;");
 }
 
-/* DATA SEM HORA */
+/* DATA (SEM HORA) */
 function formatarData(valor) {
   if (!valor) return "";
-  const data = new Date(valor);
-  return data.toLocaleDateString("pt-BR");
+  return new Date(valor).toLocaleDateString("pt-BR");
 }
 
 function normalizarDataInput(valor) {
   if (!valor) return null;
-  return new Date(valor).toISOString();
+  return new Date(valor + "T00:00:00").toISOString();
 }
 
 function montarLinhaDatas(item) {
@@ -143,10 +144,12 @@ btnVoltar.onclick = () => {
 };
 
 /* COPIAR */
-document.getElementById("btnCopiarCodigo").onclick = () => {
-  navigator.clipboard.writeText(codigoSelecionado);
-  setStatus("Código copiado", "ok");
-};
+if (btnCopiarCodigo) {
+  btnCopiarCodigo.onclick = () => {
+    navigator.clipboard.writeText(codigoSelecionado);
+    setStatus("Código copiado", "ok");
+  };
+}
 
 /* UPLOAD */
 async function uploadMidia() {
@@ -203,7 +206,7 @@ async function carregarPlaylist() {
 /* ATIVOS */
 function renderizarPlaylistAtiva(lista) {
   if (!lista.length) {
-    playlistAtiva.innerHTML = "Nenhum item ativo";
+    playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
     return;
   }
 
@@ -212,8 +215,8 @@ function renderizarPlaylistAtiva(lista) {
       <div class="playlist-item-handle">⋮⋮</div>
 
       <div class="playlist-item-conteudo">
-        <div>${item.nome}</div>
-        <div>${montarLinhaDatas(item)}</div>
+        <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
+        <div class="playlist-item-info">${montarLinhaDatas(item)}</div>
       </div>
 
       <div class="playlist-item-acoes-laterais">
@@ -229,7 +232,7 @@ function renderizarPlaylistAtiva(lista) {
 /* HISTÓRICO */
 function renderizarHistorico(lista) {
   if (!lista.length) {
-    playlistInativa.innerHTML = "Sem histórico";
+    playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
     return;
   }
 
@@ -248,6 +251,8 @@ function ativarDrag(lista) {
     item.addEventListener("dragstart", () => {
       dragIndex = item.dataset.index;
     });
+
+    item.addEventListener("dragover", e => e.preventDefault());
 
     item.addEventListener("drop", async () => {
       const target = item.dataset.index;
