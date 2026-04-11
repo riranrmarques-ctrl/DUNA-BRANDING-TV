@@ -162,7 +162,6 @@ button {
   display: block;
 }
 
-/* Esconde controles nativos */
 video::-webkit-media-controls {
   display: none !important;
 }
@@ -171,7 +170,6 @@ video::-webkit-media-controls-enclosure {
   display: none !important;
 }
 
-/* LOADING */
 .loading {
   position: fixed;
   inset: 0;
@@ -186,7 +184,6 @@ video::-webkit-media-controls-enclosure {
   padding: 20px;
 }
 
-/* RESPONSIVO */
 @media (max-width: 900px) {
   .logo-top {
     top: 10px;
