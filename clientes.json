@@ -1,8 +1,26 @@
 {
   "0001": {
-    "nome": "teste",
+    "nome": "smar fit",
     "playlist": [
       "https://www.w3schools.com/html/mov_bbb.mp4"
     ]
+  },
+  "0002": {
+    "nome": "Pasta 2",
+    "playlist": [
+      "https://www.w3schools.com/html/movie.mp4"
+    ]
+  },
+  "0003": {
+    "nome": "Pasta 3",
+    "playlist": []
+  },
+  "0004": {
+    "nome": "Pasta 4",
+    "playlist": []
+  },
+  "0005": {
+    "nome": "Pasta 5",
+    "playlist": []
   }
 }
