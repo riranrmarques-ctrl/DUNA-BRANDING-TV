@@ -1,72 +1,65 @@
 const form = document.getElementById('codeForm');
-const input = document.getElementById('codigo');
+const codigoInput = document.getElementById('codigo');
 const mensagem = document.getElementById('mensagem');
 const contadorTexto = document.getElementById('contadorTexto');
 
-const ULTIMO_CODIGO_KEY = 'duna_ultimo_codigo';
-const TEMPO_ESPERA = 30;
+const ULTIMO_CODIGO_KEY = 'duna_codigo';
+const TEMPO = 30;
 
-let intervalo = null;
-let timeout = null;
+let tempoAtual = TEMPO;
+let intervalo;
+let timeout;
 
 async function carregarClientes() {
-  const response = await fetch('clientes.json', { cache: 'no-store' });
-  return await response.json();
+  const res = await fetch('clientes.json');
+  return await res.json();
 }
 
 function abrirPlayer(codigo) {
   window.location.href = `player.html?codigo=${codigo}`;
 }
 
-async function validarCodigo(codigo) {
-  const clientes = await carregarClientes();
-  return clientes.find(c => c.codigo === codigo);
+async function validar(codigo) {
+  const dados = await carregarClientes();
+  return dados.find(c => c.codigo === codigo);
 }
 
 function iniciarContagem(codigo) {
-  let tempo = TEMPO_ESPERA;
-  contadorTexto.classList.remove('hidden');
-
-  contadorTexto.textContent = `Iniciando automaticamente em ${tempo}s`;
+  contadorTexto.textContent = `Iniciando automaticamente em ${tempoAtual}s`;
 
   intervalo = setInterval(() => {
-    tempo--;
-    contadorTexto.textContent = `Iniciando automaticamente em ${tempo}s`;
+    tempoAtual--;
+    contadorTexto.textContent = `Iniciando automaticamente em ${tempoAtual}s`;
 
-    if (tempo <= 0) clearInterval(intervalo);
+    if (tempoAtual <= 0) clearInterval(intervalo);
   }, 1000);
 
   timeout = setTimeout(() => {
     abrirPlayer(codigo);
-  }, TEMPO_ESPERA * 1000);
+  }, TEMPO * 1000);
 }
 
-if (form) {
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-    const codigo = input.value.trim();
+  const codigo = codigoInput.value.trim();
 
-    if (!codigo) {
-      mensagem.textContent = 'Digite um código válido';
-      return;
-    }
+  if (!codigo) return;
 
-    const valido = await validarCodigo(codigo);
+  const ok = await validar(codigo);
 
-    if (!valido) {
-      mensagem.textContent = 'Código não encontrado';
-      return;
-    }
-
-    localStorage.setItem(ULTIMO_CODIGO_KEY, codigo);
-    abrirPlayer(codigo);
-  });
-
-  const ultimo = localStorage.getItem(ULTIMO_CODIGO_KEY);
-
-  if (ultimo) {
-    input.value = ultimo;
-    iniciarContagem(ultimo);
+  if (!ok) {
+    mensagem.textContent = 'Código inválido';
+    return;
   }
+
+  localStorage.setItem(ULTIMO_CODIGO_KEY, codigo);
+  abrirPlayer(codigo);
+});
+
+const ultimo = localStorage.getItem(ULTIMO_CODIGO_KEY);
+
+if (ultimo) {
+  codigoInput.value = ultimo;
+  iniciarContagem(ultimo);
 }
