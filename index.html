@@ -8,14 +8,32 @@
 </head>
 <body>
   <main class="center-box">
-    <div class="card">
-      <h1>DUNA Branding</h1>
-      <p>Digite o código para abrir o player.</p>
-      <form id="codeForm">
-        <input id="codigo" type="text" placeholder="Ex.: abc123" required>
+    <div class="card intro-card">
+      <div class="brand-top">
+        <div class="brand-badge">DUNA</div>
+        <span class="brand-sub">Branding Player</span>
+      </div>
+
+      <h1>Painel de acesso</h1>
+      <p class="intro-text">Digite o código do cliente para abrir a reprodução.</p>
+
+      <form id="codeForm" class="code-form">
+        <input id="codigo" type="text" placeholder="Digite o código" autocomplete="off" required>
         <button type="submit">Entrar</button>
       </form>
+
       <p id="mensagem" class="mensagem"></p>
+
+      <div id="autoBox" class="auto-box hidden">
+        <p class="auto-title">Último código salvo:</p>
+        <p id="ultimoCodigoTexto" class="ultimo-codigo"></p>
+        <p id="contadorTexto" class="contador-texto"></p>
+
+        <div class="auto-actions">
+          <button type="button" id="usarUltimoBtn" class="secondary-btn">Abrir agora</button>
+          <button type="button" id="limparCodigoBtn" class="danger-btn">Trocar cliente</button>
+        </div>
+      </div>
     </div>
   </main>
 
