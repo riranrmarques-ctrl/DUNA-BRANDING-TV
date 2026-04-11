@@ -9,249 +9,111 @@ const video = document.getElementById("videoPlayer");
 let codigoAtual = null;
 let playlistAtual = [];
 let indiceAtual = 0;
-let realtimeChannel = null;
-let pollingInterval = null;
+let timeoutMidia = null;
 
+/* =========================
+   HELPERS
+========================= */
 function mostrarMensagem(texto) {
   document.body.innerHTML = `
-    <div style="
-      width: 100vw;
-      height: 100vh;
-      background: black;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-family: Arial, sans-serif;
-      font-size: 24px;
-      padding: 20px;
-      box-sizing: border-box;
-    ">
-      ${texto}
-    </div>
+    <div class="mensagem">${texto}</div>
   `;
 }
 
 function normalizarLista(registros) {
   return (registros || [])
-    .sort((a, b) => {
-      const ordemA = Number(a.ordem) || 0;
-      const ordemB = Number(b.ordem) || 0;
-      if (ordemA !== ordemB) return ordemA - ordemB;
-      return (Number(a.id) || 0) - (Number(b.id) || 0);
-    })
-    .filter(item => item.video_url)
+    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
     .map(item => ({
       id: item.id,
-      nome: item.nome || "Sem nome",
-      video_url: item.video_url,
-      ordem: Number(item.ordem) || 0
+      nome: item.nome,
+      url: item.video_url,
+      tipo: item.tipo || "video"
     }));
 }
 
-function listasIguais(listaA, listaB) {
-  if (listaA.length !== listaB.length) return false;
-
-  for (let i = 0; i < listaA.length; i++) {
-    if (
-      listaA[i].id !== listaB[i].id ||
-      listaA[i].video_url !== listaB[i].video_url ||
-      listaA[i].ordem !== listaB[i].ordem
-    ) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-async function buscarPlaylist(codigo) {
-  const { data, error } = await supabaseClient
+async function buscarPlaylist() {
+  const { data } = await supabaseClient
     .from(TABELA)
-    .select("id, nome, video_url, ordem, codigo")
-    .eq("codigo", codigo)
-    .order("ordem", { ascending: true })
-    .order("id", { ascending: true });
+    .select("*")
+    .eq("codigo", codigoAtual)
+    .order("ordem", { ascending: true });
 
-  if (error) throw error;
-
-  return normalizarLista(data);
+  playlistAtual = normalizarLista(data);
 }
 
-function tocarIndice(indice) {
-  if (!playlistAtual.length) {
-    mostrarMensagem("Nenhum vídeo cadastrado para este código.");
-    return;
-  }
+/* =========================
+   PLAYER INTELIGENTE
+========================= */
+function limparTela() {
+  clearTimeout(timeoutMidia);
+  document.body.innerHTML = `
+    <div class="player-container">
+      <video id="videoPlayer" autoplay muted playsinline></video>
+    </div>
+  `;
+}
 
-  if (indice < 0 || indice >= playlistAtual.length) {
-    indiceAtual = 0;
-  } else {
-    indiceAtual = indice;
+function tocarMidia() {
+  if (!playlistAtual.length) {
+    mostrarMensagem("Sem conteúdo");
+    return;
   }
 
   const item = playlistAtual[indiceAtual];
 
-  if (!item || !item.video_url) {
-    mostrarMensagem("Link de vídeo inválido.");
-    return;
+  if (!item) return;
+
+  if (item.tipo === "video") {
+    limparTela();
+
+    const vid = document.getElementById("videoPlayer");
+    vid.src = item.url;
+    vid.play();
+
+    vid.onended = proximo;
+
+  } else if (item.tipo === "imagem") {
+    document.body.innerHTML = `
+      <img src="${item.url}" style="width:100vw;height:100vh;object-fit:cover">
+    `;
+
+    timeoutMidia = setTimeout(proximo, 20000);
+
+  } else if (item.tipo === "site") {
+    document.body.innerHTML = `
+      <iframe src="${item.url}" style="width:100vw;height:100vh;border:none"></iframe>
+    `;
+
+    timeoutMidia = setTimeout(proximo, 20000);
   }
-
-  const urlAnterior = video.getAttribute("data-src-atual") || "";
-  const novaUrl = item.video_url;
-
-  if (urlAnterior === novaUrl) {
-    return;
-  }
-
-  video.setAttribute("data-src-atual", novaUrl);
-  video.src = novaUrl;
-  video.load();
-
-  video.play().catch((erro) => {
-    console.error("Erro ao reproduzir vídeo:", erro);
-    mostrarMensagem("Erro ao reproduzir o vídeo.");
-  });
 }
 
-function proximoVideo() {
-  if (!playlistAtual.length) return;
-
+function proximo() {
   indiceAtual++;
   if (indiceAtual >= playlistAtual.length) {
     indiceAtual = 0;
   }
-
-  tocarIndice(indiceAtual);
+  tocarMidia();
 }
 
-async function aplicarPlaylistNova(forcarTroca = false) {
-  try {
-    const novaLista = await buscarPlaylist(codigoAtual);
+/* =========================
+   INIT
+========================= */
+async function iniciar() {
+  const params = new URLSearchParams(window.location.search);
+  codigoAtual = params.get("codigo");
 
-    if (!novaLista.length) {
-      playlistAtual = [];
-      indiceAtual = 0;
-      mostrarMensagem("Nenhum vídeo cadastrado para este código.");
-      return;
-    }
-
-    const idAtual = playlistAtual[indiceAtual]?.id ?? null;
-    const indiceCorrespondente = idAtual
-      ? novaLista.findIndex(item => item.id === idAtual)
-      : 0;
-
-    const mudou = !listasIguais(playlistAtual, novaLista);
-
-    playlistAtual = novaLista;
-
-    if (indiceCorrespondente >= 0) {
-      indiceAtual = indiceCorrespondente;
-    } else {
-      indiceAtual = 0;
-    }
-
-    const srcAtual = video.getAttribute("data-src-atual") || "";
-    const srcDesejado = playlistAtual[indiceAtual]?.video_url || "";
-
-    if (forcarTroca || mudou) {
-      if (srcAtual !== srcDesejado) {
-        tocarIndice(indiceAtual);
-      }
-    }
-
-    if (!video.src && playlistAtual.length) {
-      tocarIndice(indiceAtual);
-    }
-  } catch (erro) {
-    console.error("Erro ao atualizar playlist:", erro);
-    mostrarMensagem("Erro ao carregar a playlist.");
-  }
-}
-
-function iniciarEventosDoVideo() {
-  video.addEventListener("ended", () => {
-    proximoVideo();
-  });
-
-  video.addEventListener("error", () => {
-    console.error("Erro no vídeo atual:", playlistAtual[indiceAtual]);
-    proximoVideo();
-  });
-}
-
-function iniciarRealtime() {
-  if (realtimeChannel) {
-    supabaseClient.removeChannel(realtimeChannel);
-    realtimeChannel = null;
+  if (!codigoAtual) {
+    mostrarMensagem("Código não informado");
+    return;
   }
 
-  realtimeChannel = supabaseClient
-    .channel(`playlist-${codigoAtual}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: TABELA,
-        filter: `codigo=eq.${codigoAtual}`
-      },
-      async () => {
-        console.log("Mudança detectada no realtime. Atualizando playlist...");
-        await aplicarPlaylistNova(false);
-      }
-    )
-    .subscribe((status) => {
-      console.log("Status realtime:", status);
-    });
-}
+  await buscarPlaylist();
+  tocarMidia();
 
-function iniciarPolling() {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-  }
-
-  pollingInterval = setInterval(async () => {
-    await aplicarPlaylistNova(false);
+  setInterval(async () => {
+    await buscarPlaylist();
   }, 15000);
 }
 
-async function carregarPlaylist() {
-  const params = new URLSearchParams(window.location.search);
-  const codigo = params.get("codigo");
-
-  if (!codigo) {
-    mostrarMensagem("Código não informado na URL.");
-    return;
-  }
-
-  if (!video) {
-    mostrarMensagem("Elemento de vídeo não encontrado.");
-    return;
-  }
-
-  codigoAtual = codigo;
-
-  try {
-    iniciarEventosDoVideo();
-    await aplicarPlaylistNova(true);
-    iniciarRealtime();
-    iniciarPolling();
-  } catch (erro) {
-    console.error("Erro geral no player:", erro);
-    mostrarMensagem("Erro ao carregar a playlist.");
-  }
-}
-
-window.addEventListener("beforeunload", () => {
-  if (realtimeChannel) {
-    supabaseClient.removeChannel(realtimeChannel);
-  }
-
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-  }
-});
-
-carregarPlaylist();
+iniciar();
