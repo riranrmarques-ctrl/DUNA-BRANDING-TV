@@ -5,114 +5,156 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
 
-  <link rel="stylesheet" href="painel.css?v=1">
-
+  <link rel="stylesheet" href="painel.css?v=2">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginBox" class="login-screen">
-  <div class="login-card">
-    <h2>Acesso ao Painel</h2>
-    <input type="password" id="senhaInput" placeholder="Digite o código">
-    <button id="btnLogin">Entrar</button>
-    <p id="loginErro" class="login-erro"></p>
-  </div>
-</div>
+  <!-- LOGIN -->
+  <div id="loginBox" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">Duna TV</div>
+      <h2>Acesso ao Painel</h2>
+      <p class="login-subtitle">Digite o código para entrar</p>
 
-<!-- PAINEL -->
-<div id="conteudoPainel" style="display:none;">
-
-  <div class="logo-top">
-    <h2>Duna TV</h2>
+      <input type="password" id="senhaInput" placeholder="Digite o código">
+      <button id="btnLogin">Entrar</button>
+      <p id="loginErro" class="login-erro"></p>
+    </div>
   </div>
 
-  <div class="painel-shell">
+  <!-- PAINEL -->
+  <div id="conteudoPainel" style="display:none;">
 
-    <!-- HEADER -->
-    <div class="painel-header">
-      <h1>Painel de Pontos</h1>
-      <p>Gerencie seus pontos e playlists.</p>
+    <div class="logo-top">
+      <h2>Duna TV</h2>
     </div>
 
-    <!-- LISTA DE PONTOS -->
-    <div id="listaPontos" class="pontos-box">
+    <div class="painel-shell">
 
-      <!-- PONTO -->
-      <div class="card-ponto" data-codigo="H4E9L2A">
-        <div class="card-topo">
-          <div class="card-nome">Carregando...</div>
-          <button class="btn-editar-nome" data-codigo="H4E9L2A">✎</button>
-        </div>
-
-        <div class="card-codigo-linha">
-          <div class="card-codigo">H4E9L2A</div>
-          <button class="btn-copiar" data-codigo="H4E9L2A">⧉</button>
-        </div>
-
-        <div class="card-acoes">
-          <button class="btn-abrir" data-codigo="H4E9L2A">Abrir pasta</button>
+      <!-- HEADER -->
+      <div class="painel-header">
+        <div>
+          <span class="painel-kicker">Painel</span>
+          <h1>Pontos de acesso</h1>
+          <p>Gerencie nomes, códigos e playlists com um visual mais limpo.</p>
         </div>
       </div>
 
-      <!-- DUPLICA -->
-      <div class="card-ponto" data-codigo="N7H3E8L">
-        <div class="card-topo">
-          <div class="card-nome">Carregando...</div>
-          <button class="btn-editar-nome" data-codigo="N7H3E8L">✎</button>
-        </div>
+      <!-- LISTA DE PONTOS -->
+      <div id="listaPontos" class="pontos-box">
 
-        <div class="card-codigo-linha">
-          <div class="card-codigo">N7H3E8L</div>
-          <button class="btn-copiar" data-codigo="N7H3E8L">⧉</button>
-        </div>
+        <!-- PONTO -->
+        <div class="card-ponto" data-codigo="H4E9L2A">
+          <div class="card-topo">
+            <div class="card-nome-wrap">
+              <div class="card-label">Ponto</div>
+              <div class="card-nome">Carregando...</div>
+            </div>
 
-        <div class="card-acoes">
-          <button class="btn-abrir" data-codigo="N7H3E8L">Abrir pasta</button>
-        </div>
-      </div>
+            <button class="btn-icon btn-editar-nome" data-codigo="H4E9L2A" title="Trocar nome">
+              ✎
+            </button>
+          </div>
 
-    </div>
+          <div class="card-codigo-box">
+            <div class="card-codigo-info">
+              <div class="card-codigo-label">Código</div>
+              <div class="card-codigo">H4E9L2A</div>
+            </div>
 
-    <!-- PASTA -->
-    <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+            <button class="btn-icon btn-copiar" data-codigo="H4E9L2A" title="Copiar código">
+              ⧉
+            </button>
+          </div>
 
-      <div class="playlist-header">
-        <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
-        <p id="nomeAtual"></p>
-      </div>
-
-      <!-- UPLOAD -->
-      <div class="upload-card">
-        <h3>Adicionar mídia</h3>
-
-        <input type="file" id="videoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
-
-        <button id="btnUpload">Enviar mídia</button>
-        <button id="btnVoltar">Voltar</button>
-      </div>
-
-      <!-- PLAYLIST -->
-      <div class="playlist-area">
-        <h3>Playlist</h3>
-
-        <div id="playlistLista">
-          <div class="playlist-item">
-            Nenhum item carregado.
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="H4E9L2A">Abrir pasta</button>
           </div>
         </div>
+
+        <!-- PONTO -->
+        <div class="card-ponto" data-codigo="N7H3E8L">
+          <div class="card-topo">
+            <div class="card-nome-wrap">
+              <div class="card-label">Ponto</div>
+              <div class="card-nome">Carregando...</div>
+            </div>
+
+            <button class="btn-icon btn-editar-nome" data-codigo="N7H3E8L" title="Trocar nome">
+              ✎
+            </button>
+          </div>
+
+          <div class="card-codigo-box">
+            <div class="card-codigo-info">
+              <div class="card-codigo-label">Código</div>
+              <div class="card-codigo">N7H3E8L</div>
+            </div>
+
+            <button class="btn-icon btn-copiar" data-codigo="N7H3E8L" title="Copiar código">
+              ⧉
+            </button>
+          </div>
+
+          <div class="card-acoes">
+            <button class="btn-abrir" data-codigo="N7H3E8L">Abrir pasta</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PASTA -->
+      <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+
+        <div class="playlist-header">
+          <div>
+            <span class="painel-kicker">Playlist</span>
+            <h2>Pasta do ponto <span id="codigoAtual"></span></h2>
+            <p id="nomeAtual"></p>
+          </div>
+        </div>
+
+        <div class="playlist-grid">
+          <!-- COLUNA ESQUERDA -->
+          <div class="upload-card">
+            <h3>Adicionar mídia</h3>
+            <p class="card-subtext">
+              Envie vídeo, imagem ou TXT com URL.
+            </p>
+
+            <input type="file" id="videoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
+
+            <div class="upload-actions">
+              <button id="btnUpload">Enviar mídia</button>
+              <button id="btnVoltar" class="btn-secundario">Voltar</button>
+            </div>
+          </div>
+
+          <!-- COLUNA DIREITA -->
+          <div class="playlist-area">
+            <div class="playlist-area-topo">
+              <div>
+                <h3>Playlist</h3>
+                <p class="card-subtext">Arraste os itens para mudar a ordem.</p>
+              </div>
+            </div>
+
+            <div id="playlistLista">
+              <div class="playlist-item vazio">
+                <span>Nenhum item carregado.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
 
+    <div id="status" class="status-box">Painel ativo</div>
   </div>
 
-  <div id="status" class="status-box">Painel ativo</div>
-
-</div>
-
-<script src="painel.js?v=1"></script>
-
+  <script src="painel.js?v=2"></script>
 </body>
 </html>
