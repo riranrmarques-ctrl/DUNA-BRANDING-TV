@@ -63,12 +63,61 @@ async function codigoExiste(codigo) {
   return lista.includes(codigo.trim().toLowerCase());
 }
 
+/* CONTADOR */
+function pararContador() {
+  clearInterval(countdownInterval);
+  countdownInterval = null;
+  countdown = 30;
+  contadorTexto.textContent = "";
+  contadorTexto.classList.add("hidden");
+}
+
+function iniciarContador() {
+  clearInterval(countdownInterval);
+  countdown = 30;
+
+  contadorTexto.classList.remove("hidden");
+  contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
+
+  countdownInterval = setInterval(async () => {
+    countdown--;
+    contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
+
+    if (countdown <= 0) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      await entrarNoPlayer();
+    }
+  }, 1000);
+}
+
+/* DECIDE SE MOSTRA CONTAGEM */
+async function atualizarEstadoContador() {
+  const codigo = codigoInput.value.trim();
+
+  if (!codigo) {
+    pararContador();
+    return;
+  }
+
+  const existe = await codigoExiste(codigo);
+
+  if (existe) {
+    if (!countdownInterval) {
+      iniciarContador();
+    }
+  } else {
+    pararContador();
+  }
+}
+
 /* VALIDAÇÃO EM TEMPO REAL */
 async function validarCodigoAoDigitar() {
   const codigo = codigoInput.value.trim();
 
   if (!codigo) {
     mensagem.textContent = "";
+    pararContador();
     return;
   }
 
@@ -76,8 +125,12 @@ async function validarCodigoAoDigitar() {
 
   if (existe) {
     mensagem.textContent = "";
+    if (!countdownInterval) {
+      iniciarContador();
+    }
   } else {
     mensagem.textContent = "Código incorreto!";
+    pararContador();
   }
 }
 
@@ -88,6 +141,7 @@ async function entrarNoPlayer() {
 
   if (!codigo) {
     mensagem.textContent = "Informe o código do estabelecimento.";
+    pararContador();
     return;
   }
 
@@ -98,6 +152,7 @@ async function entrarNoPlayer() {
 
   if (!existe) {
     mensagem.textContent = "Código incorreto!";
+    pararContador();
     return;
   }
 
@@ -111,46 +166,43 @@ form.addEventListener("submit", async function (e) {
   await entrarNoPlayer();
 });
 
-/* AUTOSAVE */
+/* INPUT CÓDIGO */
 codigoInput.addEventListener("input", async () => {
   salvarDados();
   await validarCodigoAoDigitar();
 });
 
+/* INPUT NOME DO DISPOSITIVO */
 dispositivoInput.addEventListener("input", () => {
   salvarDados();
 });
 
-/* TAMBÉM VALIDA AO SAIR DO CAMPO */
+/* AO SAIR DO CAMPO */
 codigoInput.addEventListener("blur", async () => {
   await validarCodigoAoDigitar();
 });
 
-/* AUTO START */
-function iniciarContador() {
-  contadorTexto.classList.remove("hidden");
-  contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
+/* INÍCIO */
+async function iniciarSistema() {
+  await carregarCodigos();
 
-  countdownInterval = setInterval(async () => {
-    countdown--;
-    contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
+  const codigoAtual = codigoInput.value.trim();
 
-    if (countdown <= 0) {
-      clearInterval(countdownInterval);
-      await entrarNoPlayer();
-    }
-  }, 1000);
+  if (!codigoAtual) {
+    pararContador();
+    mensagem.textContent = "";
+    return;
+  }
+
+  const existe = await codigoExiste(codigoAtual);
+
+  if (existe) {
+    mensagem.textContent = "";
+    iniciarContador();
+  } else {
+    mensagem.textContent = "Código incorreto!";
+    pararContador();
+  }
 }
 
-function reiniciarContador() {
-  clearInterval(countdownInterval);
-  countdown = 30;
-  iniciarContador();
-}
-
-codigoInput.addEventListener("input", reiniciarContador);
-dispositivoInput.addEventListener("input", reiniciarContador);
-
-/* INICIA */
-carregarCodigos();
-iniciarContador();
+iniciarSistema();
