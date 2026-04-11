@@ -1,19 +1,8 @@
 {
   "0001": {
+    "nome": "teste",
     "playlist": [
-      "https://seudominio.com/videos/video1.mp4",
-      "https://seudominio.com/videos/video2.mp4"
-    ]
-  },
-  "0002": {
-    "playlist": [
-      "https://seudominio.com/videos/video3.mp4"
-    ]
-  },
-  "0003": {
-    "playlist": [
-      "https://seudominio.com/videos/video4.mp4",
-      "https://seudominio.com/videos/video5.mp4"
+      "https://www.w3schools.com/html/mov_bbb.mp4"
     ]
   }
 }
