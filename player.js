@@ -1,6 +1,5 @@
 const video = document.getElementById('player');
 const loading = document.getElementById('loading');
-const erro = document.getElementById('erro');
 
 const params = new URLSearchParams(window.location.search);
 const codigo = (params.get('codigo') || '').trim().toLowerCase();
@@ -8,26 +7,43 @@ const codigo = (params.get('codigo') || '').trim().toLowerCase();
 let playlist = [];
 let indexAtual = 0;
 
+function mostrarLoading(texto) {
+  loading.textContent = texto;
+  loading.classList.remove('hidden');
+}
+
+function esconderLoading() {
+  loading.classList.add('hidden');
+}
+
 function mostrarErro(texto) {
-  if (loading) loading.classList.add('hidden');
-  if (erro) {
-    erro.textContent = texto;
-    erro.classList.remove('hidden');
-  }
+  mostrarLoading(texto);
 }
 
 function tocarAtual() {
   if (!playlist.length) {
-    mostrarErro('Nenhum vídeo cadastrado para este código.');
+    mostrarErro('Nenhum vídeo cadastrado para este ponto.');
     return;
   }
 
+  video.controls = false;
+  video.removeAttribute('controls');
   video.src = playlist[indexAtual];
-  video.play().catch(() => {
-    proximoVideo();
-  });
+  video.load();
 
-  if (loading) loading.classList.add('hidden');
+  const playPromise = video.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        esconderLoading();
+      })
+      .catch((error) => {
+        console.error(error);
+        proximoVideo();
+      });
+  } else {
+    esconderLoading();
+  }
 }
 
 function proximoVideo() {
@@ -35,10 +51,8 @@ function proximoVideo() {
   tocarAtual();
 }
 
-if (video) {
-  video.addEventListener('ended', proximoVideo);
-  video.addEventListener('error', proximoVideo);
-}
+video.addEventListener('ended', proximoVideo);
+video.addEventListener('error', proximoVideo);
 
 async function iniciarPlayer() {
   if (!codigo) {
@@ -48,17 +62,28 @@ async function iniciarPlayer() {
 
   try {
     const response = await fetch('clientes.json', { cache: 'no-store' });
-    const clientes = await response.json();
-    const cliente = clientes.find(item => item.codigo.toLowerCase() === codigo);
+    if (!response.ok) {
+      throw new Error('Erro ao carregar clientes.json');
+    }
 
-    if (!cliente) {
-      mostrarErro('Cliente não encontrado.');
+    const dados = await response.json();
+    const ponto = dados.find(item => item.codigo.toLowerCase() === codigo);
+
+    if (!ponto) {
+      mostrarErro('Ponto não encontrado.');
       return;
     }
 
-    playlist = Array.isArray(cliente.videos) ? cliente.videos : [];
+    playlist = Array.isArray(ponto.videos) ? ponto.videos : [];
+
+    if (!playlist.length) {
+      mostrarErro('Nenhum vídeo cadastrado para este ponto.');
+      return;
+    }
+
     tocarAtual();
   } catch (error) {
+    console.error(error);
     mostrarErro('Erro ao carregar a playlist.');
   }
 }
