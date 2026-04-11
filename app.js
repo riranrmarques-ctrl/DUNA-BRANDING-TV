@@ -21,9 +21,15 @@ const historicoLoginValido = localStorage.getItem(STORAGE_HISTORICO) === "true";
 codigoInput.value = codigoSalvo;
 dispositivoInput.value = dispositivoSalvo;
 
+/* NORMALIZA CÓDIGO
+   Mantém como STRING para preservar zeros à esquerda, ex: 0001 */
+function normalizarCodigo(valor) {
+  return String(valor || "").trim();
+}
+
 /* SALVA CAMPOS */
 function salvarCampos() {
-  localStorage.setItem(STORAGE_CODIGO, codigoInput.value.trim());
+  localStorage.setItem(STORAGE_CODIGO, normalizarCodigo(codigoInput.value));
   localStorage.setItem(STORAGE_DISPOSITIVO, dispositivoInput.value.trim());
 }
 
@@ -71,15 +77,17 @@ async function carregarCodigos() {
 
     if (Array.isArray(dados)) {
       codigosValidos = dados
-        .map(item => String(item.codigo || "").trim().toLowerCase())
+        .map(item => normalizarCodigo(item.codigo))
         .filter(Boolean);
+
       return codigosValidos;
     }
 
     if (typeof dados === "object" && dados !== null) {
       codigosValidos = Object.keys(dados)
-        .map(chave => String(chave).trim().toLowerCase())
+        .map(chave => normalizarCodigo(chave))
         .filter(Boolean);
+
       return codigosValidos;
     }
 
@@ -94,13 +102,14 @@ async function carregarCodigos() {
 
 /* VERIFICA CÓDIGO */
 async function codigoExiste(codigo) {
+  const codigoNormalizado = normalizarCodigo(codigo);
   const lista = await carregarCodigos();
-  return lista.includes(String(codigo).trim().toLowerCase());
+  return lista.includes(codigoNormalizado);
 }
 
 /* ENTRAR */
 async function entrarNoPlayer(vindoDoAutoStart = false) {
-  const codigo = codigoInput.value.trim();
+  const codigo = normalizarCodigo(codigoInput.value);
   const dispositivo = dispositivoInput.value.trim();
 
   mensagem.textContent = "";
@@ -142,14 +151,14 @@ codigoInput.addEventListener("input", () => {
   pararContador();
 });
 
-/* INPUT NOME */
+/* INPUT NOME DO DISPOSITIVO */
 dispositivoInput.addEventListener("input", () => {
   salvarCampos();
 });
 
 /* VALIDA AO SAIR DO CAMPO */
 codigoInput.addEventListener("blur", async () => {
-  const codigo = codigoInput.value.trim();
+  const codigo = normalizarCodigo(codigoInput.value);
 
   if (!codigo) {
     mensagem.textContent = "";
@@ -177,7 +186,7 @@ async function iniciarSistema() {
     return;
   }
 
-  const codigoAtual = codigoInput.value.trim();
+  const codigoAtual = normalizarCodigo(codigoInput.value);
 
   if (!codigoAtual) {
     localStorage.removeItem(STORAGE_HISTORICO);
