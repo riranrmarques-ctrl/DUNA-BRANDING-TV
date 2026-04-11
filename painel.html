@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Duna Branding | Painel</title>
+
+  <link rel="stylesheet" href="painel.css" />
+</head>
+<body>
+
+  <img src="logo.png" class="logo-top">
+
+  <div class="container">
+
+    <h1>Painel de Playlists</h1>
+
+    <div class="card">
+      <h2>Criar / Atualizar Estabelecimento</h2>
+
+      <input type="text" id="nome" placeholder="Nome do estabelecimento" />
+      <input type="text" id="codigo" placeholder="Código (ex: loja1)" />
+
+      <textarea id="links" placeholder="Cole os links dos vídeos (1 por linha)"></textarea>
+
+      <button onclick="salvar()">Salvar / Atualizar</button>
+
+      <p id="mensagem"></p>
+    </div>
+
+    <div class="card">
+      <h2>clientes.json</h2>
+
+      <textarea id="json"></textarea>
+
+      <button onclick="formatar()">Formatar</button>
+      <button onclick="copiar()">Copiar</button>
+    </div>
+
+  </div>
+
+  <script src="painel.js"></script>
+</body>
+</html>
