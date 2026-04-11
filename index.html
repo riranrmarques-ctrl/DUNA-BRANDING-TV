@@ -3,31 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DUNA Branding</title>
+  <title>Duna TV</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- LOGO -->
+  <div class="logo-top">
+    <img src="logo.png" alt="Duna TV">
+  </div>
+
+  <!-- CARD CENTRAL -->
   <main class="center-box">
-    <div class="card intro-card">
+    <div class="card">
 
-      <div class="brand-title">
-        <span class="duna">DUNA</span>
-        <span class="branding">Branding</span>
-      </div>
+      <h1>Painel de Acesso</h1>
+      <p class="sub">Acesso para a reprodução de pontos de tela</p>
 
-      <h1>Acesso do ponto</h1>
-      <p class="intro-text">Digite o código do estabelecimento para abrir a reprodução.</p>
+      <form id="codeForm">
 
-      <form id="codeForm" class="code-form">
-        <input id="codigo" type="text" placeholder="Digite o código do ponto" autocomplete="off" required>
+        <input id="dispositivo" type="text" placeholder="Nome do dispositivo (opcional)">
+
+        <input id="codigo" type="text" placeholder="Código do estabelecimento" required>
+
         <button type="submit">Entrar</button>
+
       </form>
 
       <p id="mensagem" class="mensagem"></p>
-      <p id="contadorTexto" class="contador-texto hidden"></p>
+      <p id="contadorTexto" class="contador"></p>
 
     </div>
   </main>
+
+  <!-- RODAPÉ -->
+  <div class="footer">
+    Central de Suporte<br>
+    (73) 98188-8817
+  </div>
 
   <script src="app.js"></script>
 </body>
