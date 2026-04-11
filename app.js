@@ -1,199 +1,47 @@
 const form = document.getElementById("codeForm");
-const codigoInput = document.getElementById("codigo");
-const dispositivoInput = document.getElementById("dispositivo");
+const inputDispositivo = document.getElementById("dispositivo");
+const inputCodigo = document.getElementById("codigo");
 const mensagem = document.getElementById("mensagem");
 const contadorTexto = document.getElementById("contadorTexto");
 
-let countdown = 30;
-let countdownInterval = null;
-let clientesData = null;
-
-/* CHAVES DE STORAGE */
-const STORAGE_CODIGO = "codigoEstabelecimento";
-const STORAGE_DISPOSITIVO = "nomeDispositivo";
-const STORAGE_HISTORICO = "historicoLoginValido";
-
-/* CARREGA DADOS SALVOS */
-const codigoSalvo = localStorage.getItem(STORAGE_CODIGO) || "";
-const dispositivoSalvo = localStorage.getItem(STORAGE_DISPOSITIVO) || "";
-const historicoLoginValido = localStorage.getItem(STORAGE_HISTORICO) === "true";
-
-codigoInput.value = codigoSalvo;
-dispositivoInput.value = dispositivoSalvo;
-
-/* NORMALIZA CÓDIGO
-   Mantém como STRING para preservar zeros à esquerda, ex: 0001 */
-function normalizarCodigo(valor) {
-  return String(valor || "").trim();
+function mostrarMensagem(texto, cor = "#ff6b6b") {
+  mensagem.textContent = texto;
+  mensagem.style.color = cor;
 }
 
-/* SALVA CAMPOS */
-function salvarCampos() {
-  localStorage.setItem(STORAGE_CODIGO, normalizarCodigo(codigoInput.value));
-  localStorage.setItem(STORAGE_DISPOSITIVO, dispositivoInput.value.trim());
-}
-
-/* CONTADOR */
-function pararContador() {
-  if (countdownInterval) {
-    clearInterval(countdownInterval);
-    countdownInterval = null;
-  }
-
-  countdown = 30;
-  contadorTexto.textContent = "";
-  contadorTexto.classList.add("hidden");
-}
-
-function iniciarContador() {
-  pararContador();
-
-  contadorTexto.classList.remove("hidden");
-  contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
-
-  countdownInterval = setInterval(async () => {
-    countdown--;
-    contadorTexto.textContent = `Iniciando automaticamente em ${countdown}s`;
-
-    if (countdown <= 0) {
-      pararContador();
-      await entrarNoPlayer(true);
-    }
-  }, 1000);
-}
-
-/* CARREGA CLIENTES */
-async function carregarClientes() {
-  if (clientesData) return clientesData;
-
-  try {
-    const resposta = await fetch(`clientes.json?v=${Date.now()}`, {
-      cache: "no-store"
-    });
-
-    if (!resposta.ok) {
-      throw new Error("Erro ao carregar clientes.json");
-    }
-
-    const dados = await resposta.json();
-
-    if (typeof dados === "object" && dados !== null) {
-      clientesData = dados;
-      return clientesData;
-    }
-
-    clientesData = {};
-    return clientesData;
-  } catch (erro) {
-    console.error("Erro ao carregar clientes:", erro);
-    clientesData = {};
-    return clientesData;
-  }
-}
-
-/* VERIFICA CÓDIGO */
-async function codigoExiste(codigo) {
-  const codigoNormalizado = normalizarCodigo(codigo);
-  const clientes = await carregarClientes();
-
-  return Object.prototype.hasOwnProperty.call(clientes, codigoNormalizado);
-}
-
-/* ENTRAR */
-async function entrarNoPlayer(vindoDoAutoStart = false) {
-  const codigo = normalizarCodigo(codigoInput.value);
-  const dispositivo = dispositivoInput.value.trim();
-
-  mensagem.textContent = "";
-  salvarCampos();
-
-  if (!codigo) {
-    mensagem.textContent = "Informe o código do estabelecimento.";
-    localStorage.removeItem(STORAGE_HISTORICO);
-    pararContador();
-    return;
-  }
-
-  const valido = await codigoExiste(codigo);
-
-  if (!valido) {
-    mensagem.textContent = "Código incorreto!";
-    localStorage.removeItem(STORAGE_HISTORICO);
-    pararContador();
-    return;
-  }
-
-  localStorage.setItem(STORAGE_CODIGO, codigo);
-  localStorage.setItem(STORAGE_DISPOSITIVO, dispositivo);
-  localStorage.setItem(STORAGE_HISTORICO, "true");
-
-  window.location.href = `player.html?codigo=${encodeURIComponent(codigo)}`;
-}
-
-/* SUBMIT */
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", function (e) {
   e.preventDefault();
-  await entrarNoPlayer(false);
-});
 
-/* INPUT CÓDIGO */
-codigoInput.addEventListener("input", () => {
-  salvarCampos();
-  mensagem.textContent = "";
-  pararContador();
-});
-
-/* INPUT NOME DO DISPOSITIVO */
-dispositivoInput.addEventListener("input", () => {
-  salvarCampos();
-});
-
-/* VALIDA AO SAIR DO CAMPO */
-codigoInput.addEventListener("blur", async () => {
-  const codigo = normalizarCodigo(codigoInput.value);
+  const dispositivo = inputDispositivo.value.trim();
+  const codigo = inputCodigo.value.trim();
 
   if (!codigo) {
-    mensagem.textContent = "";
-    pararContador();
+    mostrarMensagem("Digite o código do estabelecimento.");
     return;
   }
 
-  const valido = await codigoExiste(codigo);
+  const dados = JSON.parse(localStorage.getItem("dunaPastas")) || {};
+  const pasta = dados[codigo];
 
-  if (!valido) {
-    mensagem.textContent = "Código incorreto!";
-    pararContador();
+  if (!pasta) {
+    mostrarMensagem("Código incorreto.");
     return;
   }
 
-  mensagem.textContent = "";
+  if (!pasta.video || !pasta.video.trim()) {
+    mostrarMensagem("Este código não possui vídeo cadastrado.");
+    return;
+  }
+
+  localStorage.setItem("codigoAtivo", codigo);
+
+  if (dispositivo) {
+    localStorage.setItem("nomeDispositivo", dispositivo);
+  }
+
+  mostrarMensagem("Carregando vídeo...", "#86efac");
+
+  setTimeout(() => {
+    window.location.href = "player.html";
+  }, 500);
 });
-
-/* INÍCIO */
-async function iniciarSistema() {
-  pararContador();
-  await carregarClientes();
-
-  if (!historicoLoginValido) {
-    return;
-  }
-
-  const codigoAtual = normalizarCodigo(codigoInput.value);
-
-  if (!codigoAtual) {
-    localStorage.removeItem(STORAGE_HISTORICO);
-    return;
-  }
-
-  const valido = await codigoExiste(codigoAtual);
-
-  if (!valido) {
-    localStorage.removeItem(STORAGE_HISTORICO);
-    mensagem.textContent = "Código incorreto!";
-    return;
-  }
-
-  iniciarContador();
-}
-
-iniciarSistema();
