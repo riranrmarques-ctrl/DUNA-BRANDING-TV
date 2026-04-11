@@ -1,179 +1,274 @@
-const pastasFixas = [
-  { codigo: "0001", nomePadrao: "Pasta 1" },
-  { codigo: "0002", nomePadrao: "Pasta 2" },
-  { codigo: "0003", nomePadrao: "Pasta 3" },
-  { codigo: "0004", nomePadrao: "Pasta 4" },
-  { codigo: "0005", nomePadrao: "Pasta 5" }
-];
+const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const BUCKET = "videos";
+const TABELA = "playlists";
 
-function carregarDados() {
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const codigoSelect = document.getElementById("codigoSelect");
+const codigoAtual = document.getElementById("codigoAtual");
+const videoInput = document.getElementById("videoInput");
+const btnUpload = document.getElementById("btnUpload");
+const statusEl = document.getElementById("status");
+const playlistLista = document.getElementById("playlistLista");
+
+function setStatus(texto, tipo = "normal") {
+  statusEl.textContent = texto;
+  statusEl.className = "status-box";
+
+  if (tipo === "erro") statusEl.classList.add("erro");
+  if (tipo === "ok") statusEl.classList.add("ok");
+}
+
+function escaparHtml(texto) {
+  return String(texto || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function pegarCodigoAtual() {
+  return codigoSelect.value;
+}
+
+async function buscarPlaylist(codigo) {
+  const { data, error } = await supabase
+    .from(TABELA)
+    .select("*")
+    .eq("codigo", codigo)
+    .order("ordem", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data || [];
+}
+
+async function pegarProximaOrdem(codigo) {
+  const lista = await buscarPlaylist(codigo);
+
+  if (!lista.length) return 0;
+
+  const maior = Math.max(...lista.map(item => Number(item.ordem) || 0));
+  return maior + 1;
+}
+
+function montarItemHtml(item, indice, total) {
+  const nome = escaparHtml(item.nome || "Sem nome");
+  const url = escaparHtml(item.video_url || "");
+
+  return `
+    <div class="playlist-item" data-id="${item.id}">
+      <div class="playlist-item-topo">
+        <strong>${indice + 1}. ${nome}</strong>
+      </div>
+
+      <div class="playlist-item-url">
+        <a href="${url}" target="_blank" rel="noopener noreferrer">Abrir vídeo</a>
+      </div>
+
+      <div class="playlist-item-acoes">
+        <button onclick="moverVideo(${item.id}, 'up')" ${indice === 0 ? "disabled" : ""}>↑ Subir</button>
+        <button onclick="moverVideo(${item.id}, 'down')" ${indice === total - 1 ? "disabled" : ""}>↓ Descer</button>
+        <button onclick="removerVideo(${item.id}, '${escaparHtml(item.storage_path)}')">Remover</button>
+        <button onclick="copiarLinkPlayer('${item.codigo}')">Copiar link do player</button>
+      </div>
+    </div>
+  `;
+}
+
+async function renderizarPlaylist() {
+  const codigo = pegarCodigoAtual();
+  codigoAtual.textContent = codigo;
+  playlistLista.innerHTML = "<p>Carregando playlist...</p>";
+
   try {
-    return JSON.parse(localStorage.getItem("dunaPastas")) || {};
-  } catch (e) {
-    console.error("Erro ao ler localStorage:", e);
-    return {};
+    const lista = await buscarPlaylist(codigo);
+
+    if (!lista.length) {
+      playlistLista.innerHTML = "<p>Nenhum vídeo cadastrado para este código.</p>";
+      return;
+    }
+
+    playlistLista.innerHTML = lista
+      .map((item, indice) => montarItemHtml(item, indice, lista.length))
+      .join("");
+  } catch (error) {
+    console.error("Erro ao renderizar playlist:", error);
+    playlistLista.innerHTML = "<p>Erro ao carregar playlist.</p>";
+    setStatus("Erro ao carregar playlist: " + error.message, "erro");
   }
 }
 
-function salvarDados(dados) {
-  localStorage.setItem("dunaPastas", JSON.stringify(dados));
+async function uploadVideo() {
+  const codigo = pegarCodigoAtual();
+  const arquivo = videoInput.files[0];
+
+  if (!arquivo) {
+    setStatus("Selecione um vídeo antes de enviar.", "erro");
+    return;
+  }
+
+  try {
+    btnUpload.disabled = true;
+    setStatus("Enviando vídeo...");
+
+    const extensao = arquivo.name.includes(".")
+      ? arquivo.name.split(".").pop()
+      : "mp4";
+
+    const nomeSeguro = arquivo.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/[^a-zA-Z0-9._-]/g, "");
+
+    const nomeFinal = `${Date.now()}-${nomeSeguro || "video." + extensao}`;
+    const caminho = `${codigo}/${nomeFinal}`;
+
+    const { error: uploadError } = await supabase
+      .storage
+      .from(BUCKET)
+      .upload(caminho, arquivo, {
+        cacheControl: "3600",
+        upsert: false
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicData } = supabase
+      .storage
+      .from(BUCKET)
+      .getPublicUrl(caminho);
+
+    const videoUrl = publicData.publicUrl;
+    const ordem = await pegarProximaOrdem(codigo);
+
+    const { error: insertError } = await supabase
+      .from(TABELA)
+      .insert({
+        codigo: codigo,
+        nome: arquivo.name,
+        video_url: videoUrl,
+        storage_path: caminho,
+        ordem: ordem
+      });
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    videoInput.value = "";
+    setStatus("Vídeo enviado com sucesso.", "ok");
+    await renderizarPlaylist();
+  } catch (error) {
+    console.error("Erro no upload:", error);
+    setStatus("Erro ao enviar vídeo: " + error.message, "erro");
+  } finally {
+    btnUpload.disabled = false;
+  }
 }
 
-function renderizarPastas() {
-  const container = document.getElementById("cardsContainer");
-  const dados = carregarDados();
-  container.innerHTML = "";
+async function removerVideo(id, storagePath) {
+  const confirmar = window.confirm("Deseja remover este vídeo?");
+  if (!confirmar) return;
 
-  pastasFixas.forEach((pasta) => {
-    const item = dados[pasta.codigo] || {};
-    const nome = item.nome || pasta.nomePadrao;
-    const playlist = Array.isArray(item.playlist) && item.playlist.length > 0
-      ? item.playlist
-      : [""];
+  try {
+    setStatus("Removendo vídeo...");
 
-    const linksHtml = playlist.map((link, index) => `
-      <div class="field">
-        <label>Link do vídeo ${index + 1}</label>
-        <input type="text" id="video-${pasta.codigo}-${index}" value="${link}" placeholder="https://site.com/video.mp4">
-      </div>
-    `).join("");
+    const { error: storageError } = await supabase
+      .storage
+      .from(BUCKET)
+      .remove([storagePath]);
 
-    const card = document.createElement("div");
-    card.className = "card";
+    if (storageError) {
+      throw storageError;
+    }
 
-    card.innerHTML = `
-      <h3>${nome}</h3>
-      <div class="codigo">Código fixo: ${pasta.codigo}</div>
+    const { error: deleteError } = await supabase
+      .from(TABELA)
+      .delete()
+      .eq("id", id);
 
-      <div class="field">
-        <label>Nome da pasta</label>
-        <input type="text" id="nome-${pasta.codigo}" value="${nome}" placeholder="Digite o nome da pasta">
-      </div>
+    if (deleteError) {
+      throw deleteError;
+    }
 
-      <div id="playlist-${pasta.codigo}">
-        ${linksHtml}
-      </div>
-
-      <div class="buttons">
-        <button class="btn-save" onclick="adicionarCampoVideo('${pasta.codigo}')">Adicionar vídeo</button>
-        <button class="btn-save" onclick="salvarPasta('${pasta.codigo}')">Salvar</button>
-        <button class="btn-clear" onclick="limparPasta('${pasta.codigo}')">Limpar</button>
-        <button class="btn-clear" onclick="copiarLinkPlayer('${pasta.codigo}')">Copiar link do player</button>
-      </div>
-
-      <div class="video-info" id="info-${pasta.codigo}">
-        ${playlist.filter(Boolean).length > 0
-          ? `<strong>${playlist.filter(Boolean).length} vídeo(s) salvo(s):</strong><br>${playlist.filter(Boolean).join("<br>")}`
-          : "Nenhum vídeo salvo."
-        }
-      </div>
-
-      <div class="status" id="status-${pasta.codigo}"></div>
-    `;
-
-    container.appendChild(card);
-  });
+    await reordenarCodigo(pegarCodigoAtual());
+    setStatus("Vídeo removido com sucesso.", "ok");
+    await renderizarPlaylist();
+  } catch (error) {
+    console.error("Erro ao remover vídeo:", error);
+    setStatus("Erro ao remover vídeo: " + error.message, "erro");
+  }
 }
 
-function adicionarCampoVideo(codigo) {
-  const playlistDiv = document.getElementById(`playlist-${codigo}`);
-  const quantidade = playlistDiv.querySelectorAll("input").length;
+async function moverVideo(id, direcao) {
+  try {
+    const codigo = pegarCodigoAtual();
+    const lista = await buscarPlaylist(codigo);
 
-  const novoCampo = document.createElement("div");
-  novoCampo.className = "field";
-  novoCampo.innerHTML = `
-    <label>Link do vídeo ${quantidade}</label>
-    <input type="text" id="video-${codigo}-${quantidade - 1}" placeholder="https://site.com/video.mp4">
-  `;
+    const indiceAtual = lista.findIndex(item => Number(item.id) === Number(id));
+    if (indiceAtual === -1) return;
 
-  playlistDiv.appendChild(novoCampo);
+    const novoIndice = direcao === "up" ? indiceAtual - 1 : indiceAtual + 1;
+
+    if (novoIndice < 0 || novoIndice >= lista.length) return;
+
+    const atual = lista[indiceAtual];
+    const destino = lista[novoIndice];
+
+    const ordemAtual = atual.ordem;
+    const ordemDestino = destino.ordem;
+
+    const { error: error1 } = await supabase
+      .from(TABELA)
+      .update({ ordem: ordemDestino })
+      .eq("id", atual.id);
+
+    if (error1) throw error1;
+
+    const { error: error2 } = await supabase
+      .from(TABELA)
+      .update({ ordem: ordemAtual })
+      .eq("id", destino.id);
+
+    if (error2) throw error2;
+
+    setStatus("Ordem atualizada.", "ok");
+    await renderizarPlaylist();
+  } catch (error) {
+    console.error("Erro ao mover vídeo:", error);
+    setStatus("Erro ao mover vídeo: " + error.message, "erro");
+  }
 }
 
-function salvarPasta(codigo) {
-  const dados = carregarDados();
-  const base = pastasFixas.find((p) => p.codigo === codigo);
+async function reordenarCodigo(codigo) {
+  try {
+    const lista = await buscarPlaylist(codigo);
 
-  const nome = document.getElementById(`nome-${codigo}`).value.trim() || base.nomePadrao;
+    for (let i = 0; i < lista.length; i++) {
+      const item = lista[i];
 
-  const playlistDiv = document.getElementById(`playlist-${codigo}`);
-  const inputs = playlistDiv.querySelectorAll("input[type='text']");
-  const playlist = [];
+      if ((Number(item.ordem) || 0) !== i) {
+        const { error } = await supabase
+          .from(TABELA)
+          .update({ ordem: i })
+          .eq("id", item.id);
 
-  inputs.forEach((input) => {
-    if (input.id !== `nome-${codigo}`) {
-      const valor = input.value.trim();
-      if (valor) {
-        playlist.push(valor);
+        if (error) throw error;
       }
     }
-  });
-
-  dados[codigo] = {
-    nome,
-    playlist
-  };
-
-  salvarDados(dados);
-  renderizarPastas();
-  gerarJSON();
-
-  setTimeout(() => {
-    const status = document.getElementById(`status-${codigo}`);
-    if (status) status.textContent = "Salvo com sucesso.";
-  }, 50);
-}
-
-function limparPasta(codigo) {
-  const dados = carregarDados();
-  const base = pastasFixas.find((p) => p.codigo === codigo);
-
-  dados[codigo] = {
-    nome: base.nomePadrao,
-    playlist: []
-  };
-
-  salvarDados(dados);
-  renderizarPastas();
-  gerarJSON();
-
-  setTimeout(() => {
-    const status = document.getElementById(`status-${codigo}`);
-    if (status) status.textContent = "Pasta limpa.";
-  }, 50);
-}
-
-function gerarJSON() {
-  const dados = carregarDados();
-  const resultado = {};
-
-  pastasFixas.forEach((pasta) => {
-    const item = dados[pasta.codigo] || {};
-    resultado[pasta.codigo] = {
-      nome: item.nome || pasta.nomePadrao,
-      playlist: Array.isArray(item.playlist) ? item.playlist.filter(Boolean) : []
-    };
-  });
-
-  document.getElementById("jsonOutput").value = JSON.stringify(resultado, null, 2);
-}
-
-function formatarJson() {
-  const textarea = document.getElementById("jsonOutput");
-
-  try {
-    const json = JSON.parse(textarea.value);
-    textarea.value = JSON.stringify(json, null, 2);
-  } catch (e) {
-    alert("JSON inválido para formatar.");
+  } catch (error) {
+    console.error("Erro ao reordenar código:", error);
+    throw error;
   }
-}
-
-function copiarJson() {
-  const textarea = document.getElementById("jsonOutput");
-  textarea.select();
-  textarea.setSelectionRange(0, 999999);
-  document.execCommand("copy");
-  alert("JSON copiado com sucesso.");
 }
 
 function copiarLinkPlayer(codigo) {
@@ -181,13 +276,31 @@ function copiarLinkPlayer(codigo) {
 
   navigator.clipboard.writeText(link)
     .then(() => {
-      const status = document.getElementById(`status-${codigo}`);
-      if (status) status.textContent = `Link copiado: ${link}`;
+      setStatus("Link copiado: " + link, "ok");
     })
     .catch(() => {
-      alert("Não foi possível copiar o link.");
+      setStatus("Não foi possível copiar o link.", "erro");
     });
 }
 
-renderizarPastas();
-gerarJSON();
+codigoSelect.addEventListener("change", async () => {
+  codigoAtual.textContent = pegarCodigoAtual();
+  setStatus("Carregando playlist...");
+  await renderizarPlaylist();
+  setStatus("Playlist carregada.", "ok");
+});
+
+btnUpload.addEventListener("click", uploadVideo);
+
+window.removerVideo = removerVideo;
+window.moverVideo = moverVideo;
+window.copiarLinkPlayer = copiarLinkPlayer;
+
+async function iniciarPainel() {
+  codigoAtual.textContent = pegarCodigoAtual();
+  setStatus("Carregando playlist inicial...");
+  await renderizarPlaylist();
+  setStatus("Painel pronto.", "ok");
+}
+
+iniciarPainel();
