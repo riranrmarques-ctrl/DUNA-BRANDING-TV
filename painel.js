@@ -70,11 +70,11 @@ function renderizarCardsPontos(lista) {
 
 /* ABRIR PASTA */
 function abrirPonto(codigo) {
-  codigoSelecionado = codigo;
+  codigoSelecionado = String(codigo).trim();
   listaPontos.style.display = "none";
   pontoDetalhe.style.display = "block";
-  codigoAtual.textContent = codigo;
-  nomeAtual.textContent = pontosMap[codigo]?.nome || codigo;
+  codigoAtual.textContent = codigoSelecionado;
+  nomeAtual.textContent = pontosMap[codigoSelecionado]?.nome || codigoSelecionado;
   carregarPlaylist();
 }
 
@@ -88,6 +88,9 @@ btnVoltar.onclick = () => {
 async function uploadMidia() {
   const file = videoInput.files[0];
   if (!file) return setStatus("Selecione um arquivo", "erro");
+
+  const codigoLimpo = String(codigoSelecionado || "").trim();
+  if (!codigoLimpo) return setStatus("Erro: ponto não selecionado", "erro");
 
   const ext = file.name.split(".").pop().toLowerCase();
   let tipo = "";
@@ -103,7 +106,7 @@ async function uploadMidia() {
     } else {
       tipo = ext === "mp4" ? "video" : "imagem";
 
-      const path = `${codigoSelecionado}/${Date.now()}-${file.name}`;
+      const path = `${codigoLimpo}/${Date.now()}-${file.name}`;
       storagePath = path;
 
       await supabaseClient.storage.from(BUCKET).upload(path, file);
@@ -112,7 +115,7 @@ async function uploadMidia() {
     }
 
     await supabaseClient.from(TABELA).insert({
-      codigo: codigoSelecionado,
+      codigo: codigoLimpo,
       nome: file.name,
       video_url: urlFinal,
       storage_path: storagePath,
@@ -134,13 +137,15 @@ btnUpload.onclick = uploadMidia;
 
 /* PLAYLIST */
 async function carregarPlaylist() {
+  const codigoLimpo = String(codigoSelecionado || "").trim();
+
   const { data } = await supabaseClient
     .from(TABELA)
     .select("*")
-    .eq("codigo", codigoSelecionado)
+    .eq("codigo", codigoLimpo)
     .order("ordem", { ascending: true });
 
-  if (!data.length) {
+  if (!data || !data.length) {
     playlistLista.innerHTML = "<p>Nenhum item</p>";
     return;
   }
@@ -154,7 +159,7 @@ async function carregarPlaylist() {
       </div>
 
       <div class="playlist-item-acoes">
-        <button onclick="removerItem(${item.id}, '${item.storage_path}')">Remover</button>
+        <button onclick="removerItem(${item.id}, '${item.storage_path || ""}')">Remover</button>
       </div>
     </div>
   `).join("");
@@ -214,6 +219,9 @@ async function renomearItem(id, nome) {
   await supabaseClient.from(TABELA).update({ nome }).eq("id", id);
   setStatus("Nome atualizado", "ok");
 }
+
+window.removerItem = removerItem;
+window.renomearItem = renomearItem;
 
 /* EVENTOS */
 function configurarEventos() {
