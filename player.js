@@ -1,91 +1,116 @@
-const video = document.getElementById('player');
-const loading = document.getElementById('loading');
+async function carregarPlaylist() {
+  const params = new URLSearchParams(window.location.search);
+  const codigo = params.get("codigo");
+  const video = document.getElementById("videoPlayer");
 
-const params = new URLSearchParams(window.location.search);
-const codigo = (params.get('codigo') || '').trim().toLowerCase();
-
-let playlist = [];
-let indexAtual = 0;
-
-function mostrarLoading(texto) {
-  loading.textContent = texto;
-  loading.classList.remove('hidden');
-}
-
-function esconderLoading() {
-  loading.classList.add('hidden');
-}
-
-function mostrarErro(texto) {
-  mostrarLoading(texto);
-}
-
-function tocarAtual() {
-  if (!playlist.length) {
-    mostrarErro('Nenhum vídeo cadastrado para este ponto.');
-    return;
+  function mostrarMensagem(texto) {
+    document.body.innerHTML = `
+      <div style="
+        width: 100vw;
+        height: 100vh;
+        background: black;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        font-size: 24px;
+        padding: 20px;
+      ">
+        ${texto}
+      </div>
+    `;
   }
 
-  video.controls = false;
-  video.removeAttribute('controls');
-  video.src = playlist[indexAtual];
-  video.load();
-
-  const playPromise = video.play();
-  if (playPromise !== undefined) {
-    playPromise
-      .then(() => {
-        esconderLoading();
-      })
-      .catch((error) => {
-        console.error(error);
-        proximoVideo();
-      });
-  } else {
-    esconderLoading();
-  }
-}
-
-function proximoVideo() {
-  indexAtual = (indexAtual + 1) % playlist.length;
-  tocarAtual();
-}
-
-video.addEventListener('ended', proximoVideo);
-video.addEventListener('error', proximoVideo);
-
-async function iniciarPlayer() {
   if (!codigo) {
-    mostrarErro('Código não informado.');
+    mostrarMensagem("Código não informado na URL.");
     return;
   }
+
+  let cliente = null;
 
   try {
-    const response = await fetch('clientes.json', { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error('Erro ao carregar clientes.json');
+    // 1. Tenta ler do localStorage primeiro
+    const dadosLocais = JSON.parse(localStorage.getItem("dunaPastas")) || {};
+
+    if (dadosLocais[codigo]) {
+      const pastaLocal = dadosLocais[codigo];
+
+      // compatibilidade com formatos diferentes
+      if (Array.isArray(pastaLocal.playlist)) {
+        cliente = {
+          nome: pastaLocal.nome || `Pasta ${codigo}`,
+          playlist: pastaLocal.playlist
+        };
+      } else if (pastaLocal.video && pastaLocal.video.trim()) {
+        cliente = {
+          nome: pastaLocal.nome || `Pasta ${codigo}`,
+          playlist: [pastaLocal.video.trim()]
+        };
+      }
     }
 
-    const dados = await response.json();
-    const ponto = dados.find(item => item.codigo.toLowerCase() === codigo);
+    // 2. Se não achou no localStorage, tenta no clientes.json
+    if (!cliente) {
+      const resposta = await fetch("clientes.json?t=" + Date.now());
+      const clientes = await resposta.json();
 
-    if (!ponto) {
-      mostrarErro('Ponto não encontrado.');
+      if (clientes[codigo]) {
+        cliente = clientes[codigo];
+      }
+    }
+
+    if (!cliente) {
+      mostrarMensagem("Código não encontrado.");
       return;
     }
 
-    playlist = Array.isArray(ponto.videos) ? ponto.videos : [];
-
-    if (!playlist.length) {
-      mostrarErro('Nenhum vídeo cadastrado para este ponto.');
+    if (!cliente.playlist || !Array.isArray(cliente.playlist) || cliente.playlist.length === 0) {
+      mostrarMensagem("Nenhum vídeo cadastrado para este código.");
       return;
     }
 
-    tocarAtual();
-  } catch (error) {
-    console.error(error);
-    mostrarErro('Erro ao carregar a playlist.');
+    let indiceAtual = 0;
+
+    function tocarVideo() {
+      const url = cliente.playlist[indiceAtual];
+
+      if (!url) {
+        mostrarMensagem("Link de vídeo inválido.");
+        return;
+      }
+
+      console.log("Tocando vídeo:", url);
+
+      video.src = url;
+      video.load();
+
+      video.play().catch((erro) => {
+        console.error("Erro ao reproduzir vídeo:", erro);
+        mostrarMensagem("Erro ao reproduzir o vídeo.");
+      });
+    }
+
+    video.addEventListener("ended", () => {
+      indiceAtual++;
+      if (indiceAtual >= cliente.playlist.length) {
+        indiceAtual = 0;
+      }
+      tocarVideo();
+    });
+
+    video.addEventListener("error", () => {
+      console.error("Erro no vídeo:", cliente.playlist[indiceAtual]);
+      mostrarMensagem("Erro ao carregar o vídeo.");
+    });
+
+    tocarVideo();
+
+  } catch (erro) {
+    console.error("Erro geral no player:", erro);
+    mostrarMensagem("Erro ao carregar a playlist.");
   }
 }
 
-iniciarPlayer();
+carregarPlaylist();
