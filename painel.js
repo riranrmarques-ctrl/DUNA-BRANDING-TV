@@ -1,119 +1,79 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
-const TABELA = "playlists";
+const BUCKET = "videos";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const video = document.getElementById("videoPlayer");
+const videoInput = document.getElementById("videoInput");
+const btnUpload = document.getElementById("btnUpload");
+const playlistLista = document.getElementById("playlistLista");
 
-let codigoAtual = null;
-let playlistAtual = [];
-let indiceAtual = 0;
-let timeoutMidia = null;
+let codigoSelecionado = null;
 
 /* =========================
-   HELPERS
+   UPLOAD
 ========================= */
-function mostrarMensagem(texto) {
-  document.body.innerHTML = `
-    <div class="mensagem">${texto}</div>
-  `;
+async function uploadMidia() {
+  const file = videoInput.files[0];
+  if (!file) return;
+
+  const ext = file.name.split(".").pop().toLowerCase();
+
+  let tipo = "";
+  if (ext === "mp4") tipo = "video";
+  if (ext === "jpg" || ext === "jpeg") tipo = "imagem";
+  if (ext === "txt") tipo = "site";
+
+  let urlFinal = "";
+  let storagePath = "";
+
+  if (tipo === "site") {
+    const texto = await file.text();
+    urlFinal = texto.trim();
+  } else {
+    const path = `${codigoSelecionado}/${Date.now()}-${file.name}`;
+
+    await supabaseClient.storage.from(BUCKET).upload(path, file);
+
+    const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+
+    urlFinal = data.publicUrl;
+    storagePath = path;
+  }
+
+  await supabaseClient.from("playlists").insert({
+    codigo: codigoSelecionado,
+    nome: file.name,
+    video_url: urlFinal,
+    storage_path: storagePath,
+    ordem: Date.now(),
+    tipo: tipo
+  });
+
+  carregarPlaylist();
 }
 
-function normalizarLista(registros) {
-  return (registros || [])
-    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
-    .map(item => ({
-      id: item.id,
-      nome: item.nome,
-      url: item.video_url,
-      tipo: item.tipo || "video"
-    }));
-}
-
-async function buscarPlaylist() {
+/* =========================
+   PLAYLIST
+========================= */
+async function carregarPlaylist() {
   const { data } = await supabaseClient
-    .from(TABELA)
+    .from("playlists")
     .select("*")
-    .eq("codigo", codigoAtual)
-    .order("ordem", { ascending: true });
+    .eq("codigo", codigoSelecionado)
+    .order("ordem");
 
-  playlistAtual = normalizarLista(data);
-}
-
-/* =========================
-   PLAYER INTELIGENTE
-========================= */
-function limparTela() {
-  clearTimeout(timeoutMidia);
-  document.body.innerHTML = `
-    <div class="player-container">
-      <video id="videoPlayer" autoplay muted playsinline></video>
+  playlistLista.innerHTML = data.map(item => `
+    <div>
+      ${item.nome}
+      <button onclick="deletar(${item.id})">X</button>
     </div>
-  `;
+  `).join("");
 }
 
-function tocarMidia() {
-  if (!playlistAtual.length) {
-    mostrarMensagem("Sem conteúdo");
-    return;
-  }
-
-  const item = playlistAtual[indiceAtual];
-
-  if (!item) return;
-
-  if (item.tipo === "video") {
-    limparTela();
-
-    const vid = document.getElementById("videoPlayer");
-    vid.src = item.url;
-    vid.play();
-
-    vid.onended = proximo;
-
-  } else if (item.tipo === "imagem") {
-    document.body.innerHTML = `
-      <img src="${item.url}" style="width:100vw;height:100vh;object-fit:cover">
-    `;
-
-    timeoutMidia = setTimeout(proximo, 20000);
-
-  } else if (item.tipo === "site") {
-    document.body.innerHTML = `
-      <iframe src="${item.url}" style="width:100vw;height:100vh;border:none"></iframe>
-    `;
-
-    timeoutMidia = setTimeout(proximo, 20000);
-  }
+async function deletar(id) {
+  await supabaseClient.from("playlists").delete().eq("id", id);
+  carregarPlaylist();
 }
 
-function proximo() {
-  indiceAtual++;
-  if (indiceAtual >= playlistAtual.length) {
-    indiceAtual = 0;
-  }
-  tocarMidia();
-}
-
-/* =========================
-   INIT
-========================= */
-async function iniciar() {
-  const params = new URLSearchParams(window.location.search);
-  codigoAtual = params.get("codigo");
-
-  if (!codigoAtual) {
-    mostrarMensagem("Código não informado");
-    return;
-  }
-
-  await buscarPlaylist();
-  tocarMidia();
-
-  setInterval(async () => {
-    await buscarPlaylist();
-  }, 15000);
-}
-
-iniciar();
+btnUpload.onclick = uploadMidia;
