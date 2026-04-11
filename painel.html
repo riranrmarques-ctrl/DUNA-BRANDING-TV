@@ -3,36 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel Duna TV</title>
-  <link rel="stylesheet" href="painel.css?v=50">
+  <title>Duna TV | Painel</title>
+  <link rel="stylesheet" href="painel.css?v=70">
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginBox" class="login-box">
   <h2>Acesso ao Painel</h2>
-  <input type="password" id="senhaInput" placeholder="Código de acesso">
+  <input type="password" id="senhaInput" placeholder="Digite o código">
   <button id="btnLogin">Entrar</button>
   <p id="loginErro"></p>
 </div>
 
-<!-- CONTEÚDO -->
+<!-- PAINEL -->
 <div id="conteudoPainel" style="display:none;">
 
   <div class="logo-top">
     <img src="logo.png">
   </div>
 
-  <div class="page-title">
+  <div class="header">
     <h1>Painel de Pontos</h1>
     <p>Gerencie seus pontos e playlists</p>
   </div>
 
   <div id="status" class="status-box">Painel Ativo</div>
 
-  <div id="listaPontos" class="pontos-box">
+  <div id="listaPontos" class="grid">
 
-    <!-- 8 CARDS -->
+    <!-- CARD -->
     <script>
       const CODIGOS = [
         "H4E9L2A","N7H3E8L","E2A6H9N","L8E1N5A",
@@ -41,17 +41,19 @@
 
       document.write(CODIGOS.map(c => `
         <div class="card-ponto" data-codigo="${c}">
-          <div class="card-nome-topo">
-            <span class="card-nome">Carregando...</span>
-            <button class="btn-editar-nome" data-codigo="${c}">✏</button>
+          
+          <div class="topo">
+            <span class="nome">Carregando...</span>
+            <button class="edit" data-codigo="${c}">✏</button>
           </div>
 
-          <div class="card-codigo-linha">
-            <span class="card-codigo">${c}</span>
-            <button class="btn-copiar" data-codigo="${c}">📋</button>
+          <div class="codigo-linha">
+            <span class="codigo">${c}</span>
+            <button class="copy" data-codigo="${c}">📋</button>
           </div>
 
-          <button class="btn-abrir" data-codigo="${c}">Abrir pasta</button>
+          <button class="abrir" data-codigo="${c}">Abrir pasta</button>
+
         </div>
       `).join(""));
     </script>
@@ -59,15 +61,13 @@
   </div>
 
   <!-- PLAYLIST -->
-  <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+  <div id="pontoDetalhe" style="display:none;">
     <h2>Pasta <span id="codigoAtual"></span></h2>
     <p id="nomeAtual"></p>
 
-    <div class="painel-topo">
-      <input type="file" id="videoInput" accept="video/*">
-      <button id="btnUpload">Enviar</button>
-      <button id="btnVoltar">Voltar</button>
-    </div>
+    <input type="file" id="videoInput">
+    <button id="btnUpload">Enviar</button>
+    <button id="btnVoltar">Voltar</button>
 
     <div id="playlistLista"></div>
   </div>
@@ -75,7 +75,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="painel.js?v=50"></script>
+<script src="painel.js?v=70"></script>
 
 </body>
 </html>
