@@ -20,9 +20,9 @@
       <h1>Painel de Acesso</h1>
       <p class="sub">Acesso para a reprodução de pontos de tela</p>
 
-      <form id="codeForm">
-        <input id="dispositivo" type="text" placeholder="Nome do dispositivo (opcional)">
-        <input id="codigo" type="text" placeholder="Código do estabelecimento" required>
+      <form id="codeForm" novalidate>
+        <input id="dispositivo" type="text" placeholder="Nome do dispositivo (opcional)" autocomplete="off">
+        <input id="codigo" type="text" placeholder="Código do estabelecimento" autocomplete="off" required>
         <button type="submit">Entrar</button>
       </form>
 
@@ -38,6 +38,6 @@
     (73) 98188-8817
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>
