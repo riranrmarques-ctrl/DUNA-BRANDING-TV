@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna TV Player</title>
+
   <style>
     html, body {
       margin: 0;
@@ -40,10 +41,21 @@
   </style>
 </head>
 <body>
+
   <div class="player-container">
-    <video id="videoPlayer" autoplay muted playsinline></video>
+    <video 
+      id="videoPlayer" 
+      autoplay 
+      muted 
+      playsinline
+    ></video>
   </div>
 
-  <script src="player.js"></script>
+  <!-- 🔥 IMPORTANTE: Supabase antes do player -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Seu player -->
+  <script src="player.js?v=2"></script>
+
 </body>
 </html>
