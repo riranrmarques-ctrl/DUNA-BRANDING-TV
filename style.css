@@ -19,13 +19,13 @@ body {
 /* LOGO LATERAL ESQUERDA, MAIOR E DISCRETA */
 .logo-top {
   position: fixed;
-  top: 34px;
-  left: 42px;
+  top: 28px;
+  left: 36px;
   z-index: 30;
 }
 
 .logo-top img {
-  height: 78px;
+  height: 140px;
   width: auto;
   display: block;
 }
@@ -191,7 +191,7 @@ video::-webkit-media-controls-enclosure {
   }
 
   .logo-top img {
-    height: 58px;
+    height: 95px;
   }
 
   .card {
