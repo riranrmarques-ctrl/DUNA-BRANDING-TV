@@ -4,39 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-
   <link rel="stylesheet" href="painel.css">
 </head>
 <body>
 
-  <img src="logo.png" class="logo-top">
+  <div class="logo-top">
+    <img src="logo.png" alt="Duna TV">
+  </div>
 
-  <div class="container">
+  <div class="page-title">
+    <h1>Painel de Pastas Fixas</h1>
+    <p>Gerencie os estabelecimentos com códigos fixos e playlists por link.</p>
+  </div>
 
-    <h1>Painel de Playlists</h1>
+  <div class="grid" id="cardsContainer"></div>
 
-    <div class="card">
-      <h2>Criar / Atualizar Estabelecimento</h2>
-
-      <input type="text" id="nome" placeholder="Nome do estabelecimento">
-      <input type="text" id="codigo" placeholder="Código (ex: 0001)">
-
-      <textarea id="links" placeholder="Cole os links dos vídeos (1 por linha)"></textarea>
-
-      <button onclick="salvar()">Salvar / Atualizar</button>
-
-      <p id="mensagem"></p>
-    </div>
-
-    <div class="card">
+  <div class="json-box">
+    <div class="json-header">
       <h2>clientes.json</h2>
-
-      <textarea id="json"></textarea>
-
-      <button onclick="formatar()">Formatar</button>
-      <button onclick="copiar()">Copiar</button>
+      <div class="json-actions">
+        <button onclick="formatarJson()">Formatar</button>
+        <button onclick="copiarJson()">Copiar</button>
+      </div>
     </div>
 
+    <textarea id="jsonOutput" readonly></textarea>
+
+    <p class="json-note">
+      Copie este conteúdo e atualize seu arquivo <strong>clientes.json</strong> no GitHub para refletir na TV.
+    </p>
   </div>
 
   <script src="painel.js"></script>
