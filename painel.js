@@ -3,7 +3,7 @@ const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const BUCKET = "videos";
 const TABELA = "playlists";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const codigoSelect = document.getElementById("codigoSelect");
 const codigoAtual = document.getElementById("codigoAtual");
@@ -34,7 +34,7 @@ function pegarCodigoAtual() {
 }
 
 async function buscarPlaylist(codigo) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from(TABELA)
     .select("*")
     .eq("codigo", codigo)
@@ -60,6 +60,7 @@ async function pegarProximaOrdem(codigo) {
 function montarItemHtml(item, indice, total) {
   const nome = escaparHtml(item.nome || "Sem nome");
   const url = escaparHtml(item.video_url || "");
+  const storagePathEscapado = escaparHtml(item.storage_path || "");
 
   return `
     <div class="playlist-item" data-id="${item.id}">
@@ -74,7 +75,7 @@ function montarItemHtml(item, indice, total) {
       <div class="playlist-item-acoes">
         <button onclick="moverVideo(${item.id}, 'up')" ${indice === 0 ? "disabled" : ""}>↑ Subir</button>
         <button onclick="moverVideo(${item.id}, 'down')" ${indice === total - 1 ? "disabled" : ""}>↓ Descer</button>
-        <button onclick="removerVideo(${item.id}, '${escaparHtml(item.storage_path)}')">Remover</button>
+        <button onclick="removerVideo(${item.id}, '${storagePathEscapado}')">Remover</button>
         <button onclick="copiarLinkPlayer('${item.codigo}')">Copiar link do player</button>
       </div>
     </div>
@@ -90,7 +91,7 @@ async function renderizarPlaylist() {
     const lista = await buscarPlaylist(codigo);
 
     if (!lista.length) {
-      playlistLista.innerHTML = "<p>Nenhum vídeo cadastrado para este código.</p>";
+      playlistLista.innerHTML = "<p>Nenhum vídeo carregado.</p>";
       return;
     }
 
@@ -117,20 +118,16 @@ async function uploadVideo() {
     btnUpload.disabled = true;
     setStatus("Enviando vídeo...");
 
-    const extensao = arquivo.name.includes(".")
-      ? arquivo.name.split(".").pop()
-      : "mp4";
-
     const nomeSeguro = arquivo.name
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "-")
       .replace(/[^a-zA-Z0-9._-]/g, "");
 
-    const nomeFinal = `${Date.now()}-${nomeSeguro || "video." + extensao}`;
+    const nomeFinal = `${Date.now()}-${nomeSeguro || "video.mp4"}`;
     const caminho = `${codigo}/${nomeFinal}`;
 
-    const { error: uploadError } = await supabase
+    const { error: uploadError } = await supabaseClient
       .storage
       .from(BUCKET)
       .upload(caminho, arquivo, {
@@ -142,7 +139,7 @@ async function uploadVideo() {
       throw uploadError;
     }
 
-    const { data: publicData } = supabase
+    const { data: publicData } = supabaseClient
       .storage
       .from(BUCKET)
       .getPublicUrl(caminho);
@@ -150,7 +147,7 @@ async function uploadVideo() {
     const videoUrl = publicData.publicUrl;
     const ordem = await pegarProximaOrdem(codigo);
 
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseClient
       .from(TABELA)
       .insert({
         codigo: codigo,
@@ -182,7 +179,7 @@ async function removerVideo(id, storagePath) {
   try {
     setStatus("Removendo vídeo...");
 
-    const { error: storageError } = await supabase
+    const { error: storageError } = await supabaseClient
       .storage
       .from(BUCKET)
       .remove([storagePath]);
@@ -191,7 +188,7 @@ async function removerVideo(id, storagePath) {
       throw storageError;
     }
 
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await supabaseClient
       .from(TABELA)
       .delete()
       .eq("id", id);
@@ -214,27 +211,27 @@ async function moverVideo(id, direcao) {
     const codigo = pegarCodigoAtual();
     const lista = await buscarPlaylist(codigo);
 
-    const indiceAtual = lista.findIndex(item => Number(item.id) === Number(id));
-    if (indiceAtual === -1) return;
+    const indiceAtualLista = lista.findIndex(item => Number(item.id) === Number(id));
+    if (indiceAtualLista === -1) return;
 
-    const novoIndice = direcao === "up" ? indiceAtual - 1 : indiceAtual + 1;
+    const novoIndice = direcao === "up" ? indiceAtualLista - 1 : indiceAtualLista + 1;
 
     if (novoIndice < 0 || novoIndice >= lista.length) return;
 
-    const atual = lista[indiceAtual];
+    const atual = lista[indiceAtualLista];
     const destino = lista[novoIndice];
 
     const ordemAtual = atual.ordem;
     const ordemDestino = destino.ordem;
 
-    const { error: error1 } = await supabase
+    const { error: error1 } = await supabaseClient
       .from(TABELA)
       .update({ ordem: ordemDestino })
       .eq("id", atual.id);
 
     if (error1) throw error1;
 
-    const { error: error2 } = await supabase
+    const { error: error2 } = await supabaseClient
       .from(TABELA)
       .update({ ordem: ordemAtual })
       .eq("id", destino.id);
@@ -250,24 +247,19 @@ async function moverVideo(id, direcao) {
 }
 
 async function reordenarCodigo(codigo) {
-  try {
-    const lista = await buscarPlaylist(codigo);
+  const lista = await buscarPlaylist(codigo);
 
-    for (let i = 0; i < lista.length; i++) {
-      const item = lista[i];
+  for (let i = 0; i < lista.length; i++) {
+    const item = lista[i];
 
-      if ((Number(item.ordem) || 0) !== i) {
-        const { error } = await supabase
-          .from(TABELA)
-          .update({ ordem: i })
-          .eq("id", item.id);
+    if ((Number(item.ordem) || 0) !== i) {
+      const { error } = await supabaseClient
+        .from(TABELA)
+        .update({ ordem: i })
+        .eq("id", item.id);
 
-        if (error) throw error;
-      }
+      if (error) throw error;
     }
-  } catch (error) {
-    console.error("Erro ao reordenar código:", error);
-    throw error;
   }
 }
 
