@@ -230,3 +230,53 @@ async function iniciarPainel() {
     btn => (btn.onclick = () => abrirPonto(btn.dataset.codigo))
   );
 }
+
+const arquivoInput = document.getElementById("arquivoInput");
+const btnUploadCliente = document.getElementById("btnUploadCliente");
+const statusUpload = document.getElementById("statusUpload");
+
+btnUploadCliente.onclick = async () => {
+  const file = arquivoInput.files[0];
+
+  if (!file) {
+    statusUpload.textContent = "Selecione um arquivo";
+    return;
+  }
+
+  statusUpload.textContent = "Enviando...";
+
+  try {
+    if (file.name.endsWith(".txt")) {
+      const texto = await file.text();
+      const url = texto.trim();
+
+      await supabaseClient.from("playlists").insert({
+        nome: inputNome.value,
+        video_url: url,
+        tipo: "url",
+        data_inicio: new Date().toISOString(),
+        data_fim: inputVencimento.value
+      });
+
+    } else {
+      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
+
+      await supabaseClient.storage.from("videos").upload(path, file);
+
+      const { data } = supabaseClient.storage.from("videos").getPublicUrl(path);
+
+      await supabaseClient.from("playlists").insert({
+        nome: inputNome.value,
+        video_url: data.publicUrl,
+        tipo: "arquivo",
+        data_inicio: new Date().toISOString(),
+        data_fim: inputVencimento.value
+      });
+    }
+
+    statusUpload.textContent = "Enviado com sucesso";
+
+  } catch (err) {
+    statusUpload.textContent = "Erro ao enviar";
+  }
+};
