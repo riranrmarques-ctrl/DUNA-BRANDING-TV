@@ -60,12 +60,22 @@ function ativarBotaoSalvar() {
   houveAlteracao = true;
   botaoSalvar.disabled = false;
   botaoSalvar.style.opacity = "1";
+  botaoSalvar.style.cursor = "pointer";
 }
 
 function desativarBotaoSalvar() {
   houveAlteracao = false;
   botaoSalvar.disabled = true;
   botaoSalvar.style.opacity = "0.5";
+  botaoSalvar.style.cursor = "not-allowed";
+}
+
+function atualizarStatusClienteVisual(statusTexto) {
+  const texto = String(statusTexto || "").trim().toLowerCase();
+  const ativo = texto === "ativo";
+
+  statusCliente.textContent = ativo ? "Ativo" : "Não ativo";
+  statusCliente.style.color = ativo ? "#7CFC9A" : "#ff6b6b";
 }
 
 async function carregarPontos() {
@@ -90,7 +100,6 @@ async function carregarPontos() {
     ).trim();
 
     if (!chaveInterna) return;
-
     pontosData[chaveInterna] = ponto;
   });
 }
@@ -259,13 +268,14 @@ function montarGrupoPontos(titulo, tipo, conteudoHtml) {
           gap:12px;
           min-height:108px;
           max-height:260px;
-          overflow:auto;
+          overflow-y:auto;
+          overflow-x:hidden;
           padding:14px;
           border:1px solid ${tema.areaBorda};
           border-radius:14px;
           background:${tema.areaFundo};
-          scrollbar-width:none;
-          -ms-overflow-style:none;
+          scrollbar-width:none !important;
+          -ms-overflow-style:none !important;
         "
         class="grupo-pontos-scroll-${tipo}"
       >
@@ -286,27 +296,30 @@ function injetarEstilosScroll() {
     .grupo-pontos-scroll-inativo {
       scrollbar-width: none !important;
       -ms-overflow-style: none !important;
+      scrollbar-color: transparent transparent !important;
     }
 
     .grupo-pontos-scroll-selecionado::-webkit-scrollbar,
     .grupo-pontos-scroll-disponivel::-webkit-scrollbar,
     .grupo-pontos-scroll-inativo::-webkit-scrollbar {
-      width: 0 !important;
-      height: 0 !important;
+      width: 0px !important;
+      height: 0px !important;
+      display: none !important;
       background: transparent !important;
     }
 
     .grupo-pontos-scroll-selecionado::-webkit-scrollbar-thumb,
     .grupo-pontos-scroll-disponivel::-webkit-scrollbar-thumb,
-    .grupo-pontos-scroll-inativo::-webkit-scrollbar-thumb {
-      background: transparent !important;
-      border: none !important;
-    }
-
+    .grupo-pontos-scroll-inativo::-webkit-scrollbar-thumb,
     .grupo-pontos-scroll-selecionado::-webkit-scrollbar-track,
     .grupo-pontos-scroll-disponivel::-webkit-scrollbar-track,
-    .grupo-pontos-scroll-inativo::-webkit-scrollbar-track {
+    .grupo-pontos-scroll-inativo::-webkit-scrollbar-track,
+    .grupo-pontos-scroll-selecionado::-webkit-scrollbar-corner,
+    .grupo-pontos-scroll-disponivel::-webkit-scrollbar-corner,
+    .grupo-pontos-scroll-inativo::-webkit-scrollbar-corner {
       background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
   `;
   document.head.appendChild(style);
@@ -320,6 +333,210 @@ function pontoEstaInativo(ponto) {
     ponto?.ativo === false ||
     ponto?.disponivel === false
   );
+}
+
+function validarCamposCliente() {
+  let valido = true;
+
+  const campos = [
+    inputVencimento,
+    inputNome,
+    inputTelefone,
+    inputEmail,
+    inputCpfCnpj
+  ];
+
+  campos.forEach((campo) => {
+    if (!String(campo.value || "").trim()) {
+      marcarErro(campo);
+      valido = false;
+    } else {
+      limparErro(campo);
+    }
+  });
+
+  if (!obterPontosMarcados().length) {
+    mostrarMensagem("Selecione ao menos um ponto.", "#ff6b6b");
+    return false;
+  }
+
+  if (!valido) {
+    mostrarMensagem("Preencha todos os campos obrigatórios.", "#ff6b6b");
+    return false;
+  }
+
+  return true;
+}
+
+async function salvarCliente() {
+  if (!validarCamposCliente()) {
+    ativarBotaoSalvar();
+    return false;
+  }
+
+  const payload = {
+    codigo: codigoClienteAtual,
+    nome: inputNome.value.trim(),
+    telefone: inputTelefone.value.trim(),
+    email: inputEmail.value.trim(),
+    cpf_cnpj: inputCpfCnpj.value.trim(),
+    vencimento_exibicao: inputVencimento.value || null,
+    status: String(statusCliente.textContent || "").trim()
+  };
+
+  botaoSalvar.disabled = true;
+  botaoSalvar.style.opacity = "0.7";
+  botaoSalvar.style.cursor = "wait";
+
+  try {
+    const { error: errorCliente } = await supabaseClient
+      .from("clientes_app")
+      .upsert(payload, { onConflict: "codigo" });
+
+    if (errorCliente) throw errorCliente;
+
+    const pontosSelecionados = obterPontosMarcados();
+
+    const { error: errorDelete } = await supabaseClient
+      .from("cliente_pontos")
+      .delete()
+      .eq("cliente_codigo", codigoClienteAtual);
+
+    if (errorDelete) throw errorDelete;
+
+    if (pontosSelecionados.length) {
+      const vinculos = pontosSelecionados.map((pontoCodigo) => ({
+        cliente_codigo: codigoClienteAtual,
+        ponto_codigo: pontoCodigo
+      }));
+
+      const { error: errorInsert } = await supabaseClient
+        .from("cliente_pontos")
+        .insert(vinculos);
+
+      if (errorInsert) throw errorInsert;
+    }
+
+    mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
+    desativarBotaoSalvar();
+    return true;
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao salvar cliente.", "#ff6b6b");
+    ativarBotaoSalvar();
+    return false;
+  } finally {
+    botaoSalvar.style.cursor = botaoSalvar.disabled ? "not-allowed" : "pointer";
+  }
+}
+
+async function uploadArquivoCliente() {
+  const file = arquivoInput.files[0];
+
+  if (!validarCamposCliente()) {
+    ativarBotaoSalvar();
+    return;
+  }
+
+  if (!file) {
+    statusUpload.textContent = "Selecione um arquivo";
+    statusUpload.style.color = "#ff6b6b";
+    return;
+  }
+
+  statusUpload.textContent = "Enviando...";
+  statusUpload.style.color = "#9fd2ff";
+  btnUploadCliente.disabled = true;
+  btnUploadCliente.style.opacity = "0.7";
+  btnUploadCliente.style.cursor = "wait";
+
+  try {
+    const clienteSalvo = await salvarCliente();
+    if (!clienteSalvo) {
+      throw new Error("Falha ao salvar cliente antes do upload.");
+    }
+
+    const pontosSelecionados = obterPontosMarcados();
+    const dataFim = inputVencimento.value || null;
+    const agoraIso = new Date().toISOString();
+    const baseOrdem = Date.now();
+
+    if (file.name.toLowerCase().endsWith(".txt")) {
+      const texto = await file.text();
+      const url = texto.trim();
+
+      if (!url) {
+        throw new Error("O TXT está vazio.");
+      }
+
+      const registros = pontosSelecionados.map((codigo, index) => ({
+        codigo,
+        nome: inputNome.value.trim(),
+        video_url: url,
+        tipo: "url",
+        data_inicio: agoraIso,
+        data_fim: dataFim,
+        storage_path: null,
+        ordem: baseOrdem + index
+      }));
+
+      const { error: insertError } = await supabaseClient
+        .from("playlists")
+        .insert(registros);
+
+      if (insertError) throw insertError;
+    } else {
+      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from(BUCKET)
+        .upload(path, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabaseClient.storage
+        .from(BUCKET)
+        .getPublicUrl(path);
+
+      const nomeArquivo = file.name.toLowerCase();
+      const tipoFinal =
+        nomeArquivo.endsWith(".jpg") ||
+        nomeArquivo.endsWith(".jpeg") ||
+        nomeArquivo.endsWith(".png") ||
+        nomeArquivo.endsWith(".webp")
+          ? "imagem"
+          : "video";
+
+      const registros = pontosSelecionados.map((codigo, index) => ({
+        codigo,
+        nome: inputNome.value.trim(),
+        video_url: publicData.publicUrl,
+        tipo: tipoFinal,
+        data_inicio: agoraIso,
+        data_fim: dataFim,
+        storage_path: path,
+        ordem: baseOrdem + index
+      }));
+
+      const { error: insertError } = await supabaseClient
+        .from("playlists")
+        .insert(registros);
+
+      if (insertError) throw insertError;
+    }
+
+    statusUpload.textContent = "Enviado com sucesso";
+    statusUpload.style.color = "#7CFC9A";
+    arquivoInput.value = "";
+  } catch (error) {
+    console.error(error);
+    statusUpload.textContent = "Erro ao enviar";
+    statusUpload.style.color = "#ff6b6b";
+  } finally {
+    btnUploadCliente.disabled = false;
+    btnUploadCliente.style.opacity = "1";
+    btnUploadCliente.style.cursor = "pointer";
+  }
 }
 
 function renderizarPontosSelecionaveis(selecionados = []) {
@@ -402,12 +619,42 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   }
 
   listaPontos.innerHTML = grupos.join("");
-
   atualizarResumo();
 }
 
 listaPontos.addEventListener("change", () => {
   renderizarPontosSelecionaveis(obterPontosMarcados());
+  ativarBotaoSalvar();
+});
+
+inputTelefone.addEventListener("input", (e) => {
+  e.target.value = formatarTelefone(e.target.value);
+  limparErro(inputTelefone);
+  ativarBotaoSalvar();
+});
+
+inputNome.addEventListener("input", () => {
+  limparErro(inputNome);
+  ativarBotaoSalvar();
+});
+
+inputEmail.addEventListener("input", () => {
+  limparErro(inputEmail);
+  ativarBotaoSalvar();
+});
+
+inputCpfCnpj.addEventListener("input", () => {
+  limparErro(inputCpfCnpj);
+  ativarBotaoSalvar();
+});
+
+inputVencimento.addEventListener("input", () => {
+  limparErro(inputVencimento);
+  ativarBotaoSalvar();
+});
+
+inputVencimento.addEventListener("change", () => {
+  limparErro(inputVencimento);
   ativarBotaoSalvar();
 });
 
@@ -428,6 +675,13 @@ async function carregarCliente() {
   inputEmail.value = data.email || "";
   inputCpfCnpj.value = data.cpf_cnpj || "";
   inputVencimento.value = data.vencimento_exibicao || "";
+
+  atualizarStatusClienteVisual(
+    data.status ||
+    data.status_cliente ||
+    data.situacao ||
+    "Não ativo"
+  );
 
   let selecionados = [];
 
@@ -452,14 +706,11 @@ async function carregarCliente() {
   desativarBotaoSalvar();
 }
 
-botaoSalvar.addEventListener("click", () => {
-  mostrarMensagem("Salvo");
-  desativarBotaoSalvar();
-});
-
+botaoSalvar.addEventListener("click", salvarCliente);
 botaoVoltar.addEventListener("click", () => {
   window.location.href = "central-clientes.html";
 });
+btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 
 async function iniciar() {
   try {
