@@ -6,8 +6,11 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const inputCodigo = document.getElementById("codigo");
 const inputNome = document.getElementById("nome");
 const inputTelefone = document.getElementById("telefone");
-const inputEmpresa = document.getElementById("empresa");
+const inputSegmento = document.getElementById("segmento");
 const inputObservacao = document.getElementById("observacao");
+const inputVencimento = document.getElementById("vencimentoExibicao");
+const statusCliente = document.getElementById("statusCliente");
+
 const listaPontos = document.getElementById("listaPontos");
 const resumoCliente = document.getElementById("resumoCliente");
 const mensagem = document.getElementById("mensagem");
@@ -27,6 +30,20 @@ function obterCodigoDaUrl() {
   return (params.get("codigo") || "").trim().toUpperCase();
 }
 
+// 🔥 MÁSCARA TELEFONE
+function formatarTelefone(valor) {
+  valor = valor.replace(/\D/g, "").slice(0, 10);
+
+  if (valor.length <= 2) return `(${valor}`;
+  if (valor.length <= 6) return `(${valor.slice(0, 2)}) ${valor.slice(2)}`;
+  return `(${valor.slice(0, 2)}) ${valor.slice(2, 6)}-${valor.slice(6)}`;
+}
+
+inputTelefone.addEventListener("input", (e) => {
+  e.target.value = formatarTelefone(e.target.value);
+  atualizarResumo();
+});
+
 async function carregarPontos() {
   const response = await fetch("pontos.json?v=1");
 
@@ -41,23 +58,43 @@ function obterPontosMarcados() {
   return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((item) => item.value);
 }
 
+// 🔥 STATUS AUTOMÁTICO
+function atualizarStatus() {
+  const hoje = new Date();
+  const venc = new Date(inputVencimento.value);
+
+  if (inputVencimento.value && venc >= hoje) {
+    statusCliente.textContent = "Ativo";
+    statusCliente.style.color = "#7CFC9A";
+  } else {
+    statusCliente.textContent = "Não ativo";
+    statusCliente.style.color = "#ff6b6b";
+  }
+}
+
+// 🔥 RESUMO ATUALIZADO
 function atualizarResumo() {
   const nome = inputNome.value.trim() || "-";
   const telefone = inputTelefone.value.trim() || "-";
-  const empresa = inputEmpresa.value.trim() || "-";
+  const segmento = inputSegmento.value || "-";
   const observacao = inputObservacao.value.trim() || "-";
+  const vencimento = inputVencimento.value || "-";
+  const status = statusCliente.textContent;
   const pontos = obterPontosMarcados();
 
   resumoCliente.innerHTML = `
     <div class="linha"><strong>Código:</strong> ${codigoClienteAtual || "-"}</div>
+    <div class="linha"><strong>Status:</strong> ${status}</div>
+    <div class="linha"><strong>Vencimento:</strong> ${vencimento}</div>
     <div class="linha"><strong>Nome:</strong> ${nome}</div>
     <div class="linha"><strong>Telefone:</strong> ${telefone}</div>
-    <div class="linha"><strong>Empresa:</strong> ${empresa}</div>
+    <div class="linha"><strong>Segmento:</strong> ${segmento}</div>
     <div class="linha"><strong>Observação:</strong> ${observacao}</div>
     <div class="linha"><strong>Pontos liberados:</strong> ${pontos.length ? pontos.join(", ") : "nenhum"}</div>
   `;
 }
 
+// 🔥 RENDER PONTOS
 function renderizarPontosSelecionaveis(selecionados = []) {
   listaPontos.innerHTML = "";
 
@@ -101,6 +138,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   atualizarResumo();
 }
 
+// 🔥 CARREGAR CLIENTE
 async function carregarCliente() {
   const { data: cliente, error } = await supabaseClient
     .from("clientes_app")
@@ -108,133 +146,119 @@ async function carregarCliente() {
     .eq("codigo", codigoClienteAtual)
     .maybeSingle();
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
+  if (!cliente) throw new Error("Cliente não encontrado.");
 
-  if (!cliente) {
-    throw new Error("Cliente não encontrado.");
-  }
-
-  const { data: vinculos, error: errorVinculos } = await supabaseClient
+  const { data: vinculos } = await supabaseClient
     .from("cliente_pontos")
     .select("*")
     .eq("cliente_codigo", codigoClienteAtual);
 
-  if (errorVinculos) {
-    throw errorVinculos;
-  }
-
-  const pontosSelecionados = Array.isArray(vinculos)
-    ? vinculos.map((item) => item.ponto_codigo)
-    : [];
+  const pontosSelecionados = vinculos?.map((i) => i.ponto_codigo) || [];
 
   inputCodigo.value = cliente.codigo || "";
   inputNome.value = cliente.nome || "";
   inputTelefone.value = cliente.telefone || "";
-  inputEmpresa.value = cliente.empresa || "";
+  inputSegmento.value = cliente.segmento || "";
   inputObservacao.value = cliente.observacao || "";
+  inputVencimento.value = cliente.vencimento_exibicao || "";
 
+  atualizarStatus();
   renderizarPontosSelecionaveis(pontosSelecionados);
   atualizarResumo();
 }
 
+// 🔥 SALVAR CLIENTE
 async function salvarCliente() {
   const nome = inputNome.value.trim();
   const telefone = inputTelefone.value.trim();
-  const empresa = inputEmpresa.value.trim();
+  const segmento = inputSegmento.value;
   const observacao = inputObservacao.value.trim();
+  const vencimento = inputVencimento.value;
   const pontosMarcados = obterPontosMarcados();
 
   if (!codigoClienteAtual) {
-    mostrarMensagem("Código do cliente não encontrado.", "#ff6b6b");
+    mostrarMensagem("Código não encontrado.", "#ff6b6b");
     return;
   }
 
   if (!nome) {
-    mostrarMensagem("Digite o nome do cliente.", "#ff6b6b");
+    mostrarMensagem("Digite o nome.", "#ff6b6b");
     return;
   }
 
   botaoSalvar.disabled = true;
 
   try {
-    const { error: errorCliente } = await supabaseClient
-      .from("clientes_app")
-      .upsert({
-        codigo: codigoClienteAtual,
-        nome,
-        telefone: telefone || null,
-        empresa: empresa || null,
-        observacao: observacao || null
-      }, { onConflict: "codigo" });
+    await supabaseClient.from("clientes_app").upsert({
+      codigo: codigoClienteAtual,
+      nome,
+      telefone: telefone || null,
+      segmento: segmento || null,
+      observacao: observacao || null,
+      vencimento_exibicao: vencimento || null
+    }, { onConflict: "codigo" });
 
-    if (errorCliente) {
-      throw errorCliente;
-    }
-
-    const { error: errorDelete } = await supabaseClient
-      .from("cliente_pontos")
+    await supabaseClient.from("cliente_pontos")
       .delete()
       .eq("cliente_codigo", codigoClienteAtual);
 
-    if (errorDelete) {
-      throw errorDelete;
-    }
-
     if (pontosMarcados.length) {
-      const vinculos = pontosMarcados.map((pontoCodigo) => ({
-        cliente_codigo: codigoClienteAtual,
-        ponto_codigo: pontoCodigo
-      }));
-
-      const { error: errorInsert } = await supabaseClient
-        .from("cliente_pontos")
-        .insert(vinculos);
-
-      if (errorInsert) {
-        throw errorInsert;
-      }
+      await supabaseClient.from("cliente_pontos").insert(
+        pontosMarcados.map(p => ({
+          cliente_codigo: codigoClienteAtual,
+          ponto_codigo: p
+        }))
+      );
     }
 
+    atualizarStatus();
     atualizarResumo();
-    mostrarMensagem(`Cliente ${codigoClienteAtual} salvo com sucesso.`, "#7CFC9A");
-  } catch (error) {
-    console.error(error);
-    mostrarMensagem("Erro ao salvar cliente.", "#ff6b6b");
+    mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
+
+  } catch (err) {
+    console.error(err);
+    mostrarMensagem("Erro ao salvar.", "#ff6b6b");
   } finally {
     botaoSalvar.disabled = false;
   }
 }
 
-async function iniciar() {
-  try {
-    codigoClienteAtual = obterCodigoDaUrl();
-
-    if (!codigoClienteAtual) {
-      mostrarMensagem("Código do cliente não informado na URL.", "#ff6b6b");
-      return;
-    }
-
-    mostrarMensagem("Carregando cliente...");
-    await carregarPontos();
-    await carregarCliente();
-    mostrarMensagem("Cliente carregado com sucesso.", "#7CFC9A");
-  } catch (error) {
-    console.error(error);
-    mostrarMensagem("Erro ao carregar os dados do cliente.", "#ff6b6b");
-  }
-}
-
+// 🔥 EVENTOS
 inputNome.addEventListener("input", atualizarResumo);
-inputTelefone.addEventListener("input", atualizarResumo);
-inputEmpresa.addEventListener("input", atualizarResumo);
 inputObservacao.addEventListener("input", atualizarResumo);
+inputSegmento.addEventListener("change", atualizarResumo);
+inputVencimento.addEventListener("change", () => {
+  atualizarStatus();
+  atualizarResumo();
+});
+
 listaPontos.addEventListener("change", atualizarResumo);
 
 botaoSalvar.addEventListener("click", salvarCliente);
 botaoVoltar.addEventListener("click", () => {
   window.location.href = "central-clientes.html";
 });
+
+// 🔥 INIT
+async function iniciar() {
+  try {
+    codigoClienteAtual = obterCodigoDaUrl();
+
+    if (!codigoClienteAtual) {
+      mostrarMensagem("Código não informado.", "#ff6b6b");
+      return;
+    }
+
+    mostrarMensagem("Carregando...");
+    await carregarPontos();
+    await carregarCliente();
+    mostrarMensagem("Cliente carregado.", "#7CFC9A");
+
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao carregar.", "#ff6b6b");
+  }
+}
 
 iniciar();
