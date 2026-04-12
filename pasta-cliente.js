@@ -396,10 +396,11 @@ async function salvarCliente() {
 
   const payload = {
     codigo: codigoClienteAtual,
-    nome: inputNome.value.trim(),
+    nome_completo: inputNome.value.trim(),
     telefone: inputTelefone.value.trim(),
     email: inputEmail.value.trim(),
     cpf_cnpj: inputCpfCnpj.value.trim(),
+    status: String(statusCliente.textContent || "").trim() || "Não ativo",
     vencimento_exibicao: inputVencimento.value || null
   };
 
@@ -685,14 +686,27 @@ async function carregarCliente() {
     .from("clientes_app")
     .select("*")
     .eq("codigo", codigoClienteAtual)
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw error;
   }
 
-  inputCodigo.value = data.codigo;
-  inputNome.value = data.nome || "";
+  inputCodigo.value = codigoClienteAtual;
+
+  if (!data) {
+    inputNome.value = "";
+    inputTelefone.value = "";
+    inputEmail.value = "";
+    inputCpfCnpj.value = "";
+    inputVencimento.value = "";
+    atualizarStatusClienteVisual("Não ativo");
+    renderizarPontosSelecionaveis([]);
+    desativarBotaoSalvar();
+    return;
+  }
+
+  inputNome.value = data.nome_completo || "";
   inputTelefone.value = formatarTelefone(data.telefone || "");
   inputEmail.value = data.email || "";
   inputCpfCnpj.value = data.cpf_cnpj || "";
@@ -717,7 +731,7 @@ async function carregarCliente() {
     console.error(error);
   }
 
-  atualizarStatusClienteVisual("Não ativo");
+  atualizarStatusClienteVisual(data.status || "Não ativo");
   renderizarPontosSelecionaveis(selecionados);
   desativarBotaoSalvar();
 }
