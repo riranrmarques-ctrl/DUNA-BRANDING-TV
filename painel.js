@@ -37,7 +37,6 @@ let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
 
-/* STATUS */
 function setStatus(texto, tipo = "normal") {
   statusEl.textContent = texto;
   statusEl.className = "status-box";
@@ -45,7 +44,6 @@ function setStatus(texto, tipo = "normal") {
   if (tipo === "erro") statusEl.classList.add("erro");
 }
 
-/* HELPERS */
 function escapeHtml(texto) {
   return String(texto || "")
     .replace(/&/g, "&amp;")
@@ -53,7 +51,6 @@ function escapeHtml(texto) {
     .replace(/>/g, "&gt;");
 }
 
-/* DATA (SEM HORA) */
 function formatarData(valor) {
   if (!valor) return "";
   return new Date(valor).toLocaleDateString("pt-BR");
@@ -68,13 +65,9 @@ function montarLinhaDatas(item) {
   const postado = formatarData(item.created_at);
   const encerrado = formatarData(item.data_fim);
 
-  if (postado && encerrado) {
-    return `Postado: ${postado} • Encerra: ${encerrado}`;
-  }
-
+  if (postado && encerrado) return `Postado: ${postado} • Encerra: ${encerrado}`;
   if (postado) return `Postado: ${postado}`;
   if (encerrado) return `Encerra: ${encerrado}`;
-
   return "";
 }
 
@@ -90,7 +83,6 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
-/* LOGIN */
 function validarLogin() {
   if (senhaInput.value.trim() !== SENHA_PAINEL) {
     loginErro.textContent = "Código inválido";
@@ -105,34 +97,45 @@ function validarLogin() {
 
 btnLogin.onclick = validarLogin;
 
-/* PONTOS */
 async function buscarPontos() {
-  const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
+  const { data, error } = await supabaseClient.from(TABELA_PONTOS).select("*");
+
+  if (error) {
+    setStatus("Erro ao carregar pontos", "erro");
+    return [];
+  }
+
   return data || [];
 }
 
 function renderizarCardsPontos(lista) {
   pontosMap = {};
-  lista.forEach(p => (pontosMap[p.codigo] = p));
+  lista.forEach(p => {
+    pontosMap[String(p.codigo).trim()] = p;
+  });
 
   document.querySelectorAll(".card-ponto").forEach(card => {
-    const codigo = card.dataset.codigo;
-    card.querySelector(".card-nome").textContent =
-      pontosMap[codigo]?.nome || codigo;
+    const codigo = String(card.dataset.codigo || "").trim();
+    const nomeEl = card.querySelector(".card-nome");
+    if (nomeEl) {
+      nomeEl.textContent = pontosMap[codigo]?.nome || codigo;
+    }
   });
 }
 
 async function copiarTexto(texto) {
   try {
-    await navigator.clipboard.writeText(texto);
+    await navigator.clipboard.writeText(String(texto || ""));
     setStatus("Código copiado", "ok");
-  } catch {
+  } catch (error) {
     setStatus("Não foi possível copiar", "erro");
+    console.error(error);
   }
 }
 
 async function editarNomePonto(codigo) {
-  const nomeAtual = pontosMap[codigo]?.nome || codigo;
+  const codigoLimpo = String(codigo || "").trim();
+  const nomeAtual = pontosMap[codigoLimpo]?.nome || codigoLimpo;
   const novoNome = prompt("Novo nome do ponto:", nomeAtual);
 
   if (novoNome === null) return;
@@ -146,26 +149,31 @@ async function editarNomePonto(codigo) {
   const { error } = await supabaseClient
     .from(TABELA_PONTOS)
     .update({ nome: nomeLimpo })
-    .eq("codigo", codigo);
+    .eq("codigo", codigoLimpo);
 
   if (error) {
     setStatus("Erro ao renomear ponto", "erro");
+    console.error(error);
     return;
   }
 
-  if (!pontosMap[codigo]) pontosMap[codigo] = { codigo };
-  pontosMap[codigo].nome = nomeLimpo;
+  if (!pontosMap[codigoLimpo]) {
+    pontosMap[codigoLimpo] = { codigo: codigoLimpo };
+  }
 
-  renderizarCardsPontos(Object.values(pontosMap));
+  pontosMap[codigoLimpo].nome = nomeLimpo;
 
-  if (codigoSelecionado === codigo) {
+  document.querySelectorAll(`.card-ponto[data-codigo="${codigoLimpo}"] .card-nome`).forEach(el => {
+    el.textContent = nomeLimpo;
+  });
+
+  if (codigoSelecionado === codigoLimpo) {
     tituloPasta.textContent = "Pasta do " + nomeLimpo;
   }
 
   setStatus("Ponto renomeado", "ok");
 }
 
-/* ABRIR */
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo).trim();
 
@@ -173,20 +181,17 @@ function abrirPonto(codigo) {
   pontoDetalhe.style.display = "block";
 
   codigoAtual.textContent = codigoSelecionado;
-
   tituloPasta.textContent =
     "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
 
   carregarPlaylist();
 }
 
-/* VOLTAR */
 btnVoltar.onclick = () => {
   listaPontos.style.display = "grid";
   pontoDetalhe.style.display = "none";
 };
 
-/* COPIAR */
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = () => {
     if (!codigoSelecionado) {
@@ -197,23 +202,26 @@ if (btnCopiarCodigo) {
   };
 }
 
-/* UPLOAD */
 async function uploadMidia() {
   const file = videoInput.files[0];
   if (!file) return setStatus("Selecione um arquivo", "erro");
+  if (!codigoSelecionado) return setStatus("Nenhum ponto selecionado", "erro");
 
   const codigo = codigoSelecionado;
-
-  const dataInicio =
-    normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
+  const dataInicio = normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
   const dataFim = normalizarDataInput(dataFimInput.value);
-
   const path = `${codigo}/${Date.now()}-${file.name}`;
 
-  await supabaseClient.storage.from(BUCKET).upload(path, file);
+  const { error: uploadError } = await supabaseClient.storage.from(BUCKET).upload(path, file);
+  if (uploadError) {
+    setStatus("Erro no upload", "erro");
+    console.error(uploadError);
+    return;
+  }
+
   const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
 
-  await supabaseClient.from(TABELA).insert({
+  const { error: insertError } = await supabaseClient.from(TABELA).insert({
     codigo,
     nome: file.name,
     video_url: data.publicUrl,
@@ -223,6 +231,12 @@ async function uploadMidia() {
     data_inicio: dataInicio,
     data_fim: dataFim
   });
+
+  if (insertError) {
+    setStatus("Erro ao salvar mídia", "erro");
+    console.error(insertError);
+    return;
+  }
 
   setStatus("Enviado", "ok");
 
@@ -235,31 +249,34 @@ async function uploadMidia() {
 
 btnUpload.onclick = uploadMidia;
 
-/* PLAYLIST */
 async function carregarPlaylist() {
-  const { data } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from(TABELA)
     .select("*")
     .eq("codigo", codigoSelecionado)
     .order("ordem");
 
-  const ativos = data.filter(i => !itemEstaInativo(i));
-  const inativos = data.filter(i => itemEstaInativo(i));
+  if (error) {
+    setStatus("Erro ao carregar playlist", "erro");
+    console.error(error);
+    return;
+  }
+
+  const lista = data || [];
+  const ativos = lista.filter(i => !itemEstaInativo(i));
+  const inativos = lista.filter(i => itemEstaInativo(i));
 
   renderizarPlaylistAtiva(ativos);
   renderizarHistorico(inativos);
 }
 
-/* ATIVOS */
 function renderizarPlaylistAtiva(lista) {
   if (!lista.length) {
     playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
     return;
   }
 
-  playlistAtiva.innerHTML = lista
-    .map(
-      (item, i) => `
+  playlistAtiva.innerHTML = lista.map((item, i) => `
     <div class="playlist-item" draggable="true" data-index="${i}">
       <div class="playlist-item-handle">⋮⋮</div>
 
@@ -269,57 +286,47 @@ function renderizarPlaylistAtiva(lista) {
       </div>
 
       <div class="playlist-item-acoes-laterais">
-        <button onclick="editarNomeItem(${item.id}, '${item.nome}')">✎</button>
-        <button onclick="removerItem(${item.id}, '${item.storage_path}')">🗑</button>
+        <button onclick="editarNomeItem(${item.id}, ${JSON.stringify(item.nome)})">✎</button>
+        <button onclick="removerItem(${item.id}, ${JSON.stringify(item.storage_path)})">🗑</button>
       </div>
     </div>
-  `
-    )
-    .join("");
+  `).join("");
 
   ativarDrag(lista);
 }
 
-/* HISTÓRICO */
 function renderizarHistorico(lista) {
   if (!lista.length) {
     playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
     return;
   }
 
-  playlistInativa.innerHTML = lista
-    .map(
-      item => `
+  playlistInativa.innerHTML = lista.map(item => `
     <div>
-      ${item.nome} — ${formatarData(item.data_fim)}
+      ${escapeHtml(item.nome)} — ${formatarData(item.data_fim)}
     </div>
-  `
-    )
-    .join("");
+  `).join("");
 }
 
-/* DRAG */
 function ativarDrag(lista) {
   const items = document.querySelectorAll(".playlist-item");
 
   items.forEach(item => {
     item.addEventListener("dragstart", () => {
-      dragIndex = item.dataset.index;
+      dragIndex = Number(item.dataset.index);
     });
 
     item.addEventListener("dragover", e => e.preventDefault());
 
     item.addEventListener("drop", async () => {
-      const target = item.dataset.index;
+      const target = Number(item.dataset.index);
 
       const novo = [...lista];
       const movido = novo.splice(dragIndex, 1)[0];
       novo.splice(target, 0, movido);
 
       for (let i = 0; i < novo.length; i++) {
-        await supabaseClient.from(TABELA)
-          .update({ ordem: i })
-          .eq("id", novo[i].id);
+        await supabaseClient.from(TABELA).update({ ordem: i }).eq("id", novo[i].id);
       }
 
       carregarPlaylist();
@@ -327,7 +334,6 @@ function ativarDrag(lista) {
   });
 }
 
-/* REMOVER */
 async function removerItem(id, path) {
   if (!confirm("Remover?")) return;
 
@@ -337,35 +343,43 @@ async function removerItem(id, path) {
   carregarPlaylist();
 }
 
-/* RENOMEAR */
 async function editarNomeItem(id, nomeAtual) {
   const novo = prompt("Novo nome:", nomeAtual);
   if (!novo) return;
 
-  await supabaseClient.from(TABELA)
-    .update({ nome: novo })
-    .eq("id", id);
-
+  await supabaseClient.from(TABELA).update({ nome: novo }).eq("id", id);
   carregarPlaylist();
 }
 
 window.removerItem = removerItem;
 window.editarNomeItem = editarNomeItem;
 
-/* INIT */
+document.addEventListener("click", function (e) {
+  const btnAbrir = e.target.closest(".btn-abrir");
+  if (btnAbrir) {
+    e.preventDefault();
+    e.stopPropagation();
+    abrirPonto(btnAbrir.dataset.codigo);
+    return;
+  }
+
+  const btnCopiar = e.target.closest(".btn-copiar");
+  if (btnCopiar) {
+    e.preventDefault();
+    e.stopPropagation();
+    copiarTexto(btnCopiar.dataset.codigo);
+    return;
+  }
+
+  const btnEditarNome = e.target.closest(".btn-editar-nome");
+  if (btnEditarNome) {
+    e.preventDefault();
+    e.stopPropagation();
+    editarNomePonto(btnEditarNome.dataset.codigo);
+  }
+});
+
 async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
-
-  document.querySelectorAll(".btn-abrir").forEach(
-    btn => (btn.onclick = () => abrirPonto(btn.dataset.codigo))
-  );
-
-  document.querySelectorAll(".btn-copiar").forEach(btn => {
-    btn.onclick = () => copiarTexto(btn.dataset.codigo);
-  });
-
-  document.querySelectorAll(".btn-editar-nome").forEach(btn => {
-    btn.onclick = () => editarNomePonto(btn.dataset.codigo);
-  });
 }
