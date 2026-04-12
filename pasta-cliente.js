@@ -89,7 +89,9 @@ async function carregarPontos() {
     .select("*")
     .order("nome", { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   pontosData = {};
 
@@ -398,8 +400,7 @@ async function salvarCliente() {
     telefone: inputTelefone.value.trim(),
     email: inputEmail.value.trim(),
     cpf_cnpj: inputCpfCnpj.value.trim(),
-    vencimento_exibicao: inputVencimento.value || null,
-    status: String(statusCliente.textContent || "").trim()
+    vencimento_exibicao: inputVencimento.value || null
   };
 
   botaoSalvar.disabled = true;
@@ -549,6 +550,7 @@ async function uploadArquivoCliente() {
 
     mostrarStatusUpload("Enviado com sucesso", "#7CFC9A");
     arquivoInput.value = "";
+    atualizarStatusClienteVisual("Ativo");
   } catch (error) {
     console.error(error);
     mostrarStatusUpload("Erro ao enviar", "#ff6b6b");
@@ -685,7 +687,9 @@ async function carregarCliente() {
     .eq("codigo", codigoClienteAtual)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   inputCodigo.value = data.codigo;
   inputNome.value = data.nome || "";
@@ -693,13 +697,6 @@ async function carregarCliente() {
   inputEmail.value = data.email || "";
   inputCpfCnpj.value = data.cpf_cnpj || "";
   inputVencimento.value = data.vencimento_exibicao || "";
-
-  atualizarStatusClienteVisual(
-    data.status ||
-    data.status_cliente ||
-    data.situacao ||
-    "Não ativo"
-  );
 
   let selecionados = [];
 
@@ -709,7 +706,9 @@ async function carregarCliente() {
       .select("ponto_codigo")
       .eq("cliente_codigo", codigoClienteAtual);
 
-    if (erroVinculos) throw erroVinculos;
+    if (erroVinculos) {
+      throw erroVinculos;
+    }
 
     selecionados = Array.isArray(vinculos)
       ? vinculos.map((item) => item.ponto_codigo).filter(Boolean)
@@ -718,6 +717,7 @@ async function carregarCliente() {
     console.error(error);
   }
 
+  atualizarStatusClienteVisual("Não ativo");
   renderizarPontosSelecionaveis(selecionados);
   desativarBotaoSalvar();
 }
