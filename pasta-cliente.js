@@ -388,6 +388,90 @@ function validarCamposCliente() {
   return true;
 }
 
+function formatarDataHistorico(valor) {
+  if (!valor) return "-";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor);
+
+  return data.toLocaleString("pt-BR");
+}
+
+function obterTituloArquivo(item) {
+  if (item.storage_path) {
+    const partes = String(item.storage_path).split("/");
+    return partes[partes.length - 1] || "Arquivo";
+  }
+
+  if (item.video_url) {
+    if (item.tipo === "url") return "Link externo";
+    return "Arquivo enviado";
+  }
+
+  return "Arquivo";
+}
+
+function renderizarHistoricoArquivos(itens = []) {
+  historicoArquivos.innerHTML = "";
+
+  if (!Array.isArray(itens) || !itens.length) {
+    historicoArquivos.innerHTML = `
+      <div class="historico-vazio">Nenhum arquivo enviado para esta pasta ainda.</div>
+    `;
+    return;
+  }
+
+  historicoArquivos.innerHTML = itens.map((item) => {
+    const titulo = obterTituloArquivo(item);
+    const pontoCodigo = item.codigo || "-";
+    const tipo = item.tipo || "-";
+    const inicio = formatarDataHistorico(item.data_inicio);
+    const fim = item.data_fim ? formatarDataHistorico(item.data_fim) : "-";
+    const link = item.video_url
+      ? `<a href="${escaparHtml(item.video_url)}" target="_blank" rel="noopener noreferrer" style="color:#9fd2ff;text-decoration:none;">Abrir arquivo</a>`
+      : "-";
+
+    return `
+      <div class="historico-item">
+        <div class="historico-item-info">
+          <div class="historico-item-titulo">${escaparHtml(titulo)}</div>
+          <div class="historico-item-linha"><strong>Ponto:</strong> ${escaparHtml(pontoCodigo)}</div>
+          <div class="historico-item-linha"><strong>Tipo:</strong> ${escaparHtml(tipo)}</div>
+          <div class="historico-item-linha"><strong>Início:</strong> ${escaparHtml(inicio)}</div>
+          <div class="historico-item-linha"><strong>Fim:</strong> ${escaparHtml(fim)}</div>
+          <div class="historico-item-linha"><strong>Link:</strong> ${link}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function carregarHistoricoArquivos(codigosDestino = []) {
+  if (!Array.isArray(codigosDestino) || !codigosDestino.length) {
+    renderizarHistoricoArquivos([]);
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("playlists")
+      .select("*")
+      .in("codigo", codigosDestino)
+      .order("ordem", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    renderizarHistoricoArquivos(data || []);
+  } catch (error) {
+    console.error(error);
+    historicoArquivos.innerHTML = `
+      <div class="historico-vazio">Erro ao carregar histórico de arquivo.</div>
+    `;
+  }
+}
+
 async function salvarCliente() {
   if (!validarCamposCliente()) {
     ativarBotaoSalvar();
@@ -439,6 +523,7 @@ async function salvarCliente() {
 
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
+    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
     return true;
   } catch (error) {
     console.error(error);
@@ -552,6 +637,7 @@ async function uploadArquivoCliente() {
     mostrarStatusUpload("Enviado com sucesso", "#7CFC9A");
     arquivoInput.value = "";
     atualizarStatusClienteVisual("Ativo");
+    await carregarHistoricoArquivos(codigosDestino);
   } catch (error) {
     console.error(error);
     mostrarStatusUpload("Erro ao enviar", "#ff6b6b");
@@ -702,6 +788,7 @@ async function carregarCliente() {
     inputVencimento.value = "";
     atualizarStatusClienteVisual("Não ativo");
     renderizarPontosSelecionaveis([]);
+    renderizarHistoricoArquivos([]);
     desativarBotaoSalvar();
     return;
   }
@@ -733,6 +820,7 @@ async function carregarCliente() {
 
   atualizarStatusClienteVisual(data.status || "Não ativo");
   renderizarPontosSelecionaveis(selecionados);
+  await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
   desativarBotaoSalvar();
 }
 
