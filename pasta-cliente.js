@@ -36,7 +36,7 @@ function obterCodigoDaUrl() {
 }
 
 function formatarTelefone(valor) {
-  const numeros = valor.replace(/\D/g, "").slice(0, 11);
+  const numeros = String(valor || "").replace(/\D/g, "").slice(0, 11);
 
   if (numeros.length === 0) return "";
   if (numeros.length <= 2) return `(${numeros}`;
@@ -305,15 +305,16 @@ async function salvarPlaylistNosPontos(urlFinal, tipoFinal) {
   const nomeCliente = inputNome.value.trim();
   const dataFim = inputVencimento.value || null;
   const agoraIso = new Date().toISOString();
+  const baseOrdem = Date.now();
 
-  const registros = pontosMarcados.map((codigoPonto) => ({
+  const registros = pontosMarcados.map((codigoPonto, index) => ({
     codigo: codigoPonto,
     nome: nomeCliente,
     video_url: urlFinal,
     tipo: tipoFinal,
     data_inicio: agoraIso,
     data_fim: dataFim,
-    ordem: Date.now() + Math.floor(Math.random() * 1000)
+    ordem: baseOrdem + index
   }));
 
   const { error } = await supabaseClient
