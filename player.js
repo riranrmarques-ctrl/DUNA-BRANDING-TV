@@ -14,13 +14,11 @@ let codigoAtual = null;
 let playlistAtual = [];
 let indiceAtual = 0;
 let timeoutMidia = null;
-let activeLayerIndex = 0;
 
 /* =========================
    HELPERS
 ========================= */
 function mostrarMensagem(texto) {
-  clearTimeout(timeoutMidia);
   document.body.innerHTML = `
     <div class="mensagem">${texto}</div>
   `;
@@ -77,61 +75,6 @@ function extrairUrlDoTexto(texto) {
   }
 
   return "";
-}
-
-function garantirPalco() {
-  let container = document.getElementById("playerStage");
-
-  if (!container) {
-    document.body.innerHTML = `
-      <div
-        id="playerStage"
-        style="position:fixed;inset:0;width:100vw;height:100vh;background:#000;overflow:hidden;"
-      >
-        <div
-          id="layer0"
-          style="position:absolute;inset:0;width:100%;height:100%;opacity:1;transition:opacity .35s linear;background:#000;"
-        ></div>
-        <div
-          id="layer1"
-          style="position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .35s linear;background:#000;"
-        ></div>
-      </div>
-    `;
-    container = document.getElementById("playerStage");
-  }
-
-  return container;
-}
-
-function obterCamadas() {
-  garantirPalco();
-  return [
-    document.getElementById("layer0"),
-    document.getElementById("layer1")
-  ];
-}
-
-function limparLayer(layer) {
-  if (!layer) return;
-
-  const videos = layer.querySelectorAll("video");
-  videos.forEach(v => {
-    try {
-      v.pause();
-      v.removeAttribute("src");
-      v.load();
-    } catch (_) {}
-  });
-
-  const iframes = layer.querySelectorAll("iframe");
-  iframes.forEach(frame => {
-    try {
-      frame.src = "about:blank";
-    } catch (_) {}
-  });
-
-  layer.innerHTML = "";
 }
 
 async function normalizarLista(registros) {
@@ -202,105 +145,19 @@ async function buscarPlaylist() {
   }
 }
 
-function prepararElemento(item) {
-  return new Promise(resolve => {
-    let finalizado = false;
-
-    const concluir = element => {
-      if (finalizado) return;
-      finalizado = true;
-      resolve(element);
-    };
-
-    if (item.tipo === "video") {
-      const vid = document.createElement("video");
-      vid.autoplay = true;
-      vid.muted = true;
-      vid.playsInline = true;
-      vid.preload = "auto";
-      vid.src = item.url;
-      vid.style.width = "100%";
-      vid.style.height = "100%";
-      vid.style.objectFit = "cover";
-      vid.style.background = "#000";
-      vid.onloadeddata = () => concluir(vid);
-      vid.onerror = () => concluir(vid);
-      setTimeout(() => concluir(vid), 8000);
-      return;
-    }
-
-    if (item.tipo === "imagem") {
-      const img = document.createElement("img");
-      img.src = item.url;
-      img.style.width = "100%";
-      img.style.height = "100%";
-      img.style.objectFit = "cover";
-      img.onload = () => concluir(img);
-      img.onerror = () => concluir(img);
-      setTimeout(() => concluir(img), 8000);
-      return;
-    }
-
-    if (item.tipo === "site") {
-      const iframe = document.createElement("iframe");
-      iframe.src = item.url;
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.border = "none";
-      iframe.style.background = "#000";
-      iframe.setAttribute("allowfullscreen", "");
-      iframe.onload = () => concluir(iframe);
-      iframe.onerror = () => concluir(iframe);
-      setTimeout(() => concluir(iframe), 2500);
-      return;
-    }
-
-    const fallback = document.createElement("div");
-    fallback.style.width = "100%";
-    fallback.style.height = "100%";
-    fallback.style.background = "#000";
-    concluir(fallback);
-  });
-}
-
-async function prepararLayer(layer, item) {
-  limparLayer(layer);
-  const elemento = await prepararElemento(item);
-  layer.appendChild(elemento);
-  return elemento;
-}
-
 /* =========================
    PLAYER INTELIGENTE
 ========================= */
 function limparTela() {
   clearTimeout(timeoutMidia);
-  const layers = obterCamadas();
-  limparLayer(layers[0]);
-  limparLayer(layers[1]);
-  layers[0].style.opacity = "1";
-  layers[1].style.opacity = "0";
-  activeLayerIndex = 0;
+  document.body.innerHTML = `
+    <div class="player-container">
+      <video id="videoPlayer" autoplay muted playsinline></video>
+    </div>
+  `;
 }
 
-function alternarParaLayer(novoIndice) {
-  const layers = obterCamadas();
-  const layerAtual = layers[activeLayerIndex];
-  const novaLayer = layers[novoIndice];
-  const layerAnteriorIndice = activeLayerIndex;
-
-  novaLayer.style.opacity = "1";
-  layerAtual.style.opacity = "0";
-  activeLayerIndex = novoIndice;
-
-  setTimeout(() => {
-    if (layerAnteriorIndice !== activeLayerIndex) {
-      limparLayer(layers[layerAnteriorIndice]);
-    }
-  }, 500);
-}
-
-async function tocarMidia() {
+function tocarMidia() {
   if (!playlistAtual.length) {
     mostrarMensagem("Sem conteúdo");
     return;
@@ -311,28 +168,33 @@ async function tocarMidia() {
   }
 
   const item = playlistAtual[indiceAtual];
+
   if (!item) return;
 
   salvarCachePlaylist();
 
-  garantirPalco();
-  clearTimeout(timeoutMidia);
+  if (item.tipo === "video") {
+    limparTela();
 
-  const layers = obterCamadas();
-  const proximaLayerIndex = activeLayerIndex === 0 ? 1 : 0;
-  const proximaLayer = layers[proximaLayerIndex];
+    const vid = document.getElementById("videoPlayer");
+    vid.src = item.url;
+    vid.play().catch(() => {});
+    vid.onended = proximo;
 
-  const elemento = await prepararLayer(proximaLayer, item);
-
-  alternarParaLayer(proximaLayerIndex);
-
-  if (item.tipo === "video" && elemento && elemento.tagName === "VIDEO") {
-    elemento.currentTime = 0;
-    elemento.onended = proximo;
-    elemento.play().catch(() => {});
   } else if (item.tipo === "imagem") {
+    clearTimeout(timeoutMidia);
+    document.body.innerHTML = `
+      <img src="${item.url}" style="width:100vw;height:100vh;object-fit:cover">
+    `;
+
     timeoutMidia = setTimeout(proximo, 20000);
+
   } else if (item.tipo === "site") {
+    clearTimeout(timeoutMidia);
+    document.body.innerHTML = `
+      <iframe src="${item.url}" style="width:100vw;height:100vh;border:none"></iframe>
+    `;
+
     timeoutMidia = setTimeout(proximo, 20000);
   }
 }
