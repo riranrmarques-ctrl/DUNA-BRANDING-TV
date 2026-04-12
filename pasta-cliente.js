@@ -100,7 +100,7 @@ function atualizarResumo() {
     <div class="linha"><strong>Telefone:</strong> ${telefone}</div>
     <div class="linha"><strong>Segmento:</strong> ${segmento}</div>
     <div class="linha"><strong>Observação:</strong> ${observacao}</div>
-    <div class="linha"><strong>Pontos liberados:</strong> ${pontos.length ? pontos.join(", ") : "nenhum"}</div>
+    <div class="linha"><strong>PONTOS DAS TELAS:</strong> ${pontos.length ? pontos.join(", ") : "nenhum"}</div>
   `;
 }
 
@@ -174,17 +174,16 @@ function renderizarPontosSelecionaveis(selecionados = [], statusPontosCliente = 
     titulo.textContent = `${codigoPonto} - ${ponto.nome || "Sem nome"}`;
 
     const detalhe = document.createElement("span");
-    const totalPlaylist = Array.isArray(ponto.playlist) ? ponto.playlist.length : 0;
 
     if (statusInfo?.temAtivo) {
-      detalhe.textContent = `Status: ativo • Playlist: ${totalPlaylist} item(ns)`;
+      detalhe.textContent = "Status: ativo";
       detalhe.style.color = "#7CFC9A";
     } else if (statusInfo?.temInativo) {
-      detalhe.textContent = `Status: inativo • Playlist: ${totalPlaylist} item(ns)`;
+      detalhe.textContent = "Status: inativo";
       detalhe.style.color = "#ffb347";
     } else {
-      detalhe.textContent = `Playlist: ${totalPlaylist} item(ns)`;
-      detalhe.style.color = "";
+      detalhe.textContent = "Disponível para marcação";
+      detalhe.style.color = "#bfc7d5";
     }
 
     info.appendChild(titulo);
