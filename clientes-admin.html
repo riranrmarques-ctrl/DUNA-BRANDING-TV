@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central ADM de Clientes</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #0f1115;
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .topo {
+      margin-bottom: 24px;
+    }
+
+    .topo h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .topo p {
+      color: #bfc7d5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    .box {
+      background: #171a21;
+      border: 1px solid #262b36;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .box h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+    }
+
+    .campo {
+      margin-bottom: 16px;
+    }
+
+    .campo label {
+      display: block;
+      margin-bottom: 8px;
+      color: #d5dbea;
+      font-size: 0.95rem;
+    }
+
+    .campo input,
+    .campo textarea,
+    .campo select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #313847;
+      background: #0f1115;
+      color: #fff;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .campo textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .lista-pontos {
+      display: grid;
+      gap: 10px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .item-ponto {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #10131a;
+      border: 1px solid #2a3040;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .item-ponto input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #2d8cff;
+      flex-shrink: 0;
+    }
+
+    .item-ponto-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .item-ponto-info strong {
+      font-size: 0.96rem;
+      color: #fff;
+    }
+
+    .item-ponto-info span {
+      color: #bfc7d5;
+      font-size: 0.88rem;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .botao {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.2s ease;
+      color: #fff;
+    }
+
+    .botao:hover {
+      opacity: 0.92;
+    }
+
+    .botao-salvar {
+      background: #2d8cff;
+    }
+
+    .botao-limpar {
+      background: #8758ff;
+    }
+
+    .botao-carregar {
+      background: #24b36b;
+    }
+
+    .mensagem {
+      min-height: 24px;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
+    .lista-clientes {
+      display: grid;
+      gap: 12px;
+    }
+
+    .cliente-card {
+      background: #10131a;
+      border: 1px solid #2a3040;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .cliente-card h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .cliente-card p {
+      color: #c6cedd;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .cliente-card button {
+      margin-top: 10px;
+      background: #2d8cff;
+      border: none;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topo">
+      <h1>Central ADM de Clientes</h1>
+      <p>Cadastre clientes e vincule os pontos liberados para cada código.</p>
+    </div>
+
+    <div class="grid">
+      <div class="box">
+        <h2>Cadastro</h2>
+
+        <div class="campo">
+          <label for="codigo">Código do cliente</label>
+          <input type="text" id="codigo" placeholder="Ex.: H3L1" maxlength="20">
+        </div>
+
+        <div class="campo">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" placeholder="Nome do cliente">
+        </div>
+
+        <div class="campo">
+          <label for="telefone">Telefone</label>
+          <input type="text" id="telefone" placeholder="Telefone">
+        </div>
+
+        <div class="campo">
+          <label for="empresa">Empresa</label>
+          <input type="text" id="empresa" placeholder="Empresa">
+        </div>
+
+        <div class="campo">
+          <label for="observacao">Observação</label>
+          <textarea id="observacao" placeholder="Observações do cliente"></textarea>
+        </div>
+
+        <div class="campo">
+          <label>Pontos disponíveis</label>
+          <div id="listaPontos" class="lista-pontos"></div>
+        </div>
+
+        <div class="acoes">
+          <button id="botaoSalvar" class="botao botao-salvar" type="button">Salvar cliente</button>
+          <button id="botaoLimpar" class="botao botao-limpar" type="button">Limpar</button>
+          <button id="botaoRecarregar" class="botao botao-carregar" type="button">Atualizar lista</button>
+        </div>
+
+        <p id="mensagem" class="mensagem"></p>
+      </div>
+
+      <div class="box">
+        <h2>Clientes cadastrados</h2>
+        <div id="listaClientes" class="lista-clientes"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="clientes-admin.js?v=1"></script>
+</body>
+</html>
