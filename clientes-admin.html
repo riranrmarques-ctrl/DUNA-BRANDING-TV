@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cliente ADM</title>
+  <title>Central de Clientes</title>
   <style>
     * {
       box-sizing: border-box;
@@ -20,25 +20,25 @@
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
     }
 
     .topo {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       gap: 16px;
       flex-wrap: wrap;
       margin-bottom: 24px;
     }
 
-    .topo h1 {
+    .topo-esquerda h1 {
       font-size: 2rem;
       margin-bottom: 8px;
     }
 
-    .topo p {
+    .topo-esquerda p {
       color: #bfc7d5;
       line-height: 1.5;
     }
@@ -63,145 +63,112 @@
       opacity: 0.92;
     }
 
-    .botao-voltar {
-      background: #2a2f3a;
-    }
-
-    .botao-salvar {
+    .botao-novo {
       background: #2d8cff;
       font-weight: bold;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 20px;
+    .botao-atualizar {
+      background: #2a2f3a;
     }
 
-    .box {
-      background: #171a21;
-      border: 1px solid #262b36;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    .barra {
+      margin-bottom: 18px;
     }
 
-    .box h2 {
-      font-size: 1.2rem;
-      margin-bottom: 16px;
-    }
-
-    .campo {
-      margin-bottom: 16px;
-    }
-
-    .campo label {
-      display: block;
-      margin-bottom: 8px;
-      color: #d5dbea;
-      font-size: 0.95rem;
-    }
-
-    .campo input,
-    .campo textarea {
+    .campo-busca input {
       width: 100%;
-      padding: 12px 14px;
-      border-radius: 10px;
+      padding: 14px 16px;
+      border-radius: 12px;
       border: 1px solid #313847;
-      background: #0f1115;
+      background: #171a21;
       color: #fff;
       outline: none;
       font-size: 1rem;
-    }
-
-    .campo input[readonly] {
-      opacity: 0.85;
-      cursor: not-allowed;
-    }
-
-    .campo textarea {
-      resize: vertical;
-      min-height: 90px;
-    }
-
-    .lista-pontos {
-      display: grid;
-      gap: 10px;
-      max-height: 500px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .item-ponto {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: #10131a;
-      border: 1px solid #2a3040;
-      border-radius: 12px;
-      padding: 12px;
-    }
-
-    .item-ponto input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #2d8cff;
-      flex-shrink: 0;
-    }
-
-    .item-ponto-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .item-ponto-info strong {
-      font-size: 0.96rem;
-      color: #fff;
-    }
-
-    .item-ponto-info span {
-      color: #bfc7d5;
-      font-size: 0.88rem;
     }
 
     .mensagem {
       min-height: 24px;
       color: #9fd2ff;
       font-size: 0.95rem;
-      margin-top: 10px;
+      margin-bottom: 14px;
+    }
+
+    .lista-clientes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .cliente-card {
+      background: #171a21;
+      border: 1px solid #262b36;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+      transition: 0.2s ease;
+      cursor: pointer;
+    }
+
+    .cliente-card:hover {
+      border-color: #2d8cff;
+      transform: translateY(-2px);
+    }
+
+    .cliente-codigo {
+      display: inline-block;
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #10131a;
+      border: 1px solid #2a3040;
+      color: #9fd2ff;
       margin-bottom: 12px;
     }
 
-    .resumo {
-      background: #10131a;
-      border: 1px solid #2a3040;
-      border-radius: 14px;
-      padding: 16px;
-      line-height: 1.6;
+    .cliente-card h3 {
+      font-size: 1.08rem;
+      margin-bottom: 10px;
+    }
+
+    .cliente-card p {
       color: #c6cedd;
+      font-size: 0.93rem;
+      line-height: 1.5;
+      margin-bottom: 5px;
     }
 
-    .resumo strong {
+    .cliente-acoes {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .cliente-acoes button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
       color: #fff;
+      font-size: 0.9rem;
     }
 
-    .resumo .linha {
-      margin-bottom: 8px;
+    .botao-abrir {
+      background: #2d8cff;
+    }
+
+    .botao-excluir {
+      background: #d9534f;
     }
 
     .vazio {
+      background: #171a21;
+      border: 1px solid #262b36;
+      border-radius: 16px;
+      padding: 24px;
       color: #c6cedd;
-      background: #10131a;
-      border: 1px solid #2a3040;
-      border-radius: 12px;
-      padding: 16px;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
+      text-align: center;
     }
 
     @media (max-width: 600px) {
@@ -209,8 +176,12 @@
         padding: 16px;
       }
 
-      .topo h1 {
+      .topo-esquerda h1 {
         font-size: 1.6rem;
+      }
+
+      .cliente-card {
+        padding: 16px;
       }
     }
   </style>
@@ -218,62 +189,29 @@
 <body>
   <div class="container">
     <div class="topo">
-      <div>
-        <h1>Cliente</h1>
-        <p>Edite os dados do cliente e escolha os pontos liberados para esse código.</p>
+      <div class="topo-esquerda">
+        <h1>Central de Clientes</h1>
+        <p>Crie clientes e abra a página individual de cada um.</p>
       </div>
 
       <div class="acoes-topo">
-        <button id="botaoVoltar" class="botao botao-voltar" type="button">Voltar</button>
-        <button id="botaoSalvar" class="botao botao-salvar" type="button">Salvar</button>
+        <button id="botaoNovoCliente" class="botao botao-novo" type="button">+ Novo cliente</button>
+        <button id="botaoAtualizar" class="botao botao-atualizar" type="button">Atualizar</button>
+      </div>
+    </div>
+
+    <div class="barra">
+      <div class="campo-busca">
+        <input type="text" id="buscaCliente" placeholder="Buscar por código, nome, empresa ou telefone">
       </div>
     </div>
 
     <p id="mensagem" class="mensagem"></p>
 
-    <div class="grid">
-      <div class="box">
-        <h2>Dados do cliente</h2>
-
-        <div class="campo">
-          <label for="codigo">Código</label>
-          <input type="text" id="codigo" readonly>
-        </div>
-
-        <div class="campo">
-          <label for="nome">Nome</label>
-          <input type="text" id="nome" placeholder="Nome do cliente">
-        </div>
-
-        <div class="campo">
-          <label for="telefone">Telefone</label>
-          <input type="text" id="telefone" placeholder="Telefone">
-        </div>
-
-        <div class="campo">
-          <label for="empresa">Empresa</label>
-          <input type="text" id="empresa" placeholder="Empresa">
-        </div>
-
-        <div class="campo">
-          <label for="observacao">Observação</label>
-          <textarea id="observacao" placeholder="Observações do cliente"></textarea>
-        </div>
-      </div>
-
-      <div class="box">
-        <h2>Resumo</h2>
-        <div id="resumoCliente" class="resumo"></div>
-      </div>
-    </div>
-
-    <div class="box" style="margin-top: 20px;">
-      <h2>Pontos liberados</h2>
-      <div id="listaPontos" class="lista-pontos"></div>
-    </div>
+    <div id="listaClientes" class="lista-clientes"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="cliente-admin.js?v=3"></script>
+  <script src="clientes-admin.js?v=4"></script>
 </body>
 </html>
