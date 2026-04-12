@@ -69,8 +69,31 @@ function desativarBotaoSalvar() {
 }
 
 async function carregarPontos() {
-  const response = await fetch("pontos.json?v=1");
-  pontosData = await response.json();
+  const { data, error } = await supabaseClient
+    .from("pontos")
+    .select("*")
+    .order("nome", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  pontosData = {};
+
+  (data || []).forEach((ponto) => {
+    const codigoVisual =
+      String(
+        ponto.codigo_visual ||
+        ponto.codigo ||
+        ponto.codigo_ponto ||
+        ponto.id_ponto ||
+        ""
+      ).trim();
+
+    if (!codigoVisual) return;
+
+    pontosData[codigoVisual] = ponto;
+  });
 }
 
 function obterPontosMarcados() {
@@ -78,8 +101,13 @@ function obterPontosMarcados() {
 }
 
 function obterNomeDoPonto(ponto, codigo) {
-  if (ponto?.nome) return ponto.nome;
-  return `Ponto ${codigo}`;
+  return (
+    ponto?.nome ||
+    ponto?.nome_painel ||
+    ponto?.titulo ||
+    ponto?.ambiente ||
+    `Ponto ${codigo}`
+  );
 }
 
 function atualizarResumo() {
@@ -170,6 +198,16 @@ function montarGrupoPontos(titulo, corTitulo, conteudoHtml, mensagemVazia) {
   `;
 }
 
+function pontoEstaInativo(ponto) {
+  return (
+    ponto?.status === "inativo" ||
+    ponto?.status === "ocupado" ||
+    ponto?.status === "sem_vaga" ||
+    ponto?.ativo === false ||
+    ponto?.disponivel === false
+  );
+}
+
 function renderizarPontosSelecionaveis(selecionados = []) {
   listaPontos.innerHTML = "";
 
@@ -192,11 +230,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
       const nome = obterNomeDoPonto(ponto, codigo);
 
       const isSelecionado = selecionados.includes(codigo);
-      const isInativo =
-        ponto?.status === "inativo" ||
-        ponto?.status === "ocupado" ||
-        ponto?.status === "sem_vaga" ||
-        ponto?.disponivel === false;
+      const isInativo = pontoEstaInativo(ponto);
 
       if (isSelecionado) {
         selecionadosArr.push(
@@ -249,11 +283,15 @@ listaPontos.addEventListener("change", () => {
 });
 
 async function carregarCliente() {
-  const { data } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("clientes_app")
     .select("*")
     .eq("codigo", codigoClienteAtual)
     .single();
+
+  if (error) {
+    throw error;
+  }
 
   inputCodigo.value = data.codigo;
   inputNome.value = data.nome || "";
@@ -265,10 +303,14 @@ async function carregarCliente() {
   let selecionados = [];
 
   try {
-    const { data: vinculos } = await supabaseClient
+    const { data: vinculos, error: erroVinculos } = await supabaseClient
       .from("cliente_pontos")
       .select("ponto_codigo")
       .eq("cliente_codigo", codigoClienteAtual);
+
+    if (erroVinculos) {
+      throw erroVinculos;
+    }
 
     selecionados = Array.isArray(vinculos)
       ? vinculos.map(item => item.ponto_codigo).filter(Boolean)
@@ -291,9 +333,14 @@ botaoVoltar.addEventListener("click", () => {
 });
 
 async function iniciar() {
-  codigoClienteAtual = obterCodigoDaUrl();
-  await carregarPontos();
-  await carregarCliente();
+  try {
+    codigoClienteAtual = obterCodigoDaUrl();
+    await carregarPontos();
+    await carregarCliente();
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao carregar pontos.", "#ff6b6b");
+  }
 }
 
 iniciar();
