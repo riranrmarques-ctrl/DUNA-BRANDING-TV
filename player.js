@@ -23,12 +23,21 @@ function mostrarMensagem(texto) {
 function normalizarLista(registros) {
   return (registros || [])
     .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
-    .map(item => ({
-      id: item.id,
-      nome: item.nome,
-      url: item.video_url,
-      tipo: item.tipo || "video"
-    }));
+    .map(item => {
+      let url = item.video_url;
+      let tipo = item.tipo || "video";
+
+      if (url && url.endsWith(".txt")) {
+        tipo = "site";
+      }
+
+      return {
+        id: item.id,
+        nome: item.nome,
+        url: url,
+        tipo: tipo
+      };
+    });
 }
 
 async function buscarPlaylist() {
