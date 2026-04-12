@@ -30,7 +30,6 @@ function obterCodigoDaUrl() {
   return (params.get("codigo") || "").trim().toUpperCase();
 }
 
-// 🔥 MÁSCARA TELEFONE
 function formatarTelefone(valor) {
   valor = valor.replace(/\D/g, "").slice(0, 10);
 
@@ -39,10 +38,36 @@ function formatarTelefone(valor) {
   return `(${valor.slice(0, 2)}) ${valor.slice(2, 6)}-${valor.slice(6)}`;
 }
 
-inputTelefone.addEventListener("input", (e) => {
-  e.target.value = formatarTelefone(e.target.value);
-  atualizarResumo();
-});
+function itemPlaylistEstaAtivo(item) {
+  if (!item || !item.data_fim) return true;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const fim = new Date(item.data_fim);
+  fim.setHours(23, 59, 59, 999);
+
+  return fim >= hoje;
+}
+
+function atualizarStatus() {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  if (inputVencimento.value) {
+    const venc = new Date(inputVencimento.value);
+    venc.setHours(23, 59, 59, 999);
+
+    if (venc >= hoje) {
+      statusCliente.textContent = "Ativo";
+      statusCliente.style.color = "#7CFC9A";
+      return;
+    }
+  }
+
+  statusCliente.textContent = "Não ativo";
+  statusCliente.style.color = "#ff6b6b";
+}
 
 async function carregarPontos() {
   const response = await fetch("pontos.json?v=1");
@@ -58,21 +83,6 @@ function obterPontosMarcados() {
   return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((item) => item.value);
 }
 
-// 🔥 STATUS AUTOMÁTICO
-function atualizarStatus() {
-  const hoje = new Date();
-  const venc = new Date(inputVencimento.value);
-
-  if (inputVencimento.value && venc >= hoje) {
-    statusCliente.textContent = "Ativo";
-    statusCliente.style.color = "#7CFC9A";
-  } else {
-    statusCliente.textContent = "Não ativo";
-    statusCliente.style.color = "#ff6b6b";
-  }
-}
-
-// 🔥 RESUMO ATUALIZADO
 function atualizarResumo() {
   const nome = inputNome.value.trim() || "-";
   const telefone = inputTelefone.value.trim() || "-";
@@ -94,8 +104,47 @@ function atualizarResumo() {
   `;
 }
 
-// 🔥 RENDER PONTOS
-function renderizarPontosSelecionaveis(selecionados = []) {
+async function buscarStatusPontosDoCliente(nomeCliente) {
+  const nomeLimpo = String(nomeCliente || "").trim();
+  const mapaStatus = {};
+
+  if (!nomeLimpo) {
+    return mapaStatus;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("playlists")
+    .select("codigo, nome, data_fim");
+
+  if (error) {
+    throw error;
+  }
+
+  (data || []).forEach((item) => {
+    const codigoPonto = String(item.codigo || "").trim();
+    const nomeItem = String(item.nome || "").trim();
+
+    if (!codigoPonto || !nomeItem) return;
+    if (nomeItem !== nomeLimpo) return;
+
+    if (!mapaStatus[codigoPonto]) {
+      mapaStatus[codigoPonto] = {
+        temAtivo: false,
+        temInativo: false
+      };
+    }
+
+    if (itemPlaylistEstaAtivo(item)) {
+      mapaStatus[codigoPonto].temAtivo = true;
+    } else {
+      mapaStatus[codigoPonto].temInativo = true;
+    }
+  });
+
+  return mapaStatus;
+}
+
+function renderizarPontosSelecionaveis(selecionados = [], statusPontosCliente = {}) {
   listaPontos.innerHTML = "";
 
   const codigos = Object.keys(pontosData);
@@ -107,6 +156,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 
   codigos.forEach((codigoPonto) => {
     const ponto = pontosData[codigoPonto];
+    const statusInfo = statusPontosCliente[codigoPonto] || null;
 
     const item = document.createElement("label");
     item.className = "item-ponto";
@@ -125,7 +175,17 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 
     const detalhe = document.createElement("span");
     const totalPlaylist = Array.isArray(ponto.playlist) ? ponto.playlist.length : 0;
-    detalhe.textContent = `Playlist: ${totalPlaylist} item(ns)`;
+
+    if (statusInfo?.temAtivo) {
+      detalhe.textContent = `Status: ativo • Playlist: ${totalPlaylist} item(ns)`;
+      detalhe.style.color = "#7CFC9A";
+    } else if (statusInfo?.temInativo) {
+      detalhe.textContent = `Status: inativo • Playlist: ${totalPlaylist} item(ns)`;
+      detalhe.style.color = "#ffb347";
+    } else {
+      detalhe.textContent = `Playlist: ${totalPlaylist} item(ns)`;
+      detalhe.style.color = "";
+    }
 
     info.appendChild(titulo);
     info.appendChild(detalhe);
@@ -138,7 +198,6 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   atualizarResumo();
 }
 
-// 🔥 CARREGAR CLIENTE
 async function carregarCliente() {
   const { data: cliente, error } = await supabaseClient
     .from("clientes_app")
@@ -149,26 +208,32 @@ async function carregarCliente() {
   if (error) throw error;
   if (!cliente) throw new Error("Cliente não encontrado.");
 
-  const { data: vinculos } = await supabaseClient
+  const { data: vinculos, error: erroVinculos } = await supabaseClient
     .from("cliente_pontos")
     .select("*")
     .eq("cliente_codigo", codigoClienteAtual);
 
-  const pontosSelecionados = vinculos?.map((i) => i.ponto_codigo) || [];
+  if (erroVinculos) throw erroVinculos;
+
+  const pontosSelecionados = Array.isArray(vinculos)
+    ? vinculos.map((i) => i.ponto_codigo)
+    : [];
 
   inputCodigo.value = cliente.codigo || "";
   inputNome.value = cliente.nome || "";
   inputTelefone.value = cliente.telefone || "";
+  inputTelefone.value = formatarTelefone(inputTelefone.value);
   inputSegmento.value = cliente.segmento || "";
   inputObservacao.value = cliente.observacao || "";
   inputVencimento.value = cliente.vencimento_exibicao || "";
 
   atualizarStatus();
-  renderizarPontosSelecionaveis(pontosSelecionados);
+
+  const statusPontosCliente = await buscarStatusPontosDoCliente(cliente.nome || "");
+  renderizarPontosSelecionaveis(pontosSelecionados, statusPontosCliente);
   atualizarResumo();
 }
 
-// 🔥 SALVAR CLIENTE
 async function salvarCliente() {
   const nome = inputNome.value.trim();
   const telefone = inputTelefone.value.trim();
@@ -205,7 +270,7 @@ async function salvarCliente() {
 
     if (pontosMarcados.length) {
       await supabaseClient.from("cliente_pontos").insert(
-        pontosMarcados.map(p => ({
+        pontosMarcados.map((p) => ({
           cliente_codigo: codigoClienteAtual,
           ponto_codigo: p
         }))
@@ -213,9 +278,11 @@ async function salvarCliente() {
     }
 
     atualizarStatus();
+
+    const statusPontosCliente = await buscarStatusPontosDoCliente(nome);
+    renderizarPontosSelecionaveis(pontosMarcados, statusPontosCliente);
     atualizarResumo();
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
-
   } catch (err) {
     console.error(err);
     mostrarMensagem("Erro ao salvar.", "#ff6b6b");
@@ -224,7 +291,11 @@ async function salvarCliente() {
   }
 }
 
-// 🔥 EVENTOS
+inputTelefone.addEventListener("input", (e) => {
+  e.target.value = formatarTelefone(e.target.value);
+  atualizarResumo();
+});
+
 inputNome.addEventListener("input", atualizarResumo);
 inputObservacao.addEventListener("input", atualizarResumo);
 inputSegmento.addEventListener("change", atualizarResumo);
@@ -240,7 +311,6 @@ botaoVoltar.addEventListener("click", () => {
   window.location.href = "central-clientes.html";
 });
 
-// 🔥 INIT
 async function iniciar() {
   try {
     codigoClienteAtual = obterCodigoDaUrl();
@@ -254,7 +324,6 @@ async function iniciar() {
     await carregarPontos();
     await carregarCliente();
     mostrarMensagem("Cliente carregado.", "#7CFC9A");
-
   } catch (error) {
     console.error(error);
     mostrarMensagem("Erro ao carregar.", "#ff6b6b");
