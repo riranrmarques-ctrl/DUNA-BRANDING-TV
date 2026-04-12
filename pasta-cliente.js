@@ -22,6 +22,9 @@ const arquivoInput = document.getElementById("arquivoInput");
 const btnUploadCliente = document.getElementById("btnUploadCliente");
 const statusUpload = document.getElementById("statusUpload");
 
+const historicoContratos = document.getElementById("historicoContratos");
+const historicoArquivos = document.getElementById("historicoArquivos");
+
 let pontosData = {};
 let codigoClienteAtual = "";
 let houveAlteracao = true;
@@ -97,6 +100,42 @@ function obterCodigosReaisDosPontosMarcados() {
   return obterPontosMarcados()
     .map((codigoVisual) => pontosData[codigoVisual]?.codigo_ponto || null)
     .filter(Boolean);
+}
+
+function obterCodigoVisualPorCodigoReal(codigoReal) {
+  const entrada = Object.entries(pontosData).find(([, valor]) => String(valor?.codigo_ponto || "") === String(codigoReal || ""));
+  return entrada ? entrada[0] : String(codigoReal || "");
+}
+
+function obterNomeDoPonto(ponto, codigoVisual) {
+  return ponto?.nome || ponto?.ambiente || ponto?.titulo || `Ponto ${codigoVisual}`;
+}
+
+function formatarDataHora(dataIso) {
+  if (!dataIso) return "-";
+  const data = new Date(dataIso);
+  if (Number.isNaN(data.getTime())) return dataIso;
+
+  return data.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function obterNomeArquivoParaExibicao(item) {
+  if (item.storage_path) {
+    const partes = String(item.storage_path).split("/");
+    return partes[partes.length - 1] || "Arquivo";
+  }
+
+  if (item.tipo === "url") {
+    return "Link externo";
+  }
+
+  return "Arquivo";
 }
 
 function atualizarResumo() {
@@ -176,10 +215,6 @@ function atualizarStatusClientePorConteudo(statusPontosCliente, pontosSelecionad
   }
 }
 
-function obterNomeDoPonto(ponto, codigoVisual) {
-  return ponto?.nome || ponto?.ambiente || ponto?.titulo || `Ponto ${codigoVisual}`;
-}
-
 function renderizarPontosSelecionaveis(selecionados = []) {
   listaPontos.innerHTML = "";
 
@@ -202,14 +237,11 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 
   codigosOrdenados.forEach((codigoVisual) => {
     const ponto = pontosData[codigoVisual];
-    const selecionado = selecionados.includes(codigoVisual);
     const nomePonto = obterNomeDoPonto(ponto, codigoVisual);
+    const selecionado = selecionados.includes(codigoVisual);
 
     const item = document.createElement("label");
     item.className = `item-ponto${selecionado ? " selecionado" : ""}`;
-
-    const esquerda = document.createElement("div");
-    esquerda.className = "ponto-esquerda";
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -218,45 +250,109 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     checkbox.checked = selecionado;
     checkbox.className = "ponto-checkbox";
 
-    const info = document.createElement("div");
-    info.className = "ponto-info";
+    const textos = document.createElement("div");
+    textos.className = "ponto-textos";
 
-    const nome = document.createElement("div");
+    const codigo = document.createElement("span");
+    codigo.className = "ponto-codigo";
+    codigo.textContent = codigoVisual;
+
+    const nome = document.createElement("span");
     nome.className = "ponto-nome";
     nome.textContent = nomePonto;
 
-    const codigo = document.createElement("div");
-    codigo.className = "ponto-codigo";
-    codigo.textContent = `Código: ${codigoVisual}`;
+    textos.appendChild(codigo);
+    textos.appendChild(nome);
 
-    const tag = document.createElement("div");
-    tag.className = "ponto-tag";
-    tag.textContent = selecionado ? "Selecionado" : "Disponível";
-
-    info.appendChild(nome);
-    info.appendChild(codigo);
-
-    esquerda.appendChild(checkbox);
-    esquerda.appendChild(info);
-
-    item.appendChild(esquerda);
-    item.appendChild(tag);
-
-    item.addEventListener("click", (event) => {
-      if (event.target !== checkbox) {
-        checkbox.checked = !checkbox.checked;
-      }
-
-      const novosSelecionados = obterPontosMarcados();
-      renderizarPontosSelecionaveis(novosSelecionados);
-      atualizarResumo();
-      ativarBotaoSalvar();
-    });
+    item.appendChild(checkbox);
+    item.appendChild(textos);
 
     listaPontos.appendChild(item);
   });
 
   atualizarResumo();
+}
+
+async function carregarHistoricoArquivos() {
+  const nomeCliente = inputNome.value.trim();
+
+  if (!nomeCliente) {
+    historicoArquivos.innerHTML = `<div class="historico-vazio">Nenhum arquivo encontrado.</div>`;
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("playlists")
+    .select("id, codigo, nome, video_url, tipo, data_inicio, data_fim, storage_path, ordem")
+    .eq("nome", nomeCliente)
+    .order("data_inicio", { ascending: false })
+    .order("ordem", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const itens = Array.isArray(data) ? data : [];
+
+  if (!itens.length) {
+    historicoArquivos.innerHTML = `<div class="historico-vazio">Nenhum arquivo enviado ainda.</div>`;
+    return;
+  }
+
+  const gruposMap = new Map();
+
+  itens.forEach((item) => {
+    const chave = item.storage_path
+      ? `storage:${item.storage_path}`
+      : `url:${item.video_url}|${item.tipo}|${item.data_inicio}`;
+
+    if (!gruposMap.has(chave)) {
+      gruposMap.set(chave, {
+        chave,
+        titulo: obterNomeArquivoParaExibicao(item),
+        tipo: item.tipo || "-",
+        data_inicio: item.data_inicio || "",
+        video_url: item.video_url || "",
+        storage_paths: new Set(),
+        ids: [],
+        codigos: []
+      });
+    }
+
+    const grupo = gruposMap.get(chave);
+    grupo.ids.push(item.id);
+    if (item.storage_path) grupo.storage_paths.add(item.storage_path);
+    grupo.codigos.push(item.codigo);
+  });
+
+  const grupos = Array.from(gruposMap.values()).sort((a, b) => {
+    return new Date(b.data_inicio || 0).getTime() - new Date(a.data_inicio || 0).getTime();
+  });
+
+  historicoArquivos.innerHTML = grupos.map((grupo) => {
+    const pontosVisuais = [...new Set(grupo.codigos.map((codigoReal) => obterCodigoVisualPorCodigoReal(codigoReal)))].sort((a, b) => {
+      return a.localeCompare(b, "pt-BR", { numeric: true });
+    });
+
+    return `
+      <div class="historico-item">
+        <div class="historico-item-info">
+          <div class="historico-item-titulo">${grupo.titulo}</div>
+          <div class="historico-item-linha"><strong>Tipo:</strong> ${grupo.tipo}</div>
+          <div class="historico-item-linha"><strong>Enviado em:</strong> ${formatarDataHora(grupo.data_inicio)}</div>
+          <div class="historico-item-linha"><strong>Enviado para:</strong> ${pontosVisuais.length ? pontosVisuais.join(", ") : "-"}</div>
+        </div>
+        <button
+          class="botao-excluir"
+          type="button"
+          data-ids="${grupo.ids.join(",")}"
+          data-paths="${[...grupo.storage_paths].join("||")}"
+        >
+          Excluir
+        </button>
+      </div>
+    `;
+  }).join("");
 }
 
 function validarCamposCliente() {
@@ -331,6 +427,7 @@ async function carregarCliente() {
   const statusPontosCliente = await buscarStatusPontosDoCliente(cliente.nome || "");
   atualizarStatusClientePorConteudo(statusPontosCliente, pontosSelecionados);
   atualizarResumo();
+  await carregarHistoricoArquivos();
   desativarBotaoSalvar();
 }
 
@@ -392,42 +489,13 @@ async function salvarCliente() {
     const statusPontosCliente = await buscarStatusPontosDoCliente(nome);
     atualizarStatusClientePorConteudo(statusPontosCliente, pontosMarcados);
     atualizarResumo();
+    await carregarHistoricoArquivos();
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
   } catch (err) {
     console.error(err);
     mostrarMensagem("Erro ao salvar.", "#ff6b6b");
     ativarBotaoSalvar();
-  }
-}
-
-async function removerMidiasAnterioresDoClienteNosPontos(codigosReaisPontos, nomeCliente) {
-  const { data: antigos, error } = await supabaseClient
-    .from("playlists")
-    .select("id, storage_path")
-    .eq("nome", nomeCliente)
-    .in("codigo", codigosReaisPontos);
-
-  if (error) {
-    throw error;
-  }
-
-  const ids = (antigos || []).map((item) => item.id).filter(Boolean);
-  const caminhos = Array.from(new Set((antigos || []).map((item) => item.storage_path).filter(Boolean)));
-
-  if (ids.length) {
-    const { error: deleteError } = await supabaseClient
-      .from("playlists")
-      .delete()
-      .in("id", ids);
-
-    if (deleteError) {
-      throw deleteError;
-    }
-  }
-
-  if (caminhos.length) {
-    await supabaseClient.storage.from(BUCKET).remove(caminhos);
   }
 }
 
@@ -443,8 +511,6 @@ async function salvarPlaylistNosPontos(urlFinal, tipoFinal, pathArquivo = null) 
   const dataFim = inputVencimento.value || null;
   const agoraIso = new Date().toISOString();
   const baseOrdem = Date.now();
-
-  await removerMidiasAnterioresDoClienteNosPontos(codigosReais, nomeCliente);
 
   const registros = codigosReais.map((codigoReal, index) => ({
     codigo: codigoReal,
@@ -525,6 +591,7 @@ async function uploadArquivoCliente() {
     const statusPontosCliente = await buscarStatusPontosDoCliente(inputNome.value.trim());
     atualizarStatusClientePorConteudo(statusPontosCliente, pontosMarcados);
     atualizarResumo();
+    await carregarHistoricoArquivos();
   } catch (err) {
     console.error(err);
     statusUpload.textContent = "Erro ao enviar";
@@ -532,6 +599,33 @@ async function uploadArquivoCliente() {
   } finally {
     btnUploadCliente.disabled = false;
   }
+}
+
+async function excluirGrupoDeArquivos(ids, paths) {
+  if (!ids.length) {
+    return;
+  }
+
+  const { error: errorDelete } = await supabaseClient
+    .from("playlists")
+    .delete()
+    .in("id", ids);
+
+  if (errorDelete) {
+    throw errorDelete;
+  }
+
+  const caminhosValidos = paths.filter(Boolean);
+
+  if (caminhosValidos.length) {
+    await supabaseClient.storage.from(BUCKET).remove(caminhosValidos);
+  }
+
+  const pontosMarcados = obterPontosMarcados();
+  const statusPontosCliente = await buscarStatusPontosDoCliente(inputNome.value.trim());
+  atualizarStatusClientePorConteudo(statusPontosCliente, pontosMarcados);
+  atualizarResumo();
+  await carregarHistoricoArquivos();
 }
 
 inputTelefone.addEventListener("input", (e) => {
@@ -572,8 +666,37 @@ inputVencimento.addEventListener("change", () => {
 });
 
 listaPontos.addEventListener("change", () => {
+  const selecionados = obterPontosMarcados();
+  renderizarPontosSelecionaveis(selecionados);
   atualizarResumo();
   ativarBotaoSalvar();
+});
+
+historicoArquivos.addEventListener("click", async (event) => {
+  const botao = event.target.closest(".botao-excluir");
+  if (!botao) return;
+
+  const ids = String(botao.dataset.ids || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  const paths = String(botao.dataset.paths || "")
+    .split("||")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  botao.disabled = true;
+  botao.style.opacity = "0.6";
+  botao.textContent = "Excluindo...";
+
+  try {
+    await excluirGrupoDeArquivos(ids, paths);
+    mostrarMensagem("Arquivo excluído com sucesso.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao excluir arquivo.", "#ff6b6b");
+  }
 });
 
 botaoSalvar.addEventListener("click", salvarCliente);
@@ -594,6 +717,9 @@ async function iniciar() {
     mostrarMensagem("Carregando...");
     await carregarPontos();
     await carregarCliente();
+    if (historicoContratos) {
+      historicoContratos.innerHTML = `<div class="historico-vazio">Área reservada para o histórico de contratos.</div>`;
+    }
     mostrarMensagem("Cliente carregado.", "#7CFC9A");
   } catch (error) {
     console.error(error);
