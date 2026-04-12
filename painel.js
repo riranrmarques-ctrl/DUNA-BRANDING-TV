@@ -102,9 +102,55 @@ function renderizarCardsPontos(lista) {
 
   document.querySelectorAll(".card-ponto").forEach(card => {
     const codigo = card.dataset.codigo;
-    card.querySelector(".card-nome").textContent =
-      pontosMap[codigo]?.nome || codigo;
+    const nomeEl = card.querySelector(".card-nome");
+
+    if (nomeEl) {
+      nomeEl.textContent = pontosMap[codigo]?.nome || codigo;
+    }
   });
+}
+
+async function editarNomePonto(codigo) {
+  const nomeAtual = pontosMap[codigo]?.nome || "";
+  const novoNome = prompt("Editar nome do ponto:", nomeAtual);
+
+  if (novoNome === null) return;
+
+  const nomeFinal = novoNome.trim();
+
+  if (!nomeFinal) {
+    setStatus("Nome inválido", "erro");
+    return;
+  }
+
+  if (nomeFinal === nomeAtual) return;
+
+  const { error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .update({ nome: nomeFinal })
+    .eq("codigo", codigo);
+
+  if (error) {
+    setStatus("Erro ao atualizar nome", "erro");
+    return;
+  }
+
+  if (pontosMap[codigo]) {
+    pontosMap[codigo].nome = nomeFinal;
+  }
+
+  document.querySelectorAll(`.card-ponto[data-codigo="${codigo}"]`).forEach(card => {
+    const nomeEl = card.querySelector(".card-nome");
+    if (nomeEl) {
+      nomeEl.textContent = nomeFinal;
+    }
+  });
+
+  if (codigoSelecionado === codigo) {
+    tituloPasta.textContent = "Pasta do " + nomeFinal;
+  }
+
+  setStatus("Nome atualizado", "ok");
 }
 
 function abrirPonto(codigo) {
@@ -212,7 +258,8 @@ function ativarDrag(lista) {
       novo.splice(target, 0, movido);
 
       for (let i = 0; i < novo.length; i++) {
-        await supabaseClient.from(TABELA)
+        await supabaseClient
+          .from(TABELA)
           .update({ ordem: i })
           .eq("id", novo[i].id);
       }
@@ -226,9 +273,16 @@ async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
 
-  document.querySelectorAll(".btn-abrir").forEach(
-    btn => (btn.onclick = () => abrirPonto(btn.dataset.codigo))
-  );
+  document.querySelectorAll(".btn-abrir").forEach(btn => {
+    btn.onclick = () => abrirPonto(btn.dataset.codigo);
+  });
+
+  document.querySelectorAll(".btn-editar").forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      editarNomePonto(btn.dataset.codigo);
+    };
+  });
 }
 
 const arquivoInput = document.getElementById("arquivoInput");
@@ -257,7 +311,6 @@ btnUploadCliente.onclick = async () => {
         data_inicio: new Date().toISOString(),
         data_fim: inputVencimento.value
       });
-
     } else {
       const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
 
@@ -275,7 +328,6 @@ btnUploadCliente.onclick = async () => {
     }
 
     statusUpload.textContent = "Enviado com sucesso";
-
   } catch (err) {
     statusUpload.textContent = "Erro ao enviar";
   }
