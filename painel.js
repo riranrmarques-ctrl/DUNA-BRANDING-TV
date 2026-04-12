@@ -4,7 +4,7 @@ const BUCKET = "videos";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 
-const SENHA_PAINEL = "@Helena";
+const SENHA_PAINEL = "@Helena26";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -21,12 +21,7 @@ const pontoDetalhe = document.getElementById("pontoDetalhe");
 const codigoAtual = document.getElementById("codigoAtual");
 const tituloPasta = document.getElementById("tituloPasta");
 
-const videoInput = document.getElementById("videoInput");
-const btnUpload = document.getElementById("btnUpload");
 const btnVoltar = document.getElementById("btnVoltar");
-
-const dataInicioInput = document.getElementById("dataInicio");
-const dataFimInput = document.getElementById("dataFim");
 
 const playlistAtiva = document.getElementById("playlistAtiva");
 const playlistInativa = document.getElementById("playlistInativa");
@@ -54,11 +49,6 @@ function escapeHtml(texto) {
 function formatarData(valor) {
   if (!valor) return "";
   return new Date(valor).toLocaleDateString("pt-BR");
-}
-
-function normalizarDataInput(valor) {
-  if (!valor) return null;
-  return new Date(valor + "T00:00:00").toISOString();
 }
 
 function montarLinhaDatas(item) {
@@ -142,54 +132,6 @@ if (btnCopiarCodigo) {
     setStatus("Código copiado", "ok");
   };
 }
-
-async function uploadMidia() {
-  const file = videoInput.files[0];
-  if (!file) return setStatus("Selecione um arquivo", "erro");
-
-  const codigo = codigoSelecionado;
-
-  const dataInicio =
-    normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
-  const dataFim = normalizarDataInput(dataFimInput.value);
-
-  const path = `${codigo}/${Date.now()}-${file.name}`;
-
-  const { error: uploadError } = await supabaseClient.storage.from(BUCKET).upload(path, file);
-
-  if (uploadError) {
-    setStatus("Erro no upload", "erro");
-    return;
-  }
-
-  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
-
-  const { error: insertError } = await supabaseClient.from(TABELA).insert({
-    codigo,
-    nome: file.name,
-    video_url: data.publicUrl,
-    storage_path: path,
-    ordem: Date.now(),
-    tipo: "video",
-    data_inicio: dataInicio,
-    data_fim: dataFim
-  });
-
-  if (insertError) {
-    setStatus("Erro ao salvar mídia", "erro");
-    return;
-  }
-
-  setStatus("Enviado", "ok");
-
-  videoInput.value = "";
-  dataInicioInput.value = "";
-  dataFimInput.value = "";
-
-  carregarPlaylist();
-}
-
-btnUpload.onclick = uploadMidia;
 
 async function carregarPlaylist() {
   const { data, error } = await supabaseClient
