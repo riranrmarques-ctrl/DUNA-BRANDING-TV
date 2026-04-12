@@ -34,6 +34,11 @@ function mostrarMensagem(texto, cor = "#9fd2ff") {
   mensagem.style.color = cor;
 }
 
+function mostrarStatusUpload(texto, cor = "#9fd2ff") {
+  statusUpload.textContent = texto;
+  statusUpload.style.color = cor;
+}
+
 function obterCodigoDaUrl() {
   const params = new URLSearchParams(window.location.search);
   return (params.get("codigo") || "").trim().toUpperCase();
@@ -84,9 +89,7 @@ async function carregarPontos() {
     .select("*")
     .order("nome", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   pontosData = {};
 
@@ -106,6 +109,21 @@ async function carregarPontos() {
 
 function obterPontosMarcados() {
   return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((i) => i.value);
+}
+
+function obterCodigosDestinoSelecionados() {
+  return obterPontosMarcados()
+    .map((codigoSelecionado) => {
+      const ponto = pontosData[codigoSelecionado];
+      return String(
+        ponto?.codigo_ponto ||
+        ponto?.codigo ||
+        ponto?.codigo_visual ||
+        codigoSelecionado ||
+        ""
+      ).trim();
+    })
+    .filter(Boolean);
 }
 
 function obterNomeDoPonto(ponto, codigo) {
@@ -439,13 +457,18 @@ async function uploadArquivoCliente() {
   }
 
   if (!file) {
-    statusUpload.textContent = "Selecione um arquivo";
-    statusUpload.style.color = "#ff6b6b";
+    mostrarStatusUpload("Selecione um arquivo", "#ff6b6b");
     return;
   }
 
-  statusUpload.textContent = "Enviando...";
-  statusUpload.style.color = "#9fd2ff";
+  const codigosDestino = obterCodigosDestinoSelecionados();
+
+  if (!codigosDestino.length) {
+    mostrarStatusUpload("Selecione ao menos um ponto", "#ff6b6b");
+    return;
+  }
+
+  mostrarStatusUpload("Enviando...", "#9fd2ff");
   btnUploadCliente.disabled = true;
   btnUploadCliente.style.opacity = "0.7";
   btnUploadCliente.style.cursor = "wait";
@@ -456,7 +479,6 @@ async function uploadArquivoCliente() {
       throw new Error("Falha ao salvar cliente antes do upload.");
     }
 
-    const pontosSelecionados = obterPontosMarcados();
     const dataFim = inputVencimento.value || null;
     const agoraIso = new Date().toISOString();
     const baseOrdem = Date.now();
@@ -469,8 +491,8 @@ async function uploadArquivoCliente() {
         throw new Error("O TXT está vazio.");
       }
 
-      const registros = pontosSelecionados.map((codigo, index) => ({
-        codigo,
+      const registros = codigosDestino.map((codigoReal, index) => ({
+        codigo: codigoReal,
         nome: inputNome.value.trim(),
         video_url: url,
         tipo: "url",
@@ -507,8 +529,8 @@ async function uploadArquivoCliente() {
           ? "imagem"
           : "video";
 
-      const registros = pontosSelecionados.map((codigo, index) => ({
-        codigo,
+      const registros = codigosDestino.map((codigoReal, index) => ({
+        codigo: codigoReal,
         nome: inputNome.value.trim(),
         video_url: publicData.publicUrl,
         tipo: tipoFinal,
@@ -525,13 +547,11 @@ async function uploadArquivoCliente() {
       if (insertError) throw insertError;
     }
 
-    statusUpload.textContent = "Enviado com sucesso";
-    statusUpload.style.color = "#7CFC9A";
+    mostrarStatusUpload("Enviado com sucesso", "#7CFC9A");
     arquivoInput.value = "";
   } catch (error) {
     console.error(error);
-    statusUpload.textContent = "Erro ao enviar";
-    statusUpload.style.color = "#ff6b6b";
+    mostrarStatusUpload("Erro ao enviar", "#ff6b6b");
   } finally {
     btnUploadCliente.disabled = false;
     btnUploadCliente.style.opacity = "1";
@@ -665,9 +685,7 @@ async function carregarCliente() {
     .eq("codigo", codigoClienteAtual)
     .single();
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   inputCodigo.value = data.codigo;
   inputNome.value = data.nome || "";
@@ -691,9 +709,7 @@ async function carregarCliente() {
       .select("ponto_codigo")
       .eq("cliente_codigo", codigoClienteAtual);
 
-    if (erroVinculos) {
-      throw erroVinculos;
-    }
+    if (erroVinculos) throw erroVinculos;
 
     selecionados = Array.isArray(vinculos)
       ? vinculos.map((item) => item.ponto_codigo).filter(Boolean)
