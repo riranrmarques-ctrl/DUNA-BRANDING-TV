@@ -24,6 +24,7 @@ const statusUpload = document.getElementById("statusUpload");
 
 let pontosData = {};
 let codigoClienteAtual = "";
+let houveAlteracao = true;
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   mensagem.textContent = texto;
@@ -54,6 +55,28 @@ function itemPlaylistEstaAtivo(item) {
   fim.setHours(23, 59, 59, 999);
 
   return fim >= hoje;
+}
+
+function marcarErro(campo) {
+  campo.style.border = "1px solid #ff6b6b";
+}
+
+function limparErro(campo) {
+  campo.style.border = "1px solid #313847";
+}
+
+function ativarBotaoSalvar() {
+  houveAlteracao = true;
+  botaoSalvar.disabled = false;
+  botaoSalvar.style.opacity = "1";
+  botaoSalvar.style.cursor = "pointer";
+}
+
+function desativarBotaoSalvar() {
+  houveAlteracao = false;
+  botaoSalvar.disabled = true;
+  botaoSalvar.style.opacity = "0.5";
+  botaoSalvar.style.cursor = "not-allowed";
 }
 
 async function carregarPontos() {
@@ -191,33 +214,32 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 }
 
 function validarCamposCliente() {
-  if (!inputVencimento.value) {
-    mostrarMensagem("Preencha o vencimento da exibição.", "#ff6b6b");
-    return false;
-  }
+  let valido = true;
 
-  if (!inputNome.value.trim()) {
-    mostrarMensagem("Preencha o nome completo.", "#ff6b6b");
-    return false;
-  }
+  const campos = [
+    inputVencimento,
+    inputNome,
+    inputTelefone,
+    inputEmail,
+    inputCpfCnpj
+  ];
 
-  if (!inputTelefone.value.trim()) {
-    mostrarMensagem("Preencha o telefone.", "#ff6b6b");
-    return false;
-  }
-
-  if (!inputEmail.value.trim()) {
-    mostrarMensagem("Preencha o email.", "#ff6b6b");
-    return false;
-  }
-
-  if (!inputCpfCnpj.value.trim()) {
-    mostrarMensagem("Preencha o CPF / CNPJ.", "#ff6b6b");
-    return false;
-  }
+  campos.forEach((campo) => {
+    if (!campo.value.trim()) {
+      marcarErro(campo);
+      valido = false;
+    } else {
+      limparErro(campo);
+    }
+  });
 
   if (!obterPontosMarcados().length) {
     mostrarMensagem("Selecione ao menos um ponto.", "#ff6b6b");
+    return false;
+  }
+
+  if (!valido) {
+    mostrarMensagem("Preencha todos os campos obrigatórios.", "#ff6b6b");
     return false;
   }
 
@@ -252,15 +274,23 @@ async function carregarCliente() {
   inputCpfCnpj.value = cliente.cpf_cnpj || "";
   inputVencimento.value = cliente.vencimento_exibicao || "";
 
+  limparErro(inputVencimento);
+  limparErro(inputNome);
+  limparErro(inputTelefone);
+  limparErro(inputEmail);
+  limparErro(inputCpfCnpj);
+
   renderizarPontosSelecionaveis(pontosSelecionados);
 
   const statusPontosCliente = await buscarStatusPontosDoCliente(cliente.nome || "");
   atualizarStatusClientePorConteudo(statusPontosCliente, pontosSelecionados);
   atualizarResumo();
+  desativarBotaoSalvar();
 }
 
 async function salvarCliente() {
   if (!validarCamposCliente()) {
+    ativarBotaoSalvar();
     return;
   }
 
@@ -272,6 +302,8 @@ async function salvarCliente() {
   const pontosMarcados = obterPontosMarcados();
 
   botaoSalvar.disabled = true;
+  botaoSalvar.style.opacity = "0.7";
+  botaoSalvar.style.cursor = "wait";
 
   try {
     const { error: errorCliente } = await supabaseClient
@@ -315,11 +347,11 @@ async function salvarCliente() {
     atualizarStatusClientePorConteudo(statusPontosCliente, pontosMarcados);
     atualizarResumo();
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
+    desativarBotaoSalvar();
   } catch (err) {
     console.error(err);
     mostrarMensagem("Erro ao salvar.", "#ff6b6b");
-  } finally {
-    botaoSalvar.disabled = false;
+    ativarBotaoSalvar();
   }
 }
 
@@ -392,6 +424,7 @@ async function uploadArquivoCliente() {
   const file = arquivoInput.files[0];
 
   if (!validarCamposCliente()) {
+    ativarBotaoSalvar();
     return;
   }
 
@@ -457,15 +490,45 @@ async function uploadArquivoCliente() {
 
 inputTelefone.addEventListener("input", (e) => {
   e.target.value = formatarTelefone(e.target.value);
+  limparErro(inputTelefone);
   atualizarResumo();
+  ativarBotaoSalvar();
 });
 
-inputNome.addEventListener("input", atualizarResumo);
-inputEmail.addEventListener("input", atualizarResumo);
-inputCpfCnpj.addEventListener("input", atualizarResumo);
-inputVencimento.addEventListener("change", atualizarResumo);
+inputNome.addEventListener("input", () => {
+  limparErro(inputNome);
+  atualizarResumo();
+  ativarBotaoSalvar();
+});
 
-listaPontos.addEventListener("change", atualizarResumo);
+inputEmail.addEventListener("input", () => {
+  limparErro(inputEmail);
+  atualizarResumo();
+  ativarBotaoSalvar();
+});
+
+inputCpfCnpj.addEventListener("input", () => {
+  limparErro(inputCpfCnpj);
+  atualizarResumo();
+  ativarBotaoSalvar();
+});
+
+inputVencimento.addEventListener("input", () => {
+  limparErro(inputVencimento);
+  atualizarResumo();
+  ativarBotaoSalvar();
+});
+
+inputVencimento.addEventListener("change", () => {
+  limparErro(inputVencimento);
+  atualizarResumo();
+  ativarBotaoSalvar();
+});
+
+listaPontos.addEventListener("change", () => {
+  atualizarResumo();
+  ativarBotaoSalvar();
+});
 
 botaoSalvar.addEventListener("click", salvarCliente);
 botaoVoltar.addEventListener("click", () => {
@@ -489,6 +552,7 @@ async function iniciar() {
   } catch (error) {
     console.error(error);
     mostrarMensagem("Erro ao carregar.", "#ff6b6b");
+    ativarBotaoSalvar();
   }
 }
 
