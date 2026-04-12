@@ -4,7 +4,7 @@ const BUCKET = "videos";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 
-const SENHA_PAINEL = "@Helena26";
+const SENHA_PAINEL = "@Helena";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -35,7 +35,6 @@ const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 
 let codigoSelecionado = null;
 let pontosMap = {};
-let statusPontosMap = {};
 let dragIndex = null;
 
 function setStatus(texto, tipo = "normal") {
@@ -95,16 +94,12 @@ async function buscarPontos() {
 
 function renderizarCardsPontos(lista) {
   pontosMap = {};
-  lista.forEach(p => {
-    pontosMap[String(p.codigo).trim()] = p;
-  });
+  lista.forEach(p => (pontosMap[p.codigo] = p));
 
   document.querySelectorAll(".card-ponto").forEach(card => {
-    const codigo = String(card.dataset.codigo || "").trim();
-    const nomeEl = card.querySelector(".card-nome");
-    if (nomeEl) {
-      nomeEl.textContent = pontosMap[codigo]?.nome || codigo;
-    }
+    const codigo = card.dataset.codigo;
+    card.querySelector(".card-nome").textContent =
+      pontosMap[codigo]?.nome || codigo;
   });
 }
 
@@ -115,7 +110,9 @@ function abrirPonto(codigo) {
   pontoDetalhe.style.display = "block";
 
   codigoAtual.textContent = codigoSelecionado;
-  tituloPasta.textContent = "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
+
+  tituloPasta.textContent =
+    "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
 
   carregarPlaylist();
 }
@@ -125,28 +122,52 @@ btnVoltar.onclick = () => {
   pontoDetalhe.style.display = "none";
 };
 
+if (btnCopiarCodigo) {
+  btnCopiarCodigo.onclick = () => {
+    navigator.clipboard.writeText(codigoSelecionado);
+    setStatus("Código copiado", "ok");
+  };
+}
+
+async function carregarClientes() {
+  const select = document.getElementById("clienteSelect");
+  if (!select) return;
+
+  const { data } = await supabaseClient.from("clientes_app").select("codigo,nome");
+
+  select.innerHTML = `<option value="">Selecionar cliente</option>`;
+
+  (data || []).forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.codigo;
+    opt.textContent = c.nome;
+    select.appendChild(opt);
+  });
+}
+
 async function uploadMidia() {
   const file = videoInput.files[0];
-  const clienteSelect = document.getElementById("clienteSelect");
+  const select = document.getElementById("clienteSelect");
 
   if (!file) return setStatus("Selecione um arquivo", "erro");
-  if (!codigoSelecionado) return setStatus("Nenhum ponto selecionado", "erro");
-  if (!clienteSelect.value) return setStatus("Selecione um cliente", "erro");
+  if (!select.value) return setStatus("Selecione um cliente", "erro");
 
-  const clienteCodigo = clienteSelect.value;
-  const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
+  const clienteCodigo = select.value;
+  const clienteNome = select.options[select.selectedIndex].text;
 
-  const dataInicio = normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
+  const codigo = codigoSelecionado;
+
+  const dataInicio =
+    normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
   const dataFim = normalizarDataInput(dataFimInput.value);
-  const path = `${codigoSelecionado}/${Date.now()}-${file.name}`;
 
-  const { error: uploadError } = await supabaseClient.storage.from(BUCKET).upload(path, file);
-  if (uploadError) return setStatus("Erro no upload", "erro");
+  const path = `${codigo}/${Date.now()}-${file.name}`;
 
+  await supabaseClient.storage.from(BUCKET).upload(path, file);
   const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
 
   await supabaseClient.from(TABELA).insert({
-    codigo: codigoSelecionado,
+    codigo,
     nome: clienteNome,
     cliente_codigo: clienteCodigo,
     video_url: data.publicUrl,
@@ -162,9 +183,9 @@ async function uploadMidia() {
   videoInput.value = "";
   dataInicioInput.value = "";
   dataFimInput.value = "";
-  clienteSelect.value = "";
+  select.value = "";
 
-  await carregarPlaylist();
+  carregarPlaylist();
 }
 
 btnUpload.onclick = uploadMidia;
@@ -176,10 +197,8 @@ async function carregarPlaylist() {
     .eq("codigo", codigoSelecionado)
     .order("ordem");
 
-  const lista = data || [];
-
-  const ativos = lista.filter(i => !itemEstaInativo(i));
-  const inativos = lista.filter(i => itemEstaInativo(i));
+  const ativos = data.filter(i => !itemEstaInativo(i));
+  const inativos = data.filter(i => itemEstaInativo(i));
 
   renderizarPlaylistAtiva(ativos);
   renderizarHistorico(inativos);
@@ -225,20 +244,22 @@ function ativarDrag(lista) {
 
   items.forEach(item => {
     item.addEventListener("dragstart", () => {
-      dragIndex = Number(item.dataset.index);
+      dragIndex = item.dataset.index;
     });
 
     item.addEventListener("dragover", e => e.preventDefault());
 
     item.addEventListener("drop", async () => {
-      const target = Number(item.dataset.index);
+      const target = item.dataset.index;
 
       const novo = [...lista];
       const movido = novo.splice(dragIndex, 1)[0];
       novo.splice(target, 0, movido);
 
       for (let i = 0; i < novo.length; i++) {
-        await supabaseClient.from(TABELA).update({ ordem: i }).eq("id", novo[i].id);
+        await supabaseClient.from(TABELA)
+          .update({ ordem: i })
+          .eq("id", novo[i].id);
       }
 
       carregarPlaylist();
@@ -246,14 +267,12 @@ function ativarDrag(lista) {
   });
 }
 
-document.addEventListener("click", function (e) {
-  const btnAbrir = e.target.closest(".btn-abrir");
-  if (btnAbrir) {
-    abrirPonto(btnAbrir.dataset.codigo);
-  }
-});
-
 async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
+  await carregarClientes();
+
+  document.querySelectorAll(".btn-abrir").forEach(
+    btn => (btn.onclick = () => abrirPonto(btn.dataset.codigo))
+  );
 }
