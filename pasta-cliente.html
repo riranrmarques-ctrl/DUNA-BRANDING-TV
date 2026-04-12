@@ -115,11 +115,6 @@
       font-size: 1rem;
     }
 
-    .campo input[readonly] {
-      opacity: 0.85;
-      cursor: not-allowed;
-    }
-
     .campo textarea {
       resize: vertical;
       min-height: 90px;
@@ -147,6 +142,7 @@
       background: #0f1115;
       color: #ffffff;
       font-size: 1rem;
+      width: 100%;
     }
 
     .pdf-box {
@@ -156,6 +152,7 @@
       padding: 18px;
       color: #c6cedd;
       line-height: 1.6;
+      min-height: 150px;
     }
 
     .pdf-box strong {
@@ -164,22 +161,44 @@
       margin-bottom: 8px;
     }
 
-    .lista-pontos {
+    .upload-box {
+      background: #10131a;
+      border: 1px dashed #2d8cff;
+      border-radius: 14px;
+      padding: 18px;
+      color: #c6cedd;
+      line-height: 1.6;
+      min-height: 150px;
+    }
+
+    .upload-box strong {
+      display: block;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .pontos-grid {
       display: grid;
-      gap: 10px;
-      max-height: 500px;
-      overflow-y: auto;
-      padding-right: 4px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
     }
 
     .item-ponto {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       background: #10131a;
       border: 1px solid #2a3040;
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 10px;
+      padding: 14px;
+      min-height: 92px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .item-ponto:hover {
+      border-color: #3f4a63;
+      transform: translateY(-1px);
     }
 
     .item-ponto input[type="checkbox"] {
@@ -187,22 +206,25 @@
       height: 18px;
       accent-color: #2d8cff;
       flex-shrink: 0;
+      margin-top: 3px;
     }
 
     .item-ponto-info {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
     }
 
     .item-ponto-info strong {
-      font-size: 0.96rem;
+      font-size: 0.95rem;
       color: #fff;
+      line-height: 1.4;
     }
 
     .item-ponto-info span {
       color: #bfc7d5;
       font-size: 0.88rem;
+      line-height: 1.4;
     }
 
     .mensagem {
@@ -220,6 +242,7 @@
       padding: 16px;
       line-height: 1.6;
       color: #c6cedd;
+      margin-bottom: 16px;
     }
 
     .resumo .linha {
@@ -240,7 +263,8 @@
       }
 
       .linha-dupla,
-      .linha-tripla {
+      .linha-tripla,
+      .pontos-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -261,7 +285,7 @@
     <div class="topo">
       <div>
         <h1>Pasta do Cliente</h1>
-        <p>Edite os dados do cliente e escolha os pontos liberados para esse código.</p>
+        <p>Edite os dados do cliente e visualize os pontos das telas.</p>
       </div>
 
       <div class="acoes-topo">
@@ -318,27 +342,35 @@
         </div>
 
         <div class="campo">
-          <label>PDF do contrato</label>
-          <div class="pdf-box">
-            <strong>Espaço reservado para contrato em PDF</strong>
-            Aqui ficará a área do contrato vinculada automaticamente ao cliente de acordo com o código.
+          <label>Upgrade de arquivo</label>
+          <div class="upload-box">
+            <strong>Espaço de upgrade de arquivo</strong>
+            Aqui ficará a área de envio e upgrade do material do cliente.
           </div>
         </div>
       </div>
 
       <div class="box">
-        <h2>Resumo</h2>
+        <h2>Informações</h2>
         <div id="resumoCliente" class="resumo"></div>
+
+        <div class="campo">
+          <label>Contrato</label>
+          <div class="pdf-box">
+            <strong>Espaço para contrato</strong>
+            Aqui ficará a área do contrato do cliente.
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="box" style="margin-top: 20px;">
-      <h2>Pontos liberados</h2>
-      <div id="listaPontos" class="lista-pontos"></div>
+      <h2>PONTOS DAS TELAS</h2>
+      <div id="listaPontos" class="pontos-grid"></div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=1"></script>
+  <script src="pasta-cliente.js?v=2"></script>
 </body>
 </html>
