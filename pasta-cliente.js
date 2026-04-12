@@ -7,8 +7,8 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const inputCodigo = document.getElementById("codigo");
 const inputNome = document.getElementById("nome");
 const inputTelefone = document.getElementById("telefone");
-const inputSegmento = document.getElementById("segmento");
-const inputObservacao = document.getElementById("observacao");
+const inputEmail = document.getElementById("email");
+const inputCpfCnpj = document.getElementById("cpfCnpj");
 const inputVencimento = document.getElementById("vencimentoExibicao");
 const statusCliente = document.getElementById("statusCliente");
 
@@ -44,144 +44,452 @@ function formatarTelefone(valor) {
   return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
 }
 
-function atualizarStatus() {
+function itemPlaylistEstaAtivo(item) {
+  if (!item || !item.data_fim) return true;
+
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  if (inputVencimento.value) {
-    const venc = new Date(inputVencimento.value);
-    venc.setHours(23, 59, 59, 999);
+  const fim = new Date(item.data_fim);
+  fim.setHours(23, 59, 59, 999);
 
-    if (venc >= hoje) {
-      statusCliente.textContent = "Ativo";
-      statusCliente.style.color = "#7CFC9A";
-      return;
-    }
-  }
-
-  statusCliente.textContent = "Não ativo";
-  statusCliente.style.color = "#ff6b6b";
+  return fim >= hoje;
 }
 
 async function carregarPontos() {
   const response = await fetch("pontos.json?v=1");
+
+  if (!response.ok) {
+    throw new Error("Não foi possível carregar pontos.json");
+  }
+
   pontosData = await response.json();
 }
 
 function obterPontosMarcados() {
-  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map(i => i.value);
+  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((item) => item.value);
+}
+
+function obterCodigosReaisDosPontosMarcados() {
+  return obterPontosMarcados()
+    .map((codigoVisual) => pontosData[codigoVisual]?.codigo_ponto || null)
+    .filter(Boolean);
 }
 
 function atualizarResumo() {
+  const nome = inputNome.value.trim() || "-";
+  const telefone = inputTelefone.value.trim() || "-";
+  const email = inputEmail.value.trim() || "-";
+  const cpfCnpj = inputCpfCnpj.value.trim() || "-";
+  const vencimento = inputVencimento.value || "-";
+  const status = statusCliente.textContent;
   const pontos = obterPontosMarcados();
 
   resumoCliente.innerHTML = `
-    <div><strong>Código:</strong> ${codigoClienteAtual}</div>
-    <div><strong>Status:</strong> ${statusCliente.textContent}</div>
-    <div><strong>Vencimento:</strong> ${inputVencimento.value || "-"}</div>
-    <div><strong>Nome:</strong> ${inputNome.value || "-"}</div>
-    <div><strong>Telefone:</strong> ${inputTelefone.value || "-"}</div>
-    <div><strong>PONTOS DAS TELAS:</strong> ${pontos.join(", ") || "nenhum"}</div>
+    <div class="linha"><strong>Código:</strong> ${codigoClienteAtual || "-"}</div>
+    <div class="linha"><strong>Status:</strong> ${status}</div>
+    <div class="linha"><strong>Vencimento:</strong> ${vencimento}</div>
+    <div class="linha"><strong>Nome completo:</strong> ${nome}</div>
+    <div class="linha"><strong>Telefone:</strong> ${telefone}</div>
+    <div class="linha"><strong>Email:</strong> ${email}</div>
+    <div class="linha"><strong>CPF / CNPJ:</strong> ${cpfCnpj}</div>
+    <div class="linha"><strong>PONTOS DAS TELAS:</strong> ${pontos.length ? pontos.join(", ") : "nenhum"}</div>
   `;
 }
 
-function renderizarPontosSelecionaveis() {
+async function buscarStatusPontosDoCliente(nomeCliente) {
+  const nomeLimpo = String(nomeCliente || "").trim();
+  const mapaStatus = {};
+
+  if (!nomeLimpo) {
+    return mapaStatus;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("playlists")
+    .select("codigo, nome, data_fim");
+
+  if (error) {
+    throw error;
+  }
+
+  (data || []).forEach((item) => {
+    const codigoPonto = String(item.codigo || "").trim();
+    const nomeItem = String(item.nome || "").trim();
+
+    if (!codigoPonto || !nomeItem) return;
+    if (nomeItem !== nomeLimpo) return;
+
+    if (!mapaStatus[codigoPonto]) {
+      mapaStatus[codigoPonto] = {
+        temAtivo: false,
+        temInativo: false
+      };
+    }
+
+    if (itemPlaylistEstaAtivo(item)) {
+      mapaStatus[codigoPonto].temAtivo = true;
+    } else {
+      mapaStatus[codigoPonto].temInativo = true;
+    }
+  });
+
+  return mapaStatus;
+}
+
+function atualizarStatusClientePorConteudo(statusPontosCliente, pontosSelecionadosVisuais = []) {
+  const existeAtivo = pontosSelecionadosVisuais.some((codigoVisual) => {
+    const codigoReal = pontosData[codigoVisual]?.codigo_ponto;
+    if (!codigoReal) return false;
+    return statusPontosCliente[codigoReal]?.temAtivo;
+  });
+
+  if (existeAtivo) {
+    statusCliente.textContent = "Ativo";
+    statusCliente.style.color = "#7CFC9A";
+  } else {
+    statusCliente.textContent = "Não ativo";
+    statusCliente.style.color = "#ff6b6b";
+  }
+}
+
+function renderizarPontosSelecionaveis(selecionados = []) {
   listaPontos.innerHTML = "";
 
-  Object.keys(pontosData).forEach((codigoVisual) => {
+  const codigos = Object.keys(pontosData);
+
+  if (!codigos.length) {
+    listaPontos.innerHTML = `<div class="vazio">Nenhum ponto encontrado.</div>`;
+    return;
+  }
+
+  codigos.forEach((codigoVisual) => {
     const ponto = pontosData[codigoVisual];
 
     const item = document.createElement("label");
     item.className = "item-ponto";
 
-    item.innerHTML = `
-      <input type="checkbox" name="pontos" value="${codigoVisual}">
-      <div class="item-ponto-info">
-        <strong>${codigoVisual} - ${ponto.nome}</strong>
-      </div>
-    `;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.name = "pontos";
+    checkbox.value = codigoVisual;
+    checkbox.checked = selecionados.includes(codigoVisual);
 
+    const info = document.createElement("div");
+    info.className = "item-ponto-info";
+
+    const titulo = document.createElement("strong");
+    titulo.textContent = `${codigoVisual} - ${ponto.nome || "Sem nome"}`;
+
+    info.appendChild(titulo);
+    item.appendChild(checkbox);
+    item.appendChild(info);
     listaPontos.appendChild(item);
   });
 
   atualizarResumo();
 }
 
+function validarCamposCliente() {
+  if (!inputVencimento.value) {
+    mostrarMensagem("Preencha o vencimento da exibição.", "#ff6b6b");
+    return false;
+  }
+
+  if (!inputNome.value.trim()) {
+    mostrarMensagem("Preencha o nome completo.", "#ff6b6b");
+    return false;
+  }
+
+  if (!inputTelefone.value.trim()) {
+    mostrarMensagem("Preencha o telefone.", "#ff6b6b");
+    return false;
+  }
+
+  if (!inputEmail.value.trim()) {
+    mostrarMensagem("Preencha o email.", "#ff6b6b");
+    return false;
+  }
+
+  if (!inputCpfCnpj.value.trim()) {
+    mostrarMensagem("Preencha o CPF / CNPJ.", "#ff6b6b");
+    return false;
+  }
+
+  if (!obterPontosMarcados().length) {
+    mostrarMensagem("Selecione ao menos um ponto.", "#ff6b6b");
+    return false;
+  }
+
+  return true;
+}
+
+async function carregarCliente() {
+  const { data: cliente, error } = await supabaseClient
+    .from("clientes_app")
+    .select("*")
+    .eq("codigo", codigoClienteAtual)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!cliente) throw new Error("Cliente não encontrado.");
+
+  const { data: vinculos, error: erroVinculos } = await supabaseClient
+    .from("cliente_pontos")
+    .select("*")
+    .eq("cliente_codigo", codigoClienteAtual);
+
+  if (erroVinculos) throw erroVinculos;
+
+  const pontosSelecionados = Array.isArray(vinculos)
+    ? vinculos.map((i) => i.ponto_codigo)
+    : [];
+
+  inputCodigo.value = cliente.codigo || "";
+  inputNome.value = cliente.nome || "";
+  inputTelefone.value = formatarTelefone(cliente.telefone || "");
+  inputEmail.value = cliente.email || "";
+  inputCpfCnpj.value = cliente.cpf_cnpj || "";
+  inputVencimento.value = cliente.vencimento_exibicao || "";
+
+  renderizarPontosSelecionaveis(pontosSelecionados);
+
+  const statusPontosCliente = await buscarStatusPontosDoCliente(cliente.nome || "");
+  atualizarStatusClientePorConteudo(statusPontosCliente, pontosSelecionados);
+  atualizarResumo();
+}
+
+async function salvarCliente() {
+  if (!validarCamposCliente()) {
+    return;
+  }
+
+  const nome = inputNome.value.trim();
+  const telefone = inputTelefone.value.trim();
+  const email = inputEmail.value.trim();
+  const cpfCnpj = inputCpfCnpj.value.trim();
+  const vencimento = inputVencimento.value;
+  const pontosMarcados = obterPontosMarcados();
+
+  botaoSalvar.disabled = true;
+
+  try {
+    const { error: errorCliente } = await supabaseClient
+      .from("clientes_app")
+      .upsert({
+        codigo: codigoClienteAtual,
+        nome,
+        telefone: telefone || null,
+        email: email || null,
+        cpf_cnpj: cpfCnpj || null,
+        vencimento_exibicao: vencimento || null
+      }, { onConflict: "codigo" });
+
+    if (errorCliente) {
+      throw errorCliente;
+    }
+
+    const { error: errorDelete } = await supabaseClient
+      .from("cliente_pontos")
+      .delete()
+      .eq("cliente_codigo", codigoClienteAtual);
+
+    if (errorDelete) {
+      throw errorDelete;
+    }
+
+    const vinculos = pontosMarcados.map((pontoVisual) => ({
+      cliente_codigo: codigoClienteAtual,
+      ponto_codigo: pontoVisual
+    }));
+
+    const { error: errorInsert } = await supabaseClient
+      .from("cliente_pontos")
+      .insert(vinculos);
+
+    if (errorInsert) {
+      throw errorInsert;
+    }
+
+    const statusPontosCliente = await buscarStatusPontosDoCliente(nome);
+    atualizarStatusClientePorConteudo(statusPontosCliente, pontosMarcados);
+    atualizarResumo();
+    mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
+  } catch (err) {
+    console.error(err);
+    mostrarMensagem("Erro ao salvar.", "#ff6b6b");
+  } finally {
+    botaoSalvar.disabled = false;
+  }
+}
+
+async function removerMidiasAnterioresDoClienteNosPontos(codigosReaisPontos, nomeCliente) {
+  const { data: antigos, error } = await supabaseClient
+    .from("playlists")
+    .select("id, storage_path")
+    .eq("nome", nomeCliente)
+    .in("codigo", codigosReaisPontos);
+
+  if (error) {
+    throw error;
+  }
+
+  const ids = (antigos || []).map((item) => item.id).filter(Boolean);
+  const caminhos = Array.from(new Set((antigos || []).map((item) => item.storage_path).filter(Boolean)));
+
+  if (ids.length) {
+    const { error: deleteError } = await supabaseClient
+      .from("playlists")
+      .delete()
+      .in("id", ids);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+  }
+
+  if (caminhos.length) {
+    await supabaseClient.storage.from(BUCKET).remove(caminhos);
+  }
+}
+
 async function salvarPlaylistNosPontos(urlFinal, tipoFinal, pathArquivo = null) {
   const pontosMarcados = obterPontosMarcados();
+  const codigosReais = obterCodigosReaisDosPontosMarcados();
+
+  if (!pontosMarcados.length || !codigosReais.length) {
+    throw new Error("Selecione ao menos um ponto.");
+  }
 
   const nomeCliente = inputNome.value.trim();
   const dataFim = inputVencimento.value || null;
   const agoraIso = new Date().toISOString();
   const baseOrdem = Date.now();
 
-  const registros = pontosMarcados.map((codigoVisual, index) => {
-    const pontoReal = pontosData[codigoVisual];
+  await removerMidiasAnterioresDoClienteNosPontos(codigosReais, nomeCliente);
 
-    return {
-      codigo: pontoReal.codigo_ponto,
-      nome: nomeCliente,
-      video_url: urlFinal,
-      tipo: tipoFinal,
-      data_inicio: agoraIso,
-      data_fim: dataFim,
-      storage_path: pathArquivo,
-      ordem: baseOrdem + index
-    };
-  });
+  const registros = codigosReais.map((codigoReal, index) => ({
+    codigo: codigoReal,
+    nome: nomeCliente,
+    video_url: urlFinal,
+    tipo: tipoFinal,
+    data_inicio: agoraIso,
+    data_fim: dataFim,
+    storage_path: pathArquivo,
+    ordem: baseOrdem + index
+  }));
 
-  const { error } = await supabaseClient.from("playlists").insert(registros);
-  if (error) throw error;
+  const { error } = await supabaseClient
+    .from("playlists")
+    .insert(registros);
+
+  if (error) {
+    throw error;
+  }
 }
 
 async function uploadArquivoCliente() {
   const file = arquivoInput.files[0];
 
-  if (!file) {
-    statusUpload.textContent = "Selecione um arquivo";
+  if (!validarCamposCliente()) {
     return;
   }
 
-  if (!obterPontosMarcados().length) {
-    statusUpload.textContent = "Selecione um ponto";
+  if (!file) {
+    statusUpload.textContent = "Selecione um arquivo";
+    statusUpload.style.color = "#ff6b6b";
     return;
   }
 
   statusUpload.textContent = "Enviando...";
+  statusUpload.style.color = "#9fd2ff";
+  btnUploadCliente.disabled = true;
 
   try {
-    if (file.name.endsWith(".txt")) {
-      const url = (await file.text()).trim();
+    await salvarCliente();
+
+    if (file.name.toLowerCase().endsWith(".txt")) {
+      const texto = await file.text();
+      const url = texto.trim();
+
+      if (!url) {
+        throw new Error("O TXT está vazio.");
+      }
+
       await salvarPlaylistNosPontos(url, "url", null);
     } else {
       const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
 
-      await supabaseClient.storage.from(BUCKET).upload(path, file);
-      const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+      const { error: uploadError } = await supabaseClient.storage
+        .from(BUCKET)
+        .upload(path, file);
 
-      await salvarPlaylistNosPontos(data.publicUrl, "arquivo", path);
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabaseClient.storage
+        .from(BUCKET)
+        .getPublicUrl(path);
+
+      const nomeArquivo = file.name.toLowerCase();
+      const tipoFinal = nomeArquivo.endsWith(".jpg") || nomeArquivo.endsWith(".jpeg") ? "imagem" : "video";
+
+      await salvarPlaylistNosPontos(data.publicUrl, tipoFinal, path);
     }
 
     statusUpload.textContent = "Enviado com sucesso";
+    statusUpload.style.color = "#7CFC9A";
     arquivoInput.value = "";
-  } catch {
+
+    const pontosMarcados = obterPontosMarcados();
+    const statusPontosCliente = await buscarStatusPontosDoCliente(inputNome.value.trim());
+    atualizarStatusClientePorConteudo(statusPontosCliente, pontosMarcados);
+    atualizarResumo();
+  } catch (err) {
+    console.error(err);
     statusUpload.textContent = "Erro ao enviar";
+    statusUpload.style.color = "#ff6b6b";
+  } finally {
+    btnUploadCliente.disabled = false;
   }
 }
 
 inputTelefone.addEventListener("input", (e) => {
   e.target.value = formatarTelefone(e.target.value);
+  atualizarResumo();
 });
 
-inputVencimento.addEventListener("change", atualizarStatus);
+inputNome.addEventListener("input", atualizarResumo);
+inputEmail.addEventListener("input", atualizarResumo);
+inputCpfCnpj.addEventListener("input", atualizarResumo);
+inputVencimento.addEventListener("change", atualizarResumo);
+
 listaPontos.addEventListener("change", atualizarResumo);
 
+botaoSalvar.addEventListener("click", salvarCliente);
+botaoVoltar.addEventListener("click", () => {
+  window.location.href = "central-clientes.html";
+});
 btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 
 async function iniciar() {
-  codigoClienteAtual = obterCodigoDaUrl();
-  await carregarPontos();
-  renderizarPontosSelecionaveis();
+  try {
+    codigoClienteAtual = obterCodigoDaUrl();
+
+    if (!codigoClienteAtual) {
+      mostrarMensagem("Código não informado.", "#ff6b6b");
+      return;
+    }
+
+    mostrarMensagem("Carregando...");
+    await carregarPontos();
+    await carregarCliente();
+    mostrarMensagem("Cliente carregado.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao carregar.", "#ff6b6b");
+  }
 }
 
 iniciar();
