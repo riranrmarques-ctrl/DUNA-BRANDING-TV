@@ -78,7 +78,18 @@ function obterPontosMarcados() {
 }
 
 function obterNomeDoPonto(ponto, codigo) {
-  return ponto?.nome || ponto?.ambiente || ponto?.titulo || `Ponto ${codigo}`;
+  const nomeExato =
+    ponto?.nome_exibicao ||
+    ponto?.nome_painel ||
+    ponto?.nome_cliente_exibicao ||
+    ponto?.nome_da_pasta ||
+    ponto?.nome_pasta ||
+    ponto?.pasta_nome ||
+    ponto?.titulo ||
+    ponto?.nome ||
+    ponto?.ambiente;
+
+  return nomeExato || `Ponto ${codigo}`;
 }
 
 function atualizarResumo() {
@@ -102,8 +113,8 @@ function montarCardPonto({ codigo, nome, corFundo, corBorda, desabilitado = fals
         display:flex;
         align-items:center;
         gap:8px;
-        min-height:50px;
-        padding:10px 12px;
+        min-height:58px;
+        padding:12px 14px;
         border-radius:10px;
         border:1px solid ${corBorda};
         background:${corFundo};
@@ -142,22 +153,23 @@ function montarCardPonto({ codigo, nome, corFundo, corBorda, desabilitado = fals
 
 function montarGrupoPontos(titulo, corTitulo, conteudoHtml, mensagemVazia) {
   return `
-    <div style="margin-bottom:14px;">
+    <div style="margin-bottom:18px;">
       <div style="
         color:${corTitulo};
-        font-size:0.92rem;
+        font-size:0.95rem;
         font-weight:700;
-        margin-bottom:8px;
+        margin-bottom:10px;
         text-transform:lowercase;
       ">${titulo}</div>
 
       <div style="
         display:grid;
         grid-template-columns:repeat(3, minmax(0, 1fr));
-        gap:10px;
-        max-height:170px;
+        gap:12px;
+        min-height:92px;
+        max-height:250px;
         overflow-y:auto;
-        padding:10px;
+        padding:14px;
         border:1px dashed #2d8cff;
         border-radius:12px;
         background:#10131a;
