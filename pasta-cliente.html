@@ -103,7 +103,8 @@
     }
 
     .campo input,
-    .campo textarea {
+    .campo textarea,
+    .campo select {
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
@@ -122,6 +123,45 @@
     .campo textarea {
       resize: vertical;
       min-height: 90px;
+    }
+
+    .linha-dupla {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .linha-tripla {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 46px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #313847;
+      background: #0f1115;
+      color: #ffffff;
+      font-size: 1rem;
+    }
+
+    .pdf-box {
+      background: #10131a;
+      border: 1px dashed #2d8cff;
+      border-radius: 14px;
+      padding: 18px;
+      color: #c6cedd;
+      line-height: 1.6;
+    }
+
+    .pdf-box strong {
+      display: block;
+      color: #ffffff;
+      margin-bottom: 8px;
     }
 
     .lista-pontos {
@@ -198,6 +238,11 @@
       .grid {
         grid-template-columns: 1fr;
       }
+
+      .linha-dupla,
+      .linha-tripla {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 600px) {
@@ -231,29 +276,53 @@
       <div class="box">
         <h2>Dados do cliente</h2>
 
-        <div class="campo">
-          <label for="codigo">Código</label>
-          <input type="text" id="codigo" readonly>
+        <div class="linha-tripla">
+          <div class="campo">
+            <label for="codigo">Código</label>
+            <input type="text" id="codigo" readonly>
+          </div>
+
+          <div class="campo">
+            <label for="statusCliente">Status do cliente</label>
+            <div id="statusCliente" class="status-badge">Não ativo</div>
+          </div>
+
+          <div class="campo">
+            <label for="vencimentoExibicao">Vencimento da exibição</label>
+            <input type="date" id="vencimentoExibicao">
+          </div>
+        </div>
+
+        <div class="linha-dupla">
+          <div class="campo">
+            <label for="nome">Nome</label>
+            <input type="text" id="nome" placeholder="Nome do cliente">
+          </div>
+
+          <div class="campo">
+            <label for="telefone">Telefone</label>
+            <input type="text" id="telefone" placeholder="(00) 0000-0000" maxlength="14">
+          </div>
         </div>
 
         <div class="campo">
-          <label for="nome">Nome</label>
-          <input type="text" id="nome" placeholder="Nome do cliente">
-        </div>
-
-        <div class="campo">
-          <label for="telefone">Telefone</label>
-          <input type="text" id="telefone" placeholder="Telefone">
-        </div>
-
-        <div class="campo">
-          <label for="empresa">Empresa</label>
-          <input type="text" id="empresa" placeholder="Empresa">
+          <label for="segmento">Segmento</label>
+          <select id="segmento">
+            <option value="">Selecionar segmento</option>
+          </select>
         </div>
 
         <div class="campo">
           <label for="observacao">Observação</label>
           <textarea id="observacao" placeholder="Observações do cliente"></textarea>
+        </div>
+
+        <div class="campo">
+          <label>PDF do contrato</label>
+          <div class="pdf-box">
+            <strong>Espaço reservado para contrato em PDF</strong>
+            Aqui ficará a área do contrato vinculada automaticamente ao cliente de acordo com o código.
+          </div>
         </div>
       </div>
 
