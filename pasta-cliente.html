@@ -229,66 +229,109 @@
     }
 
     .pontos-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
       background: #10131a;
       border: 1px dashed #2d8cff;
       border-radius: 14px;
       padding: 14px;
+      max-height: 430px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .grupo-pontos {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .grupo-pontos-titulo {
+      font-size: 0.92rem;
+      font-weight: bold;
+      text-transform: lowercase;
+      color: #d5dbea;
+    }
+
+    .grupo-pontos-titulo.selecionado {
+      color: #7CFC9A;
+    }
+
+    .grupo-pontos-titulo.disponivel {
+      color: #6ea8ff;
+    }
+
+    .grupo-pontos-titulo.inativo {
+      color: #ff6b6b;
+    }
+
+    .grupo-pontos-lista {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
     }
 
     .item-ponto {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-radius: 12px;
-      border: 1px solid #283040;
-      background: #0e131b;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
       cursor: pointer;
+      min-height: 46px;
       transition: 0.2s ease;
-      min-height: 58px;
+      border: 1px solid transparent;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: bold;
     }
 
-    .item-ponto:hover {
-      border-color: #3b4d67;
-      background: #111823;
+    .item-ponto input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #ffffff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .item-ponto-texto {
+      display: flex;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .item-ponto-codigo,
+    .item-ponto-nome {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .item-ponto.selecionado {
-      border-color: #2d8cff;
-      background: rgba(45, 140, 255, 0.08);
-    }
-
-    .ponto-checkbox {
-      width: 18px;
-      height: 18px;
-      accent-color: #2d8cff;
-      flex-shrink: 0;
-      cursor: pointer;
-    }
-
-    .ponto-textos {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-      flex-wrap: wrap;
-    }
-
-    .ponto-codigo {
+      background: #76d34f;
+      border-color: #8ce063;
       color: #ffffff;
-      font-size: 0.95rem;
-      font-weight: bold;
-      line-height: 1.3;
     }
 
-    .ponto-nome {
-      color: #bfc7d5;
-      font-size: 0.94rem;
-      line-height: 1.3;
-      word-break: break-word;
+    .item-ponto.disponivel {
+      background: #4f6ff0;
+      border-color: #6f8bff;
+      color: #ffffff;
+    }
+
+    .item-ponto.inativo {
+      background: #ff3838;
+      border-color: #ff5c5c;
+      color: #ffffff;
+      cursor: not-allowed;
+      opacity: 0.92;
+    }
+
+    .item-ponto:hover:not(.inativo) {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
     }
 
     .historico-lista {
@@ -358,6 +401,11 @@
         grid-template-columns: 1fr;
       }
 
+      .historico-item,
+      .grupo-pontos-lista {
+        grid-template-columns: 1fr;
+      }
+
       .historico-item {
         flex-direction: column;
       }
@@ -372,14 +420,8 @@
         font-size: 1.65rem;
       }
 
-      .item-ponto {
-        align-items: flex-start;
-      }
-
-      .ponto-textos {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
+      .grupo-pontos-lista {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -495,6 +537,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=8"></script>
+  <script src="pasta-cliente.js?v=9"></script>
 </body>
 </html>
