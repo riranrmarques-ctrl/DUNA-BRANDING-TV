@@ -210,6 +210,10 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
+      background: #10131a;
+      border: 1px dashed #2d8cff;
+      border-radius: 14px;
+      padding: 16px;
     }
 
     .item-ponto {
@@ -346,16 +350,8 @@
         </div>
 
         <div class="campo">
-          <label>Upgrade de arquivo</label>
-          <div class="upload-box">
-            <strong>Espaço de upgrade de arquivo</strong>
-
-            <div class="upload-acoes">
-              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
-              <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
-              <div id="statusUpload" class="status-upload"></div>
-            </div>
-          </div>
+          <label>PONTOS DAS TELAS</label>
+          <div id="listaPontos" class="pontos-grid"></div>
         </div>
       </div>
 
@@ -370,16 +366,24 @@
             Aqui ficará a área do contrato do cliente.
           </div>
         </div>
-      </div>
-    </div>
 
-    <div class="box" style="margin-top:20px;">
-      <h2>PONTOS DAS TELAS</h2>
-      <div id="listaPontos" class="pontos-grid"></div>
+        <div class="campo">
+          <label>Upgrade de arquivo</label>
+          <div class="upload-box">
+            <strong>Espaço de upgrade de arquivo</strong>
+
+            <div class="upload-acoes">
+              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
+              <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
+              <div id="statusUpload" class="status-upload"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=5"></script>
+  <script src="pasta-cliente.js?v=6"></script>
 </body>
 </html>
