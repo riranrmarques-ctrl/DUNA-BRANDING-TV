@@ -33,6 +33,7 @@ let pontosMap = {};
 let dragIndex = null;
 
 function setStatus(texto, tipo = "normal") {
+  if (!statusEl) return;
   statusEl.textContent = texto;
   statusEl.className = "status-box";
   if (tipo === "ok") statusEl.classList.add("ok");
@@ -93,18 +94,20 @@ function obterCodigoDoElemento(el) {
 }
 
 function validarLogin() {
-  if (senhaInput.value.trim() !== SENHA_PAINEL) {
-    loginErro.textContent = "Código inválido";
+  if (!senhaInput || senhaInput.value.trim() !== SENHA_PAINEL) {
+    if (loginErro) loginErro.textContent = "Código inválido";
     return;
   }
 
-  loginBox.style.display = "none";
-  conteudoPainel.style.display = "block";
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
 }
 
-btnLogin.onclick = validarLogin;
+if (btnLogin) {
+  btnLogin.onclick = validarLogin;
+}
 
 async function buscarPontos() {
   const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
@@ -168,7 +171,7 @@ async function editarNomePonto(codigo) {
     }
   });
 
-  if (codigoSelecionado === codigoFinal) {
+  if (codigoSelecionado === codigoFinal && tituloPasta) {
     tituloPasta.textContent = "Pasta do " + nomeFinal;
   }
 
@@ -176,28 +179,36 @@ async function editarNomePonto(codigo) {
 }
 
 function abrirPonto(codigo) {
-  codigoSelecionado = String(codigo).trim();
+  codigoSelecionado = String(codigo || "").trim();
 
-  listaPontos.style.display = "none";
-  pontoDetalhe.style.display = "block";
+  if (!codigoSelecionado) {
+    setStatus("Código do ponto não encontrado", "erro");
+    return;
+  }
 
-  codigoAtual.textContent = codigoSelecionado;
+  if (listaPontos) listaPontos.style.display = "none";
+  if (pontoDetalhe) pontoDetalhe.style.display = "block";
 
-  tituloPasta.textContent =
-    "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
+  if (codigoAtual) codigoAtual.textContent = codigoSelecionado;
+
+  if (tituloPasta) {
+    tituloPasta.textContent =
+      "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
+  }
 
   carregarPlaylist();
 }
 
-btnVoltar.onclick = () => {
-  listaPontos.style.display = "grid";
-  pontoDetalhe.style.display = "block";
-  pontoDetalhe.style.display = "none";
-};
+if (btnVoltar) {
+  btnVoltar.onclick = () => {
+    if (listaPontos) listaPontos.style.display = "grid";
+    if (pontoDetalhe) pontoDetalhe.style.display = "none";
+  };
+}
 
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = async () => {
-    const texto = String(codigoSelecionado || codigoAtual.textContent || "").trim();
+    const texto = String(codigoSelecionado || (codigoAtual ? codigoAtual.textContent : "") || "").trim();
 
     if (!texto) {
       setStatus("Nenhum código disponível para copiar", "erro");
@@ -234,6 +245,8 @@ async function carregarPlaylist() {
 }
 
 function renderizarPlaylistAtiva(lista) {
+  if (!playlistAtiva) return;
+
   if (!lista.length) {
     playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
     return;
@@ -258,6 +271,8 @@ function renderizarPlaylistAtiva(lista) {
 }
 
 function renderizarHistorico(lista) {
+  if (!playlistInativa) return;
+
   if (!lista.length) {
     playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
     return;
@@ -329,48 +344,50 @@ const arquivoInput = document.getElementById("arquivoInput");
 const btnUploadCliente = document.getElementById("btnUploadCliente");
 const statusUpload = document.getElementById("statusUpload");
 
-btnUploadCliente.onclick = async () => {
-  const file = arquivoInput.files[0];
+if (btnUploadCliente) {
+  btnUploadCliente.onclick = async () => {
+    const file = arquivoInput ? arquivoInput.files[0] : null;
 
-  if (!file) {
-    statusUpload.textContent = "Selecione um arquivo";
-    return;
-  }
-
-  statusUpload.textContent = "Enviando...";
-
-  try {
-    if (file.name.endsWith(".txt")) {
-      const texto = await file.text();
-      const url = texto.trim();
-
-      await supabaseClient.from("playlists").insert({
-        nome: inputNome.value,
-        video_url: url,
-        tipo: "url",
-        data_inicio: new Date().toISOString(),
-        data_fim: inputVencimento.value
-      });
-
-    } else {
-      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
-
-      await supabaseClient.storage.from("videos").upload(path, file);
-
-      const { data } = supabaseClient.storage.from("videos").getPublicUrl(path);
-
-      await supabaseClient.from("playlists").insert({
-        nome: inputNome.value,
-        video_url: data.publicUrl,
-        tipo: "arquivo",
-        data_inicio: new Date().toISOString(),
-        data_fim: inputVencimento.value
-      });
+    if (!file) {
+      if (statusUpload) statusUpload.textContent = "Selecione um arquivo";
+      return;
     }
 
-    statusUpload.textContent = "Enviado com sucesso";
+    if (statusUpload) statusUpload.textContent = "Enviando...";
 
-  } catch (err) {
-    statusUpload.textContent = "Erro ao enviar";
-  }
-};
+    try {
+      if (file.name.endsWith(".txt")) {
+        const texto = await file.text();
+        const url = texto.trim();
+
+        await supabaseClient.from("playlists").insert({
+          nome: inputNome.value,
+          video_url: url,
+          tipo: "url",
+          data_inicio: new Date().toISOString(),
+          data_fim: inputVencimento.value
+        });
+
+      } else {
+        const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
+
+        await supabaseClient.storage.from("videos").upload(path, file);
+
+        const { data } = supabaseClient.storage.from("videos").getPublicUrl(path);
+
+        await supabaseClient.from("playlists").insert({
+          nome: inputNome.value,
+          video_url: data.publicUrl,
+          tipo: "arquivo",
+          data_inicio: new Date().toISOString(),
+          data_fim: inputVencimento.value
+        });
+      }
+
+      if (statusUpload) statusUpload.textContent = "Enviado com sucesso";
+
+    } catch (err) {
+      if (statusUpload) statusUpload.textContent = "Erro ao enviar";
+    }
+  };
+}
