@@ -329,4 +329,69 @@ async function iniciar() {
   }
 }
 
+const arquivoInput = document.getElementById("arquivoInput");
+const btnUploadCliente = document.getElementById("btnUploadCliente");
+const statusUpload = document.getElementById("statusUpload");
+
+async function uploadArquivoCliente() {
+  const file = arquivoInput.files[0];
+
+  if (!file) {
+    statusUpload.textContent = "Selecione um arquivo";
+    statusUpload.style.color = "#ff6b6b";
+    return;
+  }
+
+  statusUpload.textContent = "Enviando...";
+  statusUpload.style.color = "#9fd2ff";
+
+  try {
+    if (file.name.endsWith(".txt")) {
+      const texto = await file.text();
+      const url = texto.trim();
+
+      await salvarMidiaCliente(url, "url");
+
+    } else {
+      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
+
+      const { error } = await supabaseClient.storage
+        .from("videos")
+        .upload(path, file);
+
+      if (error) throw error;
+
+      const { data } = supabaseClient.storage
+        .from("videos")
+        .getPublicUrl(path);
+
+      await salvarMidiaCliente(data.publicUrl, "arquivo");
+    }
+
+    statusUpload.textContent = "Enviado com sucesso";
+    statusUpload.style.color = "#7CFC9A";
+
+    arquivoInput.value = "";
+
+  } catch (err) {
+    console.error(err);
+    statusUpload.textContent = "Erro ao enviar";
+    statusUpload.style.color = "#ff6b6b";
+  }
+}
+
+async function salvarMidiaCliente(url, tipo) {
+  await supabaseClient.from("playlists").insert({
+    codigo: null,
+    nome: inputNome.value.trim(),
+    video_url: url,
+    tipo: tipo,
+    data_inicio: new Date().toISOString(),
+    data_fim: inputVencimento.value || null,
+    ordem: Date.now()
+  });
+}
+
+btnUploadCliente.addEventListener("click", uploadArquivoCliente);
+
 iniciar();
