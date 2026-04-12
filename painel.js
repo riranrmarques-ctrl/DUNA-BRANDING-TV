@@ -35,6 +35,7 @@ const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 
 let codigoSelecionado = null;
 let pontosMap = {};
+let statusPontosMap = {};
 let dragIndex = null;
 
 function setStatus(texto, tipo = "normal") {
@@ -54,6 +55,17 @@ function escapeHtml(texto) {
 function formatarData(valor) {
   if (!valor) return "";
   return new Date(valor).toLocaleDateString("pt-BR");
+}
+
+function formatarDataHora(valor) {
+  if (!valor) return "";
+  return new Date(valor).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function normalizarDataInput(valor) {
@@ -93,6 +105,117 @@ function preencherDataHoje() {
   if (dataInicioInput && !dataInicioInput.value) {
     dataInicioInput.value = dataFormatada;
   }
+}
+
+function obterStatusDoPonto(itens) {
+  if (!itens.length) {
+    return {
+      tipo: "nao_conectado",
+      texto: "Não conectado ainda"
+    };
+  }
+
+  const ativos = itens.filter(item => !itemEstaInativo(item));
+
+  if (ativos.length) {
+    const ativoMaisAntigo = ativos.reduce((anterior, atual) => {
+      const dataAnterior = new Date(anterior.created_at || 0).getTime();
+      const dataAtual = new Date(atual.created_at || 0).getTime();
+      return dataAtual < dataAnterior ? atual : anterior;
+    });
+
+    return {
+      tipo: "ativo",
+      texto: `Ativo — desde ${formatarDataHora(ativoMaisAntigo.created_at)}`
+    };
+  }
+
+  const itemMaisRecenteEncerrado = itens.reduce((anterior, atual) => {
+    const dataAnterior = new Date(anterior.data_fim || anterior.created_at || 0).getTime();
+    const dataAtual = new Date(atual.data_fim || atual.created_at || 0).getTime();
+    return dataAtual > dataAnterior ? atual : anterior;
+  });
+
+  return {
+    tipo: "inativo",
+    texto: `Inativo — desde ${formatarDataHora(itemMaisRecenteEncerrado.data_fim || itemMaisRecenteEncerrado.created_at)}`
+  };
+}
+
+async function buscarResumoStatusPontos() {
+  const { data, error } = await supabaseClient
+    .from(TABELA)
+    .select("codigo, created_at, data_fim");
+
+  if (error) {
+    console.error(error);
+    return {};
+  }
+
+  const agrupado = {};
+
+  (data || []).forEach(item => {
+    const codigo = String(item.codigo || "").trim();
+    if (!codigo) return;
+    if (!agrupado[codigo]) agrupado[codigo] = [];
+    agrupado[codigo].push(item);
+  });
+
+  const resumo = {};
+
+  document.querySelectorAll(".card-ponto").forEach(card => {
+    const codigo = String(card.dataset.codigo || "").trim();
+    resumo[codigo] = obterStatusDoPonto(agrupado[codigo] || []);
+  });
+
+  return resumo;
+}
+
+function garantirLinhaStatusNoCard(card) {
+  let statusElCard = card.querySelector(".card-status-ponto");
+
+  if (!statusElCard) {
+    statusElCard = document.createElement("div");
+    statusElCard.className = "card-status-ponto";
+    statusElCard.style.marginTop = "10px";
+    statusElCard.style.fontSize = "12px";
+    statusElCard.style.lineHeight = "1.35";
+    statusElCard.style.opacity = "0.86";
+    statusElCard.style.fontWeight = "500";
+
+    const areaAcoes = card.querySelector(".card-acoes");
+    if (areaAcoes) {
+      areaAcoes.appendChild(statusElCard);
+    }
+  }
+
+  return statusElCard;
+}
+
+function aplicarStatusNosCards() {
+  document.querySelectorAll(".card-ponto").forEach(card => {
+    const codigo = String(card.dataset.codigo || "").trim();
+    const info = statusPontosMap[codigo] || {
+      tipo: "nao_conectado",
+      texto: "Não conectado ainda"
+    };
+
+    const statusElCard = garantirLinhaStatusNoCard(card);
+    statusElCard.textContent = info.texto;
+
+    if (info.tipo === "ativo") {
+      statusElCard.style.color = "rgba(167, 255, 194, 0.92)";
+    } else if (info.tipo === "inativo") {
+      statusElCard.style.color = "rgba(255, 214, 170, 0.9)";
+    } else {
+      statusElCard.style.color = "rgba(255, 255, 255, 0.62)";
+    }
+  });
+}
+
+async function atualizarStatusDosPontos() {
+  statusPontosMap = await buscarResumoStatusPontos();
+  aplicarStatusNosCards();
 }
 
 function validarLogin() {
@@ -200,9 +323,10 @@ function abrirPonto(codigo) {
   carregarPlaylist();
 }
 
-btnVoltar.onclick = () => {
+btnVoltar.onclick = async () => {
   listaPontos.style.display = "grid";
   pontoDetalhe.style.display = "none";
+  await atualizarStatusDosPontos();
 };
 
 if (btnCopiarCodigo) {
@@ -257,7 +381,8 @@ async function uploadMidia() {
   dataInicioInput.value = "";
   dataFimInput.value = "";
 
-  carregarPlaylist();
+  await carregarPlaylist();
+  await atualizarStatusDosPontos();
 }
 
 btnUpload.onclick = uploadMidia;
@@ -353,7 +478,8 @@ async function removerItem(id, path) {
   await supabaseClient.storage.from(BUCKET).remove([path]);
   await supabaseClient.from(TABELA).delete().eq("id", id);
 
-  carregarPlaylist();
+  await carregarPlaylist();
+  await atualizarStatusDosPontos();
 }
 
 async function editarNomeItem(id, nomeAtual) {
@@ -361,7 +487,8 @@ async function editarNomeItem(id, nomeAtual) {
   if (!novo) return;
 
   await supabaseClient.from(TABELA).update({ nome: novo }).eq("id", id);
-  carregarPlaylist();
+  await carregarPlaylist();
+  await atualizarStatusDosPontos();
 }
 
 window.removerItem = removerItem;
@@ -395,4 +522,5 @@ document.addEventListener("click", function (e) {
 async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
+  await atualizarStatusDosPontos();
 }
