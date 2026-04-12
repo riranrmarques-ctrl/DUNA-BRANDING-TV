@@ -96,7 +96,7 @@ async function carregarPontos() {
 }
 
 function obterPontosMarcados() {
-  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map(i => i.value);
+  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((i) => i.value);
 }
 
 function obterNomeDoPonto(ponto, codigo) {
@@ -239,7 +239,7 @@ function montarCardPonto({
   `;
 }
 
-function montarGrupoPontos(titulo, tipo, conteudoHtml, mensagemVazia) {
+function montarGrupoPontos(titulo, tipo, conteudoHtml) {
   const tema = obterTemaStatus(tipo);
 
   return `
@@ -259,7 +259,7 @@ function montarGrupoPontos(titulo, tipo, conteudoHtml, mensagemVazia) {
           gap:12px;
           min-height:108px;
           max-height:260px;
-          overflow-y:auto;
+          overflow:auto;
           padding:14px;
           border:1px solid ${tema.areaBorda};
           border-radius:14px;
@@ -269,7 +269,7 @@ function montarGrupoPontos(titulo, tipo, conteudoHtml, mensagemVazia) {
         "
         class="grupo-pontos-scroll-${tipo}"
       >
-        ${conteudoHtml || `<div style="color:#bfc7d5; font-size:0.9rem;">${mensagemVazia}</div>`}
+        ${conteudoHtml}
       </div>
     </div>
   `;
@@ -281,19 +281,32 @@ function injetarEstilosScroll() {
   const style = document.createElement("style");
   style.id = "estilo-scroll-pontos";
   style.textContent = `
-    .grupo-pontos-scroll-selecionado::-webkit-scrollbar,
-    .grupo-pontos-scroll-disponivel::-webkit-scrollbar,
-    .grupo-pontos-scroll-inativo::-webkit-scrollbar {
-      width: 0px;
-      height: 0px;
-      display: none;
-    }
-
     .grupo-pontos-scroll-selecionado,
     .grupo-pontos-scroll-disponivel,
     .grupo-pontos-scroll-inativo {
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+
+    .grupo-pontos-scroll-selecionado::-webkit-scrollbar,
+    .grupo-pontos-scroll-disponivel::-webkit-scrollbar,
+    .grupo-pontos-scroll-inativo::-webkit-scrollbar {
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
+
+    .grupo-pontos-scroll-selecionado::-webkit-scrollbar-thumb,
+    .grupo-pontos-scroll-disponivel::-webkit-scrollbar-thumb,
+    .grupo-pontos-scroll-inativo::-webkit-scrollbar-thumb {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    .grupo-pontos-scroll-selecionado::-webkit-scrollbar-track,
+    .grupo-pontos-scroll-disponivel::-webkit-scrollbar-track,
+    .grupo-pontos-scroll-inativo::-webkit-scrollbar-track {
+      background: transparent !important;
     }
   `;
   document.head.appendChild(style);
@@ -370,11 +383,25 @@ function renderizarPontosSelecionaveis(selecionados = []) {
       }
     });
 
-  listaPontos.innerHTML = `
-    ${montarGrupoPontos("selecionado", "selecionado", selecionadosArr.join(""), "Nenhum ponto selecionado.")}
-    ${montarGrupoPontos("disponível", "disponivel", disponiveisArr.join(""), "Nenhum ponto disponível.")}
-    ${montarGrupoPontos("inativo", "inativo", inativosArr.join(""), "Nenhum ponto inativo.")}
-  `;
+  const grupos = [];
+
+  if (selecionadosArr.length) {
+    grupos.push(
+      montarGrupoPontos("selecionado", "selecionado", selecionadosArr.join(""))
+    );
+  }
+
+  grupos.push(
+    montarGrupoPontos("disponível", "disponivel", disponiveisArr.join(""))
+  );
+
+  if (inativosArr.length) {
+    grupos.push(
+      montarGrupoPontos("inativo", "inativo", inativosArr.join(""))
+    );
+  }
+
+  listaPontos.innerHTML = grupos.join("");
 
   atualizarResumo();
 }
@@ -415,7 +442,7 @@ async function carregarCliente() {
     }
 
     selecionados = Array.isArray(vinculos)
-      ? vinculos.map(item => item.ponto_codigo).filter(Boolean)
+      ? vinculos.map((item) => item.ponto_codigo).filter(Boolean)
       : [];
   } catch (error) {
     console.error(error);
