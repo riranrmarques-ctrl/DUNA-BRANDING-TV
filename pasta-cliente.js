@@ -133,12 +133,44 @@ function escaparHtml(texto) {
     .replace(/'/g, "&#039;");
 }
 
+function obterTemaStatus(tipo) {
+  if (tipo === "selecionado") {
+    return {
+      titulo: "#7CFC9A",
+      areaBorda: "rgba(124, 252, 154, 0.40)",
+      areaFundo: "rgba(124, 252, 154, 0.05)",
+      cardBorda: "rgba(124, 252, 154, 0.80)",
+      cardFundo: "linear-gradient(180deg, rgba(124, 252, 154, 0.26) 0%, rgba(72, 161, 95, 0.20) 100%)",
+      cardSombra: "0 0 0 1px rgba(124, 252, 154, 0.10) inset"
+    };
+  }
+
+  if (tipo === "inativo") {
+    return {
+      titulo: "#ff6b6b",
+      areaBorda: "rgba(255, 107, 107, 0.35)",
+      areaFundo: "rgba(255, 107, 107, 0.04)",
+      cardBorda: "rgba(255, 107, 107, 0.72)",
+      cardFundo: "linear-gradient(180deg, rgba(255, 107, 107, 0.18) 0%, rgba(153, 52, 52, 0.14) 100%)",
+      cardSombra: "0 0 0 1px rgba(255, 107, 107, 0.08) inset"
+    };
+  }
+
+  return {
+    titulo: "#6ea8ff",
+    areaBorda: "rgba(110, 168, 255, 0.35)",
+    areaFundo: "rgba(110, 168, 255, 0.04)",
+    cardBorda: "rgba(110, 168, 255, 0.72)",
+    cardFundo: "linear-gradient(180deg, rgba(110, 168, 255, 0.16) 0%, rgba(52, 98, 153, 0.14) 100%)",
+    cardSombra: "0 0 0 1px rgba(110, 168, 255, 0.08) inset"
+  };
+}
+
 function montarCardPonto({
   codigo,
   codigoExibicao,
   nome,
-  corFundo,
-  corBorda,
+  tema,
   desabilitado = false,
   marcado = false
 }) {
@@ -147,18 +179,18 @@ function montarCardPonto({
       style="
         display:flex;
         align-items:center;
-        gap:8px;
-        min-height:58px;
+        gap:10px;
+        min-height:64px;
         padding:12px 14px;
-        border-radius:10px;
-        border:1px solid ${corBorda};
-        background:${corFundo};
+        border-radius:12px;
+        border:1px solid ${tema.cardBorda};
+        background:${tema.cardFundo};
+        box-shadow:${tema.cardSombra};
         color:#ffffff;
         cursor:${desabilitado ? "not-allowed" : "pointer"};
         opacity:${desabilitado ? "0.65" : "1"};
-        font-size:0.84rem;
-        font-weight:600;
         overflow:hidden;
+        transition:0.2s ease;
       "
     >
       <input
@@ -175,50 +207,88 @@ function montarCardPonto({
           cursor:${desabilitado ? "not-allowed" : "pointer"};
         "
       >
-      <span style="
-        color:#e2e8f2;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      ">${escaparHtml(nome)}</span>
-      <span style="
-        font-weight:700;
-        white-space:nowrap;
-        margin-left:auto;
-        color:#ffffff;
-        flex-shrink:0;
-      ">${escaparHtml(codigoExibicao)}</span>
+
+      <div style="
+        display:flex;
+        flex-direction:column;
+        min-width:0;
+        flex:1;
+        line-height:1.15;
+      ">
+        <span style="
+          color:#ffffff;
+          font-size:0.92rem;
+          font-weight:700;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          margin-bottom:4px;
+        ">${escaparHtml(nome)}</span>
+
+        <span style="
+          color:rgba(255,255,255,0.72);
+          font-size:0.72rem;
+          font-weight:600;
+          letter-spacing:0.04em;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        ">${escaparHtml(codigoExibicao)}</span>
+      </div>
     </label>
   `;
 }
 
-function montarGrupoPontos(titulo, corTitulo, conteudoHtml, mensagemVazia) {
+function montarGrupoPontos(titulo, tipo, conteudoHtml, mensagemVazia) {
+  const tema = obterTemaStatus(tipo);
+
   return `
     <div style="margin-bottom:18px;">
       <div style="
-        color:${corTitulo};
+        color:${tema.titulo};
         font-size:0.95rem;
         font-weight:700;
         margin-bottom:10px;
         text-transform:lowercase;
       ">${titulo}</div>
 
-      <div style="
-        display:grid;
-        grid-template-columns:repeat(3, minmax(0, 1fr));
-        gap:12px;
-        min-height:92px;
-        max-height:250px;
-        overflow-y:auto;
-        padding:14px;
-        border:1px dashed #2d8cff;
-        border-radius:12px;
-        background:#10131a;
-      ">
+      <div
+        style="
+          display:grid;
+          grid-template-columns:repeat(3, minmax(0, 1fr));
+          gap:12px;
+          min-height:108px;
+          max-height:260px;
+          overflow-y:auto;
+          padding:14px;
+          border:1px solid ${tema.areaBorda};
+          border-radius:14px;
+          background:${tema.areaFundo};
+          scrollbar-width:none;
+          -ms-overflow-style:none;
+        "
+        class="grupo-pontos-scroll-${tipo}"
+      >
         ${conteudoHtml || `<div style="color:#bfc7d5; font-size:0.9rem;">${mensagemVazia}</div>`}
       </div>
     </div>
   `;
+}
+
+function injetarEstilosScroll() {
+  if (document.getElementById("estilo-scroll-pontos")) return;
+
+  const style = document.createElement("style");
+  style.id = "estilo-scroll-pontos";
+  style.textContent = `
+    .grupo-pontos-scroll-selecionado::-webkit-scrollbar,
+    .grupo-pontos-scroll-disponivel::-webkit-scrollbar,
+    .grupo-pontos-scroll-inativo::-webkit-scrollbar {
+      width: 0px;
+      height: 0px;
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 function pontoEstaInativo(ponto) {
@@ -262,8 +332,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             codigo,
             codigoExibicao,
             nome,
-            corFundo: "rgba(124, 252, 154, 0.16)",
-            corBorda: "#7CFC9A",
+            tema: obterTemaStatus("selecionado"),
             desabilitado: false,
             marcado: true
           })
@@ -274,8 +343,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             codigo,
             codigoExibicao,
             nome,
-            corFundo: "rgba(255, 107, 107, 0.10)",
-            corBorda: "#ff6b6b",
+            tema: obterTemaStatus("inativo"),
             desabilitado: true,
             marcado: false
           })
@@ -286,8 +354,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             codigo,
             codigoExibicao,
             nome,
-            corFundo: "rgba(45, 140, 255, 0.10)",
-            corBorda: "#6ea8ff",
+            tema: obterTemaStatus("disponivel"),
             desabilitado: false,
             marcado: false
           })
@@ -296,9 +363,9 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     });
 
   listaPontos.innerHTML = `
-    ${montarGrupoPontos("selecionado", "#7CFC9A", selecionadosArr.join(""), "Nenhum ponto selecionado.")}
-    ${montarGrupoPontos("disponível", "#6ea8ff", disponiveisArr.join(""), "Nenhum ponto disponível.")}
-    ${montarGrupoPontos("inativo", "#ff6b6b", inativosArr.join(""), "Nenhum ponto inativo.")}
+    ${montarGrupoPontos("selecionado", "selecionado", selecionadosArr.join(""), "Nenhum ponto selecionado.")}
+    ${montarGrupoPontos("disponível", "disponivel", disponiveisArr.join(""), "Nenhum ponto disponível.")}
+    ${montarGrupoPontos("inativo", "inativo", inativosArr.join(""), "Nenhum ponto inativo.")}
   `;
 
   atualizarResumo();
@@ -361,6 +428,7 @@ botaoVoltar.addEventListener("click", () => {
 
 async function iniciar() {
   try {
+    injetarEstilosScroll();
     codigoClienteAtual = obterCodigoDaUrl();
     await carregarPontos();
     await carregarCliente();
