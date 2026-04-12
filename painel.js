@@ -83,6 +83,18 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
+function preencherDataHoje() {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+  const dia = String(hoje.getDate()).padStart(2, "0");
+  const dataFormatada = `${ano}-${mes}-${dia}`;
+
+  if (dataInicioInput && !dataInicioInput.value) {
+    dataInicioInput.value = dataFormatada;
+  }
+}
+
 function validarLogin() {
   if (senhaInput.value.trim() !== SENHA_PAINEL) {
     loginErro.textContent = "Código inválido";
@@ -184,6 +196,7 @@ function abrirPonto(codigo) {
   tituloPasta.textContent =
     "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
 
+  preencherDataHoje();
   carregarPlaylist();
 }
 
@@ -382,18 +395,4 @@ document.addEventListener("click", function (e) {
 async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
-}
-
-function preencherDataHoje() {
-  const hoje = new Date();
-
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoje.getDate()).padStart(2, "0");
-
-  const dataFormatada = `${ano}-${mes}-${dia}`;
-
-  if (dataInicioInput && !dataInicioInput.value) {
-    dataInicioInput.value = dataFormatada;
-  }
 }
