@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=97">
+  <link rel="stylesheet" href="painel.css?v=94">
 </head>
 <body>
 
@@ -30,9 +30,7 @@
         </div>
 
         <div class="pontos-box">
-
-          <!-- MANTIDO EXATAMENTE COMO ESTAVA -->
-
+          <!-- MANTIDO EXATAMENTE IGUAL -->
         </div>
       </div>
 
@@ -48,7 +46,7 @@
 
             <div class="playlist-codigo-linha">
               <span id="codigoAtual"></span>
-              <button id="btnCopiarCodigo" type="button" class="btn-copiar-playlist">⧉</button>
+              <button id="btnCopiarCodigo" type="button" class="btn-copiar-playlist" title="Copiar código">⧉</button>
             </div>
           </div>
         </div>
@@ -90,15 +88,15 @@
               <div class="playlist-secao-topo">
                 <h4>Playlist ativa</h4>
               </div>
-              <div id="playlistAtiva"></div>
+              <div id="playlistAtiva" class="playlist-lista"></div>
             </div>
           </div>
 
           <div class="playlist-secao playlist-secao-historico">
             <div class="playlist-secao-topo">
-              <h4>Histórico</h4>
+              <h4>Histórico de encerramento</h4>
             </div>
-            <div id="playlistInativa"></div>
+            <div id="playlistInativa" class="historico-lista"></div>
           </div>
         </div>
       </div>
@@ -108,6 +106,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=97"></script>
+  <script src="painel.js?v=94"></script>
 </body>
 </html>
