@@ -37,7 +37,6 @@ let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
 
-/* STATUS */
 function setStatus(texto, tipo = "normal") {
   statusEl.textContent = texto;
   statusEl.className = "status-box";
@@ -45,7 +44,6 @@ function setStatus(texto, tipo = "normal") {
   if (tipo === "erro") statusEl.classList.add("erro");
 }
 
-/* HELPERS */
 function escapeHtml(texto) {
   return String(texto || "")
     .replace(/&/g, "&amp;")
@@ -53,7 +51,6 @@ function escapeHtml(texto) {
     .replace(/>/g, "&gt;");
 }
 
-/* DATA (SEM HORA) */
 function formatarData(valor) {
   if (!valor) return "";
   return new Date(valor).toLocaleDateString("pt-BR");
@@ -90,7 +87,6 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
-/* LOGIN */
 function validarLogin() {
   if (senhaInput.value.trim() !== SENHA_PAINEL) {
     loginErro.textContent = "Código inválido";
@@ -105,7 +101,6 @@ function validarLogin() {
 
 btnLogin.onclick = validarLogin;
 
-/* PONTOS */
 async function buscarPontos() {
   const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
   return data || [];
@@ -122,7 +117,6 @@ function renderizarCardsPontos(lista) {
   });
 }
 
-/* ABRIR */
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo).trim();
 
@@ -137,13 +131,11 @@ function abrirPonto(codigo) {
   carregarPlaylist();
 }
 
-/* VOLTAR */
 btnVoltar.onclick = () => {
   listaPontos.style.display = "grid";
   pontoDetalhe.style.display = "none";
 };
 
-/* COPIAR */
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = () => {
     navigator.clipboard.writeText(codigoSelecionado);
@@ -151,7 +143,6 @@ if (btnCopiarCodigo) {
   };
 }
 
-/* UPLOAD */
 async function uploadMidia() {
   const file = videoInput.files[0];
   if (!file) return setStatus("Selecione um arquivo", "erro");
@@ -164,10 +155,16 @@ async function uploadMidia() {
 
   const path = `${codigo}/${Date.now()}-${file.name}`;
 
-  await supabaseClient.storage.from(BUCKET).upload(path, file);
+  const { error: uploadError } = await supabaseClient.storage.from(BUCKET).upload(path, file);
+
+  if (uploadError) {
+    setStatus("Erro no upload", "erro");
+    return;
+  }
+
   const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
 
-  await supabaseClient.from(TABELA).insert({
+  const { error: insertError } = await supabaseClient.from(TABELA).insert({
     codigo,
     nome: file.name,
     video_url: data.publicUrl,
@@ -177,6 +174,11 @@ async function uploadMidia() {
     data_inicio: dataInicio,
     data_fim: dataFim
   });
+
+  if (insertError) {
+    setStatus("Erro ao salvar mídia", "erro");
+    return;
+  }
 
   setStatus("Enviado", "ok");
 
@@ -189,22 +191,26 @@ async function uploadMidia() {
 
 btnUpload.onclick = uploadMidia;
 
-/* PLAYLIST */
 async function carregarPlaylist() {
-  const { data } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from(TABELA)
     .select("*")
     .eq("codigo", codigoSelecionado)
     .order("ordem");
 
-  const ativos = data.filter(i => !itemEstaInativo(i));
-  const inativos = data.filter(i => itemEstaInativo(i));
+  if (error) {
+    setStatus("Erro ao carregar playlist", "erro");
+    return;
+  }
+
+  const lista = data || [];
+  const ativos = lista.filter(i => !itemEstaInativo(i));
+  const inativos = lista.filter(i => itemEstaInativo(i));
 
   renderizarPlaylistAtiva(ativos);
   renderizarHistorico(inativos);
 }
 
-/* ATIVOS */
 function renderizarPlaylistAtiva(lista) {
   if (!lista.length) {
     playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
@@ -221,11 +227,6 @@ function renderizarPlaylistAtiva(lista) {
         <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
         <div class="playlist-item-info">${montarLinhaDatas(item)}</div>
       </div>
-
-      <div class="playlist-item-acoes-laterais">
-        <button onclick="editarNomeItem(${item.id}, '${item.nome}')">✎</button>
-        <button onclick="removerItem(${item.id}, '${item.storage_path}')">🗑</button>
-      </div>
     </div>
   `
     )
@@ -234,7 +235,6 @@ function renderizarPlaylistAtiva(lista) {
   ativarDrag(lista);
 }
 
-/* HISTÓRICO */
 function renderizarHistorico(lista) {
   if (!lista.length) {
     playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
@@ -245,26 +245,25 @@ function renderizarHistorico(lista) {
     .map(
       item => `
     <div>
-      ${item.nome} — ${formatarData(item.data_fim)}
+      ${escapeHtml(item.nome)} — ${formatarData(item.data_fim)}
     </div>
   `
     )
     .join("");
 }
 
-/* DRAG */
 function ativarDrag(lista) {
   const items = document.querySelectorAll(".playlist-item");
 
   items.forEach(item => {
     item.addEventListener("dragstart", () => {
-      dragIndex = item.dataset.index;
+      dragIndex = Number(item.dataset.index);
     });
 
     item.addEventListener("dragover", e => e.preventDefault());
 
     item.addEventListener("drop", async () => {
-      const target = item.dataset.index;
+      const target = Number(item.dataset.index);
 
       const novo = [...lista];
       const movido = novo.splice(dragIndex, 1)[0];
@@ -281,32 +280,6 @@ function ativarDrag(lista) {
   });
 }
 
-/* REMOVER */
-async function removerItem(id, path) {
-  if (!confirm("Remover?")) return;
-
-  await supabaseClient.storage.from(BUCKET).remove([path]);
-  await supabaseClient.from(TABELA).delete().eq("id", id);
-
-  carregarPlaylist();
-}
-
-/* RENOMEAR */
-async function editarNomeItem(id, nomeAtual) {
-  const novo = prompt("Novo nome:", nomeAtual);
-  if (!novo) return;
-
-  await supabaseClient.from(TABELA)
-    .update({ nome: novo })
-    .eq("id", id);
-
-  carregarPlaylist();
-}
-
-window.removerItem = removerItem;
-window.editarNomeItem = editarNomeItem;
-
-/* INIT */
 async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
