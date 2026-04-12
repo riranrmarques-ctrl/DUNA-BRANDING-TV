@@ -4,14 +4,22 @@ const inputCodigo = document.getElementById("codigo");
 const mensagem = document.getElementById("mensagem");
 const contadorTexto = document.getElementById("contadorTexto");
 
-const codigosValidos = ["0001", "0002", "0003", "0004", "0005"];
+const codigosValidos = [
+  "H4E9L2A",
+  "N7H3E8L",
+  "E2A6H9N",
+  "L8E1N5A",
+  "H6N4E7A",
+  "A9L3E2H",
+  "E5H8A1N",
+  "N2E7L4A"
+];
 
 function mostrarMensagem(texto, cor = "#ff6b6b") {
   mensagem.textContent = texto;
   mensagem.style.color = cor;
 }
 
-// 🔹 Carrega dados salvos nos inputs
 function carregarDadosSalvos() {
   const nomeSalvo = localStorage.getItem("nomeDispositivo") || "";
   const codigoSalvo = localStorage.getItem("codigoAtivo") || "";
@@ -20,7 +28,6 @@ function carregarDadosSalvos() {
   inputCodigo.value = codigoSalvo;
 }
 
-// 🔥 AUTO ENTRADA COM TEMPO (1 MINUTO)
 function autoEntrar() {
   const codigoSalvo = localStorage.getItem("codigoAtivo");
 
@@ -36,7 +43,6 @@ function autoEntrar() {
       segundos--;
       contadorTexto.textContent = `Entrando automaticamente em ${segundos}s...`;
 
-      // 🛑 Se usuário interagir, cancela auto entrada
       if (
         document.activeElement === inputCodigo ||
         document.activeElement === inputDispositivo ||
@@ -48,7 +54,6 @@ function autoEntrar() {
         return;
       }
 
-      // ⏱️ Tempo acabou → entra
       if (segundos <= 0) {
         clearInterval(intervalo);
         window.location.href = `player.html?codigo=${codigoSalvo}`;
@@ -57,7 +62,6 @@ function autoEntrar() {
   }
 }
 
-// 🔹 Salva automaticamente ao digitar
 inputDispositivo.addEventListener("input", () => {
   localStorage.setItem("nomeDispositivo", inputDispositivo.value.trim());
 });
@@ -66,7 +70,6 @@ inputCodigo.addEventListener("input", () => {
   localStorage.setItem("codigoAtivo", inputCodigo.value.trim());
 });
 
-// 🔹 Submit manual
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
@@ -87,7 +90,6 @@ form.addEventListener("submit", function (e) {
     return;
   }
 
-  // 💾 salva dados
   localStorage.setItem("codigoAtivo", codigo);
   localStorage.setItem("nomeDispositivo", dispositivo);
 
@@ -108,11 +110,9 @@ form.addEventListener("submit", function (e) {
   }, 1000);
 });
 
-// 🔥 ORDEM IMPORTANTE
 carregarDadosSalvos();
 autoEntrar();
 
-// 🔒 OPCIONAL: botão reset
 function limparAcesso() {
   localStorage.removeItem("codigoAtivo");
   localStorage.removeItem("nomeDispositivo");
