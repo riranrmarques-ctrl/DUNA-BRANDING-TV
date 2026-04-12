@@ -37,6 +37,7 @@ let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
 
+/* STATUS */
 function setStatus(texto, tipo = "normal") {
   statusEl.textContent = texto;
   statusEl.className = "status-box";
@@ -44,6 +45,7 @@ function setStatus(texto, tipo = "normal") {
   if (tipo === "erro") statusEl.classList.add("erro");
 }
 
+/* HELPERS */
 function escapeHtml(texto) {
   return String(texto || "")
     .replace(/&/g, "&amp;")
@@ -51,6 +53,7 @@ function escapeHtml(texto) {
     .replace(/>/g, "&gt;");
 }
 
+/* DATA (SEM HORA) */
 function formatarData(valor) {
   if (!valor) return "";
   return new Date(valor).toLocaleDateString("pt-BR");
@@ -59,6 +62,20 @@ function formatarData(valor) {
 function normalizarDataInput(valor) {
   if (!valor) return null;
   return new Date(valor + "T00:00:00").toISOString();
+}
+
+function montarLinhaDatas(item) {
+  const postado = formatarData(item.created_at);
+  const encerrado = formatarData(item.data_fim);
+
+  if (postado && encerrado) {
+    return `Postado: ${postado} • Encerra: ${encerrado}`;
+  }
+
+  if (postado) return `Postado: ${postado}`;
+  if (encerrado) return `Encerra: ${encerrado}`;
+
+  return "";
 }
 
 function itemEstaInativo(item) {
@@ -73,6 +90,7 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
+/* LOGIN */
 function validarLogin() {
   if (senhaInput.value.trim() !== SENHA_PAINEL) {
     loginErro.textContent = "Código inválido";
@@ -87,6 +105,7 @@ function validarLogin() {
 
 btnLogin.onclick = validarLogin;
 
+/* PONTOS */
 async function buscarPontos() {
   const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
   return data || [];
@@ -103,6 +122,7 @@ function renderizarCardsPontos(lista) {
   });
 }
 
+/* ABRIR */
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo).trim();
 
@@ -117,11 +137,13 @@ function abrirPonto(codigo) {
   carregarPlaylist();
 }
 
+/* VOLTAR */
 btnVoltar.onclick = () => {
   listaPontos.style.display = "grid";
   pontoDetalhe.style.display = "none";
 };
 
+/* COPIAR */
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = () => {
     navigator.clipboard.writeText(codigoSelecionado);
@@ -129,31 +151,10 @@ if (btnCopiarCodigo) {
   };
 }
 
-async function carregarClientes() {
-  const select = document.getElementById("clienteSelect");
-  if (!select) return;
-
-  const { data } = await supabaseClient.from("clientes_app").select("codigo,nome");
-
-  select.innerHTML = `<option value="">Selecionar cliente</option>`;
-
-  (data || []).forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.codigo;
-    opt.textContent = c.nome;
-    select.appendChild(opt);
-  });
-}
-
+/* UPLOAD */
 async function uploadMidia() {
   const file = videoInput.files[0];
-  const select = document.getElementById("clienteSelect");
-
   if (!file) return setStatus("Selecione um arquivo", "erro");
-  if (!select.value) return setStatus("Selecione um cliente", "erro");
-
-  const clienteCodigo = select.value;
-  const clienteNome = select.options[select.selectedIndex].text;
 
   const codigo = codigoSelecionado;
 
@@ -168,8 +169,7 @@ async function uploadMidia() {
 
   await supabaseClient.from(TABELA).insert({
     codigo,
-    nome: clienteNome,
-    cliente_codigo: clienteCodigo,
+    nome: file.name,
     video_url: data.publicUrl,
     storage_path: path,
     ordem: Date.now(),
@@ -183,13 +183,13 @@ async function uploadMidia() {
   videoInput.value = "";
   dataInicioInput.value = "";
   dataFimInput.value = "";
-  select.value = "";
 
   carregarPlaylist();
 }
 
 btnUpload.onclick = uploadMidia;
 
+/* PLAYLIST */
 async function carregarPlaylist() {
   const { data } = await supabaseClient
     .from(TABELA)
@@ -204,41 +204,55 @@ async function carregarPlaylist() {
   renderizarHistorico(inativos);
 }
 
+/* ATIVOS */
 function renderizarPlaylistAtiva(lista) {
   if (!lista.length) {
     playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
     return;
   }
 
-  playlistAtiva.innerHTML = lista.map((item, i) => `
+  playlistAtiva.innerHTML = lista
+    .map(
+      (item, i) => `
     <div class="playlist-item" draggable="true" data-index="${i}">
       <div class="playlist-item-handle">⋮⋮</div>
 
       <div class="playlist-item-conteudo">
         <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
-        <div class="playlist-item-info">
-          Código: ${item.cliente_codigo || "-"} • Postado: ${formatarData(item.created_at)} • Encerra: ${formatarData(item.data_fim)}
-        </div>
+        <div class="playlist-item-info">${montarLinhaDatas(item)}</div>
+      </div>
+
+      <div class="playlist-item-acoes-laterais">
+        <button onclick="editarNomeItem(${item.id}, '${item.nome}')">✎</button>
+        <button onclick="removerItem(${item.id}, '${item.storage_path}')">🗑</button>
       </div>
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 
   ativarDrag(lista);
 }
 
+/* HISTÓRICO */
 function renderizarHistorico(lista) {
   if (!lista.length) {
     playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
     return;
   }
 
-  playlistInativa.innerHTML = lista.map(item => `
+  playlistInativa.innerHTML = lista
+    .map(
+      item => `
     <div>
-      ${escapeHtml(item.nome)} • ${formatarData(item.data_fim)}
+      ${item.nome} — ${formatarData(item.data_fim)}
     </div>
-  `).join("");
+  `
+    )
+    .join("");
 }
 
+/* DRAG */
 function ativarDrag(lista) {
   const items = document.querySelectorAll(".playlist-item");
 
@@ -267,10 +281,35 @@ function ativarDrag(lista) {
   });
 }
 
+/* REMOVER */
+async function removerItem(id, path) {
+  if (!confirm("Remover?")) return;
+
+  await supabaseClient.storage.from(BUCKET).remove([path]);
+  await supabaseClient.from(TABELA).delete().eq("id", id);
+
+  carregarPlaylist();
+}
+
+/* RENOMEAR */
+async function editarNomeItem(id, nomeAtual) {
+  const novo = prompt("Novo nome:", nomeAtual);
+  if (!novo) return;
+
+  await supabaseClient.from(TABELA)
+    .update({ nome: novo })
+    .eq("id", id);
+
+  carregarPlaylist();
+}
+
+window.removerItem = removerItem;
+window.editarNomeItem = editarNomeItem;
+
+/* INIT */
 async function iniciarPainel() {
   const pontos = await buscarPontos();
   renderizarCardsPontos(pontos);
-  await carregarClientes();
 
   document.querySelectorAll(".btn-abrir").forEach(
     btn => (btn.onclick = () => abrirPonto(btn.dataset.codigo))
