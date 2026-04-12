@@ -78,18 +78,8 @@ function obterPontosMarcados() {
 }
 
 function obterNomeDoPonto(ponto, codigo) {
-  const nomeExato =
-    ponto?.nome_exibicao ||
-    ponto?.nome_painel ||
-    ponto?.nome_cliente_exibicao ||
-    ponto?.nome_da_pasta ||
-    ponto?.nome_pasta ||
-    ponto?.pasta_nome ||
-    ponto?.titulo ||
-    ponto?.nome ||
-    ponto?.ambiente;
-
-  return nomeExato || `Ponto ${codigo}`;
+  if (ponto?.nome) return ponto.nome;
+  return `Ponto ${codigo}`;
 }
 
 function atualizarResumo() {
