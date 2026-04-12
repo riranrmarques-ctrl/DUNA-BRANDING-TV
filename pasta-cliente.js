@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const BUCKET = "videos";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -17,6 +18,10 @@ const mensagem = document.getElementById("mensagem");
 const botaoSalvar = document.getElementById("botaoSalvar");
 const botaoVoltar = document.getElementById("botaoVoltar");
 
+const arquivoInput = document.getElementById("arquivoInput");
+const btnUploadCliente = document.getElementById("btnUploadCliente");
+const statusUpload = document.getElementById("statusUpload");
+
 let pontosData = {};
 let codigoClienteAtual = "";
 
@@ -31,11 +36,12 @@ function obterCodigoDaUrl() {
 }
 
 function formatarTelefone(valor) {
-  valor = valor.replace(/\D/g, "").slice(0, 10);
+  const numeros = valor.replace(/\D/g, "").slice(0, 11);
 
-  if (valor.length <= 2) return `(${valor}`;
-  if (valor.length <= 6) return `(${valor.slice(0, 2)}) ${valor.slice(2)}`;
-  return `(${valor.slice(0, 2)}) ${valor.slice(2, 6)}-${valor.slice(6)}`;
+  if (numeros.length === 0) return "";
+  if (numeros.length <= 2) return `(${numeros}`;
+  if (numeros.length <= 7) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
 }
 
 function itemPlaylistEstaAtivo(item) {
@@ -220,8 +226,7 @@ async function carregarCliente() {
 
   inputCodigo.value = cliente.codigo || "";
   inputNome.value = cliente.nome || "";
-  inputTelefone.value = cliente.telefone || "";
-  inputTelefone.value = formatarTelefone(inputTelefone.value);
+  inputTelefone.value = formatarTelefone(cliente.telefone || "");
   inputSegmento.value = cliente.segmento || "";
   inputObservacao.value = cliente.observacao || "";
   inputVencimento.value = cliente.vencimento_exibicao || "";
@@ -290,6 +295,104 @@ async function salvarCliente() {
   }
 }
 
+async function salvarPlaylistNosPontos(urlFinal, tipoFinal) {
+  const pontosMarcados = obterPontosMarcados();
+
+  if (!pontosMarcados.length) {
+    throw new Error("Selecione ao menos um ponto.");
+  }
+
+  const nomeCliente = inputNome.value.trim();
+  const dataFim = inputVencimento.value || null;
+  const agoraIso = new Date().toISOString();
+
+  const registros = pontosMarcados.map((codigoPonto) => ({
+    codigo: codigoPonto,
+    nome: nomeCliente,
+    video_url: urlFinal,
+    tipo: tipoFinal,
+    data_inicio: agoraIso,
+    data_fim: dataFim,
+    ordem: Date.now() + Math.floor(Math.random() * 1000)
+  }));
+
+  const { error } = await supabaseClient
+    .from("playlists")
+    .insert(registros);
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function uploadArquivoCliente() {
+  const file = arquivoInput.files[0];
+
+  if (!file) {
+    statusUpload.textContent = "Selecione um arquivo";
+    statusUpload.style.color = "#ff6b6b";
+    return;
+  }
+
+  if (!inputNome.value.trim()) {
+    statusUpload.textContent = "Preencha o nome do cliente";
+    statusUpload.style.color = "#ff6b6b";
+    return;
+  }
+
+  if (!obterPontosMarcados().length) {
+    statusUpload.textContent = "Selecione ao menos um ponto";
+    statusUpload.style.color = "#ff6b6b";
+    return;
+  }
+
+  statusUpload.textContent = "Enviando...";
+  statusUpload.style.color = "#9fd2ff";
+  btnUploadCliente.disabled = true;
+
+  try {
+    if (file.name.toLowerCase().endsWith(".txt")) {
+      const texto = await file.text();
+      const url = texto.trim();
+
+      if (!url) {
+        throw new Error("O TXT está vazio.");
+      }
+
+      await salvarPlaylistNosPontos(url, "url");
+    } else {
+      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from(BUCKET)
+        .upload(path, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabaseClient.storage
+        .from(BUCKET)
+        .getPublicUrl(path);
+
+      await salvarPlaylistNosPontos(data.publicUrl, "arquivo");
+    }
+
+    statusUpload.textContent = "Enviado com sucesso";
+    statusUpload.style.color = "#7CFC9A";
+    arquivoInput.value = "";
+
+    const statusPontosCliente = await buscarStatusPontosDoCliente(inputNome.value.trim());
+    renderizarPontosSelecionaveis(obterPontosMarcados(), statusPontosCliente);
+  } catch (err) {
+    console.error(err);
+    statusUpload.textContent = "Erro ao enviar";
+    statusUpload.style.color = "#ff6b6b";
+  } finally {
+    btnUploadCliente.disabled = false;
+  }
+}
+
 inputTelefone.addEventListener("input", (e) => {
   e.target.value = formatarTelefone(e.target.value);
   atualizarResumo();
@@ -309,6 +412,7 @@ botaoSalvar.addEventListener("click", salvarCliente);
 botaoVoltar.addEventListener("click", () => {
   window.location.href = "central-clientes.html";
 });
+btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 
 async function iniciar() {
   try {
@@ -328,70 +432,5 @@ async function iniciar() {
     mostrarMensagem("Erro ao carregar.", "#ff6b6b");
   }
 }
-
-const arquivoInput = document.getElementById("arquivoInput");
-const btnUploadCliente = document.getElementById("btnUploadCliente");
-const statusUpload = document.getElementById("statusUpload");
-
-async function uploadArquivoCliente() {
-  const file = arquivoInput.files[0];
-
-  if (!file) {
-    statusUpload.textContent = "Selecione um arquivo";
-    statusUpload.style.color = "#ff6b6b";
-    return;
-  }
-
-  statusUpload.textContent = "Enviando...";
-  statusUpload.style.color = "#9fd2ff";
-
-  try {
-    if (file.name.endsWith(".txt")) {
-      const texto = await file.text();
-      const url = texto.trim();
-
-      await salvarMidiaCliente(url, "url");
-
-    } else {
-      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
-
-      const { error } = await supabaseClient.storage
-        .from("videos")
-        .upload(path, file);
-
-      if (error) throw error;
-
-      const { data } = supabaseClient.storage
-        .from("videos")
-        .getPublicUrl(path);
-
-      await salvarMidiaCliente(data.publicUrl, "arquivo");
-    }
-
-    statusUpload.textContent = "Enviado com sucesso";
-    statusUpload.style.color = "#7CFC9A";
-
-    arquivoInput.value = "";
-
-  } catch (err) {
-    console.error(err);
-    statusUpload.textContent = "Erro ao enviar";
-    statusUpload.style.color = "#ff6b6b";
-  }
-}
-
-async function salvarMidiaCliente(url, tipo) {
-  await supabaseClient.from("playlists").insert({
-    codigo: null,
-    nome: inputNome.value.trim(),
-    video_url: url,
-    tipo: tipo,
-    data_inicio: new Date().toISOString(),
-    data_fim: inputVencimento.value || null,
-    ordem: Date.now()
-  });
-}
-
-btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 
 iniciar();
