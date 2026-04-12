@@ -81,18 +81,17 @@ async function carregarPontos() {
   pontosData = {};
 
   (data || []).forEach((ponto) => {
-    const codigoVisual =
-      String(
-        ponto.codigo_visual ||
-        ponto.codigo ||
-        ponto.codigo_ponto ||
-        ponto.id_ponto ||
-        ""
-      ).trim();
+    const chaveInterna = String(
+      ponto.codigo_visual ||
+      ponto.codigo ||
+      ponto.codigo_ponto ||
+      ponto.id_ponto ||
+      ""
+    ).trim();
 
-    if (!codigoVisual) return;
+    if (!chaveInterna) return;
 
-    pontosData[codigoVisual] = ponto;
+    pontosData[chaveInterna] = ponto;
   });
 }
 
@@ -110,6 +109,16 @@ function obterNomeDoPonto(ponto, codigo) {
   );
 }
 
+function obterCodigoExibicaoDoPonto(ponto, codigo) {
+  return String(
+    ponto?.codigo_ponto ||
+    ponto?.codigo ||
+    ponto?.codigo_visual ||
+    codigo ||
+    ""
+  ).trim();
+}
+
 function atualizarResumo() {
   const pontos = obterPontosMarcados();
   resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> ${pontos.join(", ") || "nenhum"}</div>`;
@@ -124,7 +133,15 @@ function escaparHtml(texto) {
     .replace(/'/g, "&#039;");
 }
 
-function montarCardPonto({ codigo, nome, corFundo, corBorda, desabilitado = false, marcado = false }) {
+function montarCardPonto({
+  codigo,
+  codigoExibicao,
+  nome,
+  corFundo,
+  corBorda,
+  desabilitado = false,
+  marcado = false
+}) {
   return `
     <label
       style="
@@ -158,13 +175,19 @@ function montarCardPonto({ codigo, nome, corFundo, corBorda, desabilitado = fals
           cursor:${desabilitado ? "not-allowed" : "pointer"};
         "
       >
-      <span style="font-weight:700; white-space:nowrap;">${escaparHtml(codigo)}</span>
       <span style="
         color:#e2e8f2;
         white-space:nowrap;
         overflow:hidden;
         text-overflow:ellipsis;
       ">${escaparHtml(nome)}</span>
+      <span style="
+        font-weight:700;
+        white-space:nowrap;
+        margin-left:auto;
+        color:#ffffff;
+        flex-shrink:0;
+      ">${escaparHtml(codigoExibicao)}</span>
     </label>
   `;
 }
@@ -228,6 +251,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     .forEach((codigo) => {
       const ponto = pontosData[codigo];
       const nome = obterNomeDoPonto(ponto, codigo);
+      const codigoExibicao = obterCodigoExibicaoDoPonto(ponto, codigo);
 
       const isSelecionado = selecionados.includes(codigo);
       const isInativo = pontoEstaInativo(ponto);
@@ -236,6 +260,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         selecionadosArr.push(
           montarCardPonto({
             codigo,
+            codigoExibicao,
             nome,
             corFundo: "rgba(124, 252, 154, 0.16)",
             corBorda: "#7CFC9A",
@@ -247,6 +272,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         inativosArr.push(
           montarCardPonto({
             codigo,
+            codigoExibicao,
             nome,
             corFundo: "rgba(255, 107, 107, 0.10)",
             corBorda: "#ff6b6b",
@@ -258,6 +284,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         disponiveisArr.push(
           montarCardPonto({
             codigo,
+            codigoExibicao,
             nome,
             corFundo: "rgba(45, 140, 255, 0.10)",
             corBorda: "#6ea8ff",
