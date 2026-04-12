@@ -4,8 +4,26 @@ const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const CODIGOS_FIXOS = [
-  "H3L1","E7N4","H8E2","L3A9","N1H6","E4L7","A9H2","H5N8","L2E6","N7A3",
-  "E1H9","A4L8","H6A1","L9N5","E3A7","N8H4","A2E6","H7L3","L1H8","E9N2"
+  "H3L1",
+  "E7N4",
+  "H8E2",
+  "L3A9",
+  "N1H6",
+  "E4L7",
+  "A9H2",
+  "H5N8",
+  "L2E6",
+  "N7A3",
+  "E1H9",
+  "A4L8",
+  "H6A1",
+  "L9N5",
+  "E3A7",
+  "N8H4",
+  "A2E6",
+  "H7L3",
+  "L1H8",
+  "E9N2"
 ];
 
 const listaClientes = document.getElementById("listaClientes");
@@ -41,8 +59,19 @@ async function excluirCliente(codigo) {
   try {
     mostrarMensagem("Excluindo cliente...");
 
-    await supabaseClient.from("cliente_pontos").delete().eq("cliente_codigo", codigo);
-    await supabaseClient.from("clientes_app").delete().eq("codigo", codigo);
+    const { error: errorVinculos } = await supabaseClient
+      .from("cliente_pontos")
+      .delete()
+      .eq("cliente_codigo", codigo);
+
+    if (errorVinculos) throw errorVinculos;
+
+    const { error: errorCliente } = await supabaseClient
+      .from("clientes_app")
+      .delete()
+      .eq("codigo", codigo);
+
+    if (errorCliente) throw errorCliente;
 
     mostrarMensagem(`Cliente ${codigo} excluído.`, "#7CFC9A");
     await carregarClientes();
@@ -53,14 +82,20 @@ async function excluirCliente(codigo) {
 }
 
 function obterListaFiltrada() {
-  const termo = (buscaCliente.value || "").toLowerCase();
+  const termo = (buscaCliente.value || "").trim().toLowerCase();
 
   return clientesCarregados.filter((cliente) => {
-    return [
+    const textoBusca = [
       cliente.codigo,
-      cliente.nome,
-      cliente.telefone
-    ].join(" ").toLowerCase().includes(termo);
+      cliente.nome_completo,
+      cliente.telefone,
+      cliente.email,
+      cliente.cpf_cnpj
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return textoBusca.includes(termo);
   });
 }
 
@@ -78,32 +113,36 @@ function renderizarClientes() {
     const card = document.createElement("div");
     card.className = "cliente-card";
 
-    const pontosTexto = cliente.pontos?.length
+    const pontosTexto = Array.isArray(cliente.pontos) && cliente.pontos.length
       ? cliente.pontos.join(", ")
       : "nenhum";
 
     card.innerHTML = `
       <div class="cliente-codigo">${escaparHtml(cliente.codigo)}</div>
-      <h3>${escaparHtml(cliente.nome || "Novo Cliente")}</h3>
+      <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
       <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
+      <p><strong>Email:</strong> ${escaparHtml(cliente.email || "-")}</p>
       <p><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</p>
       <div class="cliente-acoes">
-        <button class="botao-abrir">Abrir</button>
-        <button class="botao-excluir">Excluir</button>
+        <button class="botao-abrir" type="button">Abrir</button>
+        <button class="botao-excluir" type="button">Excluir</button>
       </div>
     `;
 
     card.addEventListener("click", () => abrirCliente(cliente.codigo));
 
-    card.querySelector(".botao-abrir").onclick = (e) => {
-      e.stopPropagation();
-      abrirCliente(cliente.codigo);
-    };
+    const botaoAbrir = card.querySelector(".botao-abrir");
+    const botaoExcluir = card.querySelector(".botao-excluir");
 
-    card.querySelector(".botao-excluir").onclick = (e) => {
-      e.stopPropagation();
+    botaoAbrir.addEventListener("click", (event) => {
+      event.stopPropagation();
+      abrirCliente(cliente.codigo);
+    });
+
+    botaoExcluir.addEventListener("click", (event) => {
+      event.stopPropagation();
       excluirCliente(cliente.codigo);
-    };
+    });
 
     listaClientes.appendChild(card);
   });
@@ -111,73 +150,91 @@ function renderizarClientes() {
 
 async function carregarClientes() {
   try {
-    mostrarMensagem("Carregando...");
+    mostrarMensagem("Carregando clientes...");
 
-    const { data: clientes } = await supabaseClient
+    const { data: clientes, error } = await supabaseClient
       .from("clientes_app")
       .select("*")
-      .order("codigo");
+      .order("codigo", { ascending: true });
 
-    const { data: vinculos } = await supabaseClient
+    if (error) throw error;
+
+    const { data: vinculos, error: errorVinculos } = await supabaseClient
       .from("cliente_pontos")
-      .select("*");
+      .select("*")
+      .order("cliente_codigo", { ascending: true });
 
-    const mapa = {};
-    vinculos?.forEach(v => {
-      if (!mapa[v.cliente_codigo]) mapa[v.cliente_codigo] = [];
-      mapa[v.cliente_codigo].push(v.ponto_codigo);
+    if (errorVinculos) throw errorVinculos;
+
+    const mapaPontos = {};
+
+    (vinculos || []).forEach((item) => {
+      if (!mapaPontos[item.cliente_codigo]) {
+        mapaPontos[item.cliente_codigo] = [];
+      }
+      mapaPontos[item.cliente_codigo].push(item.ponto_codigo);
     });
 
-    clientesCarregados = (clientes || []).map(c => ({
-      ...c,
-      pontos: mapa[c.codigo] || []
+    clientesCarregados = (clientes || []).map((cliente) => ({
+      ...cliente,
+      pontos: mapaPontos[cliente.codigo] || []
     }));
 
     renderizarClientes();
     mostrarMensagem("Carregado.", "#7CFC9A");
-
   } catch (error) {
     console.error(error);
-    listaClientes.innerHTML = `<div class="vazio">Erro ao carregar</div>`;
-    mostrarMensagem("Erro no Supabase.", "#ff6b6b");
+    listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
+    mostrarMensagem("Erro ao carregar clientes do Supabase.", "#ff6b6b");
   }
 }
 
 function obterCodigoLivre() {
-  const usados = new Set(clientesCarregados.map(c => c.codigo));
-  return CODIGOS_FIXOS.find(c => !usados.has(c));
+  const usados = new Set(clientesCarregados.map((cliente) => cliente.codigo));
+  return CODIGOS_FIXOS.find((codigo) => !usados.has(codigo)) || null;
 }
 
 async function criarNovoCliente() {
-  const codigo = obterCodigoLivre();
+  const codigoLivre = obterCodigoLivre();
 
-  if (!codigo) {
-    mostrarMensagem("Todos os códigos já usados.", "#ffb86b");
+  if (!codigoLivre) {
+    mostrarMensagem("Todos os códigos fixos já foram usados.", "#ffb86b");
     return;
   }
 
   try {
     botaoNovoCliente.disabled = true;
-    mostrarMensagem("Criando...");
+    mostrarMensagem("Criando novo cliente...");
 
-    await supabaseClient.from("clientes_app").insert({
-      codigo: codigo,
-      nome: "Novo Cliente"
-    });
+    const payload = {
+      codigo: codigoLivre,
+      nome_completo: "Novo Cliente",
+      telefone: "",
+      email: "",
+      cpf_cnpj: "",
+      status: "Não ativo",
+      vencimento_exibicao: null
+    };
 
-    mostrarMensagem(`Criado: ${codigo}`, "#7CFC9A");
+    const { error } = await supabaseClient
+      .from("clientes_app")
+      .insert(payload);
+
+    if (error) throw error;
+
+    mostrarMensagem(`Cliente ${codigoLivre} criado com sucesso.`, "#7CFC9A");
     await carregarClientes();
-
+    abrirCliente(codigoLivre);
   } catch (error) {
     console.error(error);
-    mostrarMensagem("Erro ao criar cliente.", "#ff6b6b");
+    mostrarMensagem("Erro ao criar novo cliente.", "#ff6b6b");
   } finally {
     botaoNovoCliente.disabled = false;
   }
 }
 
-botaoNovoCliente.onclick = criarNovoCliente;
-botaoAtualizar.onclick = carregarClientes;
-buscaCliente.oninput = renderizarClientes;
+botaoNovoCliente.addEventListener("click", criarNovoCliente);
+botaoAtualizar.addEventListener("click", carregarClientes);
+buscaCliente.addEventListener("input", renderizarClientes);
 
 carregarClientes();
