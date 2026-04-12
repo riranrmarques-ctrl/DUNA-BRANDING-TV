@@ -4,7 +4,7 @@ const BUCKET = "videos";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 
-const SENHA_PAINEL = "@Helena";
+const SENHA_PAINEL = "@Helena26";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -57,30 +57,9 @@ function formatarData(valor) {
   return new Date(valor).toLocaleDateString("pt-BR");
 }
 
-function formatarDataHora(valor) {
-  if (!valor) return "";
-  return new Date(valor).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-}
-
 function normalizarDataInput(valor) {
   if (!valor) return null;
   return new Date(valor + "T00:00:00").toISOString();
-}
-
-function montarLinhaDatas(item) {
-  const postado = formatarData(item.created_at);
-  const encerrado = formatarData(item.data_fim);
-
-  if (postado && encerrado) return `Postado: ${postado} • Encerra: ${encerrado}`;
-  if (postado) return `Postado: ${postado}`;
-  if (encerrado) return `Encerra: ${encerrado}`;
-  return "";
 }
 
 function itemEstaInativo(item) {
@@ -95,69 +74,100 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
-function obterStatusDoPonto(itens) {
-  if (!itens.length) {
-    return { tipo: "nao_conectado", texto: "Não conectado ainda" };
+function validarLogin() {
+  if (senhaInput.value.trim() !== SENHA_PAINEL) {
+    loginErro.textContent = "Código inválido";
+    return;
   }
 
-  const ativos = itens.filter(item => !itemEstaInativo(item));
-
-  if (ativos.length) {
-    return { tipo: "ativo", texto: "Ativo" };
-  }
-
-  return { tipo: "inativo", texto: "Inativo" };
+  loginBox.style.display = "none";
+  conteudoPainel.style.display = "block";
+  setStatus("Painel Ativo", "ok");
+  iniciarPainel();
 }
 
-async function buscarResumoStatusPontos() {
-  const { data } = await supabaseClient
-    .from(TABELA)
-    .select("codigo, data_fim");
+btnLogin.onclick = validarLogin;
 
-  const agrupado = {};
+async function buscarPontos() {
+  const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
+  return data || [];
+}
 
-  (data || []).forEach(item => {
-    const codigo = String(item.codigo || "").trim();
-    if (!codigo) return;
-    if (!agrupado[codigo]) agrupado[codigo] = [];
-    agrupado[codigo].push(item);
+function renderizarCardsPontos(lista) {
+  pontosMap = {};
+  lista.forEach(p => {
+    pontosMap[String(p.codigo).trim()] = p;
   });
-
-  const resumo = {};
 
   document.querySelectorAll(".card-ponto").forEach(card => {
     const codigo = String(card.dataset.codigo || "").trim();
-    resumo[codigo] = obterStatusDoPonto(agrupado[codigo] || []);
-  });
-
-  return resumo;
-}
-
-function aplicarStatusNosCards() {
-  document.querySelectorAll(".card-ponto").forEach(card => {
-    const codigo = card.dataset.codigo;
-    const info = statusPontosMap[codigo] || { tipo: "nao_conectado", texto: "Não conectado" };
-
-    let el = card.querySelector(".card-status-ponto");
-
-    if (!el) {
-      el = document.createElement("div");
-      el.className = "card-status-ponto";
-      card.querySelector(".card-acoes").appendChild(el);
+    const nomeEl = card.querySelector(".card-nome");
+    if (nomeEl) {
+      nomeEl.textContent = pontosMap[codigo]?.nome || codigo;
     }
-
-    el.textContent = info.texto;
-
-    if (info.tipo === "ativo") el.style.color = "#7CFC9A";
-    else if (info.tipo === "inativo") el.style.color = "#ffb347";
-    else el.style.color = "#999";
   });
 }
 
-async function atualizarStatusDosPontos() {
-  statusPontosMap = await buscarResumoStatusPontos();
-  aplicarStatusNosCards();
+function abrirPonto(codigo) {
+  codigoSelecionado = String(codigo).trim();
+
+  listaPontos.style.display = "none";
+  pontoDetalhe.style.display = "block";
+
+  codigoAtual.textContent = codigoSelecionado;
+  tituloPasta.textContent = "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
+
+  carregarPlaylist();
 }
+
+btnVoltar.onclick = () => {
+  listaPontos.style.display = "grid";
+  pontoDetalhe.style.display = "none";
+};
+
+async function uploadMidia() {
+  const file = videoInput.files[0];
+  const clienteSelect = document.getElementById("clienteSelect");
+
+  if (!file) return setStatus("Selecione um arquivo", "erro");
+  if (!codigoSelecionado) return setStatus("Nenhum ponto selecionado", "erro");
+  if (!clienteSelect.value) return setStatus("Selecione um cliente", "erro");
+
+  const clienteCodigo = clienteSelect.value;
+  const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
+
+  const dataInicio = normalizarDataInput(dataInicioInput.value) || new Date().toISOString();
+  const dataFim = normalizarDataInput(dataFimInput.value);
+  const path = `${codigoSelecionado}/${Date.now()}-${file.name}`;
+
+  const { error: uploadError } = await supabaseClient.storage.from(BUCKET).upload(path, file);
+  if (uploadError) return setStatus("Erro no upload", "erro");
+
+  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+
+  await supabaseClient.from(TABELA).insert({
+    codigo: codigoSelecionado,
+    nome: clienteNome,
+    cliente_codigo: clienteCodigo,
+    video_url: data.publicUrl,
+    storage_path: path,
+    ordem: Date.now(),
+    tipo: "video",
+    data_inicio: dataInicio,
+    data_fim: dataFim
+  });
+
+  setStatus("Enviado", "ok");
+
+  videoInput.value = "";
+  dataInicioInput.value = "";
+  dataFimInput.value = "";
+  clienteSelect.value = "";
+
+  await carregarPlaylist();
+}
+
+btnUpload.onclick = uploadMidia;
 
 async function carregarPlaylist() {
   const { data } = await supabaseClient
@@ -173,4 +183,77 @@ async function carregarPlaylist() {
 
   renderizarPlaylistAtiva(ativos);
   renderizarHistorico(inativos);
+}
+
+function renderizarPlaylistAtiva(lista) {
+  if (!lista.length) {
+    playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
+    return;
+  }
+
+  playlistAtiva.innerHTML = lista.map((item, i) => `
+    <div class="playlist-item" draggable="true" data-index="${i}">
+      <div class="playlist-item-handle">⋮⋮</div>
+
+      <div class="playlist-item-conteudo">
+        <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
+        <div class="playlist-item-info">
+          Código: ${item.cliente_codigo || "-"} • Postado: ${formatarData(item.created_at)} • Encerra: ${formatarData(item.data_fim)}
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  ativarDrag(lista);
+}
+
+function renderizarHistorico(lista) {
+  if (!lista.length) {
+    playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
+    return;
+  }
+
+  playlistInativa.innerHTML = lista.map(item => `
+    <div>
+      ${escapeHtml(item.nome)} • ${formatarData(item.data_fim)}
+    </div>
+  `).join("");
+}
+
+function ativarDrag(lista) {
+  const items = document.querySelectorAll(".playlist-item");
+
+  items.forEach(item => {
+    item.addEventListener("dragstart", () => {
+      dragIndex = Number(item.dataset.index);
+    });
+
+    item.addEventListener("dragover", e => e.preventDefault());
+
+    item.addEventListener("drop", async () => {
+      const target = Number(item.dataset.index);
+
+      const novo = [...lista];
+      const movido = novo.splice(dragIndex, 1)[0];
+      novo.splice(target, 0, movido);
+
+      for (let i = 0; i < novo.length; i++) {
+        await supabaseClient.from(TABELA).update({ ordem: i }).eq("id", novo[i].id);
+      }
+
+      carregarPlaylist();
+    });
+  });
+}
+
+document.addEventListener("click", function (e) {
+  const btnAbrir = e.target.closest(".btn-abrir");
+  if (btnAbrir) {
+    abrirPonto(btnAbrir.dataset.codigo);
+  }
+});
+
+async function iniciarPainel() {
+  const pontos = await buscarPontos();
+  renderizarCardsPontos(pontos);
 }
