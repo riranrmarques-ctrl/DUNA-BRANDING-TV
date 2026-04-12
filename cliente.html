@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área do Cliente</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #0f1115;
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .topo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .topo h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .topo p {
+      color: #bfc7d5;
+      font-size: 1rem;
+    }
+
+    .box-login,
+    .box-cliente {
+      background: #171a21;
+      border: 1px solid #262b36;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .box-login {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .campo label {
+      font-size: 0.95rem;
+      color: #d5dbea;
+    }
+
+    .campo input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid #313847;
+      background: #0f1115;
+      color: #fff;
+      outline: none;
+      font-size: 1rem;
+      text-transform: uppercase;
+    }
+
+    .campo input::placeholder {
+      color: #7f8796;
+      text-transform: none;
+    }
+
+    .acoes-login {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .botao {
+      border: none;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .botao-entrar {
+      background: #2d8cff;
+      color: #fff;
+      width: 100%;
+    }
+
+    .botao-entrar:hover {
+      opacity: 0.92;
+    }
+
+    .mensagem {
+      min-height: 24px;
+      margin-top: 12px;
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    .cabecalho-cliente {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .cabecalho-cliente h2 {
+      font-size: 1.6rem;
+    }
+
+    .botao-sair {
+      background: #2a2f3a;
+      color: #fff;
+      padding: 12px 16px;
+    }
+
+    .botao-sair:hover {
+      opacity: 0.9;
+    }
+
+    .grid-telas {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .card-tela {
+      background: #10131a;
+      border: 1px solid #2a3040;
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-tela h3 {
+      font-size: 1.2rem;
+      color: #ffffff;
+    }
+
+    .card-tela p {
+      color: #c6cedd;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .botao-ver-exibicao {
+      margin-top: 8px;
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+      background: #2d8cff;
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: bold;
+      transition: 0.2s ease;
+    }
+
+    .botao-ver-exibicao:hover {
+      opacity: 0.92;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 16px;
+      }
+
+      .topo h1 {
+        font-size: 1.6rem;
+      }
+
+      .box-login,
+      .box-cliente {
+        padding: 18px;
+      }
+
+      .cabecalho-cliente h2 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topo">
+      <h1>Área do Cliente</h1>
+      <p>Acompanhe suas telas e visualize a exibição.</p>
+    </div>
+
+    <div id="areaLogin" class="box-login">
+      <form id="codeForm">
+        <div class="campo">
+          <label for="codigo">Código de acesso</label>
+          <input
+            type="text"
+            id="codigo"
+            name="codigo"
+            placeholder="Digite seu código"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="acoes-login">
+          <button type="submit" class="botao botao-entrar">Entrar</button>
+        </div>
+      </form>
+
+      <p id="mensagem" class="mensagem"></p>
+    </div>
+
+    <div id="areaCliente" class="box-cliente" style="display: none;">
+      <div class="cabecalho-cliente">
+        <h2 id="nomeCliente"></h2>
+        <button id="botaoSair" class="botao botao-sair" type="button">Sair</button>
+      </div>
+
+      <div id="listaTelas" class="grid-telas"></div>
+    </div>
+  </div>
+
+  <script src="cliente.js?v=1"></script>
+</body>
+</html>
