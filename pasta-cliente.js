@@ -95,20 +95,76 @@ function escaparHtml(texto) {
     .replace(/'/g, "&#039;");
 }
 
-function montarCardPonto({ codigo, nome, classe = "", checked = false, disabled = false }) {
+function montarCardPonto({ codigo, nome, corFundo, corBorda, desabilitado = false, marcado = false }) {
   return `
-    <label class="item-ponto ${classe}">
+    <label
+      style="
+        display:flex;
+        align-items:center;
+        gap:8px;
+        min-height:50px;
+        padding:10px 12px;
+        border-radius:10px;
+        border:1px solid ${corBorda};
+        background:${corFundo};
+        color:#ffffff;
+        cursor:${desabilitado ? "not-allowed" : "pointer"};
+        opacity:${desabilitado ? "0.65" : "1"};
+        font-size:0.84rem;
+        font-weight:600;
+        overflow:hidden;
+      "
+    >
       <input
         type="checkbox"
         name="pontos"
         value="${escaparHtml(codigo)}"
-        class="ponto-checkbox"
-        ${checked ? "checked" : ""}
-        ${disabled ? "disabled" : ""}
+        ${marcado ? "checked" : ""}
+        ${desabilitado ? "disabled" : ""}
+        style="
+          width:16px;
+          height:16px;
+          accent-color:#2d8cff;
+          flex-shrink:0;
+          cursor:${desabilitado ? "not-allowed" : "pointer"};
+        "
       >
-      <span class="ponto-codigo">${escaparHtml(codigo)}</span>
-      <span class="ponto-nome">${escaparHtml(nome)}</span>
+      <span style="font-weight:700; white-space:nowrap;">${escaparHtml(codigo)}</span>
+      <span style="
+        color:#e2e8f2;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      ">${escaparHtml(nome)}</span>
     </label>
+  `;
+}
+
+function montarGrupoPontos(titulo, corTitulo, conteudoHtml, mensagemVazia) {
+  return `
+    <div style="margin-bottom:14px;">
+      <div style="
+        color:${corTitulo};
+        font-size:0.92rem;
+        font-weight:700;
+        margin-bottom:8px;
+        text-transform:lowercase;
+      ">${titulo}</div>
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(3, minmax(0, 1fr));
+        gap:10px;
+        max-height:170px;
+        overflow-y:auto;
+        padding:10px;
+        border:1px dashed #2d8cff;
+        border-radius:12px;
+        background:#10131a;
+      ">
+        ${conteudoHtml || `<div style="color:#bfc7d5; font-size:0.9rem;">${mensagemVazia}</div>`}
+      </div>
+    </div>
   `;
 }
 
@@ -140,44 +196,46 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         ponto?.status === "sem_vaga" ||
         ponto?.disponivel === false;
 
-      const html = montarCardPonto({
-        codigo,
-        nome,
-        classe: isSelecionado ? "selecionado" : isInativo ? "inativo" : "disponivel",
-        checked: isSelecionado,
-        disabled: isInativo
-      });
-
       if (isSelecionado) {
-        selecionadosArr.push(html);
+        selecionadosArr.push(
+          montarCardPonto({
+            codigo,
+            nome,
+            corFundo: "rgba(124, 252, 154, 0.16)",
+            corBorda: "#7CFC9A",
+            desabilitado: false,
+            marcado: true
+          })
+        );
       } else if (isInativo) {
-        inativosArr.push(html);
+        inativosArr.push(
+          montarCardPonto({
+            codigo,
+            nome,
+            corFundo: "rgba(255, 107, 107, 0.10)",
+            corBorda: "#ff6b6b",
+            desabilitado: true,
+            marcado: false
+          })
+        );
       } else {
-        disponiveisArr.push(html);
+        disponiveisArr.push(
+          montarCardPonto({
+            codigo,
+            nome,
+            corFundo: "rgba(45, 140, 255, 0.10)",
+            corBorda: "#6ea8ff",
+            desabilitado: false,
+            marcado: false
+          })
+        );
       }
     });
 
   listaPontos.innerHTML = `
-    <div class="grupo-pontos">
-      <div class="grupo-pontos-titulo grupo-pontos-titulo-selecionado">Selecionado</div>
-      <div class="pontos-grid pontos-grid-selecionado">
-        ${selecionadosArr.length ? selecionadosArr.join("") : `<div class="vazio">Nenhum ponto selecionado.</div>`}
-      </div>
-    </div>
-
-    <div class="grupo-pontos">
-      <div class="grupo-pontos-titulo grupo-pontos-titulo-disponivel">Disponível</div>
-      <div class="pontos-grid pontos-grid-disponivel">
-        ${disponiveisArr.length ? disponiveisArr.join("") : `<div class="vazio">Nenhum ponto disponível.</div>`}
-      </div>
-    </div>
-
-    <div class="grupo-pontos">
-      <div class="grupo-pontos-titulo grupo-pontos-titulo-inativo">Inativo</div>
-      <div class="pontos-grid pontos-grid-inativo">
-        ${inativosArr.length ? inativosArr.join("") : `<div class="vazio">Nenhum ponto inativo.</div>`}
-      </div>
-    </div>
+    ${montarGrupoPontos("selecionado", "#7CFC9A", selecionadosArr.join(""), "Nenhum ponto selecionado.")}
+    ${montarGrupoPontos("disponível", "#6ea8ff", disponiveisArr.join(""), "Nenhum ponto disponível.")}
+    ${montarGrupoPontos("inativo", "#ff6b6b", inativosArr.join(""), "Nenhum ponto inativo.")}
   `;
 
   atualizarResumo();
