@@ -3,248 +3,260 @@ const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const inputCodigo = document.getElementById("codigo");
-const inputNome = document.getElementById("nome");
-const inputTelefone = document.getElementById("telefone");
-const inputEmpresa = document.getElementById("empresa");
-const inputObservacao = document.getElementById("observacao");
-const listaPontos = document.getElementById("listaPontos");
+const CODIGOS_FIXOS = [
+  "H3L1",
+  "E7N4",
+  "H8E2",
+  "L3A9",
+  "N1H6",
+  "E4L7",
+  "A9H2",
+  "H5N8",
+  "L2E6",
+  "N7A3",
+  "E1H9",
+  "A4L8",
+  "H6A1",
+  "L9N5",
+  "E3A7",
+  "N8H4",
+  "A2E6",
+  "H7L3",
+  "L1H8",
+  "E9N2"
+];
+
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
-const botaoSalvar = document.getElementById("botaoSalvar");
-const botaoLimpar = document.getElementById("botaoLimpar");
-const botaoRecarregar = document.getElementById("botaoRecarregar");
+const botaoNovoCliente = document.getElementById("botaoNovoCliente");
+const botaoAtualizar = document.getElementById("botaoAtualizar");
+const buscaCliente = document.getElementById("buscaCliente");
 
-let pontosData = {};
-let clienteAtualCodigo = null;
+let clientesCarregados = [];
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   mensagem.textContent = texto;
   mensagem.style.color = cor;
 }
 
-async function carregarPontos() {
-  const response = await fetch("pontos.json?v=1");
-  if (!response.ok) {
-    throw new Error("Não foi possível carregar pontos.json");
-  }
-  pontosData = await response.json();
+function escaparHtml(texto) {
+  return String(texto || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function renderizarPontosSelecionaveis(selecionados = []) {
-  listaPontos.innerHTML = "";
-
-  const codigos = Object.keys(pontosData);
-
-  if (!codigos.length) {
-    listaPontos.innerHTML = "<p>Nenhum ponto encontrado.</p>";
-    return;
-  }
-
-  codigos.forEach((codigoPonto) => {
-    const ponto = pontosData[codigoPonto];
-
-    const item = document.createElement("label");
-    item.className = "item-ponto";
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.name = "pontos";
-    checkbox.value = codigoPonto;
-    checkbox.checked = selecionados.includes(codigoPonto);
-
-    const info = document.createElement("div");
-    info.className = "item-ponto-info";
-
-    const titulo = document.createElement("strong");
-    titulo.textContent = `${codigoPonto} - ${ponto.nome || "Sem nome"}`;
-
-    const detalhe = document.createElement("span");
-    const totalPlaylist = Array.isArray(ponto.playlist) ? ponto.playlist.length : 0;
-    detalhe.textContent = `Playlist: ${totalPlaylist} item(ns)`;
-
-    info.appendChild(titulo);
-    info.appendChild(detalhe);
-    item.appendChild(checkbox);
-    item.appendChild(info);
-    listaPontos.appendChild(item);
-  });
+function abrirCliente(codigo) {
+  window.location.href = `cliente-admin.html?codigo=${encodeURIComponent(codigo)}`;
 }
 
-function obterPontosMarcados() {
-  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((item) => item.value);
-}
-
-function limparFormulario() {
-  clienteAtualCodigo = null;
-  inputCodigo.value = "";
-  inputNome.value = "";
-  inputTelefone.value = "";
-  inputEmpresa.value = "";
-  inputObservacao.value = "";
-  renderizarPontosSelecionaveis([]);
-  mostrarMensagem("");
-}
-
-async function carregarClientes() {
-  const { data: clientes, error } = await supabaseClient
-    .from("clientes_app")
-    .select("*")
-    .order("codigo", { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
-  const { data: vinculos, error: errorVinculos } = await supabaseClient
-    .from("cliente_pontos")
-    .select("*")
-    .order("cliente_codigo", { ascending: true });
-
-  if (errorVinculos) {
-    throw errorVinculos;
-  }
-
-  const mapaPontos = {};
-  vinculos.forEach((item) => {
-    if (!mapaPontos[item.cliente_codigo]) {
-      mapaPontos[item.cliente_codigo] = [];
-    }
-    mapaPontos[item.cliente_codigo].push(item.ponto_codigo);
-  });
-
-  listaClientes.innerHTML = "";
-
-  if (!clientes.length) {
-    listaClientes.innerHTML = "<p>Nenhum cliente cadastrado ainda.</p>";
-    return;
-  }
-
-  clientes.forEach((cliente) => {
-    const card = document.createElement("div");
-    card.className = "cliente-card";
-
-    const titulo = document.createElement("h3");
-    titulo.textContent = `${cliente.codigo} - ${cliente.nome}`;
-
-    const detalhes = document.createElement("p");
-    detalhes.innerHTML = `
-      Empresa: ${cliente.empresa || "-"}<br>
-      Telefone: ${cliente.telefone || "-"}<br>
-      Pontos: ${(mapaPontos[cliente.codigo] || []).join(", ") || "nenhum"}
-    `;
-
-    const botaoEditar = document.createElement("button");
-    botaoEditar.type = "button";
-    botaoEditar.textContent = "Editar";
-    botaoEditar.addEventListener("click", () => preencherFormulario(cliente, mapaPontos[cliente.codigo] || []));
-
-    card.appendChild(titulo);
-    card.appendChild(detalhes);
-    card.appendChild(botaoEditar);
-    listaClientes.appendChild(card);
-  });
-}
-
-function preencherFormulario(cliente, pontos) {
-  clienteAtualCodigo = cliente.codigo;
-  inputCodigo.value = cliente.codigo || "";
-  inputNome.value = cliente.nome || "";
-  inputTelefone.value = cliente.telefone || "";
-  inputEmpresa.value = cliente.empresa || "";
-  inputObservacao.value = cliente.observacao || "";
-  renderizarPontosSelecionaveis(pontos);
-  mostrarMensagem(`Cliente ${cliente.codigo} carregado para edição.`, "#7CFC9A");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-async function salvarCliente() {
-  const codigo = inputCodigo.value.trim().toUpperCase();
-  const nome = inputNome.value.trim();
-  const telefone = inputTelefone.value.trim();
-  const empresa = inputEmpresa.value.trim();
-  const observacao = inputObservacao.value.trim();
-  const pontosMarcados = obterPontosMarcados();
-
-  if (!codigo) {
-    mostrarMensagem("Digite o código do cliente.", "#ff6b6b");
-    return;
-  }
-
-  if (!nome) {
-    mostrarMensagem("Digite o nome do cliente.", "#ff6b6b");
-    return;
-  }
-
-  botaoSalvar.disabled = true;
+async function excluirCliente(codigo) {
+  const confirmar = window.confirm(`Deseja excluir o cliente ${codigo}?`);
+  if (!confirmar) return;
 
   try {
-    const payloadCliente = {
-      codigo,
-      nome,
-      telefone: telefone || null,
-      empresa: empresa || null,
-      observacao: observacao || null
-    };
+    mostrarMensagem("Excluindo cliente...");
+
+    const { error: errorVinculos } = await supabaseClient
+      .from("cliente_pontos")
+      .delete()
+      .eq("cliente_codigo", codigo);
+
+    if (errorVinculos) {
+      throw errorVinculos;
+    }
 
     const { error: errorCliente } = await supabaseClient
       .from("clientes_app")
-      .upsert(payloadCliente, { onConflict: "codigo" });
+      .delete()
+      .eq("codigo", codigo);
 
     if (errorCliente) {
       throw errorCliente;
     }
 
-    const { error: errorDelete } = await supabaseClient
-      .from("cliente_pontos")
-      .delete()
-      .eq("cliente_codigo", codigo);
-
-    if (errorDelete) {
-      throw errorDelete;
-    }
-
-    if (pontosMarcados.length) {
-      const vinculos = pontosMarcados.map((pontoCodigo) => ({
-        cliente_codigo: codigo,
-        ponto_codigo: pontoCodigo
-      }));
-
-      const { error: errorInsert } = await supabaseClient
-        .from("cliente_pontos")
-        .insert(vinculos);
-
-      if (errorInsert) {
-        throw errorInsert;
-      }
-    }
-
-    clienteAtualCodigo = codigo;
-    mostrarMensagem(`Cliente ${codigo} salvo com sucesso.`, "#7CFC9A");
+    mostrarMensagem(`Cliente ${codigo} excluído com sucesso.`, "#7CFC9A");
     await carregarClientes();
   } catch (error) {
     console.error(error);
-    mostrarMensagem("Erro ao salvar cliente no Supabase.", "#ff6b6b");
-  } finally {
-    botaoSalvar.disabled = false;
+    mostrarMensagem("Erro ao excluir cliente.", "#ff6b6b");
   }
 }
 
-async function iniciar() {
+function obterListaFiltrada() {
+  const termo = (buscaCliente.value || "").trim().toLowerCase();
+
+  return clientesCarregados.filter((cliente) => {
+    const textoBusca = [
+      cliente.codigo,
+      cliente.nome,
+      cliente.empresa,
+      cliente.telefone
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return textoBusca.includes(termo);
+  });
+}
+
+function renderizarClientes() {
+  const filtrados = obterListaFiltrada();
+
+  listaClientes.innerHTML = "";
+
+  if (!filtrados.length) {
+    listaClientes.innerHTML = `<div class="vazio">Nenhum cliente encontrado.</div>`;
+    return;
+  }
+
+  filtrados.forEach((cliente) => {
+    const card = document.createElement("div");
+    card.className = "cliente-card";
+
+    const pontosTexto = Array.isArray(cliente.pontos) && cliente.pontos.length
+      ? cliente.pontos.join(", ")
+      : "nenhum";
+
+    card.innerHTML = `
+      <div class="cliente-codigo">${escaparHtml(cliente.codigo)}</div>
+      <h3>${escaparHtml(cliente.nome || "Novo Cliente")}</h3>
+      <p><strong>Empresa:</strong> ${escaparHtml(cliente.empresa || "-")}</p>
+      <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
+      <p><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</p>
+      <div class="cliente-acoes">
+        <button class="botao-abrir" type="button">Abrir</button>
+        <button class="botao-excluir" type="button">Excluir</button>
+      </div>
+    `;
+
+    card.addEventListener("click", () => abrirCliente(cliente.codigo));
+
+    const botaoAbrir = card.querySelector(".botao-abrir");
+    const botaoExcluir = card.querySelector(".botao-excluir");
+
+    botaoAbrir.addEventListener("click", (event) => {
+      event.stopPropagation();
+      abrirCliente(cliente.codigo);
+    });
+
+    botaoExcluir.addEventListener("click", (event) => {
+      event.stopPropagation();
+      excluirCliente(cliente.codigo);
+    });
+
+    listaClientes.appendChild(card);
+  });
+}
+
+async function carregarClientes() {
   try {
-    mostrarMensagem("Carregando dados...");
-    await carregarPontos();
-    renderizarPontosSelecionaveis([]);
-    await carregarClientes();
-    mostrarMensagem("Central pronta para uso.", "#7CFC9A");
+    mostrarMensagem("Carregando clientes...");
+
+    const { data: clientes, error } = await supabaseClient
+      .from("clientes_app")
+      .select("*")
+      .order("codigo", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data: vinculos, error: errorVinculos } = await supabaseClient
+      .from("cliente_pontos")
+      .select("*")
+      .order("cliente_codigo", { ascending: true });
+
+    if (errorVinculos) {
+      throw errorVinculos;
+    }
+
+    const mapaPontos = {};
+
+    vinculos.forEach((item) => {
+      if (!mapaPontos[item.cliente_codigo]) {
+        mapaPontos[item.cliente_codigo] = [];
+      }
+      mapaPontos[item.cliente_codigo].push(item.ponto_codigo);
+    });
+
+    clientesCarregados = clientes.map((cliente) => ({
+      ...cliente,
+      pontos: mapaPontos[cliente.codigo] || []
+    }));
+
+    renderizarClientes();
+    mostrarMensagem("Clientes carregados com sucesso.", "#7CFC9A");
   } catch (error) {
     console.error(error);
-    mostrarMensagem("Erro ao iniciar a central.", "#ff6b6b");
+    listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
+    mostrarMensagem("Erro ao carregar clientes do Supabase.", "#ff6b6b");
   }
 }
 
-botaoSalvar.addEventListener("click", salvarCliente);
-botaoLimpar.addEventListener("click", limparFormulario);
-botaoRecarregar.addEventListener("click", iniciar);
+function embaralharArray(lista) {
+  const copia = [...lista];
 
-iniciar();
+  for (let i = copia.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+
+  return copia;
+}
+
+function obterCodigoLivreAleatorio() {
+  const usados = new Set(clientesCarregados.map((cliente) => cliente.codigo));
+  const livres = CODIGOS_FIXOS.filter((codigo) => !usados.has(codigo));
+
+  if (!livres.length) {
+    return null;
+  }
+
+  const embaralhados = embaralharArray(livres);
+  return embaralhados[0];
+}
+
+async function criarNovoCliente() {
+  const codigoLivre = obterCodigoLivreAleatorio();
+
+  if (!codigoLivre) {
+    mostrarMensagem("Todos os códigos fixos já foram usados.", "#ffb86b");
+    return;
+  }
+
+  try {
+    botaoNovoCliente.disabled = true;
+    mostrarMensagem("Criando novo cliente...");
+
+    const { error } = await supabaseClient
+      .from("clientes_app")
+      .insert({
+        codigo: codigoLivre,
+        nome: "Novo Cliente",
+        telefone: null,
+        empresa: null,
+        observacao: null
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    mostrarMensagem(`Cliente ${codigoLivre} criado com sucesso.`, "#7CFC9A");
+    window.location.href = `cliente-admin.html?codigo=${encodeURIComponent(codigoLivre)}`;
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao criar novo cliente.", "#ff6b6b");
+  } finally {
+    botaoNovoCliente.disabled = false;
+  }
+}
+
+botaoNovoCliente.addEventListener("click", criarNovoCliente);
+botaoAtualizar.addEventListener("click", carregarClientes);
+buscaCliente.addEventListener("input", renderizarClientes);
+
+carregarClientes();
