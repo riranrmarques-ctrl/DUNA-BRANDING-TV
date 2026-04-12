@@ -286,6 +286,14 @@ function injetarEstilosScroll() {
     .grupo-pontos-scroll-inativo::-webkit-scrollbar {
       width: 0px;
       height: 0px;
+      display: none;
+    }
+
+    .grupo-pontos-scroll-selecionado,
+    .grupo-pontos-scroll-disponivel,
+    .grupo-pontos-scroll-inativo {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
   `;
   document.head.appendChild(style);
