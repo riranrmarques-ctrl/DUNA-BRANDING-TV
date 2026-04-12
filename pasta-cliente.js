@@ -1,168 +1,542 @@
-const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
-const BUCKET = "videos";
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pasta do Cliente</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    body {
+      background: #0f1115;
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 20px;
+    }
 
-const inputCodigo = document.getElementById("codigo");
-const inputNome = document.getElementById("nome");
-const inputTelefone = document.getElementById("telefone");
-const inputEmail = document.getElementById("email");
-const inputCpfCnpj = document.getElementById("cpfCnpj");
-const inputVencimento = document.getElementById("vencimentoExibicao");
-const statusCliente = document.getElementById("statusCliente");
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
 
-const listaPontos = document.getElementById("listaPontos");
-const resumoCliente = document.getElementById("resumoCliente");
-const mensagem = document.getElementById("mensagem");
-const botaoSalvar = document.getElementById("botaoSalvar");
-const botaoVoltar = document.getElementById("botaoVoltar");
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
 
-const arquivoInput = document.getElementById("arquivoInput");
-const btnUploadCliente = document.getElementById("btnUploadCliente");
-const statusUpload = document.getElementById("statusUpload");
+    .topo h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
 
-const historicoContratos = document.getElementById("historicoContratos");
-const historicoArquivos = document.getElementById("historicoArquivos");
+    .topo p {
+      color: #bfc7d5;
+      line-height: 1.5;
+    }
 
-let pontosData = {};
-let codigoClienteAtual = "";
-let houveAlteracao = true;
+    .acoes-topo {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-function mostrarMensagem(texto, cor = "#9fd2ff") {
-  mensagem.textContent = texto;
-  mensagem.style.color = cor;
-}
+    .botao {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      color: #fff;
+      transition: 0.2s ease;
+    }
 
-function obterCodigoDaUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return (params.get("codigo") || "").trim().toUpperCase();
-}
+    .botao:hover {
+      opacity: 0.92;
+    }
 
-function formatarTelefone(valor) {
-  const numeros = String(valor || "").replace(/\D/g, "").slice(0, 11);
+    .botao-voltar {
+      background: #2a2f3a;
+    }
 
-  if (numeros.length === 0) return "";
-  if (numeros.length <= 2) return `(${numeros}`;
-  if (numeros.length <= 7) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
-  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
-}
+    .botao-salvar {
+      background: #2d8cff;
+      font-weight: bold;
+    }
 
-function marcarErro(campo) {
-  campo.style.border = "1px solid #ff6b6b";
-}
+    .botao-excluir {
+      background: #7a2230;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: 0.2s ease;
+    }
 
-function limparErro(campo) {
-  campo.style.border = "1px solid #313847";
-}
+    .botao-excluir:hover {
+      opacity: 0.92;
+    }
 
-function ativarBotaoSalvar() {
-  houveAlteracao = true;
-  botaoSalvar.disabled = false;
-  botaoSalvar.style.opacity = "1";
-}
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+    }
 
-function desativarBotaoSalvar() {
-  houveAlteracao = false;
-  botaoSalvar.disabled = true;
-  botaoSalvar.style.opacity = "0.5";
-}
+    .grid-historicos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
 
-async function carregarPontos() {
-  const response = await fetch("pontos.json?v=1");
-  pontosData = await response.json();
-}
+    .box {
+      background: #171a21;
+      border: 1px solid #262b36;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    }
 
-function obterPontosMarcados() {
-  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map(i => i.value);
-}
+    .box h2 {
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+    }
 
-function obterNomeDoPonto(ponto, codigo) {
-  return ponto?.nome || ponto?.ambiente || ponto?.titulo || `Ponto ${codigo}`;
-}
+    .campo {
+      margin-bottom: 16px;
+    }
 
-function atualizarResumo() {
-  const pontos = obterPontosMarcados();
-  resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> ${pontos.join(", ") || "nenhum"}</div>`;
-}
+    .campo label {
+      display: block;
+      margin-bottom: 8px;
+      color: #d5dbea;
+      font-size: 0.95rem;
+    }
 
-/* 🔥 NOVA ORGANIZAÇÃO */
-function renderizarPontosSelecionaveis(selecionados = []) {
-  listaPontos.innerHTML = "";
+    .campo input,
+    .campo textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #313847;
+      background: #0f1115;
+      color: #fff;
+      outline: none;
+      font-size: 1rem;
+    }
 
-  const codigos = Object.keys(pontosData);
+    .campo input[readonly] {
+      opacity: 0.9;
+      cursor: not-allowed;
+    }
 
-  const selecionadosArr = [];
-  const disponiveisArr = [];
-  const inativosArr = [];
+    .linha-dupla {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
 
-  codigos.forEach((codigo) => {
-    const ponto = pontosData[codigo];
-    const nome = obterNomeDoPonto(ponto, codigo);
+    .linha-tripla {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
 
-    const isSelecionado = selecionados.includes(codigo);
-    const isInativo = ponto?.status === "inativo";
+    .status-badge {
+      display: flex;
+      align-items: center;
+      min-height: 46px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #313847;
+      background: #0f1115;
+      color: #ffffff;
+      font-size: 1rem;
+    }
 
-    const html = `
-      <label class="item-ponto ${isSelecionado ? "selecionado" : ""}">
-        <input type="checkbox" name="pontos" value="${codigo}" 
-          ${isSelecionado ? "checked" : ""} 
-          ${isInativo ? "disabled" : ""}>
-        <span>${codigo}</span>
-        <span>${nome}</span>
-      </label>
-    `;
+    .upload-box,
+    .pdf-box {
+      background: #10131a;
+      border: 1px dashed #2d8cff;
+      border-radius: 14px;
+      padding: 16px;
+    }
 
-    if (isSelecionado) selecionadosArr.push(html);
-    else if (isInativo) inativosArr.push(html);
-    else disponiveisArr.push(html);
-  });
+    .upload-box strong,
+    .pdf-box strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #ffffff;
+      font-size: 1rem;
+    }
 
-  listaPontos.innerHTML = `
-    <div><strong style="color:#7CFC9A">Selecionado</strong>${selecionadosArr.join("")}</div>
-    <div><strong style="color:#6ea8ff">Disponível</strong>${disponiveisArr.join("")}</div>
-    <div><strong style="color:#ff6b6b">Inativo</strong>${inativosArr.join("")}</div>
-  `;
+    .upload-acoes {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-  atualizarResumo();
-}
+    .upload-acoes input[type="file"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #313847;
+      background: #0f1115;
+      color: #fff;
+      font-size: 0.95rem;
+    }
 
-listaPontos.addEventListener("change", () => {
-  renderizarPontosSelecionaveis(obterPontosMarcados());
-  ativarBotaoSalvar();
-});
+    .upload-acoes .botao {
+      width: fit-content;
+    }
 
-async function carregarCliente() {
-  const { data } = await supabaseClient
-    .from("clientes_app")
-    .select("*")
-    .eq("codigo", codigoClienteAtual)
-    .single();
+    .status-upload {
+      min-height: 20px;
+      font-size: 0.92rem;
+      color: #bfc7d5;
+    }
 
-  inputCodigo.value = data.codigo;
-  inputNome.value = data.nome || "";
-  inputTelefone.value = formatarTelefone(data.telefone || "");
-  inputEmail.value = data.email || "";
-  inputCpfCnpj.value = data.cpf_cnpj || "";
-  inputVencimento.value = data.vencimento_exibicao || "";
+    .mensagem {
+      min-height: 24px;
+      color: #9fd2ff;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
 
-  renderizarPontosSelecionaveis([]);
-  desativarBotaoSalvar();
-}
+    .resumo {
+      background: #10131a;
+      border: 1px solid #2a3040;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+      color: #d5dbea;
+    }
 
-botaoSalvar.addEventListener("click", () => {
-  mostrarMensagem("Salvo");
-  desativarBotaoSalvar();
-});
+    .resumo .linha {
+      margin-bottom: 6px;
+    }
 
-botaoVoltar.addEventListener("click", () => {
-  window.location.href = "central-clientes.html";
-});
+    .pontos-grid {
+      background: #10131a;
+      border: 1px dashed #2d8cff;
+      border-radius: 14px;
+      padding: 14px;
+      max-height: 430px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
 
-async function iniciar() {
-  codigoClienteAtual = obterCodigoDaUrl();
-  await carregarPontos();
-  await carregarCliente();
-}
+    .grupo-pontos {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-iniciar();
+    .grupo-pontos-titulo {
+      font-size: 0.92rem;
+      font-weight: bold;
+      text-transform: lowercase;
+      color: #d5dbea;
+    }
+
+    .grupo-pontos-titulo.selecionado {
+      color: #7CFC9A;
+    }
+
+    .grupo-pontos-titulo.disponivel {
+      color: #6ea8ff;
+    }
+
+    .grupo-pontos-titulo.inativo {
+      color: #ff6b6b;
+    }
+
+    .grupo-pontos-lista {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .item-ponto {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      min-height: 46px;
+      transition: 0.2s ease;
+      border: 1px solid transparent;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .item-ponto input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #ffffff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .item-ponto-texto {
+      display: flex;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .item-ponto-codigo,
+    .item-ponto-nome {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-ponto.selecionado {
+      background: #76d34f;
+      border-color: #8ce063;
+      color: #ffffff;
+    }
+
+    .item-ponto.disponivel {
+      background: #4f6ff0;
+      border-color: #6f8bff;
+      color: #ffffff;
+    }
+
+    .item-ponto.inativo {
+      background: #ff3838;
+      border-color: #ff5c5c;
+      color: #ffffff;
+      cursor: not-allowed;
+      opacity: 0.92;
+    }
+
+    .item-ponto:hover:not(.inativo) {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    .historico-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 120px;
+    }
+
+    .historico-item {
+      background: #10131a;
+      border: 1px solid #2a3040;
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .historico-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .historico-item-titulo {
+      font-size: 0.96rem;
+      font-weight: bold;
+      color: #ffffff;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .historico-item-linha {
+      color: #c6cedd;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .historico-vazio {
+      color: #c6cedd;
+      background: #10131a;
+      border: 1px solid #2a3040;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .vazio {
+      color: #c6cedd;
+      background: #10131a;
+      border: 1px solid #2a3040;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .grid,
+      .grid-historicos {
+        grid-template-columns: 1fr;
+      }
+
+      .linha-dupla,
+      .linha-tripla {
+        grid-template-columns: 1fr;
+      }
+
+      .historico-item,
+      .grupo-pontos-lista {
+        grid-template-columns: 1fr;
+      }
+
+      .historico-item {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 16px;
+      }
+
+      .topo h1 {
+        font-size: 1.65rem;
+      }
+
+      .grupo-pontos-lista {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="topo">
+      <div>
+        <h1>Pasta do Cliente</h1>
+        <p>Edite os dados do cliente e escolha os pontos de exibição.</p>
+      </div>
+
+      <div class="acoes-topo">
+        <button id="botaoVoltar" class="botao botao-voltar" type="button">Voltar</button>
+        <button id="botaoSalvar" class="botao botao-salvar" type="button">Salvar</button>
+      </div>
+    </div>
+
+    <p id="mensagem" class="mensagem"></p>
+
+    <div class="grid">
+      <div class="box">
+        <h2>Dados do cliente</h2>
+
+        <div class="linha-tripla">
+          <div class="campo">
+            <label for="codigo">Código</label>
+            <input id="codigo" type="text" readonly>
+          </div>
+
+          <div class="campo">
+            <label for="statusCliente">Status do cliente</label>
+            <div id="statusCliente" class="status-badge">Não ativo</div>
+          </div>
+
+          <div class="campo">
+            <label for="vencimentoExibicao">Vencimento da exibição</label>
+            <input type="date" id="vencimentoExibicao" required>
+          </div>
+        </div>
+
+        <div class="linha-dupla">
+          <div class="campo">
+            <label for="nome">Nome completo</label>
+            <input id="nome" type="text" placeholder="Nome completo do cliente" required>
+          </div>
+
+          <div class="campo">
+            <label for="telefone">Telefone</label>
+            <input id="telefone" type="text" placeholder="(XX) XXXXX-XXXX" maxlength="15" required>
+          </div>
+        </div>
+
+        <div class="linha-dupla">
+          <div class="campo">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="email@exemplo.com" required>
+          </div>
+
+          <div class="campo">
+            <label for="cpfCnpj">CPF / CNPJ</label>
+            <input id="cpfCnpj" type="text" placeholder="CPF ou CNPJ" required>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>PONTOS DAS TELAS</label>
+          <div id="listaPontos" class="pontos-grid"></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>Informações</h2>
+        <div id="resumoCliente" class="resumo"></div>
+
+        <div class="campo">
+          <label>Contrato</label>
+          <div class="pdf-box">
+            <strong>Espaço para contrato</strong>
+            Aqui ficará a área do contrato do cliente.
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Upgrade de arquivo</label>
+          <div class="upload-box">
+            <strong>Espaço de upgrade de arquivo</strong>
+
+            <div class="upload-acoes">
+              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
+              <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
+              <div id="statusUpload" class="status-upload"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-historicos">
+      <div class="box">
+        <h2>Histórico de contrato</h2>
+        <div id="historicoContratos" class="historico-lista">
+          <div class="historico-vazio">Área reservada para o histórico de contratos.</div>
+        </div>
+      </div>
+
+      <div class="box">
+        <h2>Histórico de arquivo</h2>
+        <div id="historicoArquivos" class="historico-lista"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="pasta-cliente.js?v=9"></script>
+</body>
+</html>
