@@ -122,6 +122,49 @@ function renderizarCardsPontos(lista) {
   });
 }
 
+async function copiarTexto(texto) {
+  try {
+    await navigator.clipboard.writeText(texto);
+    setStatus("Código copiado", "ok");
+  } catch {
+    setStatus("Não foi possível copiar", "erro");
+  }
+}
+
+async function editarNomePonto(codigo) {
+  const nomeAtual = pontosMap[codigo]?.nome || codigo;
+  const novoNome = prompt("Novo nome do ponto:", nomeAtual);
+
+  if (novoNome === null) return;
+
+  const nomeLimpo = novoNome.trim();
+  if (!nomeLimpo) {
+    setStatus("Nome inválido", "erro");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .update({ nome: nomeLimpo })
+    .eq("codigo", codigo);
+
+  if (error) {
+    setStatus("Erro ao renomear ponto", "erro");
+    return;
+  }
+
+  if (!pontosMap[codigo]) pontosMap[codigo] = { codigo };
+  pontosMap[codigo].nome = nomeLimpo;
+
+  renderizarCardsPontos(Object.values(pontosMap));
+
+  if (codigoSelecionado === codigo) {
+    tituloPasta.textContent = "Pasta do " + nomeLimpo;
+  }
+
+  setStatus("Ponto renomeado", "ok");
+}
+
 /* ABRIR */
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo).trim();
@@ -146,8 +189,11 @@ btnVoltar.onclick = () => {
 /* COPIAR */
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = () => {
-    navigator.clipboard.writeText(codigoSelecionado);
-    setStatus("Código copiado", "ok");
+    if (!codigoSelecionado) {
+      setStatus("Nenhum código selecionado", "erro");
+      return;
+    }
+    copiarTexto(codigoSelecionado);
   };
 }
 
@@ -314,4 +360,12 @@ async function iniciarPainel() {
   document.querySelectorAll(".btn-abrir").forEach(
     btn => (btn.onclick = () => abrirPonto(btn.dataset.codigo))
   );
+
+  document.querySelectorAll(".btn-copiar").forEach(btn => {
+    btn.onclick = () => copiarTexto(btn.dataset.codigo);
+  });
+
+  document.querySelectorAll(".btn-editar-nome").forEach(btn => {
+    btn.onclick = () => editarNomePonto(btn.dataset.codigo);
+  });
 }
