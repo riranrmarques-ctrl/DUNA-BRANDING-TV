@@ -28,16 +28,11 @@ const playlistInativa = document.getElementById("playlistInativa");
 
 const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 
-const arquivoInput = document.getElementById("arquivoInput");
-const btnUploadCliente = document.getElementById("btnUploadCliente");
-const statusUpload = document.getElementById("statusUpload");
-
 let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
 
 function setStatus(texto, tipo = "normal") {
-  if (!statusEl) return;
   statusEl.textContent = texto;
   statusEl.className = "status-box";
   if (tipo === "ok") statusEl.classList.add("ok");
@@ -60,7 +55,10 @@ function montarLinhaDatas(item) {
   const postado = formatarData(item.created_at);
   const encerrado = formatarData(item.data_fim);
 
-  if (postado && encerrado) return `Postado: ${postado} • Encerra: ${encerrado}`;
+  if (postado && encerrado) {
+    return `Postado: ${postado} • Encerra: ${encerrado}`;
+  }
+
   if (postado) return `Postado: ${postado}`;
   if (encerrado) return `Encerra: ${encerrado}`;
 
@@ -95,46 +93,30 @@ function obterCodigoDoElemento(el) {
 }
 
 function validarLogin() {
-  if (!senhaInput || senhaInput.value.trim() !== SENHA_PAINEL) {
-    if (loginErro) loginErro.textContent = "Código inválido";
+  if (senhaInput.value.trim() !== SENHA_PAINEL) {
+    loginErro.textContent = "Código inválido";
     return;
   }
 
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
+  loginBox.style.display = "none";
+  conteudoPainel.style.display = "block";
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
 }
 
-if (btnLogin) {
-  btnLogin.onclick = validarLogin;
-}
-
-if (senhaInput) {
-  senhaInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") validarLogin();
-  });
-}
+btnLogin.onclick = validarLogin;
 
 async function buscarPontos() {
-  const { data, error } = await supabaseClient.from(TABELA_PONTOS).select("*");
-
-  if (error) {
-    setStatus("Erro ao carregar pontos", "erro");
-    return [];
-  }
-
+  const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
   return data || [];
 }
 
 function renderizarCardsPontos(lista) {
   pontosMap = {};
-  lista.forEach(p => {
-    pontosMap[p.codigo] = p;
-  });
+  lista.forEach(p => (pontosMap[p.codigo] = p));
 
   document.querySelectorAll(".card-ponto").forEach(card => {
-    const codigo = String(card.dataset.codigo || "").trim();
+    const codigo = card.dataset.codigo;
     const nomeEl = card.querySelector(".card-nome");
 
     if (nomeEl) {
@@ -181,10 +163,12 @@ async function editarNomePonto(codigo) {
 
   document.querySelectorAll(`.card-ponto[data-codigo="${codigoFinal}"]`).forEach(card => {
     const nomeEl = card.querySelector(".card-nome");
-    if (nomeEl) nomeEl.textContent = nomeFinal;
+    if (nomeEl) {
+      nomeEl.textContent = nomeFinal;
+    }
   });
 
-  if (codigoSelecionado === codigoFinal && tituloPasta) {
+  if (codigoSelecionado === codigoFinal) {
     tituloPasta.textContent = "Pasta do " + nomeFinal;
   }
 
@@ -192,38 +176,28 @@ async function editarNomePonto(codigo) {
 }
 
 function abrirPonto(codigo) {
-  const codigoFinal = String(codigo || "").trim();
+  codigoSelecionado = String(codigo).trim();
 
-  if (!codigoFinal) {
-    setStatus("Código do ponto não encontrado", "erro");
-    return;
-  }
+  listaPontos.style.display = "none";
+  pontoDetalhe.style.display = "block";
 
-  codigoSelecionado = codigoFinal;
+  codigoAtual.textContent = codigoSelecionado;
 
-  if (listaPontos) listaPontos.style.display = "none";
-  if (pontoDetalhe) pontoDetalhe.style.display = "block";
-
-  if (codigoAtual) codigoAtual.textContent = codigoSelecionado;
-
-  if (tituloPasta) {
-    tituloPasta.textContent =
-      "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
-  }
+  tituloPasta.textContent =
+    "Pasta do " + (pontosMap[codigoSelecionado]?.nome || codigoSelecionado);
 
   carregarPlaylist();
 }
 
-if (btnVoltar) {
-  btnVoltar.onclick = () => {
-    if (listaPontos) listaPontos.style.display = "grid";
-    if (pontoDetalhe) pontoDetalhe.style.display = "none";
-  };
-}
+btnVoltar.onclick = () => {
+  listaPontos.style.display = "grid";
+  pontoDetalhe.style.display = "block";
+  pontoDetalhe.style.display = "none";
+};
 
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = async () => {
-    const texto = String(codigoSelecionado || codigoAtual?.textContent || "").trim();
+    const texto = String(codigoSelecionado || codigoAtual.textContent || "").trim();
 
     if (!texto) {
       setStatus("Nenhum código disponível para copiar", "erro");
@@ -240,11 +214,6 @@ if (btnCopiarCodigo) {
 }
 
 async function carregarPlaylist() {
-  if (!codigoSelecionado) {
-    setStatus("Nenhum ponto selecionado", "erro");
-    return;
-  }
-
   const { data, error } = await supabaseClient
     .from(TABELA)
     .select("*")
@@ -265,8 +234,6 @@ async function carregarPlaylist() {
 }
 
 function renderizarPlaylistAtiva(lista) {
-  if (!playlistAtiva) return;
-
   if (!lista.length) {
     playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
     return;
@@ -277,6 +244,7 @@ function renderizarPlaylistAtiva(lista) {
       (item, i) => `
     <div class="playlist-item" draggable="true" data-index="${i}">
       <div class="playlist-item-handle">⋮⋮</div>
+
       <div class="playlist-item-conteudo">
         <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
         <div class="playlist-item-info">${montarLinhaDatas(item)}</div>
@@ -290,8 +258,6 @@ function renderizarPlaylistAtiva(lista) {
 }
 
 function renderizarHistorico(lista) {
-  if (!playlistInativa) return;
-
   if (!lista.length) {
     playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
     return;
@@ -326,8 +292,7 @@ function ativarDrag(lista) {
       novo.splice(target, 0, movido);
 
       for (let i = 0; i < novo.length; i++) {
-        await supabaseClient
-          .from(TABELA)
+        await supabaseClient.from(TABELA)
           .update({ ordem: i })
           .eq("id", novo[i].id);
       }
@@ -337,9 +302,13 @@ function ativarDrag(lista) {
   });
 }
 
-function conectarEventosDosCards() {
+async function iniciarPainel() {
+  const pontos = await buscarPontos();
+  renderizarCardsPontos(pontos);
+
   document.querySelectorAll(".btn-abrir").forEach(btn => {
     btn.onclick = e => {
+      e.preventDefault();
       e.stopPropagation();
       const codigo = obterCodigoDoElemento(btn);
       abrirPonto(codigo);
@@ -348,77 +317,60 @@ function conectarEventosDosCards() {
 
   document.querySelectorAll(".btn-editar").forEach(btn => {
     btn.onclick = e => {
+      e.preventDefault();
       e.stopPropagation();
       const codigo = obterCodigoDoElemento(btn);
       editarNomePonto(codigo);
     };
   });
-
-  document.querySelectorAll(".card-ponto").forEach(card => {
-    card.onclick = e => {
-      if (e.target.closest(".btn-editar") || e.target.closest(".btn-abrir")) return;
-      const codigo = obterCodigoDoElemento(card);
-      abrirPonto(codigo);
-    };
-  });
 }
 
-async function iniciarPainel() {
-  const pontos = await buscarPontos();
-  renderizarCardsPontos(pontos);
-  conectarEventosDosCards();
-}
+const arquivoInput = document.getElementById("arquivoInput");
+const btnUploadCliente = document.getElementById("btnUploadCliente");
+const statusUpload = document.getElementById("statusUpload");
 
-if (btnUploadCliente) {
-  btnUploadCliente.onclick = async () => {
-    const file = arquivoInput?.files?.[0];
+btnUploadCliente.onclick = async () => {
+  const file = arquivoInput.files[0];
 
-    if (!file) {
-      if (statusUpload) statusUpload.textContent = "Selecione um arquivo";
-      return;
+  if (!file) {
+    statusUpload.textContent = "Selecione um arquivo";
+    return;
+  }
+
+  statusUpload.textContent = "Enviando...";
+
+  try {
+    if (file.name.endsWith(".txt")) {
+      const texto = await file.text();
+      const url = texto.trim();
+
+      await supabaseClient.from("playlists").insert({
+        nome: inputNome.value,
+        video_url: url,
+        tipo: "url",
+        data_inicio: new Date().toISOString(),
+        data_fim: inputVencimento.value
+      });
+
+    } else {
+      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
+
+      await supabaseClient.storage.from("videos").upload(path, file);
+
+      const { data } = supabaseClient.storage.from("videos").getPublicUrl(path);
+
+      await supabaseClient.from("playlists").insert({
+        nome: inputNome.value,
+        video_url: data.publicUrl,
+        tipo: "arquivo",
+        data_inicio: new Date().toISOString(),
+        data_fim: inputVencimento.value
+      });
     }
 
-    if (!codigoSelecionado) {
-      if (statusUpload) statusUpload.textContent = "Selecione um ponto primeiro";
-      return;
-    }
+    statusUpload.textContent = "Enviado com sucesso";
 
-    if (statusUpload) statusUpload.textContent = "Enviando...";
-
-    try {
-      if (file.name.endsWith(".txt")) {
-        const texto = await file.text();
-        const url = texto.trim();
-
-        await supabaseClient.from("playlists").insert({
-          codigo: codigoSelecionado,
-          nome: typeof inputNome !== "undefined" ? inputNome.value : file.name,
-          video_url: url,
-          tipo: "url",
-          data_inicio: new Date().toISOString(),
-          data_fim: typeof inputVencimento !== "undefined" ? inputVencimento.value : null
-        });
-      } else {
-        const path = `clientes/${codigoSelecionado}/${Date.now()}-${file.name}`;
-
-        await supabaseClient.storage.from("videos").upload(path, file);
-
-        const { data } = supabaseClient.storage.from("videos").getPublicUrl(path);
-
-        await supabaseClient.from("playlists").insert({
-          codigo: codigoSelecionado,
-          nome: typeof inputNome !== "undefined" ? inputNome.value : file.name,
-          video_url: data.publicUrl,
-          tipo: "arquivo",
-          data_inicio: new Date().toISOString(),
-          data_fim: typeof inputVencimento !== "undefined" ? inputVencimento.value : null
-        });
-      }
-
-      if (statusUpload) statusUpload.textContent = "Enviado com sucesso";
-      carregarPlaylist();
-    } catch (err) {
-      if (statusUpload) statusUpload.textContent = "Erro ao enviar";
-    }
-  };
-}
+  } catch (err) {
+    statusUpload.textContent = "Erro ao enviar";
+  }
+};
