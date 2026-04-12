@@ -32,7 +32,7 @@ function autoEntrar() {
   const codigoSalvo = localStorage.getItem("codigoAtivo");
 
   if (codigoSalvo && codigosValidos.includes(codigoSalvo)) {
-    let segundos = 60;
+    let segundos = 30;
 
     mostrarMensagem("Modo automático ativado", "#86efac");
 
