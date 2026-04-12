@@ -103,8 +103,7 @@
     }
 
     .campo input,
-    .campo textarea,
-    .campo select {
+    .campo textarea {
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
@@ -118,11 +117,6 @@
     .campo input[readonly] {
       opacity: 0.9;
       cursor: not-allowed;
-    }
-
-    .campo textarea {
-      resize: vertical;
-      min-height: 90px;
     }
 
     .linha-dupla {
@@ -258,11 +252,12 @@
       word-break: break-word;
     }
 
-    .item-ponto-info span {
-      color: #bfc7d5;
-      font-size: 0.88rem;
-      line-height: 1.4;
-      word-break: break-word;
+    .vazio {
+      color: #c6cedd;
+      background: #10131a;
+      border: 1px solid #2a3040;
+      border-radius: 12px;
+      padding: 16px;
     }
 
     @media (max-width: 900px) {
@@ -322,32 +317,32 @@
 
           <div class="campo">
             <label for="vencimentoExibicao">Vencimento da exibição</label>
-            <input type="date" id="vencimentoExibicao">
+            <input type="date" id="vencimentoExibicao" required>
           </div>
         </div>
 
         <div class="linha-dupla">
           <div class="campo">
-            <label for="nome">Nome</label>
-            <input id="nome" type="text" placeholder="Nome do cliente">
+            <label for="nome">Nome completo</label>
+            <input id="nome" type="text" placeholder="Nome completo do cliente" required>
           </div>
 
           <div class="campo">
             <label for="telefone">Telefone</label>
-            <input id="telefone" type="text" placeholder="(XX) XXXXX-XXXX" maxlength="15">
+            <input id="telefone" type="text" placeholder="(XX) XXXXX-XXXX" maxlength="15" required>
           </div>
         </div>
 
-        <div class="campo">
-          <label for="segmento">Segmento</label>
-          <select id="segmento">
-            <option value="">Selecionar segmento</option>
-          </select>
-        </div>
+        <div class="linha-dupla">
+          <div class="campo">
+            <label for="email">Email</label>
+            <input id="email" type="email" placeholder="email@exemplo.com" required>
+          </div>
 
-        <div class="campo">
-          <label for="observacao">Observação</label>
-          <textarea id="observacao" placeholder="Observações do cliente"></textarea>
+          <div class="campo">
+            <label for="cpfCnpj">CPF / CNPJ</label>
+            <input id="cpfCnpj" type="text" placeholder="CPF ou CNPJ" required>
+          </div>
         </div>
 
         <div class="campo">
@@ -356,7 +351,7 @@
             <strong>Espaço de upgrade de arquivo</strong>
 
             <div class="upload-acoes">
-              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.txt">
+              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
               <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
               <div id="statusUpload" class="status-upload"></div>
             </div>
@@ -385,6 +380,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=4"></script>
+  <script src="pasta-cliente.js?v=5"></script>
 </body>
 </html>
