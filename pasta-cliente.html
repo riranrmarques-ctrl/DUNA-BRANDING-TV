@@ -1,389 +1,148 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pasta do Cliente</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pasta do Cliente</title>
 
-    body {
-      background: #0f1115;
-      color: #ffffff;
-      min-height: 100vh;
-      padding: 20px;
-    }
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial; }
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+body {
+  background: #0f1115;
+  color: #fff;
+  padding: 20px;
+}
 
-    .topo {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
+.container { max-width: 1100px; margin: auto; }
 
-    .topo h1 {
-      font-size: 2rem;
-      margin-bottom: 8px;
-    }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+}
 
-    .topo p {
-      color: #bfc7d5;
-      line-height: 1.5;
-    }
+.box {
+  background: #171a21;
+  border: 1px solid #262b36;
+  border-radius: 16px;
+  padding: 20px;
+}
 
-    .acoes-topo {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+.campo { margin-bottom: 16px; }
 
-    .botao {
-      border: none;
-      border-radius: 12px;
-      padding: 12px 18px;
-      font-size: 0.95rem;
-      cursor: pointer;
-      color: #fff;
-      transition: 0.2s ease;
-    }
+.campo input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #313847;
+  background: #0f1115;
+  color: #fff;
+}
 
-    .botao:hover {
-      opacity: 0.92;
-    }
+.pontos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-    .botao-voltar {
-      background: #2a2f3a;
-    }
+/* NOVO DESIGN */
+.item-ponto {
+  background: #10131a;
+  border: 1px solid #2a3040;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: 0.25s;
+}
 
-    .botao-salvar {
-      background: #2d8cff;
-      font-weight: bold;
-    }
+.item-ponto:hover {
+  border-color: #2d8cff;
+}
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 20px;
-    }
+.item-ponto.selecionado {
+  border-color: #2d8cff;
+  background: rgba(45,140,255,0.08);
+}
 
-    .box {
-      background: #171a21;
-      border: 1px solid #262b36;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-    }
+.ponto-esquerda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-    .box h2 {
-      font-size: 1.2rem;
-      margin-bottom: 16px;
-    }
+.ponto-checkbox {
+  width: 20px;
+  height: 20px;
+}
 
-    .campo {
-      margin-bottom: 16px;
-    }
+.ponto-info {
+  display: flex;
+  flex-direction: column;
+}
 
-    .campo label {
-      display: block;
-      margin-bottom: 8px;
-      color: #d5dbea;
-      font-size: 0.95rem;
-    }
+.ponto-nome { font-size: 14px; }
+.ponto-codigo { font-size: 12px; color: #9aa4b2; }
 
-    .campo input,
-    .campo textarea {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid #313847;
-      background: #0f1115;
-      color: #fff;
-      outline: none;
-      font-size: 1rem;
-    }
+.botao {
+  background: #2d8cff;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+}
 
-    .campo input[readonly] {
-      opacity: 0.9;
-      cursor: not-allowed;
-    }
-
-    .linha-dupla {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .linha-tripla {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 14px;
-    }
-
-    .status-badge {
-      display: flex;
-      align-items: center;
-      min-height: 46px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid #313847;
-      background: #0f1115;
-      color: #ffffff;
-      font-size: 1rem;
-    }
-
-    .upload-box,
-    .pdf-box {
-      background: #10131a;
-      border: 1px dashed #2d8cff;
-      border-radius: 14px;
-      padding: 16px;
-    }
-
-    .upload-box strong,
-    .pdf-box strong {
-      display: block;
-      margin-bottom: 10px;
-      color: #ffffff;
-      font-size: 1rem;
-    }
-
-    .upload-acoes {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .upload-acoes input[type="file"] {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #313847;
-      background: #0f1115;
-      color: #fff;
-      font-size: 0.95rem;
-    }
-
-    .upload-acoes .botao {
-      width: fit-content;
-    }
-
-    .status-upload {
-      min-height: 20px;
-      font-size: 0.92rem;
-      color: #bfc7d5;
-    }
-
-    .mensagem {
-      min-height: 24px;
-      color: #9fd2ff;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
-    }
-
-    .resumo {
-      background: #10131a;
-      border: 1px solid #2a3040;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      line-height: 1.6;
-      color: #d5dbea;
-    }
-
-    .resumo .linha {
-      margin-bottom: 6px;
-    }
-
-    .pontos-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      background: #10131a;
-      border: 1px dashed #2d8cff;
-      border-radius: 14px;
-      padding: 16px;
-    }
-
-    .item-ponto {
-      background: #10131a;
-      border: 1px solid #2a3040;
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      min-height: 88px;
-      transition: 0.2s ease;
-      cursor: pointer;
-    }
-
-    .item-ponto:hover {
-      border-color: #3d4960;
-      transform: translateY(-1px);
-    }
-
-    .item-ponto input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #2d8cff;
-      margin-top: 3px;
-      flex-shrink: 0;
-    }
-
-    .item-ponto-info {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0;
-    }
-
-    .item-ponto-info strong {
-      color: #ffffff;
-      font-size: 0.96rem;
-      line-height: 1.4;
-      word-break: break-word;
-    }
-
-    .vazio {
-      color: #c6cedd;
-      background: #10131a;
-      border: 1px solid #2a3040;
-      border-radius: 12px;
-      padding: 16px;
-    }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .linha-dupla,
-      .linha-tripla,
-      .pontos-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 16px;
-      }
-
-      .topo h1 {
-        font-size: 1.65rem;
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
 
-  <div class="container">
-    <div class="topo">
-      <div>
-        <h1>Pasta do Cliente</h1>
-        <p>Edite os dados do cliente e visualize os pontos das telas.</p>
-      </div>
+<div class="container">
 
-      <div class="acoes-topo">
-        <button id="botaoVoltar" class="botao botao-voltar" type="button">Voltar</button>
-        <button id="botaoSalvar" class="botao botao-salvar" type="button">Salvar</button>
-      </div>
-    </div>
+<h2>Pasta do Cliente</h2>
+<p>Edite os dados do cliente e escolha os pontos de exibição.</p>
 
-    <p id="mensagem" class="mensagem"></p>
+<button id="botaoSalvar" class="botao">Salvar</button>
 
-    <div class="grid">
-      <div class="box">
-        <h2>Dados do cliente</h2>
+<div class="grid">
 
-        <div class="linha-tripla">
-          <div class="campo">
-            <label for="codigo">Código</label>
-            <input id="codigo" type="text" readonly>
-          </div>
+<div class="box">
 
-          <div class="campo">
-            <label for="statusCliente">Status do cliente</label>
-            <div id="statusCliente" class="status-badge">Não ativo</div>
-          </div>
+<div class="campo">
+<input id="nome" placeholder="Nome completo">
+</div>
 
-          <div class="campo">
-            <label for="vencimentoExibicao">Vencimento da exibição</label>
-            <input type="date" id="vencimentoExibicao" required>
-          </div>
-        </div>
+<div class="campo">
+<input id="telefone" placeholder="Telefone">
+</div>
 
-        <div class="linha-dupla">
-          <div class="campo">
-            <label for="nome">Nome completo</label>
-            <input id="nome" type="text" placeholder="Nome completo do cliente" required>
-          </div>
+<div class="campo">
+<input id="email" placeholder="Email">
+</div>
 
-          <div class="campo">
-            <label for="telefone">Telefone</label>
-            <input id="telefone" type="text" placeholder="(XX) XXXXX-XXXX" maxlength="15" required>
-          </div>
-        </div>
+<div class="campo">
+<input id="cpfCnpj" placeholder="CPF / CNPJ">
+</div>
 
-        <div class="linha-dupla">
-          <div class="campo">
-            <label for="email">Email</label>
-            <input id="email" type="email" placeholder="email@exemplo.com" required>
-          </div>
+<div class="campo">
+<label>PONTOS</label>
+<div id="listaPontos" class="pontos-grid"></div>
+</div>
 
-          <div class="campo">
-            <label for="cpfCnpj">CPF / CNPJ</label>
-            <input id="cpfCnpj" type="text" placeholder="CPF ou CNPJ" required>
-          </div>
-        </div>
+</div>
 
-        <div class="campo">
-          <label>PONTOS DAS TELAS</label>
-          <div id="listaPontos" class="pontos-grid"></div>
-        </div>
-      </div>
+<div class="box">
+<div id="resumoCliente"></div>
+</div>
 
-      <div class="box">
-        <h2>Informações</h2>
-        <div id="resumoCliente" class="resumo"></div>
+</div>
 
-        <div class="campo">
-          <label>Contrato</label>
-          <div class="pdf-box">
-            <strong>Espaço para contrato</strong>
-            Aqui ficará a área do contrato do cliente.
-          </div>
-        </div>
+</div>
 
-        <div class="campo">
-          <label>Upgrade de arquivo</label>
-          <div class="upload-box">
-            <strong>Espaço de upgrade de arquivo</strong>
-
-            <div class="upload-acoes">
-              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
-              <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
-              <div id="statusUpload" class="status-upload"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=6"></script>
+<script src="pasta-cliente.js?v=99"></script>
 </body>
 </html>
