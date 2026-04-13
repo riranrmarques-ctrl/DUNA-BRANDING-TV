@@ -1411,3 +1411,31 @@ body {
   width: 220px;
   overflow: visible;
 }
+
+.menu-lateral-esquerdo {
+  position: fixed;
+  top: 0;
+  left: -220px; /* escondido */
+  width: 220px;
+  height: 100vh;
+  background: rgba(10, 20, 40, 0.95);
+  backdrop-filter: blur(10px);
+  transition: left 0.3s ease;
+  z-index: 999;
+}
+
+/* Área sensível para abrir */
+.menu-lateral-esquerdo:hover {
+  left: 0;
+}
+
+/* Aba pequena visível */
+.menu-lateral-aba {
+  position: absolute;
+  right: -60px;
+  top: 100px;
+  background: #1e2f5a;
+  padding: 10px;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+}
