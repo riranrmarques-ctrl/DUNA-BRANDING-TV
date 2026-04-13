@@ -933,3 +933,36 @@ body {
     width: 100%;
   }
 }
+
+
+.playlist-imagem-box {
+  position: relative;
+  overflow: hidden;
+}
+
+.imagem-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  transition: 0.3s;
+}
+
+.playlist-imagem-box:hover .imagem-overlay {
+  opacity: 1;
+}
+
+.btn-overlay-imagem {
+  background: #3a67ff;
+  border: none;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
