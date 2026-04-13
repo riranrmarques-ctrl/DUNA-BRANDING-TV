@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=98">
+  <link rel="stylesheet" href="painel.css?v=99">
 </head>
 <body>
 
@@ -257,7 +257,12 @@
           <div class="playlist-topo-flex">
             <div class="playlist-imagem-box">
               <img id="imagemPonto" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-              <button id="btnTrocarImagem" type="button" class="btn-secundario">Upgrade da imagem</button>
+
+              <div class="imagem-overlay">
+                <button id="btnTrocarImagem" type="button" class="btn-overlay-imagem">
+                  Alterar imagem
+                </button>
+              </div>
             </div>
 
             <div class="playlist-header-textos">
@@ -277,6 +282,7 @@
 
               <div class="playlist-acoes-topo">
                 <button id="btnEditarInfo" type="button" class="btn-secundario">Editar informações</button>
+                <button id="btnTrocarImagemTop" type="button" class="btn-secundario">Upgrade da imagem</button>
               </div>
             </div>
           </div>
@@ -306,6 +312,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=98"></script>
+  <script src="painel.js?v=99"></script>
 </body>
 </html>
