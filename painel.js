@@ -25,11 +25,20 @@ const btnVoltar = document.getElementById("btnVoltar");
 const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 const btnEditarInfo = document.getElementById("btnEditarInfo");
 const btnTrocarImagem = document.getElementById("btnTrocarImagem");
-const btnTrocarImagemTop = document.getElementById("btnTrocarImagemTop");
+
+const modalEditar = document.getElementById("modalEditar");
+const editNome = document.getElementById("editNome");
+const editCidade = document.getElementById("editCidade");
+const editEndereco = document.getElementById("editEndereco");
+const previewImagem = document.getElementById("previewImagem");
+const inputImagem = document.getElementById("inputImagem");
+const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
+const btnFecharModal = document.getElementById("btnFecharModal");
 
 let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
+let arquivoImagemEdicao = null;
 
 function setStatus(texto, tipo = "normal") {
   if (!statusEl) return;
@@ -274,6 +283,28 @@ function abrirPonto(codigo) {
   carregarPlaylist();
 }
 
+function abrirModalEdicao() {
+  if (!codigoSelecionado || !modalEditar) return;
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+
+  if (editNome) editNome.value = ponto.nome || "";
+  if (editCidade) editCidade.value = ponto.cidade || "";
+  if (editEndereco) editEndereco.value = ponto.endereco || "";
+  if (previewImagem) previewImagem.src = obterImagemPonto(ponto);
+  if (inputImagem) inputImagem.value = "";
+
+  arquivoImagemEdicao = null;
+  modalEditar.style.display = "flex";
+}
+
+function fecharModalEdicao() {
+  if (!modalEditar) return;
+  modalEditar.style.display = "none";
+  arquivoImagemEdicao = null;
+  if (inputImagem) inputImagem.value = "";
+}
+
 if (btnVoltar) {
   btnVoltar.onclick = () => {
     if (listaPontos) listaPontos.style.display = "grid";
@@ -295,43 +326,97 @@ if (btnCopiarCodigo) {
 }
 
 if (btnEditarInfo) {
-  btnEditarInfo.onclick = async () => {
+  btnEditarInfo.onclick = () => {
+    abrirModalEdicao();
+  };
+}
+
+if (btnFecharModal) {
+  btnFecharModal.onclick = () => {
+    fecharModalEdicao();
+  };
+}
+
+if (modalEditar) {
+  modalEditar.addEventListener("click", e => {
+    if (e.target === modalEditar) {
+      fecharModalEdicao();
+    }
+  });
+}
+
+if (inputImagem) {
+  inputImagem.addEventListener("change", e => {
+    const arquivo = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+    if (!arquivo) return;
+
+    arquivoImagemEdicao = arquivo;
+
+    const reader = new FileReader();
+    reader.onload = evento => {
+      if (previewImagem) {
+        previewImagem.src = evento.target.result;
+      }
+    };
+    reader.readAsDataURL(arquivo);
+  });
+}
+
+if (btnSalvarEdicao) {
+  btnSalvarEdicao.onclick = async () => {
     if (!codigoSelecionado) return;
 
     const ponto = pontosMap[codigoSelecionado] || {};
+    const nome = editNome ? editNome.value.trim() : "";
+    const cidade = editCidade ? editCidade.value.trim() : "";
+    const endereco = editEndereco ? editEndereco.value.trim() : "";
 
-    const nome = prompt("Nome:", ponto.nome || "");
-    if (nome === null) return;
+    try {
+      setStatus("Salvando informações...", "normal");
 
-    const cidade = prompt("Cidade:", ponto.cidade || "");
-    if (cidade === null) return;
+      let imagemUrlFinal = ponto.imagem_url || null;
 
-    const endereco = prompt("Endereço:", ponto.endereco || "");
-    if (endereco === null) return;
+      if (arquivoImagemEdicao) {
+        imagemUrlFinal = await uploadImagemPonto(arquivoImagemEdicao, codigoSelecionado);
+      }
 
-    const { error } = await supabaseClient
-      .from(TABELA_PONTOS)
-      .update({
-        nome: nome.trim(),
-        cidade: cidade.trim(),
-        endereco: endereco.trim()
-      })
-      .eq("codigo", codigoSelecionado);
+      const payload = {
+        nome,
+        cidade,
+        endereco
+      };
 
-    if (error) {
+      if (imagemUrlFinal) {
+        payload.imagem_url = imagemUrlFinal;
+      }
+
+      const { error } = await supabaseClient
+        .from(TABELA_PONTOS)
+        .update(payload)
+        .eq("codigo", codigoSelecionado);
+
+      if (error) {
+        console.error(error);
+        setStatus("Erro ao atualizar informações", "erro");
+        return;
+      }
+
+      ponto.nome = nome;
+      ponto.cidade = cidade;
+      ponto.endereco = endereco;
+      if (imagemUrlFinal) {
+        ponto.imagem_url = imagemUrlFinal;
+      }
+      pontosMap[codigoSelecionado] = ponto;
+
+      fecharModalEdicao();
+      abrirPonto(codigoSelecionado);
+      renderizarCardsPontos(Object.values(pontosMap));
+      setStatus("Atualizado com sucesso", "ok");
+    } catch (error) {
       console.error(error);
-      setStatus("Erro ao atualizar informações", "erro");
-      return;
+      setStatus("Erro ao salvar edição", "erro");
     }
-
-    ponto.nome = nome.trim();
-    ponto.cidade = cidade.trim();
-    ponto.endereco = endereco.trim();
-    pontosMap[codigoSelecionado] = ponto;
-
-    abrirPonto(codigoSelecionado);
-    renderizarCardsPontos(Object.values(pontosMap));
-    setStatus("Atualizado com sucesso", "ok");
   };
 }
 
@@ -375,12 +460,6 @@ if (btnTrocarImagem) {
       console.error(error);
       setStatus("Erro ao enviar imagem", "erro");
     }
-  };
-}
-
-if (btnTrocarImagemTop && btnTrocarImagem) {
-  btnTrocarImagemTop.onclick = () => {
-    btnTrocarImagem.click();
   };
 }
 
