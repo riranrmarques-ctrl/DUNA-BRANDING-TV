@@ -1145,58 +1145,55 @@ document.getElementById('btnContrato').addEventListener('click', gerarContrato);
 
 function gerarContrato(){
 
-  const nome = document.getElementById('nome').value;
-  const cpf = document.getElementById('cpfCnpj').value;
-  const telefone = document.getElementById('telefone').value;
-  const email = document.getElementById('email').value;
-  const valor = document.getElementById('valorContratado').value;
-  const inicio = document.getElementById('dataPostagem').value;
-  const vencimento = document.getElementById('vencimentoExibicao').value;
+document.getElementById('btnContrato')?.addEventListener('click', function () {
+  const nome = document.getElementById('nome')?.value || '';
+  const cpf = document.getElementById('cpfCnpj')?.value || '';
+  const telefone = document.getElementById('telefone')?.value || '';
+  const email = document.getElementById('email')?.value || '';
+  const valor = document.getElementById('valorContratado')?.value || '';
+  const inicio = document.getElementById('dataPostagem')?.value || '';
+  const vencimento = document.getElementById('vencimentoExibicao')?.value || '';
 
-  // ambiente (pontos selecionados)
-  const pontos = document.querySelectorAll('.item-ponto.selecionado');
-  let ambiente = "";
-
-  pontos.forEach(p => {
-    ambiente += p.innerText + " | ";
+  let ambiente = '';
+  document.querySelectorAll('.item-ponto.selecionado').forEach((p) => {
+    ambiente += p.innerText + ' | ';
   });
 
-  // monta contrato
-const contratoHTML = `
+  const contratoHTML = `
 <div style="width:800px;padding:40px;font-family:Arial;color:#000;background:#fff;">
+  <h2 style="text-align:center;">CONTRATO DE PUBLICIDADE</h2>
 
-<h2 style="text-align:center;">CONTRATO DE PUBLICIDADE</h2>
+  <p><strong>CONTRATANTE:</strong> ${nome}</p>
+  <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
+  <p><strong>Telefone:</strong> ${telefone}</p>
+  <p><strong>Email:</strong> ${email}</p>
 
-<p><strong>CONTRATANTE:</strong> ${nome}</p>
-<p><strong>CPF/CNPJ:</strong> ${cpf}</p>
-<p><strong>Telefone:</strong> ${telefone}</p>
-<p><strong>Email:</strong> ${email}</p>
+  <hr>
 
-<hr>
+  <p><strong>Ambiente:</strong> ${ambiente}</p>
+  <p><strong>Valor:</strong> R$ ${valor}</p>
+  <p><strong>Período:</strong> ${inicio} até ${vencimento}</p>
 
-<p><strong>Ambiente:</strong> ${ambiente}</p>
-<p><strong>Valor:</strong> R$ ${valor}</p>
-<p><strong>Período:</strong> ${inicio} até ${vencimento}</p>
+  <br><br>
 
-<br><br>
+  <p>
+    Contrato de prestação de serviços de publicidade em telas digitais,
+    conforme condições acordadas entre as partes.
+  </p>
 
-<p>
-Contrato de prestação de serviços de publicidade em telas digitais,
-conforme condições acordadas entre as partes.
-</p>
+  <br><br><br>
 
-<br><br><br>
-
-<div style="display:flex; justify-content:space-between;">
-  <div>_________________________<br>CONTRATANTE</div>
-  <div>_________________________<br>CONTRATADA</div>
-`;
+  <div style="display:flex;justify-content:space-between;">
+    <div>_________________________<br>CONTRATANTE</div>
+    <div>_________________________<br>CONTRATADA</div>
+  </div>
 </div>
 `;
 
-  const elemento = document.createElement("div");
+  const elemento = document.createElement('div');
   elemento.innerHTML = contratoHTML;
 
   html2pdf().from(elemento).save(`contrato-${nome}.pdf`);
+});
 }
 iniciar();
