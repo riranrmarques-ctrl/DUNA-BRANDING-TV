@@ -51,4 +51,40 @@
       <div id="listaPontos">
         <div class="pontos-box">
 
-          <!-- TODO O RESTO DO SEU HTML CONTINUA IGUAL -->
+          <!-- (todo o restante do seu código continua exatamente igual, sem nenhuma alteração) -->
+
+        </div>
+      </div>
+
+      <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+        <!-- resto igual -->
+      </div>
+    </div>
+
+    <div id="status" class="status-box">Painel Ativo</div>
+  </div>
+
+  <div id="modalEditar" class="modal-editar" style="display:none;">
+    <div class="modal-conteudo">
+      <h3>Editar Informações</h3>
+
+      <input type="text" id="editNome" placeholder="Nome do ponto">
+      <input type="text" id="editCidade" placeholder="Cidade">
+      <input type="text" id="editEndereco" placeholder="Endereço">
+
+      <div class="edit-imagem-box">
+        <img id="previewImagem" src="" alt="Preview da imagem">
+        <input type="file" id="inputImagem" accept="image/*">
+      </div>
+
+      <div class="edit-botoes">
+        <button id="btnSalvarEdicao" type="button">Salvar</button>
+        <button id="btnFecharModal" type="button">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="painel.js?v=99"></script>
+</body>
+</html>
