@@ -3,6 +3,7 @@ const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const BUCKET = "pontos";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
+const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
 
@@ -38,6 +39,7 @@ let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
 let arquivoImagemEdicao = null;
+let statusAnteriorMap = {};
 
 let posicaoImagemAtual = { x: 50, y: 50 };
 let arrastandoPreview = false;
@@ -138,8 +140,25 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
-function obterStatusItemPlaylist(item) {
-  return itemEstaInativo(item) ? "Inativo" : "Ativo";
+async function registrarEventoConexao(codigo, statusAtual) {
+  const evento = statusAtual === "ativo" ? "conectou" : "desconectou";
+
+  const { error } = await supabaseClient
+    .from(TABELA_HISTORICO_CONEXAO)
+    .insert({
+      codigo,
+      evento
+    });
+
+  if (error) {
+    console.error("Erro ao registrar histórico de conexão:", error);
+  }
+}
+
+function obterTextoEventoConexao(evento) {
+  if (evento === "conectou") return "Conectou";
+  if (evento === "desconectou") return "Desconectou";
+  return evento || "Sem evento";
 }
 
 async function uploadImagemPonto(file, codigo) {
@@ -248,6 +267,14 @@ function renderizarCardsPontos(lista) {
     const imagemEl = card.querySelector(".card-imagem");
 
     const statusInfo = calcularStatusInfo(ponto);
+    const statusAtual = statusInfo.ativo ? "ativo" : "inativo";
+    const statusAnterior = statusAnteriorMap[codigo];
+
+    if (statusAnterior && statusAnterior !== statusAtual) {
+      registrarEventoConexao(codigo, statusAtual);
+    }
+
+    statusAnteriorMap[codigo] = statusAtual;
 
     if (nomeEl) {
       nomeEl.innerHTML = `<strong>${escapeHtml(ponto.nome || codigo)}</strong>`;
@@ -549,14 +576,14 @@ function montarItemHistoricoEncerramento(item, index) {
 }
 
 function montarItemHistoricoStatus(item, index) {
-  const status = obterStatusItemPlaylist(item);
-  const classe = status.toLowerCase();
+  const textoEvento = obterTextoEventoConexao(item.evento);
+  const classe = item.evento === "conectou" ? "ativo" : item.evento === "desconectou" ? "inativo" : "";
 
   return `
     <div class="historico-item">
       <span class="historico-item-ordem">${index + 1}.</span>
-      <span class="historico-item-nome">${escapeHtml(item.nome)}</span>
-      <span class="historico-item-valor historico-status ${classe}">${status}</span>
+      <span class="historico-item-nome historico-status ${classe}">${textoEvento}</span>
+      <span class="historico-item-valor">${formatarDataHora(item.data_hora || item.created_at)}</span>
     </div>
   `;
 }
@@ -579,19 +606,34 @@ function obterContainerHistoricoStatus() {
 async function carregarPlaylist() {
   if (!codigoSelecionado) return;
 
-  const { data, error } = await supabaseClient
-    .from(TABELA)
-    .select("*")
-    .eq("codigo", codigoSelecionado)
-    .order("ordem", { ascending: true });
+  const [{ data: playlistData, error: playlistError }, { data: historicoData, error: historicoError }] = await Promise.all([
+    supabaseClient
+      .from(TABELA)
+      .select("*")
+      .eq("codigo", codigoSelecionado)
+      .order("ordem", { ascending: true }),
 
-  if (error) {
-    console.error(error);
+    supabaseClient
+      .from(TABELA_HISTORICO_CONEXAO)
+      .select("*")
+      .eq("codigo", codigoSelecionado)
+      .order("data_hora", { ascending: false })
+  ]);
+
+  if (playlistError) {
+    console.error(playlistError);
     setStatus("Erro ao carregar playlist", "erro");
     return;
   }
 
-  const lista = data || [];
+  if (historicoError) {
+    console.error(historicoError);
+    setStatus("Erro ao carregar histórico", "erro");
+    return;
+  }
+
+  const lista = playlistData || [];
+  const historicoConexao = historicoData || [];
   const ativos = lista.filter(item => !itemEstaInativo(item));
   const inativos = lista.filter(item => itemEstaInativo(item));
 
@@ -612,8 +654,8 @@ async function carregarPlaylist() {
   }
 
   if (historicoStatus) {
-    historicoStatus.innerHTML = lista.length
-      ? lista.map((item, index) => montarItemHistoricoStatus(item, index)).join("")
+    historicoStatus.innerHTML = historicoConexao.length
+      ? historicoConexao.map((item, index) => montarItemHistoricoStatus(item, index)).join("")
       : `<div class="playlist-vazia">Sem histórico</div>`;
   }
 
