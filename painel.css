@@ -118,13 +118,6 @@ body {
   z-index: 2600;
 }
 
-.menu-topo-wrap {
-  position: relative;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
 .menu-topo-btn {
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
