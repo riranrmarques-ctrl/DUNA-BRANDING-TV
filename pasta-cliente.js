@@ -86,14 +86,14 @@ function atualizarStatusClienteVisual(statusTexto) {
 function itemEstaInativo(item) {
   if (!item?.data_fim) return false;
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
+  const agora = new Date();
   const fim = new Date(item.data_fim);
+
   if (Number.isNaN(fim.getTime())) return false;
 
   fim.setHours(23, 59, 59, 999);
-  return fim < hoje;
+
+  return agora > fim;
 }
 
 async function carregarPontos() {
@@ -161,9 +161,35 @@ function obterCodigoExibicaoDoPonto(ponto, codigo) {
   ).trim();
 }
 
-function atualizarResumo() {
-  const pontos = obterPontosMarcados();
-  resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> ${pontos.join(", ") || "nenhum"}</div>`;
+async function atualizarResumo() {
+  if (!codigoClienteAtual) {
+    resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> nenhum</div>`;
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("playlists")
+      .select("codigo, codigo_cliente, data_fim, ordem")
+      .eq("codigo_cliente", codigoClienteAtual)
+      .order("ordem", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    const pontosAtivos = [...new Set(
+      (data || [])
+        .filter((item) => !itemEstaInativo(item))
+        .map((item) => String(item.codigo || "").trim())
+        .filter(Boolean)
+    )];
+
+    resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> ${pontosAtivos.join(", ") || "nenhum"}</div>`;
+  } catch (error) {
+    console.error(error);
+    resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> nenhum</div>`;
+  }
 }
 
 function escaparHtml(texto) {
@@ -604,6 +630,7 @@ async function salvarCliente() {
 
     await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
     await sincronizarStatusCliente();
+    await atualizarResumo();
 
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
@@ -721,6 +748,7 @@ async function uploadArquivoCliente() {
 
     await carregarHistoricoArquivos(codigosDestino);
     await sincronizarStatusCliente();
+    await atualizarResumo();
 
     mostrarStatusUpload("Enviado com sucesso", "#7CFC9A");
     arquivoInput.value = "";
@@ -907,6 +935,7 @@ async function carregarCliente() {
   renderizarPontosSelecionaveis(selecionados);
   await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
   await sincronizarStatusCliente();
+  await atualizarResumo();
   desativarBotaoSalvar();
 }
 
