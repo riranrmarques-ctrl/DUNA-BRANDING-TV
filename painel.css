@@ -143,3 +143,40 @@ body {
   font-size: 13px;
   font-weight: 700;
 }
+
+.menu-topo-wrap {
+  position: relative;
+}
+
+.menu-topo-btn {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.menu-topo-dropdown {
+  position: absolute;
+  top: 120%;
+  left: 0;
+  width: 200px;
+  background: rgba(10, 20, 40, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: 0.25s ease;
+}
+
+.menu-topo-wrap:hover .menu-topo-dropdown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
