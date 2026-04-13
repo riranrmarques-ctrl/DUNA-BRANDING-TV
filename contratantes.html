@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Contrato - Cliente</title>
+
+<style>
+body { font-family: Arial; background:#fff; padding:30px; }
+h1 { margin-bottom:20px; }
+
+.campo { margin-bottom:10px; }
+.campo strong { display:block; }
+
+.btn {
+  margin-top:20px;
+  padding:10px 20px;
+  background:#000;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Contrato de Publicidade</h1>
+
+<div class="campo"><strong>Nome:</strong> <span id="nome">[NOME]</span></div>
+<div class="campo"><strong>CPF/CNPJ:</strong> <span id="cpf">[CPF]</span></div>
+<div class="campo"><strong>Telefone:</strong> <span id="tel">[TEL]</span></div>
+<div class="campo"><strong>Email:</strong> <span id="email">[EMAIL]</span></div>
+<div class="campo"><strong>Valor:</strong> <span id="valor">[VALOR]</span></div>
+<div class="campo"><strong>Período:</strong> <span id="periodo">[INICIO - VENCIMENTO]</span></div>
+<div class="campo"><strong>Ambiente:</strong> <span id="ambiente">[LOCAL]</span></div>
+
+<hr>
+
+<p><strong>OBJETO:</strong> Prestação de serviços de publicidade em telas digitais.</p>
+<p><strong>RESPONSABILIDADE:</strong> O cliente é responsável pelo conteúdo enviado.</p>
+<p><strong>PRAZO:</strong> Conforme período contratado.</p>
+
+<button class="btn" onclick="window.print()">Imprimir</button>
+
+<script>
+
+// puxar cliente
+function getCliente(){
+  return JSON.parse(localStorage.getItem('clienteSelecionado')) ||
+         JSON.parse(localStorage.getItem('cliente')) || null;
+}
+
+// puxar ambiente
+function getAmbiente(){
+  return JSON.parse(localStorage.getItem('ambienteSelecionado')) ||
+         JSON.parse(localStorage.getItem('ambiente')) || null;
+}
+
+const cliente = getCliente();
+const ambiente = getAmbiente();
+
+if(cliente){
+  document.getElementById('nome').innerText = cliente.nome || '[NOME]';
+  document.getElementById('cpf').innerText = cliente.cpf || '[CPF]';
+  document.getElementById('tel').innerText = cliente.telefone || '[TEL]';
+  document.getElementById('email').innerText = cliente.email || '[EMAIL]';
+  document.getElementById('valor').innerText = cliente.valor || '[VALOR]';
+
+  if(cliente.inicio && cliente.vencimento){
+    document.getElementById('periodo').innerText =
+      cliente.inicio + " até " + cliente.vencimento;
+  }
+}
+
+if(ambiente){
+  document.getElementById('ambiente').innerText = ambiente.nome || '[LOCAL]';
+}
+
+</script>
+
+</body>
+</html>

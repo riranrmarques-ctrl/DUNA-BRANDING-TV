@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contratos - DUNA AUDIOVISUAL</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    .pagina {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .topo-esquerda h1 {
+      font-size: 28px;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+
+    .topo-esquerda p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .btn-voltar {
+      background: #111827;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    .btn-voltar:hover {
+      background: #000;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+    }
+
+    .sidebar,
+    .conteudo {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    .sidebar {
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #111827;
+    }
+
+    .pasta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: left;
+    }
+
+    .pasta:hover {
+      background: #eef4ff;
+      border-color: #c7d2fe;
+    }
+
+    .pasta.ativa {
+      background: #e8f0ff;
+      border-color: #93c5fd;
+    }
+
+    .icone-pasta {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .pasta-texto strong {
+      display: block;
+      font-size: 15px;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .pasta-texto span {
+      display: block;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .conteudo {
+      padding: 24px;
+    }
+
+    .cabecalho-contrato {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+
+    .cabecalho-contrato h2 {
+      font-size: 24px;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .cabecalho-contrato p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .contrato {
+      display: none;
+    }
+
+    .contrato.ativo {
+      display: block;
+    }
+
+    .bloco {
+      margin-bottom: 22px;
+    }
+
+    .bloco h3 {
+      font-size: 16px;
+      color: #111827;
+      margin-bottom: 10px;
+      padding-left: 10px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .linha-info {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 10px 18px;
+      margin-bottom: 10px;
+    }
+
+    .campo {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .campo strong {
+      color: #111827;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .campo span {
+      color: #6b7280;
+    }
+
+    .texto-contrato p {
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 14px;
+      text-align: justify;
+      color: #374151;
+    }
+
+    .assinaturas {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 34px;
+    }
+
+    .assinatura-box {
+      padding-top: 40px;
+      text-align: center;
+    }
+
+    .linha-assinatura {
+      border-top: 1px solid #111827;
+      padding-top: 8px;
+      font-size: 14px;
+      color: #111827;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .btn-acao {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-primario {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-primario:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secundario {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-secundario:hover {
+      background: #d1d5db;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .linha-info,
+      .assinaturas {
+        grid-template-columns: 1fr;
+      }
+
+      .conteudo,
+      .sidebar {
+        padding: 18px;
+      }
+
+      .topo {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="pagina">
+    <div class="topo">
+      <div class="topo-esquerda">
+        <h1>Central de Contratos</h1>
+        <p>Escolha uma pasta para visualizar o modelo padrão do contrato.</p>
+      </div>
+
+      <button class="btn-voltar" onclick="history.back()">Voltar</button>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h2>Pastas</h2>
+
+        <button class="pasta ativa" type="button" onclick="abrirContrato('contratante', this)">
+          <div class="icone-pasta">📁</div>
+          <div class="pasta-texto">
+            <strong>Contratante</strong>
+            <span>Cliente de telas</span>
+          </div>
+        </button>
+
+        <button class="pasta" type="button" onclick="abrirContrato('estabelecimento', this)">
+          <div class="icone-pasta">📁</div>
+          <div class="pasta-texto">
+            <strong>Estabelecimento</strong>
+            <span>Contrato com o local</span>
+          </div>
+        </button>
+      </aside>
+
+      <main class="conteudo">
+        <!-- CONTRATO CONTRATANTE -->
+        <section id="contratante" class="contrato ativo">
+          <div class="cabecalho-contrato">
+            <h2>Contrato Padrão - Contratante</h2>
+            <p>Modelo base para cliente anunciante nas telas.</p>
+          </div>
+
+          <div class="bloco">
+            <h3>Dados da Contratada</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Empresa</strong><span>DUNA AUDIOVISUAL</span></div>
+              <div class="campo"><strong>CNPJ</strong><span>[SEU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span>[SEU TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span>[SEU EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span>[SEU ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span>[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+            </div>
+          </div>
+
+          <div class="bloco">
+            <h3>Dados do Contratante</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Nome</strong><span>[NOME DO CLIENTE]</span></div>
+              <div class="campo"><strong>CPF/CNPJ</strong><span>[CPF OU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span>[TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span>[EMAIL]</span></div>
+              <div class="campo"><strong>Valor</strong><span>[VALOR DO CONTRATO]</span></div>
+              <div class="campo"><strong>Período</strong><span>[DATA DE INÍCIO] até [DATA DE VENCIMENTO]</span></div>
+              <div class="campo"><strong>Ambiente</strong><span>[AMBIENTE / PONTO / LOCAL]</span></div>
+            </div>
+          </div>
+
+          <div class="bloco texto-contrato">
+            <h3>Termos do Contrato</h3>
+
+            <p><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a prestação de serviços de publicidade e divulgação em telas digitais administradas pela CONTRATADA, conforme plano comercial ajustado entre as partes.</p>
+
+            <p><strong>CLÁUSULA 2 - DADOS DA VEICULAÇÃO.</strong> A exibição do material publicitário será realizada de acordo com o ambiente contratado, período de vigência, condições comerciais e disponibilidade operacional do sistema da CONTRATADA.</p>
+
+            <p><strong>CLÁUSULA 3 - RESPONSABILIDADE PELO CONTEÚDO.</strong> O CONTRATANTE declara ser responsável pelo conteúdo enviado para divulgação, assumindo integral responsabilidade civil, administrativa e judicial por textos, imagens, marcas, ofertas, promoções ou quaisquer materiais encaminhados para exibição.</p>
+
+            <p><strong>CLÁUSULA 4 - PRAZO.</strong> O contrato terá vigência no período informado neste documento, iniciando-se na data de início cadastrada e seguindo até a data de vencimento, podendo ser renovado mediante novo ajuste entre as partes.</p>
+
+            <p><strong>CLÁUSULA 5 - PAGAMENTO.</strong> Pelos serviços prestados, o CONTRATANTE pagará o valor descrito neste contrato, nas datas ajustadas comercialmente. O não pagamento poderá acarretar suspensão da exibição até a regularização.</p>
+
+            <p><strong>CLÁUSULA 6 - ALTERAÇÕES.</strong> Eventuais alterações de material, campanha, período, valores ou condições operacionais deverão ser registradas e aceitas entre as partes.</p>
+
+            <p><strong>CLÁUSULA 7 - CANCELAMENTO.</strong> O cancelamento antecipado poderá ser solicitado mediante comunicação prévia, observadas as condições comerciais pactuadas entre as partes no momento da contratação.</p>
+
+            <p><strong>CLÁUSULA 8 - DISPOSIÇÕES GERAIS.</strong> Este instrumento representa o acordo entre as partes quanto à veiculação de publicidade nas telas operadas pela CONTRATADA, obrigando ambas ao fiel cumprimento das condições estabelecidas.</p>
+
+            <p><strong>CLÁUSULA 9 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato, com renúncia de qualquer outro, por mais privilegiado que seja.</p>
+          </div>
+
+          <div class="assinaturas">
+            <div class="assinatura-box">
+              <div class="linha-assinatura">CONTRATANTE</div>
+            </div>
+            <div class="assinatura-box">
+              <div class="linha-assinatura">DUNA AUDIOVISUAL</div>
+            </div>
+          </div>
+
+          <div class="acoes">
+            <button class="btn-acao btn-primario" type="button" onclick="window.print()">Imprimir</button>
+            <button class="btn-acao btn-secundario" type="button">Baixar PDF</button>
+          </div>
+        </section>
+
+        <!-- CONTRATO ESTABELECIMENTO -->
+        <section id="estabelecimento" class="contrato">
+          <div class="cabecalho-contrato">
+            <h2>Contrato Padrão - Estabelecimento</h2>
+            <p>Modelo base para parceria com o local de instalação.</p>
+          </div>
+
+          <div class="bloco">
+            <h3>Dados da DUNA AUDIOVISUAL</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Empresa</strong><span>DUNA AUDIOVISUAL</span></div>
+              <div class="campo"><strong>CNPJ</strong><span>[SEU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span>[SEU TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span>[SEU EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span>[SEU ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span>[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+            </div>
+          </div>
+
+          <div class="bloco">
+            <h3>Dados do Estabelecimento</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Nome do Estabelecimento</strong><span>[NOME DO ESTABELECIMENTO]</span></div>
+              <div class="campo"><strong>CPF/CNPJ</strong><span>[CPF OU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span>[TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span>[EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span>[ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span>[NOME DO RESPONSÁVEL]</span></div>
+              <div class="campo"><strong>Ambiente</strong><span>[AMBIENTE / LOCAL DA INSTALAÇÃO]</span></div>
+            </div>
+          </div>
+
+          <div class="bloco texto-contrato">
+            <h3>Termos do Contrato</h3>
+
+            <p><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a parceria entre a DUNA AUDIOVISUAL e o ESTABELECIMENTO para instalação, operação e manutenção de telas digitais destinadas à exibição de publicidade.</p>
+
+            <p><strong>CLÁUSULA 2 - INSTALAÇÃO E USO DO ESPAÇO.</strong> O ESTABELECIMENTO autoriza a instalação dos equipamentos no ambiente definido entre as partes, comprometendo-se a permitir o funcionamento regular da estrutura nos horários de operação do local.</p>
+
+            <p><strong>CLÁUSULA 3 - RESPONSABILIDADE OPERACIONAL.</strong> A instalação, configuração, manutenção e gestão operacional das telas ficarão sob responsabilidade da DUNA AUDIOVISUAL, salvo danos causados por uso indevido, terceiros ou fatores externos fora de seu controle.</p>
+
+            <p><strong>CLÁUSULA 4 - FINALIDADE DA EXIBIÇÃO.</strong> As telas serão utilizadas para veiculação de publicidade, campanhas informativas, conteúdos institucionais e demais materiais compatíveis com o ambiente comercial do ESTABELECIMENTO.</p>
+
+            <p><strong>CLÁUSULA 5 - PRAZO.</strong> A parceria terá vigência conforme ajuste entre as partes, podendo ser renovada ou encerrada mediante comunicação prévia.</p>
+
+            <p><strong>CLÁUSULA 6 - ACESSO E CONSERVAÇÃO.</strong> O ESTABELECIMENTO compromete-se a preservar os equipamentos instalados e permitir o acesso técnico quando necessário para manutenção, atualização ou substituição.</p>
+
+            <p><strong>CLÁUSULA 7 - CANCELAMENTO OU RESCISÃO.</strong> O encerramento da parceria poderá ocorrer por iniciativa de qualquer das partes, observando-se comunicação prévia e condições administrativas aplicáveis ao vínculo comercial.</p>
+
+            <p><strong>CLÁUSULA 8 - DISPOSIÇÕES GERAIS.</strong> Este contrato formaliza a parceria operacional de mídia indoor entre as partes, obrigando ambas ao cumprimento das responsabilidades aqui previstas.</p>
+
+            <p><strong>CLÁUSULA 9 - FORO.</strong> Fica eleito o foro da comarca da sede da DUNA AUDIOVISUAL para dirimir quaisquer controvérsias oriundas deste instrumento, com renúncia de qualquer outro, por mais privilegiado que seja.</p>
+          </div>
+
+          <div class="assinaturas">
+            <div class="assinatura-box">
+              <div class="linha-assinatura">ESTABELECIMENTO</div>
+            </div>
+            <div class="assinatura-box">
+              <div class="linha-assinatura">DUNA AUDIOVISUAL</div>
+            </div>
+          </div>
+
+          <div class="acoes">
+            <button class="btn-acao btn-primario" type="button" onclick="window.print()">Imprimir</button>
+            <button class="btn-acao btn-secundario" type="button">Baixar PDF</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function abrirContrato(id, botao) {
+      document.querySelectorAll('.contrato').forEach(function(contrato) {
+        contrato.classList.remove('ativo');
+      });
+
+      document.querySelectorAll('.pasta').forEach(function(item) {
+        item.classList.remove('ativa');
+      });
+
+      document.getElementById(id).classList.add('ativo');
+      botao.classList.add('ativa');
+    }
+  </script>
+</body>
+</html>
