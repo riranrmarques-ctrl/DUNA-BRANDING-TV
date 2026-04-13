@@ -466,23 +466,150 @@ function renderizarHistoricoArquivos(itens = []) {
     const tipo = item.tipo || "-";
     const inicio = formatarDataHistorico(item.data_inicio);
     const fim = item.data_fim ? formatarDataHistorico(item.data_fim) : "-";
-    const link = item.video_url
-      ? `<a href="${escaparHtml(item.video_url)}" target="_blank" rel="noopener noreferrer" style="color:#9fd2ff;text-decoration:none;">Abrir arquivo</a>`
-      : "-";
+    const link = item.video_url || "#";
 
     return `
-      <div class="historico-item">
-        <div class="historico-item-info">
-          <div class="historico-item-titulo">${escaparHtml(titulo)}</div>
-          <div class="historico-item-linha"><strong>Ponto:</strong> ${escaparHtml(pontoCodigo)}</div>
-          <div class="historico-item-linha"><strong>Tipo:</strong> ${escaparHtml(tipo)}</div>
-          <div class="historico-item-linha"><strong>Início:</strong> ${escaparHtml(inicio)}</div>
-          <div class="historico-item-linha"><strong>Fim:</strong> ${escaparHtml(fim)}</div>
-          <div class="historico-item-linha"><strong>Link:</strong> ${link}</div>
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        padding:12px;
+        border:1px solid #2a3342;
+        border-radius:10px;
+        margin-bottom:10px;
+        background:#0f141d;
+      ">
+        <div style="flex:1; min-width:0;">
+          <div style="
+            font-weight:700;
+            margin-bottom:6px;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+          ">
+            ${escaparHtml(titulo)}
+          </div>
+
+          <div style="font-size:0.75rem; opacity:0.82; line-height:1.6;">
+            <div><strong>Ponto:</strong> ${escaparHtml(pontoCodigo)}</div>
+            <div><strong>Tipo:</strong> ${escaparHtml(tipo)}</div>
+            <div><strong>Início:</strong> ${escaparHtml(inicio)}</div>
+            <div><strong>Fim:</strong> ${escaparHtml(fim)}</div>
+          </div>
+        </div>
+
+        <div style="
+          display:flex;
+          flex-direction:column;
+          gap:8px;
+          flex-shrink:0;
+          min-width:110px;
+        ">
+          <a
+            href="${escaparHtml(link)}"
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            style="
+              display:inline-flex;
+              align-items:center;
+              justify-content:center;
+              height:36px;
+              padding:0 12px;
+              border:none;
+              border-radius:8px;
+              background:#2d8cff;
+              color:#fff;
+              text-decoration:none;
+              font-size:0.82rem;
+              font-weight:700;
+              cursor:pointer;
+            "
+          >Baixar</a>
+
+          <button
+            type="button"
+            class="btn-deletar-historico"
+            data-id="${escaparHtml(item.id)}"
+            data-storage-path="${escaparHtml(item.storage_path || "")}"
+            style="
+              display:inline-flex;
+              align-items:center;
+              justify-content:center;
+              height:36px;
+              padding:0 12px;
+              border:none;
+              border-radius:8px;
+              background:#ff5f5f;
+              color:#fff;
+              font-size:0.82rem;
+              font-weight:700;
+              cursor:pointer;
+            "
+          >Deletar</button>
         </div>
       </div>
     `;
   }).join("");
+
+  ativarBotoesDeletarHistorico();
+}
+
+function extrairCaminhoStorage(storagePath) {
+  return String(storagePath || "").trim();
+}
+
+async function deletarItemHistorico(id, storagePath) {
+  const confirmar = window.confirm("Deseja deletar este arquivo do histórico?");
+  if (!confirmar) return;
+
+  try {
+    if (storagePath) {
+      const caminho = extrairCaminhoStorage(storagePath);
+
+      if (caminho) {
+        const { error: storageError } = await supabaseClient.storage
+          .from(BUCKET)
+          .remove([caminho]);
+
+        if (storageError) {
+          console.error("Erro ao deletar do storage:", storageError);
+        }
+      }
+    }
+
+    const { error: deleteError } = await supabaseClient
+      .from("playlists")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
+    await sincronizarStatusCliente();
+    await atualizarResumo();
+
+    mostrarMensagem("Arquivo deletado com sucesso.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao deletar arquivo.", "#ff6b6b");
+  }
+}
+
+function ativarBotoesDeletarHistorico() {
+  document.querySelectorAll(".btn-deletar-historico").forEach((botao) => {
+    botao.onclick = async () => {
+      const id = botao.dataset.id;
+      const storagePath = botao.dataset.storagePath || "";
+
+      if (!id) return;
+
+      await deletarItemHistorico(id, storagePath);
+    };
+  });
 }
 
 async function carregarHistoricoArquivos(codigosDestino = []) {
