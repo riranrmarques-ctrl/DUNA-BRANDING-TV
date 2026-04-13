@@ -1,3 +1,8 @@
+const liberado = sessionStorage.getItem("painelLiberado");
+
+if (liberado !== "1") {
+  window.location.href = "/painel";
+}
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const BUCKET = "videos";
