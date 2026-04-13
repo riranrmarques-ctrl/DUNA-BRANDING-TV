@@ -83,6 +83,19 @@ function atualizarStatusClienteVisual(statusTexto) {
   statusCliente.style.color = ativo ? "#7CFC9A" : "#ff6b6b";
 }
 
+function itemEstaInativo(item) {
+  if (!item?.data_fim) return false;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const fim = new Date(item.data_fim);
+  if (Number.isNaN(fim.getTime())) return false;
+
+  fim.setHours(23, 59, 59, 999);
+  return fim < hoje;
+}
+
 async function carregarPontos() {
   const { data, error } = await supabaseClient
     .from("pontos")
@@ -449,7 +462,7 @@ function renderizarHistoricoArquivos(itens = []) {
 async function carregarHistoricoArquivos(codigosDestino = []) {
   if (!Array.isArray(codigosDestino) || !codigosDestino.length) {
     renderizarHistoricoArquivos([]);
-    return;
+    return [];
   }
 
   try {
@@ -463,13 +476,109 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
       throw error;
     }
 
-    renderizarHistoricoArquivos(data || []);
+    const itens = data || [];
+    renderizarHistoricoArquivos(itens);
+    return itens;
   } catch (error) {
     console.error(error);
     historicoArquivos.innerHTML = `
       <div class="historico-vazio">Erro ao carregar histórico de arquivo.</div>
     `;
+    return [];
   }
+}
+
+function itemPertenceAoCliente(item) {
+  const caminho = String(item?.storage_path || "").trim();
+  const nomeCliente = String(inputNome.value || "").trim().toLowerCase();
+  const nomeItem = String(item?.nome || "").trim().toLowerCase();
+
+  if (caminho && caminho.includes(`clientes/${codigoClienteAtual}/`)) {
+    return true;
+  }
+
+  if (nomeCliente && nomeItem && nomeCliente === nomeItem) {
+    return true;
+  }
+
+  return false;
+}
+
+async function calcularStatusClienteRealPorCodigos(codigosDestino = []) {
+  if (!Array.isArray(codigosDestino) || !codigosDestino.length) {
+    return "Não ativo";
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("playlists")
+      .select("*")
+      .in("codigo", codigosDestino)
+      .order("ordem", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    const itensDoCliente = (data || []).filter(itemPertenceAoCliente);
+    const ativos = itensDoCliente.filter((item) => !itemEstaInativo(item));
+
+    return ativos.length > 0 ? "Ativo" : "Não ativo";
+  } catch (error) {
+    console.error(error);
+    return "Não ativo";
+  }
+}
+
+async function obterPontosSelecionadosDoCliente() {
+  try {
+    const { data: vinculos, error } = await supabaseClient
+      .from("cliente_pontos")
+      .select("ponto_codigo")
+      .eq("cliente_codigo", codigoClienteAtual);
+
+    if (error) {
+      throw error;
+    }
+
+    return Array.isArray(vinculos)
+      ? vinculos.map((item) => item.ponto_codigo).filter(Boolean)
+      : [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+async function sincronizarStatusCliente(codigosInternosSelecionados = null) {
+  let codigosInternos = Array.isArray(codigosInternosSelecionados)
+    ? codigosInternosSelecionados
+    : await obterPontosSelecionadosDoCliente();
+
+  let codigosDestino = codigosInternos
+    .map((codigoSelecionado) => {
+      const ponto = pontosData[codigoSelecionado];
+      return String(
+        ponto?.codigo_ponto ||
+        ponto?.codigo ||
+        ponto?.codigo_visual ||
+        codigoSelecionado ||
+        ""
+      ).trim();
+    })
+    .filter(Boolean);
+
+  const statusReal = await calcularStatusClienteRealPorCodigos(codigosDestino);
+  atualizarStatusClienteVisual(statusReal);
+
+  if (codigoClienteAtual) {
+    await supabaseClient
+      .from("clientes_app")
+      .update({ status: statusReal })
+      .eq("codigo", codigoClienteAtual);
+  }
+
+  return statusReal;
 }
 
 async function salvarCliente() {
@@ -478,13 +587,16 @@ async function salvarCliente() {
     return false;
   }
 
+  const pontosSelecionados = obterPontosMarcados();
+  const statusRealAntesDeSalvar = await calcularStatusClienteRealPorCodigos(obterCodigosDestinoSelecionados());
+
   const payload = {
     codigo: codigoClienteAtual,
     nome_completo: inputNome.value.trim(),
     telefone: inputTelefone.value.trim(),
     email: inputEmail.value.trim(),
     cpf_cnpj: inputCpfCnpj.value.trim(),
-    status: String(statusCliente.textContent || "").trim() || "Não ativo",
+    status: statusRealAntesDeSalvar,
     vencimento_exibicao: inputVencimento.value || null
   };
 
@@ -498,8 +610,6 @@ async function salvarCliente() {
       .upsert(payload, { onConflict: "codigo" });
 
     if (errorCliente) throw errorCliente;
-
-    const pontosSelecionados = obterPontosMarcados();
 
     const { error: errorDelete } = await supabaseClient
       .from("cliente_pontos")
@@ -521,9 +631,11 @@ async function salvarCliente() {
       if (errorInsert) throw errorInsert;
     }
 
+    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
+    await sincronizarStatusCliente(pontosSelecionados);
+
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
-    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
     return true;
   } catch (error) {
     console.error(error);
@@ -634,10 +746,11 @@ async function uploadArquivoCliente() {
       if (insertError) throw insertError;
     }
 
+    await carregarHistoricoArquivos(codigosDestino);
+    await sincronizarStatusCliente(obterPontosMarcados());
+
     mostrarStatusUpload("Enviado com sucesso", "#7CFC9A");
     arquivoInput.value = "";
-    atualizarStatusClienteVisual("Ativo");
-    await carregarHistoricoArquivos(codigosDestino);
   } catch (error) {
     console.error(error);
     mostrarStatusUpload("Erro ao enviar", "#ff6b6b");
@@ -818,9 +931,9 @@ async function carregarCliente() {
     console.error(error);
   }
 
-  atualizarStatusClienteVisual(data.status || "Não ativo");
   renderizarPontosSelecionaveis(selecionados);
   await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
+  await sincronizarStatusCliente(selecionados);
   desativarBotaoSalvar();
 }
 
