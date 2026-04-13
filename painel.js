@@ -13,17 +13,19 @@ const loginBox = document.getElementById("loginBox");
 const conteudoPainel = document.getElementById("conteudoPainel");
 const senhaInput = document.getElementById("senhaInput");
 const btnLogin = document.getElementById("btnLogin");
+
 const loginErro = document.getElementById("loginErro");
+
+const statusEl = document.querySelector(".status-topo");
+const listaPontos = document.getElementById("listaPontos");
+const pontoDetalhe = document.getElementById("pontoDetalhe");
+
 if (sessionStorage.getItem("painelLiberado") === "1") {
   if (loginBox) loginBox.style.display = "none";
   if (conteudoPainel) conteudoPainel.style.display = "block";
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
 }
-
-const statusEl = document.querySelector(".status-topo");
-const listaPontos = document.getElementById("listaPontos");
-const pontoDetalhe = document.getElementById("pontoDetalhe");
 
 const codigoAtual = document.getElementById("codigoAtual");
 const tituloPasta = document.getElementById("tituloPasta");
