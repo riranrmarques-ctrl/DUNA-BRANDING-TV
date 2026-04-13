@@ -44,17 +44,51 @@ function escapeHtml(texto) {
     .replace(/>/g, "&gt;");
 }
 
-function calcularStatus(ponto) {
-  if (!ponto.ultimo_ping) return "🔴 Inativo";
+function obterImagemPonto(ponto) {
+  return ponto.imagem_url || "https://placehold.co/600x320/png";
+}
 
-  const diff = Date.now() - new Date(ponto.ultimo_ping).getTime();
+function obterCidadeFormatada(cidade) {
+  const nome = String(cidade || "").trim();
+  return nome ? `Cidade de ${nome}` : "Cidade não definida";
+}
 
-  if (diff < 5 * 60 * 1000) {
-    const hora = new Date(ponto.ultimo_ping).toLocaleTimeString("pt-BR");
-    return `🟢 Ativo • ${hora}`;
+function calcularStatusInfo(ponto) {
+  if (!ponto?.ultimo_ping) {
+    return {
+      texto: "Inativo",
+      detalhe: "sem histórico",
+      ativo: false
+    };
   }
 
-  return "🔴 Inativo";
+  const dataPing = new Date(ponto.ultimo_ping);
+  const valido = !Number.isNaN(dataPing.getTime());
+
+  if (!valido) {
+    return {
+      texto: "Inativo",
+      detalhe: "sem histórico",
+      ativo: false
+    };
+  }
+
+  const diff = Date.now() - dataPing.getTime();
+  const horario = dataPing.toLocaleString("pt-BR");
+
+  if (diff < 5 * 60 * 1000) {
+    return {
+      texto: "Ativo",
+      detalhe: horario,
+      ativo: true
+    };
+  }
+
+  return {
+    texto: "Inativo",
+    detalhe: horario,
+    ativo: false
+  };
 }
 
 function validarLogin() {
@@ -63,13 +97,15 @@ function validarLogin() {
     return;
   }
 
-  loginBox.style.display = "none";
-  conteudoPainel.style.display = "block";
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
 }
 
-if (btnLogin) btnLogin.onclick = validarLogin;
+if (btnLogin) {
+  btnLogin.onclick = validarLogin;
+}
 
 async function buscarPontos() {
   const { data } = await supabaseClient.from(TABELA_PONTOS).select("*");
@@ -86,11 +122,33 @@ function renderizarCardsPontos(lista) {
 
     const nomeEl = card.querySelector(".card-nome");
     const cidadeEl = card.querySelector(".card-cidade");
-    const statusEl = card.querySelector(".card-status");
+    const statusElCard = card.querySelector(".card-status");
+    const bolinhaEl = card.querySelector(".status-bolinha");
+    const imagemEl = card.querySelector(".card-imagem");
 
-    if (nomeEl) nomeEl.textContent = ponto.nome || codigo;
-    if (cidadeEl) cidadeEl.textContent = ponto.cidade || "Sem cidade";
-    if (statusEl) statusEl.innerHTML = calcularStatus(ponto);
+    const statusInfo = calcularStatusInfo(ponto);
+
+    if (nomeEl) {
+      nomeEl.textContent = ponto.nome || codigo;
+    }
+
+    if (cidadeEl) {
+      cidadeEl.textContent = obterCidadeFormatada(ponto.cidade);
+    }
+
+    if (statusElCard) {
+      statusElCard.textContent = `${statusInfo.texto}  ${statusInfo.detalhe}`;
+    }
+
+    if (bolinhaEl) {
+      bolinhaEl.classList.toggle("ativo", statusInfo.ativo);
+      bolinhaEl.classList.toggle("inativo", !statusInfo.ativo);
+    }
+
+    if (imagemEl) {
+      imagemEl.src = obterImagemPonto(ponto);
+      imagemEl.alt = ponto.nome || codigo;
+    }
   });
 }
 
@@ -98,28 +156,48 @@ function abrirPonto(codigo) {
   codigoSelecionado = String(codigo).trim();
   const ponto = pontosMap[codigoSelecionado] || {};
 
-  listaPontos.style.display = "none";
-  pontoDetalhe.style.display = "block";
+  if (listaPontos) listaPontos.style.display = "none";
+  if (pontoDetalhe) pontoDetalhe.style.display = "block";
 
-  codigoAtual.textContent = codigoSelecionado;
-  tituloPasta.textContent = ponto.nome || codigoSelecionado;
+  if (codigoAtual) {
+    codigoAtual.textContent = codigoSelecionado;
+  }
 
-  document.getElementById("cidadePonto").textContent = ponto.cidade || "";
-  document.getElementById("enderecoPonto").textContent = ponto.endereco || "";
-  document.getElementById("statusPonto").innerHTML = calcularStatus(ponto);
+  if (tituloPasta) {
+    tituloPasta.textContent = ponto.nome || codigoSelecionado;
+  }
+
+  const cidadePonto = document.getElementById("cidadePonto");
+  const enderecoPonto = document.getElementById("enderecoPonto");
+  const statusPonto = document.getElementById("statusPonto");
+
+  const statusInfo = calcularStatusInfo(ponto);
+
+  if (cidadePonto) {
+    cidadePonto.textContent = obterCidadeFormatada(ponto.cidade);
+  }
+
+  if (enderecoPonto) {
+    enderecoPonto.textContent = ponto.endereco || "Endereço não definido";
+  }
+
+  if (statusPonto) {
+    statusPonto.textContent = `${statusInfo.texto} • ${statusInfo.detalhe}`;
+  }
 
   carregarPlaylist();
 }
 
 if (btnVoltar) {
   btnVoltar.onclick = () => {
-    listaPontos.style.display = "grid";
-    pontoDetalhe.style.display = "none";
+    if (listaPontos) listaPontos.style.display = "grid";
+    if (pontoDetalhe) pontoDetalhe.style.display = "none";
   };
 }
 
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = async () => {
+    if (!codigoSelecionado) return;
     await navigator.clipboard.writeText(codigoSelecionado);
     setStatus("Código copiado", "ok");
   };
@@ -138,10 +216,15 @@ if (btnEditarInfo) {
     const endereco = prompt("Endereço:", ponto.endereco || "");
     if (endereco === null) return;
 
-    await supabaseClient
+    const { error } = await supabaseClient
       .from(TABELA_PONTOS)
       .update({ nome, cidade, endereco })
       .eq("codigo", codigoSelecionado);
+
+    if (error) {
+      setStatus("Erro ao atualizar informações", "erro");
+      return;
+    }
 
     ponto.nome = nome;
     ponto.cidade = cidade;
@@ -149,7 +232,6 @@ if (btnEditarInfo) {
 
     abrirPonto(codigoSelecionado);
     renderizarCardsPontos(Object.values(pontosMap));
-
     setStatus("Atualizado com sucesso", "ok");
   };
 }
@@ -162,10 +244,60 @@ async function carregarPlaylist() {
     .order("ordem");
 
   const lista = data || [];
+  const ativos = lista.filter(item => !item.data_fim || new Date(item.data_fim).setHours(23, 59, 59, 999) >= Date.now());
+  const inativos = lista.filter(item => item.data_fim && new Date(item.data_fim).setHours(23, 59, 59, 999) < Date.now());
 
-  document.getElementById("playlistAtiva").innerHTML = lista.map(item => `
-    <div>${escapeHtml(item.nome)}</div>
-  `).join("");
+  const playlistAtiva = document.getElementById("playlistAtiva");
+  const playlistInativa = document.getElementById("playlistInativa");
+
+  if (playlistAtiva) {
+    playlistAtiva.innerHTML = ativos.length
+      ? ativos.map(item => `
+          <div class="playlist-item" draggable="true" data-index="${ativos.indexOf(item)}">
+            <div class="playlist-item-conteudo">${escapeHtml(item.nome)}</div>
+          </div>
+        `).join("")
+      : `<div class="playlist-vazia">Nenhum item ativo</div>`;
+  }
+
+  if (playlistInativa) {
+    playlistInativa.innerHTML = inativos.length
+      ? inativos.map(item => `
+          <div class="playlist-item-historico">${escapeHtml(item.nome)}</div>
+        `).join("")
+      : `<div class="playlist-vazia">Sem histórico</div>`;
+  }
+
+  ativarDrag(ativos);
+}
+
+function ativarDrag(lista) {
+  const items = document.querySelectorAll("#playlistAtiva .playlist-item");
+
+  items.forEach(item => {
+    item.addEventListener("dragstart", () => {
+      dragIndex = Number(item.dataset.index);
+    });
+
+    item.addEventListener("dragover", e => e.preventDefault());
+
+    item.addEventListener("drop", async () => {
+      const target = Number(item.dataset.index);
+
+      const novo = [...lista];
+      const movido = novo.splice(dragIndex, 1)[0];
+      novo.splice(target, 0, movido);
+
+      for (let i = 0; i < novo.length; i++) {
+        await supabaseClient
+          .from(TABELA)
+          .update({ ordem: i })
+          .eq("id", novo[i].id);
+      }
+
+      carregarPlaylist();
+    });
+  });
 }
 
 async function iniciarPainel() {
@@ -182,7 +314,10 @@ async function iniciarPainel() {
   document.querySelectorAll(".btn-copiar").forEach(btn => {
     btn.onclick = async e => {
       e.stopPropagation();
-      await navigator.clipboard.writeText(btn.dataset.codigo);
+      const codigo = btn.dataset.codigo;
+      if (!codigo) return;
+
+      await navigator.clipboard.writeText(codigo);
       setStatus("Código copiado", "ok");
     };
   });
