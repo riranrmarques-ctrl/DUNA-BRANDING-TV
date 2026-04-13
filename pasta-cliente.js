@@ -1141,4 +1141,49 @@ async function iniciar() {
   }
 }
 
+document.getElementById('btnContrato').addEventListener('click', gerarContrato);
+
+function gerarContrato(){
+
+  const nome = document.getElementById('nome').value;
+  const cpf = document.getElementById('cpfCnpj').value;
+  const telefone = document.getElementById('telefone').value;
+  const email = document.getElementById('email').value;
+  const valor = document.getElementById('valorContratado').value;
+  const inicio = document.getElementById('dataPostagem').value;
+  const vencimento = document.getElementById('vencimentoExibicao').value;
+
+  // ambiente (pontos selecionados)
+  const pontos = document.querySelectorAll('.item-ponto.selecionado');
+  let ambiente = "";
+
+  pontos.forEach(p => {
+    ambiente += p.innerText + " | ";
+  });
+
+  // monta contrato
+  const contratoHTML = `
+  <div style="font-family:Arial; padding:30px;">
+    <h2>CONTRATO DE PUBLICIDADE</h2>
+
+    <p><strong>CONTRATANTE:</strong> ${nome}</p>
+    <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
+    <p><strong>Telefone:</strong> ${telefone}</p>
+    <p><strong>Email:</strong> ${email}</p>
+
+    <hr>
+
+    <p><strong>Ambiente:</strong> ${ambiente}</p>
+    <p><strong>Valor:</strong> R$ ${valor}</p>
+    <p><strong>Período:</strong> ${inicio} até ${vencimento}</p>
+
+    <p>Contrato de publicidade em telas digitais conforme termos acordados.</p>
+  </div>
+  `;
+
+  const elemento = document.createElement("div");
+  elemento.innerHTML = contratoHTML;
+
+  html2pdf().from(elemento).save(`contrato-${nome}.pdf`);
+}
 iniciar();
