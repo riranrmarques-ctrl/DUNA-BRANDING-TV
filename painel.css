@@ -934,35 +934,116 @@ body {
   }
 }
 
-
-.playlist-imagem-box {
-  position: relative;
-  overflow: hidden;
-}
-
-.imagem-overlay {
-  position: absolute;
+.modal-editar {
+  position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
-
+  z-index: 3000;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  opacity: 0;
-  transition: 0.3s;
+  padding: 20px;
+  background: rgba(1, 7, 18, 0.78);
+  backdrop-filter: blur(4px);
 }
 
-.playlist-imagem-box:hover .imagem-overlay {
-  opacity: 1;
+.modal-conteudo {
+  width: 100%;
+  max-width: 520px;
+  background: linear-gradient(180deg, rgba(20, 34, 68, 0.98) 0%, rgba(10, 20, 41, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.btn-overlay-imagem {
-  background: #3a67ff;
-  border: none;
+.modal-conteudo h3 {
+  font-size: 24px;
+  font-weight: 800;
   color: #fff;
-  padding: 10px 16px;
-  border-radius: 10px;
+  margin: 0 0 4px;
+}
+
+.modal-conteudo input[type="text"],
+.modal-conteudo input[type="file"] {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  outline: none;
+}
+
+.modal-conteudo input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.edit-imagem-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#previewImagem {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.edit-botoes {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.edit-botoes button {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-weight: 700;
   cursor: pointer;
-  font-weight: 600;
+  transition: 0.18s ease;
+}
+
+#btnSalvarEdicao {
+  background: var(--primary);
+  color: #fff;
+}
+
+#btnSalvarEdicao:hover {
+  background: var(--primary-hover);
+}
+
+#btnFecharModal {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+#btnFecharModal:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+@media (max-width: 560px) {
+  .modal-editar {
+    padding: 14px;
+  }
+
+  .modal-conteudo {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .edit-botoes {
+    flex-direction: column;
+  }
 }
