@@ -210,6 +210,7 @@ async function buscarPontos() {
   const { data, error } = await supabaseClient.from(TABELA_PONTOS).select("*");
 
   if (error) {
+    console.error(error);
     setStatus("Erro ao carregar pontos", "erro");
     return [];
   }
@@ -439,29 +440,17 @@ if (btnSalvarEdicao) {
     try {
       setStatus("Salvando informações...", "normal");
 
-      let imagemUrlFinal = ponto.imagem_url || null;
-
-      if (arquivoImagemEdicao) {
-        imagemUrlFinal = await uploadImagemPonto(arquivoImagemEdicao, codigoSelecionado);
-      }
-
-      const payload = {
-        nome,
-        cidade,
-        endereco
-      };
-
-      if (imagemUrlFinal) {
-        payload.imagem_url = imagemUrlFinal;
-      }
-
-      const { error } = await supabaseClient
+      const { error: erroInfo } = await supabaseClient
         .from(TABELA_PONTOS)
-        .update(payload)
+        .update({
+          nome,
+          cidade,
+          endereco
+        })
         .eq("codigo", codigoSelecionado);
 
-      if (error) {
-        console.error(error);
+      if (erroInfo) {
+        console.error("Erro ao salvar textos:", erroInfo);
         setStatus("Erro ao atualizar informações", "erro");
         return;
       }
@@ -469,11 +458,29 @@ if (btnSalvarEdicao) {
       ponto.nome = nome;
       ponto.cidade = cidade;
       ponto.endereco = endereco;
-      if (imagemUrlFinal) {
+
+      if (arquivoImagemEdicao) {
+        setStatus("Enviando imagem...", "normal");
+
+        const imagemUrlFinal = await uploadImagemPonto(arquivoImagemEdicao, codigoSelecionado);
+
+        const { error: erroImagem } = await supabaseClient
+          .from(TABELA_PONTOS)
+          .update({
+            imagem_url: imagemUrlFinal
+          })
+          .eq("codigo", codigoSelecionado);
+
+        if (erroImagem) {
+          console.error("Erro ao salvar imagem:", erroImagem);
+          setStatus("Erro ao salvar imagem", "erro");
+          return;
+        }
+
         ponto.imagem_url = imagemUrlFinal;
       }
-      pontosMap[codigoSelecionado] = ponto;
 
+      pontosMap[codigoSelecionado] = ponto;
       salvarPosicaoImagem(codigoSelecionado, posicaoImagemAtual);
 
       fecharModalEdicao();
@@ -481,7 +488,7 @@ if (btnSalvarEdicao) {
       renderizarCardsPontos(Object.values(pontosMap));
       setStatus("Atualizado com sucesso", "ok");
     } catch (error) {
-      console.error(error);
+      console.error("Erro geral ao salvar edição:", error);
       setStatus("Erro ao salvar edição", "erro");
     }
   };
