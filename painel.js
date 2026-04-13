@@ -220,9 +220,11 @@ function validarLogin() {
     return;
   }
 
-  if (loginErro) loginErro.textContent = "";
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
+sessionStorage.setItem("painelLiberado", "1");
+
+if (loginErro) loginErro.textContent = "";
+if (loginBox) loginBox.style.display = "none";
+if (conteudoPainel) conteudoPainel.style.display = "block";
 
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
