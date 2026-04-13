@@ -31,8 +31,18 @@ const mensagem = document.getElementById("mensagem");
 const botaoNovoCliente = document.getElementById("botaoNovoCliente");
 const botaoAtualizar = document.getElementById("botaoAtualizar");
 const buscaCliente = document.getElementById("buscaCliente");
+const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
 let clientesCarregados = [];
+
+function verificarAcesso() {
+  const liberado = sessionStorage.getItem("painelLiberado");
+  if (liberado !== "1") {
+    window.location.href = "/painel";
+    return false;
+  }
+  return true;
+}
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   mensagem.textContent = texto;
@@ -233,8 +243,15 @@ async function criarNovoCliente() {
   }
 }
 
-botaoNovoCliente.addEventListener("click", criarNovoCliente);
-botaoAtualizar.addEventListener("click", carregarClientes);
-buscaCliente.addEventListener("input", renderizarClientes);
+if (botaoVoltarPainel) {
+  botaoVoltarPainel.addEventListener("click", () => {
+    window.location.href = "/painel";
+  });
+}
 
-carregarClientes();
+if (verificarAcesso()) {
+  botaoNovoCliente.addEventListener("click", criarNovoCliente);
+  botaoAtualizar.addEventListener("click", carregarClientes);
+  buscaCliente.addEventListener("input", renderizarClientes);
+  carregarClientes();
+}
