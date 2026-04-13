@@ -459,22 +459,23 @@
           </div>
 
           <div class="campo">
-            <label for="vencimentoExibicao">Vencimento da exibição</label>
-            <input type="date" id="vencimentoExibicao" required>
+            <label for="dataPostagem">Data de postagem</label>
+            <input type="date" id="dataPostagem">
           </div>
         </div>
 
         <div class="linha-dupla">
-  <div class="campo">
-    <label for="valorContratado">Valor contratado</label>
-    <input id="valorContratado" type="number" placeholder="Ex: 1500">
-  </div>
+          <div class="campo">
+            <label for="valorContratado">Valor contratado</label>
+            <input id="valorContratado" type="text" placeholder="R$ 0,00" inputmode="numeric">
+          </div>
 
-  <div class="campo">
-    <label for="dataPostagem">Data de postagem</label>
-    <input id="dataPostagem" type="date">
-  </div>
-</div>
+          <div class="campo">
+            <label for="vencimentoExibicao">Vencimento da mídia</label>
+            <input type="date" id="vencimentoExibicao" required>
+          </div>
+        </div>
+
         <div class="linha-dupla">
           <div class="campo">
             <label for="nome">Nome completo</label>
@@ -548,6 +549,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=9"></script>
+  <script src="pasta-cliente.js?v=13"></script>
 </body>
 </html>
