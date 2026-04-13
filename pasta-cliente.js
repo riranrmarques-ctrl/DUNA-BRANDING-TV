@@ -10,6 +10,8 @@ const inputTelefone = document.getElementById("telefone");
 const inputEmail = document.getElementById("email");
 const inputCpfCnpj = document.getElementById("cpfCnpj");
 const inputVencimento = document.getElementById("vencimentoExibicao");
+const inputValorContratado = document.getElementById("valorContratado");
+const inputDataPostagem = document.getElementById("dataPostagem");
 const statusCliente = document.getElementById("statusCliente");
 
 const listaPontos = document.getElementById("listaPontos");
@@ -721,7 +723,9 @@ async function salvarCliente() {
     email: inputEmail.value.trim(),
     cpf_cnpj: inputCpfCnpj.value.trim(),
     status: statusRealAntesDeSalvar,
-    vencimento_exibicao: inputVencimento.value || null
+    vencimento_exibicao: inputVencimento.value || null,
+    valor_contratado: inputValorContratado.value || null,
+    data_postagem: inputDataPostagem.value || null
   };
 
   botaoSalvar.disabled = true;
@@ -1008,6 +1012,14 @@ inputVencimento.addEventListener("change", () => {
   ativarBotaoSalvar();
 });
 
+if (inputValorContratado) {
+  inputValorContratado.addEventListener("input", ativarBotaoSalvar);
+}
+
+if (inputDataPostagem) {
+  inputDataPostagem.addEventListener("change", ativarBotaoSalvar);
+}
+
 async function carregarCliente() {
   const { data, error } = await supabaseClient
     .from("clientes_app")
@@ -1027,6 +1039,8 @@ async function carregarCliente() {
     inputEmail.value = "";
     inputCpfCnpj.value = "";
     inputVencimento.value = "";
+    if (inputValorContratado) inputValorContratado.value = "";
+    if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
     atualizarStatusClienteVisual("Não ativo");
     renderizarPontosSelecionaveis([]);
     renderizarHistoricoArquivos([]);
@@ -1039,6 +1053,8 @@ async function carregarCliente() {
   inputEmail.value = data.email || "";
   inputCpfCnpj.value = data.cpf_cnpj || "";
   inputVencimento.value = data.vencimento_exibicao || "";
+  if (inputValorContratado) inputValorContratado.value = data.valor_contratado || "";
+  if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
 
   let selecionados = [];
 
