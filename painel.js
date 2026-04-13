@@ -66,12 +66,18 @@ function obterCidadeFormatada(cidade) {
   return nome ? `Cidade de ${nome}` : "Cidade não definida";
 }
 
+function obterCidadeComNomeEmNegrito(cidade) {
+  const nome = String(cidade || "").trim();
+  return nome ? `Cidade de <strong>${escapeHtml(nome)}</strong>` : "Cidade não definida";
+}
+
 function calcularStatusInfo(ponto) {
   if (!ponto?.ultimo_ping) {
     return {
       texto: "Inativo",
       detalhe: "sem histórico",
-      ativo: false
+      ativo: false,
+      classe: "inativo"
     };
   }
 
@@ -80,7 +86,8 @@ function calcularStatusInfo(ponto) {
     return {
       texto: "Inativo",
       detalhe: "sem histórico",
-      ativo: false
+      ativo: false,
+      classe: "inativo"
     };
   }
 
@@ -91,14 +98,16 @@ function calcularStatusInfo(ponto) {
     return {
       texto: "Ativo",
       detalhe: horario,
-      ativo: true
+      ativo: true,
+      classe: "ativo"
     };
   }
 
   return {
     texto: "Inativo",
     detalhe: horario,
-    ativo: false
+    ativo: false,
+    classe: "inativo"
   };
 }
 
@@ -127,6 +136,10 @@ function itemEstaInativo(item) {
 
   fim.setHours(23, 59, 59, 999);
   return fim < hoje;
+}
+
+function obterStatusItemPlaylist(item) {
+  return itemEstaInativo(item) ? "Inativo" : "Ativo";
 }
 
 async function uploadImagemPonto(file, codigo) {
@@ -237,15 +250,17 @@ function renderizarCardsPontos(lista) {
     const statusInfo = calcularStatusInfo(ponto);
 
     if (nomeEl) {
-      nomeEl.textContent = ponto.nome || codigo;
+      nomeEl.innerHTML = `<strong>${escapeHtml(ponto.nome || codigo)}</strong>`;
     }
 
     if (cidadeEl) {
-      cidadeEl.textContent = obterCidadeFormatada(ponto.cidade);
+      cidadeEl.innerHTML = obterCidadeComNomeEmNegrito(ponto.cidade);
     }
 
     if (statusElCard) {
-      statusElCard.textContent = `${statusInfo.texto} ${statusInfo.detalhe}`;
+      statusElCard.textContent = statusInfo.texto;
+      statusElCard.classList.toggle("ativo", statusInfo.ativo);
+      statusElCard.classList.toggle("inativo", !statusInfo.ativo);
     }
 
     if (bolinhaEl) {
@@ -273,7 +288,7 @@ function abrirPonto(codigo) {
   }
 
   if (tituloPasta) {
-    tituloPasta.textContent = ponto.nome || codigoSelecionado;
+    tituloPasta.innerHTML = `<strong>${escapeHtml(ponto.nome || codigoSelecionado)}</strong>`;
   }
 
   const cidadePonto = document.getElementById("cidadePonto");
@@ -285,7 +300,7 @@ function abrirPonto(codigo) {
   const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
 
   if (cidadePonto) {
-    cidadePonto.textContent = obterCidadeFormatada(ponto.cidade);
+    cidadePonto.innerHTML = obterCidadeComNomeEmNegrito(ponto.cidade);
   }
 
   if (enderecoPonto) {
@@ -293,7 +308,10 @@ function abrirPonto(codigo) {
   }
 
   if (statusPonto) {
-    statusPonto.textContent = `${statusInfo.texto} • ${statusInfo.detalhe}`;
+    statusPonto.textContent = statusInfo.texto;
+    statusPonto.classList.remove("ativo", "inativo");
+    statusPonto.classList.add(statusInfo.classe);
+    statusPonto.dataset.status = statusInfo.texto.toLowerCase();
   }
 
   if (imagemPonto) {
@@ -496,30 +514,66 @@ if (btnSalvarEdicao) {
 
 function montarItemPlaylist(item, index) {
   return `
-    <div class="playlist-item" draggable="true" data-index="${index}">
-      <div class="playlist-item-handle">⋮⋮</div>
+    <div class="playlist-item" draggable="true" data-index="${index}" data-id="${item.id}">
+      <div class="playlist-item-linha">
+        <div class="playlist-item-handle" title="Arrastar">⋮⋮</div>
 
-      <div class="playlist-item-conteudo">
-        <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
-        <div class="playlist-item-info">
-          Postado em: ${formatarDataHora(item.created_at)}<br>
-          Encerramento: ${formatarData(item.data_fim)}
+        <div class="playlist-item-ordem">${index + 1}.</div>
+
+        <div class="playlist-item-nome" title="${escapeHtml(item.nome)}">${escapeHtml(item.nome)}</div>
+
+        <div class="playlist-item-data playlist-item-postado">
+          ${formatarDataHora(item.created_at)}
         </div>
-      </div>
 
-      <div class="playlist-item-acoes-laterais">
-        <button class="playlist-acao btn-excluir-item" type="button" data-id="${item.id}" title="Excluir">🗑</button>
+        <div class="playlist-item-data playlist-item-encerramento">
+          ${formatarData(item.data_fim)}
+        </div>
+
+        <div class="playlist-item-acoes-laterais">
+          <button class="playlist-acao btn-excluir-item" type="button" data-id="${item.id}" title="Excluir">🗑</button>
+        </div>
       </div>
     </div>
   `;
 }
 
-function montarItemHistorico(item) {
+function montarItemHistoricoEncerramento(item, index) {
   return `
-    <div>
-      ${escapeHtml(item.nome)} — ${formatarData(item.data_fim)}
+    <div class="historico-item">
+      <span class="historico-item-ordem">${index + 1}.</span>
+      <span class="historico-item-nome">${escapeHtml(item.nome)}</span>
+      <span class="historico-item-valor">${formatarData(item.data_fim)}</span>
     </div>
   `;
+}
+
+function montarItemHistoricoStatus(item, index) {
+  const status = obterStatusItemPlaylist(item);
+  const classe = status.toLowerCase();
+
+  return `
+    <div class="historico-item">
+      <span class="historico-item-ordem">${index + 1}.</span>
+      <span class="historico-item-nome">${escapeHtml(item.nome)}</span>
+      <span class="historico-item-valor historico-status ${classe}">${status}</span>
+    </div>
+  `;
+}
+
+function obterContainerHistoricoEncerramento() {
+  return (
+    document.getElementById("historicoEncerramento") ||
+    document.getElementById("playlistInativaEncerramento") ||
+    document.getElementById("playlistInativa")
+  );
+}
+
+function obterContainerHistoricoStatus() {
+  return (
+    document.getElementById("historicoStatus") ||
+    document.getElementById("playlistInativaStatus")
+  );
 }
 
 async function carregarPlaylist() {
@@ -542,7 +596,8 @@ async function carregarPlaylist() {
   const inativos = lista.filter(item => itemEstaInativo(item));
 
   const playlistAtiva = document.getElementById("playlistAtiva");
-  const playlistInativa = document.getElementById("playlistInativa");
+  const historicoEncerramento = obterContainerHistoricoEncerramento();
+  const historicoStatus = obterContainerHistoricoStatus();
 
   if (playlistAtiva) {
     playlistAtiva.innerHTML = ativos.length
@@ -550,9 +605,15 @@ async function carregarPlaylist() {
       : `<div class="playlist-vazia">Nenhum item ativo</div>`;
   }
 
-  if (playlistInativa) {
-    playlistInativa.innerHTML = inativos.length
-      ? inativos.map(item => montarItemHistorico(item)).join("")
+  if (historicoEncerramento) {
+    historicoEncerramento.innerHTML = inativos.length
+      ? inativos.map((item, index) => montarItemHistoricoEncerramento(item, index)).join("")
+      : `<div class="playlist-vazia">Sem histórico</div>`;
+  }
+
+  if (historicoStatus) {
+    historicoStatus.innerHTML = lista.length
+      ? lista.map((item, index) => montarItemHistoricoStatus(item, index)).join("")
       : `<div class="playlist-vazia">Sem histórico</div>`;
   }
 
@@ -588,6 +649,12 @@ async function ativarExclusaoItens() {
   });
 }
 
+function limparEstadosDrag() {
+  document.querySelectorAll("#playlistAtiva .playlist-item").forEach(el => {
+    el.classList.remove("drag-over", "drop-animating");
+  });
+}
+
 function ativarDrag(lista) {
   const items = document.querySelectorAll("#playlistAtiva .playlist-item");
 
@@ -595,15 +662,22 @@ function ativarDrag(lista) {
     item.addEventListener("dragstart", () => {
       dragIndex = Number(item.dataset.index);
       item.classList.add("dragging");
+      document.body.classList.add("playlist-drag-ativa");
     });
 
     item.addEventListener("dragend", () => {
       item.classList.remove("dragging");
+      document.body.classList.remove("playlist-drag-ativa");
+      limparEstadosDrag();
+      dragIndex = null;
     });
 
     item.addEventListener("dragover", e => {
       e.preventDefault();
-      item.classList.add("drag-over");
+      if (!item.classList.contains("drag-over")) {
+        limparEstadosDrag();
+        item.classList.add("drag-over");
+      }
     });
 
     item.addEventListener("dragleave", () => {
@@ -612,9 +686,13 @@ function ativarDrag(lista) {
 
     item.addEventListener("drop", async () => {
       item.classList.remove("drag-over");
+      item.classList.add("drop-animating");
 
       const target = Number(item.dataset.index);
-      if (Number.isNaN(dragIndex) || Number.isNaN(target) || dragIndex === target) return;
+      if (Number.isNaN(dragIndex) || Number.isNaN(target) || dragIndex === target) {
+        item.classList.remove("drop-animating");
+        return;
+      }
 
       const novo = [...lista];
       const movido = novo.splice(dragIndex, 1)[0];
@@ -629,9 +707,14 @@ function ativarDrag(lista) {
         if (error) {
           console.error(error);
           setStatus("Erro ao reordenar playlist", "erro");
+          item.classList.remove("drop-animating");
           return;
         }
       }
+
+      setTimeout(() => {
+        item.classList.remove("drop-animating");
+      }, 220);
 
       carregarPlaylist();
     });
