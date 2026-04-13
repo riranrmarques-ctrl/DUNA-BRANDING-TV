@@ -469,6 +469,7 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
     const { data, error } = await supabaseClient
       .from("playlists")
       .select("*")
+      .eq("codigo_cliente", codigoClienteAtual)
       .in("codigo", codigosDestino)
       .order("ordem", { ascending: false });
 
@@ -488,24 +489,8 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
   }
 }
 
-function itemPertenceAoCliente(item) {
-  const caminho = String(item?.storage_path || "").trim();
-  const nomeCliente = String(inputNome.value || "").trim().toLowerCase();
-  const nomeItem = String(item?.nome || "").trim().toLowerCase();
-
-  if (caminho && caminho.includes(`clientes/${codigoClienteAtual}/`)) {
-    return true;
-  }
-
-  if (nomeCliente && nomeItem && nomeCliente === nomeItem) {
-    return true;
-  }
-
-  return false;
-}
-
-async function calcularStatusClienteRealPorCodigos(codigosDestino = []) {
-  if (!Array.isArray(codigosDestino) || !codigosDestino.length) {
+async function calcularStatusClienteRealPorCodigoCliente() {
+  if (!codigoClienteAtual) {
     return "Não ativo";
   }
 
@@ -513,15 +498,14 @@ async function calcularStatusClienteRealPorCodigos(codigosDestino = []) {
     const { data, error } = await supabaseClient
       .from("playlists")
       .select("*")
-      .in("codigo", codigosDestino)
+      .eq("codigo_cliente", codigoClienteAtual)
       .order("ordem", { ascending: false });
 
     if (error) {
       throw error;
     }
 
-    const itensDoCliente = (data || []).filter(itemPertenceAoCliente);
-    const ativos = itensDoCliente.filter((item) => !itemEstaInativo(item));
+    const ativos = (data || []).filter((item) => !itemEstaInativo(item));
 
     return ativos.length > 0 ? "Ativo" : "Não ativo";
   } catch (error) {
@@ -550,32 +534,19 @@ async function obterPontosSelecionadosDoCliente() {
   }
 }
 
-async function sincronizarStatusCliente(codigosInternosSelecionados = null) {
-  let codigosInternos = Array.isArray(codigosInternosSelecionados)
-    ? codigosInternosSelecionados
-    : await obterPontosSelecionadosDoCliente();
-
-  let codigosDestino = codigosInternos
-    .map((codigoSelecionado) => {
-      const ponto = pontosData[codigoSelecionado];
-      return String(
-        ponto?.codigo_ponto ||
-        ponto?.codigo ||
-        ponto?.codigo_visual ||
-        codigoSelecionado ||
-        ""
-      ).trim();
-    })
-    .filter(Boolean);
-
-  const statusReal = await calcularStatusClienteRealPorCodigos(codigosDestino);
+async function sincronizarStatusCliente() {
+  const statusReal = await calcularStatusClienteRealPorCodigoCliente();
   atualizarStatusClienteVisual(statusReal);
 
   if (codigoClienteAtual) {
-    await supabaseClient
+    const { error } = await supabaseClient
       .from("clientes_app")
       .update({ status: statusReal })
       .eq("codigo", codigoClienteAtual);
+
+    if (error) {
+      console.error(error);
+    }
   }
 
   return statusReal;
@@ -588,7 +559,7 @@ async function salvarCliente() {
   }
 
   const pontosSelecionados = obterPontosMarcados();
-  const statusRealAntesDeSalvar = await calcularStatusClienteRealPorCodigos(obterCodigosDestinoSelecionados());
+  const statusRealAntesDeSalvar = await calcularStatusClienteRealPorCodigoCliente();
 
   const payload = {
     codigo: codigoClienteAtual,
@@ -632,7 +603,7 @@ async function salvarCliente() {
     }
 
     await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
-    await sincronizarStatusCliente(pontosSelecionados);
+    await sincronizarStatusCliente();
 
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
@@ -692,6 +663,7 @@ async function uploadArquivoCliente() {
 
       const registros = codigosDestino.map((codigoReal, index) => ({
         codigo: codigoReal,
+        codigo_cliente: codigoClienteAtual,
         nome: inputNome.value.trim(),
         video_url: url,
         tipo: "url",
@@ -730,6 +702,7 @@ async function uploadArquivoCliente() {
 
       const registros = codigosDestino.map((codigoReal, index) => ({
         codigo: codigoReal,
+        codigo_cliente: codigoClienteAtual,
         nome: inputNome.value.trim(),
         video_url: publicData.publicUrl,
         tipo: tipoFinal,
@@ -747,7 +720,7 @@ async function uploadArquivoCliente() {
     }
 
     await carregarHistoricoArquivos(codigosDestino);
-    await sincronizarStatusCliente(obterPontosMarcados());
+    await sincronizarStatusCliente();
 
     mostrarStatusUpload("Enviado com sucesso", "#7CFC9A");
     arquivoInput.value = "";
@@ -933,7 +906,7 @@ async function carregarCliente() {
 
   renderizarPontosSelecionaveis(selecionados);
   await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
-  await sincronizarStatusCliente(selecionados);
+  await sincronizarStatusCliente();
   desativarBotaoSalvar();
 }
 
