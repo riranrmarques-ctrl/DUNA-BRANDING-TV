@@ -1396,3 +1396,18 @@ body {
   font-size: 13px;
   font-weight: 700;
 }
+
+.menu-lateral-aba {
+  display: none;
+}
+
+.menu-lateral-esquerdo {
+  top: 90px;
+  left: 24px;
+  align-items: flex-start;
+}
+
+.menu-lateral-painel {
+  width: 220px;
+  overflow: visible;
+}
