@@ -107,26 +107,6 @@ body {
   margin: 0 auto;
 }
 
-.painel-header {
-  background: rgba(6, 13, 28, 0.82);
-  border: 1px solid var(--line);
-  border-bottom: none;
-  border-radius: 36px 36px 0 0;
-  padding: 34px 28px 18px;
-}
-
-.painel-header h1 {
-  font-size: 54px;
-  line-height: 1;
-  font-weight: 800;
-  margin-bottom: 10px;
-}
-
-.painel-header p {
-  font-size: 18px;
-  color: var(--muted);
-}
-
 .pontos-box {
   background: rgba(6, 13, 28, 0.82);
   border: 1px solid var(--line);
@@ -1353,4 +1333,66 @@ body {
 
 .menu-item:active {
   transform: scale(0.98);
+}
+
+.topo-fixo.novo-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+  max-width: 1280px;
+  margin: 0 auto 20px;
+}
+
+.topo-esquerda {
+  display: flex;
+  align-items: center;
+  min-width: 120px;
+}
+
+.menu-topo-btn {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.topo-centro {
+  text-align: center;
+  flex: 1;
+}
+
+.topo-centro h1 {
+  font-size: 54px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.topo-centro p {
+  font-size: 16px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.topo-direita {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 180px;
+  justify-content: flex-end;
+}
+
+.logo-topo-img {
+  height: 40px;
+}
+
+.status-topo {
+  background: #16c784;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
 }
