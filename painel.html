@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=95">
+  <link rel="stylesheet" href="painel.css?v=96">
 </head>
 <body>
 
@@ -25,15 +25,18 @@
     <div class="painel-shell">
       <div id="listaPontos">
         <div class="painel-header">
-          <h1>Painel de Pontos</h1>
+          <h1>Gerenciador de Pontos</h1>
           <p>Gerencie seus pontos e playlists.</p>
         </div>
 
         <div class="pontos-box">
           <div class="card-ponto" data-codigo="H4E9L2A">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="H4E9L2A" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">H4E9L2A</div>
@@ -46,8 +49,11 @@
 
           <div class="card-ponto" data-codigo="N7H3E8L">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="N7H3E8L" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">N7H3E8L</div>
@@ -60,8 +66,11 @@
 
           <div class="card-ponto" data-codigo="E2A6H9N">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="E2A6H9N" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">E2A6H9N</div>
@@ -74,8 +83,11 @@
 
           <div class="card-ponto" data-codigo="L8E1N5A">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="L8E1N5A" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">L8E1N5A</div>
@@ -88,8 +100,11 @@
 
           <div class="card-ponto" data-codigo="H6N4E7A">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="H6N4E7A" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">H6N4E7A</div>
@@ -102,8 +117,11 @@
 
           <div class="card-ponto" data-codigo="A9L3E2H">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="A9L3E2H" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">A9L3E2H</div>
@@ -116,8 +134,11 @@
 
           <div class="card-ponto" data-codigo="E5H8A1N">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="E5H8A1N" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">E5H8A1N</div>
@@ -130,8 +151,11 @@
 
           <div class="card-ponto" data-codigo="N2E7L4A">
             <div class="card-topo">
-              <div class="card-nome">Carregando...</div>
-              <button class="btn-editar" data-codigo="N2E7L4A" title="Renomear ponto" type="button">✎</button>
+              <div class="card-topo-textos">
+                <div class="card-nome">Carregando...</div>
+                <div class="card-cidade">Cidade...</div>
+                <div class="card-status">Status...</div>
+              </div>
             </div>
             <div class="card-codigo-linha">
               <div class="card-codigo">N2E7L4A</div>
@@ -151,12 +175,22 @@
 
         <div class="playlist-header playlist-header-novo">
           <div class="playlist-header-textos">
-            <h2 id="tituloPasta">Pasta do ponto</h2>
+            <h2 id="tituloPasta"></h2>
             <p>Gerencie e organize a sua playlist</p>
+
+            <div class="playlist-info-extra">
+              <div id="cidadePonto" class="playlist-info-item"></div>
+              <div id="enderecoPonto" class="playlist-info-item"></div>
+              <div id="statusPonto" class="playlist-info-item"></div>
+            </div>
 
             <div class="playlist-codigo-linha">
               <span id="codigoAtual"></span>
               <button id="btnCopiarCodigo" type="button" class="btn-copiar-playlist" title="Copiar código">⧉</button>
+            </div>
+
+            <div class="playlist-acoes-topo">
+              <button id="btnEditarInfo" type="button" class="btn-secundario">Editar informações</button>
             </div>
           </div>
         </div>
@@ -185,6 +219,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=95"></script>
+  <script src="painel.js?v=96"></script>
 </body>
 </html>
