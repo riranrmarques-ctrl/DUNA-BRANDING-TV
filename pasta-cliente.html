@@ -512,9 +512,10 @@
 
         <div class="campo">
           <label>Contrato</label>
-          <div class="pdf-box">
-            <strong>Espaço para contrato</strong>
-            Aqui ficará a área do contrato do cliente.
+<div class="pdf-box">
+  <strong>Contrato do Cliente</strong>
+  <button id="btnContrato" class="botao botao-salvar">Gerar contrato PDF</button>
+</div>
           </div>
         </div>
 
@@ -549,6 +550,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="pasta-cliente.js?v=13"></script>
 </body>
 </html>
