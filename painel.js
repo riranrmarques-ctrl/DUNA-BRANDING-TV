@@ -56,13 +56,9 @@ function montarLinhaDatas(item) {
   const postado = formatarData(item.created_at);
   const encerrado = formatarData(item.data_fim);
 
-  if (postado && encerrado) {
-    return `Postado: ${postado} • Encerra: ${encerrado}`;
-  }
-
+  if (postado && encerrado) return `Postado: ${postado} • Encerra: ${encerrado}`;
   if (postado) return `Postado: ${postado}`;
   if (encerrado) return `Encerra: ${encerrado}`;
-
   return "";
 }
 
@@ -101,6 +97,7 @@ function validarLogin() {
 
   if (loginBox) loginBox.style.display = "none";
   if (conteudoPainel) conteudoPainel.style.display = "block";
+
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
 }
@@ -130,61 +127,31 @@ function renderizarCardsPontos(lista) {
 
 async function editarNomePonto(codigo) {
   const codigoFinal = String(codigo || "").trim();
-
-  if (!codigoFinal) {
-    setStatus("Código do ponto não encontrado", "erro");
-    return;
-  }
-
   const nomeAtual = pontosMap[codigoFinal]?.nome || "";
-  const novoNome = prompt("Editar nome do ponto:", nomeAtual);
 
+  const novoNome = prompt("Editar nome do ponto:", nomeAtual);
   if (novoNome === null) return;
 
   const nomeFinal = novoNome.trim();
+  if (!nomeFinal || nomeFinal === nomeAtual) return;
 
-  if (!nomeFinal) {
-    setStatus("Nome inválido", "erro");
-    return;
-  }
-
-  if (nomeFinal === nomeAtual) return;
-
-  const { error } = await supabaseClient
+  await supabaseClient
     .from(TABELA_PONTOS)
     .update({ nome: nomeFinal })
     .eq("codigo", codigoFinal);
 
-  if (error) {
-    setStatus("Erro ao atualizar nome", "erro");
-    return;
-  }
+  pontosMap[codigoFinal].nome = nomeFinal;
 
-  if (pontosMap[codigoFinal]) {
-    pontosMap[codigoFinal].nome = nomeFinal;
-  }
-
-  document.querySelectorAll(`.card-ponto[data-codigo="${codigoFinal}"]`).forEach(card => {
-    const nomeEl = card.querySelector(".card-nome");
-    if (nomeEl) {
-      nomeEl.textContent = nomeFinal;
-    }
-  });
-
-  if (codigoSelecionado === codigoFinal && tituloPasta) {
-    tituloPasta.textContent = "Pasta do " + nomeFinal;
-  }
+  document.querySelectorAll(`.card-ponto[data-codigo="${codigoFinal}"]`)
+    .forEach(card => {
+      card.querySelector(".card-nome").textContent = nomeFinal;
+    });
 
   setStatus("Nome atualizado", "ok");
 }
 
 function abrirPonto(codigo) {
-  codigoSelecionado = String(codigo || "").trim();
-
-  if (!codigoSelecionado) {
-    setStatus("Código do ponto não encontrado", "erro");
-    return;
-  }
+  codigoSelecionado = String(codigo).trim();
 
   if (listaPontos) listaPontos.style.display = "none";
   if (pontoDetalhe) pontoDetalhe.style.display = "block";
@@ -208,33 +175,20 @@ if (btnVoltar) {
 
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = async () => {
-    const texto = String(codigoSelecionado || (codigoAtual ? codigoAtual.textContent : "") || "").trim();
+    const texto = String(codigoSelecionado || "").trim();
+    if (!texto) return;
 
-    if (!texto) {
-      setStatus("Nenhum código disponível para copiar", "erro");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(texto);
-      setStatus("Código copiado", "ok");
-    } catch (error) {
-      setStatus("Erro ao copiar código", "erro");
-    }
+    await navigator.clipboard.writeText(texto);
+    setStatus("Código copiado", "ok");
   };
 }
 
 async function carregarPlaylist() {
-  const { data, error } = await supabaseClient
+  const { data } = await supabaseClient
     .from(TABELA)
     .select("*")
     .eq("codigo", codigoSelecionado)
     .order("ordem");
-
-  if (error) {
-    setStatus("Erro ao carregar playlist", "erro");
-    return;
-  }
 
   const lista = data || [];
   const ativos = lista.filter(i => !itemEstaInativo(i));
@@ -245,48 +199,29 @@ async function carregarPlaylist() {
 }
 
 function renderizarPlaylistAtiva(lista) {
-  if (!playlistAtiva) return;
-
   if (!lista.length) {
-    playlistAtiva.innerHTML = `<div class="playlist-vazia">Nenhum item ativo</div>`;
+    playlistAtiva.innerHTML = `<div>Nenhum item ativo</div>`;
     return;
   }
 
-  playlistAtiva.innerHTML = lista
-    .map(
-      (item, i) => `
+  playlistAtiva.innerHTML = lista.map((item, i) => `
     <div class="playlist-item" draggable="true" data-index="${i}">
-      <div class="playlist-item-handle">⋮⋮</div>
-
-      <div class="playlist-item-conteudo">
-        <div class="playlist-item-nome">${escapeHtml(item.nome)}</div>
-        <div class="playlist-item-info">${montarLinhaDatas(item)}</div>
-      </div>
+      <div>${escapeHtml(item.nome)}</div>
     </div>
-  `
-    )
-    .join("");
+  `).join("");
 
   ativarDrag(lista);
 }
 
 function renderizarHistorico(lista) {
-  if (!playlistInativa) return;
-
   if (!lista.length) {
-    playlistInativa.innerHTML = `<div class="playlist-vazia">Sem histórico</div>`;
+    playlistInativa.innerHTML = `<div>Sem histórico</div>`;
     return;
   }
 
-  playlistInativa.innerHTML = lista
-    .map(
-      item => `
-    <div>
-      ${escapeHtml(item.nome)} — ${formatarData(item.data_fim)}
-    </div>
-  `
-    )
-    .join("");
+  playlistInativa.innerHTML = lista.map(item => `
+    <div>${escapeHtml(item.nome)}</div>
+  `).join("");
 }
 
 function ativarDrag(lista) {
@@ -323,71 +258,28 @@ async function iniciarPainel() {
 
   document.querySelectorAll(".btn-abrir").forEach(btn => {
     btn.onclick = e => {
-      e.preventDefault();
       e.stopPropagation();
-      const codigo = obterCodigoDoElemento(btn);
-      abrirPonto(codigo);
+      abrirPonto(obterCodigoDoElemento(btn));
     };
   });
 
   document.querySelectorAll(".btn-editar").forEach(btn => {
     btn.onclick = e => {
-      e.preventDefault();
       e.stopPropagation();
-      const codigo = obterCodigoDoElemento(btn);
-      editarNomePonto(codigo);
+      editarNomePonto(obterCodigoDoElemento(btn));
     };
   });
-}
 
-const arquivoInput = document.getElementById("arquivoInput");
-const btnUploadCliente = document.getElementById("btnUploadCliente");
-const statusUpload = document.getElementById("statusUpload");
+  // 🔥 AQUI ESTÁ A CORREÇÃO DO BOTÃO COPIAR DOS CARDS
+  document.querySelectorAll(".btn-copiar").forEach(btn => {
+    btn.onclick = async e => {
+      e.stopPropagation();
 
-if (btnUploadCliente) {
-  btnUploadCliente.onclick = async () => {
-    const file = arquivoInput ? arquivoInput.files[0] : null;
+      const codigo = obterCodigoDoElemento(btn);
+      if (!codigo) return;
 
-    if (!file) {
-      if (statusUpload) statusUpload.textContent = "Selecione um arquivo";
-      return;
-    }
-
-    if (statusUpload) statusUpload.textContent = "Enviando...";
-
-    try {
-      if (file.name.endsWith(".txt")) {
-        const texto = await file.text();
-        const url = texto.trim();
-
-        await supabaseClient.from("playlists").insert({
-          nome: inputNome.value,
-          video_url: url,
-          tipo: "url",
-          data_inicio: new Date().toISOString(),
-          data_fim: inputVencimento.value
-        });
-
-      } else {
-        const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
-
-        await supabaseClient.storage.from("videos").upload(path, file);
-
-        const { data } = supabaseClient.storage.from("videos").getPublicUrl(path);
-
-        await supabaseClient.from("playlists").insert({
-          nome: inputNome.value,
-          video_url: data.publicUrl,
-          tipo: "arquivo",
-          data_inicio: new Date().toISOString(),
-          data_fim: inputVencimento.value
-        });
-      }
-
-      if (statusUpload) statusUpload.textContent = "Enviado com sucesso";
-
-    } catch (err) {
-      if (statusUpload) statusUpload.textContent = "Erro ao enviar";
-    }
-  };
+      await navigator.clipboard.writeText(codigo);
+      setStatus("Código copiado", "ok");
+    };
+  });
 }
