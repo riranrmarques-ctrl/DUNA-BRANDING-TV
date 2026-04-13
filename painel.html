@@ -156,4 +156,35 @@
 
             <div class="playlist-codigo-linha">
               <span id="codigoAtual"></span>
-              <button id="btnCopiarCodigo" type="button
+              <button id="btnCopiarCodigo" type="button" class="btn-copiar-playlist" title="Copiar código">⧉</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="playlist-layout-novo">
+          <div class="playlist-coluna-ativa">
+            <div class="playlist-secao playlist-secao-ativa">
+              <div class="playlist-secao-topo">
+                <h4>Playlist ativa</h4>
+              </div>
+              <div id="playlistAtiva" class="playlist-lista"></div>
+            </div>
+          </div>
+
+          <div class="playlist-secao playlist-secao-historico">
+            <div class="playlist-secao-topo">
+              <h4>Histórico de encerramento</h4>
+            </div>
+            <div id="playlistInativa" class="historico-lista"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="status" class="status-box">Painel Ativo</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="painel.js?v=95"></script>
+</body>
+</html>
