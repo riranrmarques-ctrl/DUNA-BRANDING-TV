@@ -63,6 +63,10 @@
       opacity: 0.92;
     }
 
+    .botao-voltar {
+      background: #2a2f3a;
+    }
+
     .botao-novo {
       background: #2d8cff;
       font-weight: bold;
@@ -195,6 +199,7 @@
       </div>
 
       <div class="acoes-topo">
+        <button id="botaoVoltarPainel" class="botao botao-voltar" type="button">Voltar ao Painel</button>
         <button id="botaoNovoCliente" class="botao botao-novo" type="button">+ Novo cliente</button>
         <button id="botaoAtualizar" class="botao botao-atualizar" type="button">Atualizar</button>
       </div>
@@ -212,6 +217,11 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    document.getElementById("botaoVoltarPainel").addEventListener("click", function () {
+      window.location.href = "/painel";
+    });
+  </script>
   <script src="central-clientes.js?v=1"></script>
 </body>
 </html>
