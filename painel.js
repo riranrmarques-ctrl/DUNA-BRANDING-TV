@@ -789,3 +789,11 @@ async function iniciarPainel() {
     };
   });
 }
+
+const btnClientes = document.getElementById("btnClientes");
+
+if (btnClientes) {
+  btnClientes.addEventListener("click", () => {
+    window.location.href = "./central-clientes.html";
+  });
+}
