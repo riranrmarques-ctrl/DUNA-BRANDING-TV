@@ -870,17 +870,24 @@ async function uploadArquivoCliente() {
 
       if (insertError) throw insertError;
     } else {
-      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${file.name}`;
+const nomeLimpo = file.name
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .replace(/[^a-zA-Z0-9._-]/g, "-")
+  .replace(/-+/g, "-")
+  .toLowerCase();
 
-      const { error: uploadError } = await supabaseClient.storage
-        .from(BUCKET)
-        .upload(path, file);
+const path = `clientes/${codigoClienteAtual}/${Date.now()}-${nomeLimpo}`;
 
-      if (uploadError) throw uploadError;
+const { error: uploadError } = await supabaseClient.storage
+  .from(BUCKET)
+  .upload(path, file);
 
-      const { data: publicData } = supabaseClient.storage
-        .from(BUCKET)
-        .getPublicUrl(path);
+if (uploadError) throw uploadError;
+
+const { data: publicData } = supabaseClient.storage
+  .from(BUCKET)
+  .getPublicUrl(path);
 
       const nomeArquivo = file.name.toLowerCase();
       const tipoFinal =
