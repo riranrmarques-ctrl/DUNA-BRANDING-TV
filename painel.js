@@ -24,7 +24,6 @@ const tituloPasta = document.getElementById("tituloPasta");
 const btnVoltar = document.getElementById("btnVoltar");
 const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 const btnEditarInfo = document.getElementById("btnEditarInfo");
-const btnTrocarImagem = document.getElementById("btnTrocarImagem");
 
 const modalEditar = document.getElementById("modalEditar");
 const editNome = document.getElementById("editNome");
@@ -39,6 +38,9 @@ let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
 let arquivoImagemEdicao = null;
+
+let posicaoImagemAtual = { x: 50, y: 50 };
+let arrastandoPreview = false;
 
 function setStatus(texto, tipo = "normal") {
   if (!statusEl) return;
@@ -127,24 +129,6 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
-function criarSeletorImagem() {
-  return new Promise(resolve => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.style.display = "none";
-    document.body.appendChild(input);
-
-    input.addEventListener("change", () => {
-      const file = input.files && input.files[0] ? input.files[0] : null;
-      document.body.removeChild(input);
-      resolve(file);
-    });
-
-    input.click();
-  });
-}
-
 async function uploadImagemPonto(file, codigo) {
   const extensao = (file.name.split(".").pop() || "jpg").toLowerCase();
   const nomeArquivo = `${codigo}/${Date.now()}.${extensao}`;
@@ -162,6 +146,40 @@ async function uploadImagemPonto(file, codigo) {
 
   const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(nomeArquivo);
   return data.publicUrl;
+}
+
+function obterChavePosicaoImagem(codigo) {
+  return `ponto_imagem_posicao_${codigo}`;
+}
+
+function salvarPosicaoImagem(codigo, posicao) {
+  if (!codigo) return;
+  localStorage.setItem(obterChavePosicaoImagem(codigo), JSON.stringify(posicao));
+}
+
+function lerPosicaoImagem(codigo) {
+  if (!codigo) return { x: 50, y: 50 };
+
+  try {
+    const salva = localStorage.getItem(obterChavePosicaoImagem(codigo));
+    if (!salva) return { x: 50, y: 50 };
+
+    const obj = JSON.parse(salva);
+    const x = Number(obj.x);
+    const y = Number(obj.y);
+
+    return {
+      x: Number.isFinite(x) ? x : 50,
+      y: Number.isFinite(y) ? y : 50
+    };
+  } catch {
+    return { x: 50, y: 50 };
+  }
+}
+
+function aplicarPosicaoImagem(el, posicao) {
+  if (!el || !posicao) return;
+  el.style.objectPosition = `${posicao.x}% ${posicao.y}%`;
 }
 
 function validarLogin() {
@@ -237,6 +255,7 @@ function renderizarCardsPontos(lista) {
     if (imagemEl) {
       imagemEl.src = obterImagemPonto(ponto);
       imagemEl.alt = ponto.nome || codigo;
+      aplicarPosicaoImagem(imagemEl, lerPosicaoImagem(codigo));
     }
   });
 }
@@ -262,6 +281,7 @@ function abrirPonto(codigo) {
   const imagemPonto = document.getElementById("imagemPonto");
 
   const statusInfo = calcularStatusInfo(ponto);
+  const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
 
   if (cidadePonto) {
     cidadePonto.textContent = obterCidadeFormatada(ponto.cidade);
@@ -278,6 +298,7 @@ function abrirPonto(codigo) {
   if (imagemPonto) {
     imagemPonto.src = obterImagemPonto(ponto);
     imagemPonto.alt = ponto.nome || codigoSelecionado;
+    aplicarPosicaoImagem(imagemPonto, posicaoSalva);
   }
 
   carregarPlaylist();
@@ -287,11 +308,15 @@ function abrirModalEdicao() {
   if (!codigoSelecionado || !modalEditar) return;
 
   const ponto = pontosMap[codigoSelecionado] || {};
+  posicaoImagemAtual = lerPosicaoImagem(codigoSelecionado);
 
   if (editNome) editNome.value = ponto.nome || "";
   if (editCidade) editCidade.value = ponto.cidade || "";
   if (editEndereco) editEndereco.value = ponto.endereco || "";
-  if (previewImagem) previewImagem.src = obterImagemPonto(ponto);
+  if (previewImagem) {
+    previewImagem.src = obterImagemPonto(ponto);
+    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+  }
   if (inputImagem) inputImagem.value = "";
 
   arquivoImagemEdicao = null;
@@ -302,6 +327,7 @@ function fecharModalEdicao() {
   if (!modalEditar) return;
   modalEditar.style.display = "none";
   arquivoImagemEdicao = null;
+  arrastandoPreview = false;
   if (inputImagem) inputImagem.value = "";
 }
 
@@ -351,14 +377,53 @@ if (inputImagem) {
     if (!arquivo) return;
 
     arquivoImagemEdicao = arquivo;
+    posicaoImagemAtual = { x: 50, y: 50 };
 
     const reader = new FileReader();
     reader.onload = evento => {
       if (previewImagem) {
         previewImagem.src = evento.target.result;
+        aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
       }
     };
     reader.readAsDataURL(arquivo);
+  });
+}
+
+if (previewImagem) {
+  previewImagem.style.cursor = "grab";
+
+  previewImagem.addEventListener("mousedown", e => {
+    e.preventDefault();
+    arrastandoPreview = true;
+    previewImagem.style.cursor = "grabbing";
+  });
+
+  window.addEventListener("mouseup", () => {
+    arrastandoPreview = false;
+    if (previewImagem) {
+      previewImagem.style.cursor = "grab";
+    }
+  });
+
+  previewImagem.addEventListener("mousemove", e => {
+    if (!arrastandoPreview) return;
+
+    const rect = previewImagem.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    let x = ((e.clientX - rect.left) / rect.width) * 100;
+    let y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+
+    posicaoImagemAtual = { x, y };
+    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+  });
+
+  previewImagem.addEventListener("dragstart", e => {
+    e.preventDefault();
   });
 }
 
@@ -409,6 +474,8 @@ if (btnSalvarEdicao) {
       }
       pontosMap[codigoSelecionado] = ponto;
 
+      salvarPosicaoImagem(codigoSelecionado, posicaoImagemAtual);
+
       fecharModalEdicao();
       abrirPonto(codigoSelecionado);
       renderizarCardsPontos(Object.values(pontosMap));
@@ -416,49 +483,6 @@ if (btnSalvarEdicao) {
     } catch (error) {
       console.error(error);
       setStatus("Erro ao salvar edição", "erro");
-    }
-  };
-}
-
-if (btnTrocarImagem) {
-  btnTrocarImagem.onclick = async () => {
-    if (!codigoSelecionado) return;
-
-    try {
-      const arquivo = await criarSeletorImagem();
-      if (!arquivo) return;
-
-      setStatus("Enviando imagem...", "normal");
-
-      const imagemUrlFinal = await uploadImagemPonto(arquivo, codigoSelecionado);
-
-      const { error } = await supabaseClient
-        .from(TABELA_PONTOS)
-        .update({
-          imagem_url: imagemUrlFinal
-        })
-        .eq("codigo", codigoSelecionado);
-
-      if (error) {
-        console.error(error);
-        setStatus("Erro ao atualizar imagem", "erro");
-        return;
-      }
-
-      const ponto = pontosMap[codigoSelecionado] || {};
-      ponto.imagem_url = imagemUrlFinal;
-      pontosMap[codigoSelecionado] = ponto;
-
-      const imagemPonto = document.getElementById("imagemPonto");
-      if (imagemPonto) {
-        imagemPonto.src = imagemUrlFinal;
-      }
-
-      renderizarCardsPontos(Object.values(pontosMap));
-      setStatus("Imagem atualizada com sucesso", "ok");
-    } catch (error) {
-      console.error(error);
-      setStatus("Erro ao enviar imagem", "erro");
     }
   };
 }
