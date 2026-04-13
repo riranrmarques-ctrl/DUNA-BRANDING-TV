@@ -15,7 +15,7 @@ const senhaInput = document.getElementById("senhaInput");
 const btnLogin = document.getElementById("btnLogin");
 const loginErro = document.getElementById("loginErro");
 
-const statusEl = document.getElementById("status");
+const statusEl = document.querySelector(".status-topo");
 const listaPontos = document.getElementById("listaPontos");
 const pontoDetalhe = document.getElementById("pontoDetalhe");
 
