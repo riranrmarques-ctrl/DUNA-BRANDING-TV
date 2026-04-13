@@ -55,6 +55,39 @@ function formatarTelefone(valor) {
   return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
 }
 
+function formatarCpfCnpj(valor) {
+  const numeros = String(valor || "").replace(/\D/g, "").slice(0, 14);
+
+  if (numeros.length <= 11) {
+    if (numeros.length <= 3) return numeros;
+    if (numeros.length <= 6) return `${numeros.slice(0, 3)}.${numeros.slice(3)}`;
+    if (numeros.length <= 9) return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6)}`;
+    return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9)}`;
+  }
+
+  if (numeros.length <= 2) return numeros;
+  if (numeros.length <= 5) return `${numeros.slice(0, 2)}.${numeros.slice(2)}`;
+  if (numeros.length <= 8) return `${numeros.slice(0, 2)}.${numeros.slice(2, 5)}.${numeros.slice(5)}`;
+  if (numeros.length <= 12) return `${numeros.slice(0, 2)}.${numeros.slice(2, 5)}.${numeros.slice(5, 8)}/${numeros.slice(8)}`;
+  return `${numeros.slice(0, 2)}.${numeros.slice(2, 5)}.${numeros.slice(5, 8)}/${numeros.slice(8, 12)}-${numeros.slice(12)}`;
+}
+
+function formatarMoedaBR(valor) {
+  const numeros = String(valor || "").replace(/\D/g, "");
+  const numero = Number(numeros || 0) / 100;
+  return numero.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+function extrairNumeroMoeda(valor) {
+  const limpo = String(valor || "").replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
+  if (!limpo) return null;
+  const numero = Number(limpo);
+  return Number.isFinite(numero) ? numero : null;
+}
+
 function marcarErro(campo) {
   campo.style.border = "1px solid #ff6b6b";
 }
@@ -724,7 +757,7 @@ async function salvarCliente() {
     cpf_cnpj: inputCpfCnpj.value.trim(),
     status: statusRealAntesDeSalvar,
     vencimento_exibicao: inputVencimento.value || null,
-    valor_contratado: inputValorContratado.value || null,
+    valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
     data_postagem: inputDataPostagem.value || null
   };
 
@@ -997,7 +1030,8 @@ inputEmail.addEventListener("input", () => {
   ativarBotaoSalvar();
 });
 
-inputCpfCnpj.addEventListener("input", () => {
+inputCpfCnpj.addEventListener("input", (e) => {
+  e.target.value = formatarCpfCnpj(e.target.value);
   limparErro(inputCpfCnpj);
   ativarBotaoSalvar();
 });
@@ -1013,7 +1047,14 @@ inputVencimento.addEventListener("change", () => {
 });
 
 if (inputValorContratado) {
-  inputValorContratado.addEventListener("input", ativarBotaoSalvar);
+  inputValorContratado.addEventListener("input", (e) => {
+    e.target.value = formatarMoedaBR(e.target.value);
+    ativarBotaoSalvar();
+  });
+
+  if (!inputValorContratado.value) {
+    inputValorContratado.value = formatarMoedaBR("");
+  }
 }
 
 if (inputDataPostagem) {
@@ -1039,7 +1080,7 @@ async function carregarCliente() {
     inputEmail.value = "";
     inputCpfCnpj.value = "";
     inputVencimento.value = "";
-    if (inputValorContratado) inputValorContratado.value = "";
+    if (inputValorContratado) inputValorContratado.value = formatarMoedaBR("");
     if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
     atualizarStatusClienteVisual("Não ativo");
     renderizarPontosSelecionaveis([]);
@@ -1051,9 +1092,9 @@ async function carregarCliente() {
   inputNome.value = data.nome_completo || "";
   inputTelefone.value = formatarTelefone(data.telefone || "");
   inputEmail.value = data.email || "";
-  inputCpfCnpj.value = data.cpf_cnpj || "";
+  inputCpfCnpj.value = formatarCpfCnpj(data.cpf_cnpj || "");
   inputVencimento.value = data.vencimento_exibicao || "";
-  if (inputValorContratado) inputValorContratado.value = data.valor_contratado || "";
+  if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? "");
   if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
 
   let selecionados = [];
