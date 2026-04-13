@@ -512,35 +512,27 @@
 
         <div class="campo">
           <label>Contrato</label>
-<div class="pdf-box">
-  <strong>Contrato do Cliente</strong>
-  <button id="btnContrato" class="botao botao-salvar">Gerar contrato PDF</button>
-</div>
+          <div class="pdf-box">
+            <strong>Espaço para contrato</strong>
+            Aqui ficará a área do contrato do cliente.
           </div>
         </div>
 
-      <div class="campo">
-  <label>Contrato</label>
-  <div class="pdf-box">
-    <strong>Contrato do Cliente</strong>
-    <button id="btnContrato" class="botao botao-salvar">Gerar contrato PDF</button>
-  </div>
-</div>
+        <div class="campo">
+          <label>Upgrade de arquivo</label>
+          <div class="upload-box">
+            <strong>Espaço de upgrade de arquivo</strong>
 
-<div class="campo">
-  <label>Upgrade de arquivo</label>
-  <div class="upload-box">
-    <strong>Espaço de upgrade de arquivo</strong>
-
-    <div class="upload-acoes">
-      <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
-      <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
-      <div id="statusUpload" class="status-upload"></div>
-    </div>
-  </div>
-</div>
+            <div class="upload-acoes">
+              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
+              <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
+              <div id="statusUpload" class="status-upload"></div>
+            </div>
+          </div>
+        </div>
       </div>
-    
+    </div>
+
     <div class="grid-historicos">
       <div class="box">
         <h2>Histórico de contrato</h2>
@@ -557,7 +549,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="pasta-cliente.js?v=13"></script>
 </body>
 </html>
