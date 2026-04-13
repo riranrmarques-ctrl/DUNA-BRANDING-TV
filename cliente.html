@@ -3,195 +3,369 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clientes</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
-      background: #0f1115;
-      color: #ffffff;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .topo {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
-
-    .topo h1 {
-      font-size: 2rem;
-      margin-bottom: 6px;
-    }
-
-    .topo p {
-      color: #bfc7d5;
-    }
-
-    .acoes-topo {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .botao {
-      border: none;
-      border-radius: 12px;
-      padding: 12px 18px;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: 0.2s ease;
-      color: #fff;
-    }
-
-    .botao:hover {
-      opacity: 0.92;
-    }
-
-    .botao-novo {
-      background: #2d8cff;
-      font-weight: bold;
-    }
-
-    .botao-atualizar {
-      background: #2a2f3a;
-    }
-
-    .barra {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .campo-busca input {
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: 12px;
-      border: 1px solid #313847;
-      background: #171a21;
-      color: #fff;
-      outline: none;
-      font-size: 1rem;
-    }
-
-    .mensagem {
-      min-height: 24px;
-      color: #9fd2ff;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
-    }
-
-    .lista-clientes {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .cliente-card {
-      background: #171a21;
-      border: 1px solid #262b36;
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-    }
-
-    .cliente-card h3 {
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-    }
-
-    .cliente-card p {
-      color: #c6cedd;
-      font-size: 0.94rem;
-      line-height: 1.5;
-      margin-bottom: 6px;
-    }
-
-    .cliente-card .acoes-card {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-      flex-wrap: wrap;
-    }
-
-    .cliente-card .acoes-card button {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 14px;
-      cursor: pointer;
-      color: #fff;
-      font-size: 0.92rem;
-    }
-
-    .botao-abrir {
-      background: #2d8cff;
-    }
-
-    .botao-excluir {
-      background: #d9534f;
-    }
-
-    .vazio {
-      background: #171a21;
-      border: 1px solid #262b36;
-      border-radius: 16px;
-      padding: 24px;
-      color: #c6cedd;
-      text-align: center;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 16px;
-      }
-
-      .topo h1 {
-        font-size: 1.6rem;
-      }
-    }
-  </style>
+  <title>Duna Branding | Painel</title>
+  <link rel="stylesheet" href="painel.css?v=101">
 </head>
 <body>
-  <div class="container">
-    <div class="topo">
-      <div>
-        <h1>Central de Clientes</h1>
-        <p>Crie clientes novos e abra a página individual de cada um.</p>
+
+  <div id="loginBox" class="login-screen">
+    <div class="login-card">
+      <h2>Acesso ao Painel</h2>
+      <input type="password" id="senhaInput" placeholder="Digite o código">
+      <button id="btnLogin" type="button">Entrar</button>
+      <p id="loginErro" class="login-erro"></p>
+    </div>
+  </div>
+
+  <div id="conteudoPainel" style="display:none;">
+
+    <div class="menu-lateral-esquerdo">
+      <div class="menu-lateral-aba">
+        <span>MENU</span>
       </div>
 
-      <div class="acoes-topo">
-        <button id="botaoNovoCliente" class="botao botao-novo" type="button">+ Novo cliente</button>
-        <button id="botaoAtualizar" class="botao botao-atualizar" type="button">Atualizar</button>
+      <div class="menu-lateral-painel">
+        <div class="menu-lateral-conteudo">
+          <button class="menu-item" type="button">Clientes</button>
+          <button class="menu-item" type="button">Contratos</button>
+          <button class="menu-item" type="button">Downloads</button>
+          <button class="menu-item" type="button">Financeiro</button>
+          <button class="menu-item" type="button">Relatórios</button>
+          <button class="menu-item" type="button">Configuração</button>
+        </div>
       </div>
     </div>
 
-    <div class="barra">
-      <div class="campo-busca">
-        <input type="text" id="buscaCliente" placeholder="Buscar por código, nome, empresa ou telefone">
+    <div class="logo-top">
+      <img src="logo.png" alt="Duna TV">
+    </div>
+
+    <div class="painel-shell">
+      <div id="listaPontos">
+        <div class="painel-header">
+          <h1>Gerenciador de Pontos</h1>
+          <p>Gerencie seus pontos e playlists.</p>
+        </div>
+
+        <div class="pontos-box">
+          <div class="card-ponto" data-codigo="H4E9L2A">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">H4E9L2A</div>
+                  <button class="btn-copiar" data-codigo="H4E9L2A" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="H4E9L2A" type="button">Abrir pasta</button>
+            </div>
+          </div>
+
+          <div class="card-ponto" data-codigo="N7H3E8L">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">N7H3E8L</div>
+                  <button class="btn-copiar" data-codigo="N7H3E8L" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="N7H3E8L" type="button">Abrir pasta</button>
+            </div>
+          </div>
+
+          <div class="card-ponto" data-codigo="E2A6H9N">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">E2A6H9N</div>
+                  <button class="btn-copiar" data-codigo="E2A6H9N" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="E2A6H9N" type="button">Abrir pasta</button>
+            </div>
+          </div>
+
+          <div class="card-ponto" data-codigo="L8E1N5A">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">L8E1N5A</div>
+                  <button class="btn-copiar" data-codigo="L8E1N5A" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="L8E1N5A" type="button">Abrir pasta</button>
+            </div>
+          </div>
+
+          <div class="card-ponto" data-codigo="H6N4E7A">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">H6N4E7A</div>
+                  <button class="btn-copiar" data-codigo="H6N4E7A" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="H6N4E7A" type="button">Abrir pasta</button>
+            </div>
+          </div>
+
+          <div class="card-ponto" data-codigo="A9L3E2H">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">A9L3E2H</div>
+                  <button class="btn-copiar" data-codigo="A9L3E2H" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="A9L3E2H" type="button">Abrir pasta</button>
+            </div>
+          </div>
+
+          <div class="card-ponto" data-codigo="E5H8A1N">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">E5H8A1N</div>
+                  <button class="btn-copiar" data-codigo="E5H8A1N" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="E5H8A1N" type="button">Abrir pasta</button>
+            </div>
+          </div>
+
+          <div class="card-ponto" data-codigo="N2E7L4A">
+            <div class="card-status-topo">
+              <span class="status-bolinha"></span>
+              <span class="card-status">Status...</span>
+            </div>
+
+            <div class="card-imagem-box">
+              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="card-conteudo">
+              <div class="card-nome">Carregando...</div>
+              <div class="card-info-linha">
+                <div class="card-cidade">Cidade não definida</div>
+
+                <div class="card-codigo-area">
+                  <div class="card-codigo">N2E7L4A</div>
+                  <button class="btn-copiar" data-codigo="N2E7L4A" title="Copiar código" type="button">⧉</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-acoes">
+              <button class="btn-abrir" data-codigo="N2E7L4A" type="button">Abrir pasta</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+        <div class="playlist-topbar playlist-topbar-novo">
+          <div class="topbar-esquerda">
+            <button id="btnVoltar" type="button" class="btn-secundario btn-voltar-topo">← Voltar</button>
+            <span class="topbar-titulo">Gerencie e organize a sua playlist</span>
+          </div>
+
+          <div class="topbar-direita">
+            <div id="statusPonto" class="status-destaque"></div>
+          </div>
+        </div>
+
+        <div class="playlist-header playlist-header-novo">
+          <div class="playlist-topo-flex">
+            <div class="playlist-imagem-box">
+              <img id="imagemPonto" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
+            </div>
+
+            <div class="playlist-header-textos">
+              <h2 id="tituloPasta"></h2>
+
+              <div class="playlist-info-extra">
+                <div id="cidadePonto" class="playlist-info-item"></div>
+                <div id="enderecoPonto" class="playlist-info-item"></div>
+              </div>
+
+              <div class="playlist-codigo-linha">
+                <span id="codigoAtual"></span>
+                <button id="btnCopiarCodigo" type="button" class="btn-copiar-playlist" title="Copiar código">⧉</button>
+              </div>
+
+              <div class="playlist-acoes-topo">
+                <button id="btnEditarInfo" type="button" class="btn-secundario">Editar informações</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="playlist-layout-novo">
+          <div class="playlist-coluna-ativa">
+            <div class="playlist-secao playlist-secao-ativa">
+              <div class="playlist-secao-topo">
+                <h4>Playlist ativa</h4>
+              </div>
+
+              <div class="playlist-header-linha">
+                <span>#</span>
+                <span>Arquivo</span>
+                <span>Postado</span>
+                <span>Encerramento</span>
+                <span></span>
+              </div>
+
+              <div id="playlistAtiva" class="playlist-lista"></div>
+            </div>
+          </div>
+
+          <div class="playlist-coluna-historico">
+            <div class="playlist-secao playlist-secao-historico">
+              <div class="playlist-secao-topo">
+                <h4>Histórico de encerramento</h4>
+              </div>
+              <div id="historicoEncerramento" class="historico-lista"></div>
+            </div>
+
+            <div class="playlist-secao playlist-secao-historico">
+              <div class="playlist-secao-topo">
+                <h4>Histórico de status</h4>
+              </div>
+              <div id="historicoStatus" class="historico-lista"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <p id="mensagem" class="mensagem"></p>
+    <div id="status" class="status-box">Painel Ativo</div>
+  </div>
 
-    <div id="listaClientes" class="lista-clientes"></div>
+  <div id="modalEditar" class="modal-editar" style="display:none;">
+    <div class="modal-conteudo">
+      <h3>Editar Informações</h3>
+
+      <input type="text" id="editNome" placeholder="Nome do ponto">
+      <input type="text" id="editCidade" placeholder="Cidade">
+      <input type="text" id="editEndereco" placeholder="Endereço">
+
+      <div class="edit-imagem-box">
+        <img id="previewImagem" src="" alt="Preview da imagem">
+        <input type="file" id="inputImagem" accept="image/*">
+      </div>
+
+      <div class="edit-botoes">
+        <button id="btnSalvarEdicao" type="button">Salvar</button>
+        <button id="btnFecharModal" type="button">Cancelar</button>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="clientes.js?v=1"></script>
+  <script src="painel.js?v=99"></script>
 </body>
 </html>
