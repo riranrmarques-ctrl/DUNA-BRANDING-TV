@@ -1162,24 +1162,37 @@ function gerarContrato(){
   });
 
   // monta contrato
-  const contratoHTML = `
-  <div style="font-family:Arial; padding:30px;">
-    <h2>CONTRATO DE PUBLICIDADE</h2>
+const contratoHTML = `
+<div style="width:800px;padding:40px;font-family:Arial;color:#000;background:#fff;">
 
-    <p><strong>CONTRATANTE:</strong> ${nome}</p>
-    <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
-    <p><strong>Telefone:</strong> ${telefone}</p>
-    <p><strong>Email:</strong> ${email}</p>
+<h2 style="text-align:center;">CONTRATO DE PUBLICIDADE</h2>
 
-    <hr>
+<p><strong>CONTRATANTE:</strong> ${nome}</p>
+<p><strong>CPF/CNPJ:</strong> ${cpf}</p>
+<p><strong>Telefone:</strong> ${telefone}</p>
+<p><strong>Email:</strong> ${email}</p>
 
-    <p><strong>Ambiente:</strong> ${ambiente}</p>
-    <p><strong>Valor:</strong> R$ ${valor}</p>
-    <p><strong>Período:</strong> ${inicio} até ${vencimento}</p>
+<hr>
 
-    <p>Contrato de publicidade em telas digitais conforme termos acordados.</p>
-  </div>
-  `;
+<p><strong>Ambiente:</strong> ${ambiente}</p>
+<p><strong>Valor:</strong> R$ ${valor}</p>
+<p><strong>Período:</strong> ${inicio} até ${vencimento}</p>
+
+<br><br>
+
+<p>
+Contrato de prestação de serviços de publicidade em telas digitais,
+conforme condições acordadas entre as partes.
+</p>
+
+<br><br><br>
+
+<div style="display:flex; justify-content:space-between;">
+  <div>_________________________<br>CONTRATANTE</div>
+  <div>_________________________<br>CONTRATADA</div>
+`;
+</div>
+`;
 
   const elemento = document.createElement("div");
   elemento.innerHTML = contratoHTML;
