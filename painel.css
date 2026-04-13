@@ -1354,19 +1354,3 @@ body {
 .menu-item:active {
   transform: scale(0.98);
 }
-
-.topo-fixo {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 3000;
-  background: rgba(2, 8, 23, 0.95);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  padding-top: 10px;
-}
-
-.painel-shell {
-  margin-top: 180px;
-}
