@@ -409,7 +409,7 @@ async function atualizarResumo() {
   }
 
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabaseContratoClient
       .from(TABELA_PLAYLIST)
       .select("codigo, codigo_cliente, data_fim, ordem")
       .eq("codigo_cliente", codigoClienteAtual)
@@ -877,7 +877,7 @@ async function deletarItemHistorico(ids, storagePath) {
       }
     }
 
-    const { error: deleteError } = await supabaseClient
+    const { error: deleteError } = await supabaseContratoClient
       .from(TABELA_PLAYLIST)
       .delete()
       .in("id", listaIds);
@@ -923,7 +923,7 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
   }
 
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabaseContratoClient
       .from(TABELA_PLAYLIST)
       .select("*")
       .eq("codigo_cliente", codigoClienteAtual)
@@ -956,7 +956,7 @@ async function calcularStatusClienteRealPorCodigoCliente() {
   }
 
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabaseContratoClient
       .from(TABELA_PLAYLIST)
       .select("*")
       .eq("codigo_cliente", codigoClienteAtual)
@@ -1125,7 +1125,7 @@ async function uploadArquivoCliente() {
         ordem: baseOrdem + index
       }));
 
-      const { error: insertError } = await supabaseClient
+      const { error: insertError } = await supabaseContratoClient
         .from(TABELA_PLAYLIST)
         .insert(registros);
 
@@ -1171,7 +1171,7 @@ async function uploadArquivoCliente() {
         ordem: baseOrdem + index
       }));
 
-      const { error: insertError } = await supabaseClient
+      const { error: insertError } = await supabaseContratoClient
         .from(TABELA_PLAYLIST)
         .insert(registros);
 
