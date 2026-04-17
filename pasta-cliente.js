@@ -33,10 +33,10 @@ const statusUpload = document.getElementById("statusUpload");
 const historicoContratos = document.getElementById("historicoContratos");
 const historicoArquivos = document.getElementById("historicoArquivos");
 
-const btnGerarContrato = document.getElementById("btnGerarContrato");
 const btnBaixarContratoPdf = document.getElementById("btnBaixarContratoPdf");
 const contratoPreview = document.getElementById("contratoPreview");
 const contratoStatus = document.getElementById("contratoStatus");
+const contratoPdfArea = document.getElementById("contratoPdfArea");
 
 let pontosData = {};
 let codigoClienteAtual = "";
@@ -88,6 +88,7 @@ function formatarCpfCnpj(valor) {
 function formatarMoedaBR(valor) {
   const numeros = String(valor || "").replace(/\D/g, "");
   const numero = Number(numeros || 0) / 100;
+
   return numero.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
@@ -95,8 +96,13 @@ function formatarMoedaBR(valor) {
 }
 
 function extrairNumeroMoeda(valor) {
-  const limpo = String(valor || "").replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
+  const limpo = String(valor || "")
+    .replace(/\./g, "")
+    .replace(",", ".")
+    .replace(/[^\d.-]/g, "");
+
   if (!limpo) return null;
+
   const numero = Number(limpo);
   return Number.isFinite(numero) ? numero : null;
 }
@@ -127,6 +133,9 @@ function limparErro(campo) {
 
 function ativarBotaoSalvar() {
   houveAlteracao = true;
+
+  if (!botaoSalvar) return;
+
   botaoSalvar.disabled = false;
   botaoSalvar.style.opacity = "1";
   botaoSalvar.style.cursor = "pointer";
@@ -134,12 +143,17 @@ function ativarBotaoSalvar() {
 
 function desativarBotaoSalvar() {
   houveAlteracao = false;
+
+  if (!botaoSalvar) return;
+
   botaoSalvar.disabled = true;
   botaoSalvar.style.opacity = "0.5";
   botaoSalvar.style.cursor = "not-allowed";
 }
 
 function atualizarStatusClienteVisual(statusTexto) {
+  if (!statusCliente) return;
+
   const texto = String(statusTexto || "").trim().toLowerCase();
   const ativo = texto === "ativo";
 
@@ -182,6 +196,7 @@ async function carregarPontos() {
     ).trim();
 
     if (!chaveInterna) return;
+
     pontosData[chaveInterna] = ponto;
   });
 }
@@ -194,6 +209,7 @@ function obterCodigosDestinoSelecionados() {
   return obterPontosMarcados()
     .map((codigoSelecionado) => {
       const ponto = pontosData[codigoSelecionado];
+
       return String(
         ponto?.codigo_ponto ||
         ponto?.codigo ||
@@ -244,6 +260,8 @@ function obterPontosContratoTexto() {
 }
 
 async function atualizarResumo() {
+  if (!resumoCliente) return;
+
   if (!codigoClienteAtual) {
     resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> nenhum</div>`;
     return;
@@ -463,6 +481,7 @@ function injetarEstilosScroll() {
       box-shadow: none !important;
     }
   `;
+
   document.head.appendChild(style);
 }
 
@@ -488,7 +507,7 @@ function validarCamposCliente() {
   ];
 
   campos.forEach((campo) => {
-    if (!String(campo.value || "").trim()) {
+    if (!String(campo?.value || "").trim()) {
       marcarErro(campo);
       valido = false;
     } else {
@@ -576,6 +595,8 @@ function agruparHistoricoArquivos(itens = []) {
 }
 
 function renderizarHistoricoArquivos(itens = []) {
+  if (!historicoArquivos) return;
+
   historicoArquivos.innerHTML = "";
 
   if (!Array.isArray(itens) || !itens.length) {
@@ -770,9 +791,13 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
     return itens;
   } catch (error) {
     console.error(error);
-    historicoArquivos.innerHTML = `
-      <div class="historico-vazio">Erro ao carregar histórico de arquivo.</div>
-    `;
+
+    if (historicoArquivos) {
+      historicoArquivos.innerHTML = `
+        <div class="historico-vazio">Erro ao carregar histórico de arquivo.</div>
+      `;
+    }
+
     return [];
   }
 }
@@ -918,6 +943,7 @@ async function uploadArquivoCliente() {
 
   try {
     const clienteSalvo = await salvarCliente();
+
     if (!clienteSalvo) {
       throw new Error("Falha ao salvar cliente antes do upload.");
     }
@@ -1018,6 +1044,8 @@ async function uploadArquivoCliente() {
 }
 
 function renderizarPontosSelecionaveis(selecionados = []) {
+  if (!listaPontos) return;
+
   listaPontos.innerHTML = "";
 
   const codigos = Object.keys(pontosData);
@@ -1131,113 +1159,172 @@ function renderizarHistoricoContrato(dados) {
   `;
 }
 
-function gerarContratoCliente(exibirMensagem = true) {
-  if (!contratoPreview || !contratoStatus) return;
+function montarContratoProfissional(dados) {
+  return `
+    <div class="contrato-pdf-folha">
+      <div class="contrato-pdf-topo">
+        <div class="contrato-pdf-marca">
+          <h1>DUNA AUDIOVISUAL</h1>
+          <p>Contrato de prestação de serviços de publicidade em telas digitais.</p>
+        </div>
+
+        <div class="contrato-pdf-codigo">
+          <strong>Cliente:</strong> ${escaparHtml(dados.codigo)}<br>
+          <strong>Emissão:</strong> ${new Date().toLocaleDateString("pt-BR")}
+        </div>
+      </div>
+
+      <h1 class="contrato-pdf-titulo">
+        Contrato de Prestação de Serviços de Publicidade em Telas Digitais
+      </h1>
+
+      <div class="contrato-pdf-secao">
+        <h2>Dados da Contratada</h2>
+
+        <div class="contrato-pdf-grid">
+          <div class="contrato-pdf-campo">
+            <strong>Empresa</strong>
+            <span>DUNA AUDIOVISUAL</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>CNPJ</strong>
+            <span>[SEU CNPJ]</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>Telefone</strong>
+            <span>[SEU TELEFONE]</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>Email</strong>
+            <span>[SEU EMAIL]</span>
+          </div>
+
+          <div class="contrato-pdf-campo full">
+            <strong>Endereço</strong>
+            <span>[SEU ENDEREÇO]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="contrato-pdf-secao">
+        <h2>Dados do Contratante</h2>
+
+        <div class="contrato-pdf-grid">
+          <div class="contrato-pdf-campo">
+            <strong>Nome</strong>
+            <span>${escaparHtml(dados.nome)}</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>CPF / CNPJ</strong>
+            <span>${escaparHtml(dados.cpfCnpj)}</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>Telefone</strong>
+            <span>${escaparHtml(dados.telefone)}</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>Email</strong>
+            <span>${escaparHtml(dados.email)}</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>Valor contratado</strong>
+            <span>${escaparHtml(dados.valor)}</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
+            <strong>Período</strong>
+            <span>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</span>
+          </div>
+
+          <div class="contrato-pdf-campo full">
+            <strong>Pontos contratados</strong>
+            <span>${escaparHtml(dados.pontos)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="contrato-pdf-secao contrato-pdf-texto">
+        <h2>Termos do Contrato</h2>
+
+        <p><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a prestação de serviços de publicidade e divulgação em telas digitais administradas pela CONTRATADA, conforme plano comercial ajustado entre as partes.</p>
+
+        <p><strong>CLÁUSULA 2 - VEICULAÇÃO.</strong> A exibição do material publicitário será realizada nos pontos contratados, durante o período informado neste documento, respeitando a disponibilidade operacional do sistema da CONTRATADA.</p>
+
+        <p><strong>CLÁUSULA 3 - CONTEÚDO.</strong> O CONTRATANTE declara ser responsável pelo conteúdo enviado para divulgação, incluindo textos, imagens, marcas, ofertas, promoções ou quaisquer materiais encaminhados para exibição.</p>
+
+        <p><strong>CLÁUSULA 4 - PRAZO.</strong> O contrato terá vigência a partir da data de início cadastrada, seguindo até a data de vencimento da mídia, podendo ser renovado mediante novo ajuste entre as partes.</p>
+
+        <p><strong>CLÁUSULA 5 - PAGAMENTO.</strong> Pelos serviços prestados, o CONTRATANTE pagará o valor descrito neste contrato. O não pagamento poderá acarretar suspensão da exibição até a regularização.</p>
+
+        <p><strong>CLÁUSULA 6 - ALTERAÇÕES.</strong> Eventuais alterações de material, campanha, período, valores ou pontos de exibição deverão ser registradas e aceitas entre as partes.</p>
+
+        <p><strong>CLÁUSULA 7 - CANCELAMENTO.</strong> O cancelamento antecipado poderá ser solicitado mediante comunicação prévia, observadas as condições comerciais pactuadas no momento da contratação.</p>
+
+        <p><strong>CLÁUSULA 8 - DISPOSIÇÕES GERAIS.</strong> Este instrumento representa o acordo entre as partes quanto à veiculação de publicidade nas telas operadas pela CONTRATADA.</p>
+
+        <p><strong>CLÁUSULA 9 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato.</p>
+      </div>
+
+      <div class="contrato-pdf-assinaturas">
+        <div class="contrato-pdf-assinatura">CONTRATANTE</div>
+        <div class="contrato-pdf-assinatura">DUNA AUDIOVISUAL</div>
+      </div>
+
+      <div class="contrato-pdf-rodape">
+        Documento gerado automaticamente pela DUNA AUDIOVISUAL.
+      </div>
+    </div>
+  `;
+}
+
+function gerarContratoCliente(exibirMensagem = false) {
+  if (!contratoPreview || !contratoStatus || !contratoPdfArea) return;
 
   const dados = obterDadosContratoCliente();
+  const contratoHtml = montarContratoProfissional(dados);
+
+  contratoPdfArea.innerHTML = contratoHtml;
 
   contratoPreview.innerHTML = `
     <div class="contrato-documento">
-      <h3>CONTRATO DE PRESTAÇÃO DE SERVIÇOS DE PUBLICIDADE EM TELAS DIGITAIS</h3>
-
-      <h4>Dados da Contratada</h4>
-      <div class="contrato-info-grid">
-        <div class="contrato-info-item">
-          <strong>Empresa</strong>
-          <span>DUNA AUDIOVISUAL</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>CNPJ</strong>
-          <span>[SEU CNPJ]</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>Contato</strong>
-          <span>[SEU TELEFONE] / [SEU EMAIL]</span>
-        </div>
-      </div>
-
-      <h4>Dados do Contratante</h4>
-      <div class="contrato-info-grid">
-        <div class="contrato-info-item">
-          <strong>Código do cliente</strong>
-          <span>${escaparHtml(dados.codigo)}</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>Nome</strong>
-          <span>${escaparHtml(dados.nome)}</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>CPF/CNPJ</strong>
-          <span>${escaparHtml(dados.cpfCnpj)}</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>Telefone</strong>
-          <span>${escaparHtml(dados.telefone)}</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>Email</strong>
-          <span>${escaparHtml(dados.email)}</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>Valor contratado</strong>
-          <span>${escaparHtml(dados.valor)}</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>Período</strong>
-          <span>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</span>
-        </div>
-        <div class="contrato-info-item">
-          <strong>Pontos contratados</strong>
-          <span>${escaparHtml(dados.pontos)}</span>
-        </div>
-      </div>
-
-      <h4>Termos do Contrato</h4>
-
-      <p><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a prestação de serviços de publicidade e divulgação em telas digitais administradas pela CONTRATADA, conforme plano comercial ajustado entre as partes.</p>
-
-      <p><strong>CLÁUSULA 2 - DADOS DA VEICULAÇÃO.</strong> A exibição do material publicitário será realizada nos pontos contratados, durante o período informado neste documento, respeitando a disponibilidade operacional do sistema da CONTRATADA.</p>
-
-      <p><strong>CLÁUSULA 3 - RESPONSABILIDADE PELO CONTEÚDO.</strong> O CONTRATANTE declara ser responsável pelo conteúdo enviado para divulgação, assumindo responsabilidade por textos, imagens, marcas, ofertas, promoções ou quaisquer materiais encaminhados para exibição.</p>
-
-      <p><strong>CLÁUSULA 4 - PRAZO.</strong> O contrato terá vigência a partir da data de início cadastrada, seguindo até a data de vencimento da mídia, podendo ser renovado mediante novo ajuste entre as partes.</p>
-
-      <p><strong>CLÁUSULA 5 - PAGAMENTO.</strong> Pelos serviços prestados, o CONTRATANTE pagará o valor descrito neste contrato. O não pagamento poderá acarretar suspensão da exibição até a regularização.</p>
-
-      <p><strong>CLÁUSULA 6 - ALTERAÇÕES.</strong> Eventuais alterações de material, campanha, período, valores ou pontos de exibição deverão ser registradas e aceitas entre as partes.</p>
-
-      <p><strong>CLÁUSULA 7 - CANCELAMENTO.</strong> O cancelamento antecipado poderá ser solicitado mediante comunicação prévia, observadas as condições comerciais pactuadas no momento da contratação.</p>
-
-      <p><strong>CLÁUSULA 8 - DISPOSIÇÕES GERAIS.</strong> Este instrumento representa o acordo entre as partes quanto à veiculação de publicidade nas telas operadas pela CONTRATADA.</p>
-
-      <p><strong>CLÁUSULA 9 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato.</p>
-
-      <div class="contrato-assinaturas">
-        <div class="contrato-assinatura">CONTRATANTE</div>
-        <div class="contrato-assinatura">DUNA AUDIOVISUAL</div>
-      </div>
+      <h3>Contrato pronto para download</h3>
+      <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+      <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
+      <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
+      <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
     </div>
   `;
 
   contratoStatus.textContent = "Gerado";
-  contratoStatus.classList.remove("gerado");
   contratoStatus.classList.add("gerado");
 
   renderizarHistoricoContrato(dados);
 
   if (exibirMensagem) {
-    mostrarMensagem("Contrato gerado com sucesso.", "#7CFC9A");
+    mostrarMensagem("Contrato atualizado com sucesso.", "#7CFC9A");
   }
 }
 
 async function baixarContratoPdf() {
-  if (!contratoPreview) return;
+  if (!contratoPdfArea) return;
 
-  let contratoDocumento = contratoPreview.querySelector(".contrato-documento");
+  let contratoDocumento = contratoPdfArea.querySelector(".contrato-pdf-folha");
 
   if (!contratoDocumento) {
     gerarContratoCliente(false);
-    contratoDocumento = contratoPreview.querySelector(".contrato-documento");
+    contratoDocumento = contratoPdfArea.querySelector(".contrato-pdf-folha");
+  }
+
+  if (!contratoDocumento) {
+    mostrarMensagem("Contrato não encontrado para gerar PDF.", "#ff6b6b");
+    return;
   }
 
   if (!window.jspdf || !window.html2canvas) {
@@ -1246,7 +1333,7 @@ async function baixarContratoPdf() {
   }
 
   try {
-    mostrarMensagem("Gerando PDF...", "#9fd2ff");
+    mostrarMensagem("Gerando PDF organizado...", "#9fd2ff");
 
     const { jsPDF } = window.jspdf;
 
@@ -1262,21 +1349,20 @@ async function baixarContratoPdf() {
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
 
-    const margin = 10;
-    const imgWidth = pageWidth - margin * 2;
+    const imgWidth = pageWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
+    let position = 0;
     let heightLeft = imgHeight;
-    let position = margin;
 
-    pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight - margin * 2;
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
 
     while (heightLeft > 0) {
-      position = heightLeft - imgHeight + margin;
+      position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight - margin * 2;
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
 
     const codigo = inputCodigo.value || codigoClienteAtual || "cliente";
@@ -1296,53 +1382,65 @@ async function baixarContratoPdf() {
   }
 }
 
-listaPontos.addEventListener("change", () => {
-  renderizarPontosSelecionaveis(obterPontosMarcados());
-  ativarBotaoSalvar();
-  gerarContratoCliente(false);
-});
+if (listaPontos) {
+  listaPontos.addEventListener("change", () => {
+    renderizarPontosSelecionaveis(obterPontosMarcados());
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
+}
 
-inputTelefone.addEventListener("input", (e) => {
-  e.target.value = formatarTelefone(e.target.value);
-  limparErro(inputTelefone);
-  ativarBotaoSalvar();
-  gerarContratoCliente(false);
-});
+if (inputTelefone) {
+  inputTelefone.addEventListener("input", (event) => {
+    event.target.value = formatarTelefone(event.target.value);
+    limparErro(inputTelefone);
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
+}
 
-inputNome.addEventListener("input", () => {
-  limparErro(inputNome);
-  ativarBotaoSalvar();
-  gerarContratoCliente(false);
-});
+if (inputNome) {
+  inputNome.addEventListener("input", () => {
+    limparErro(inputNome);
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
+}
 
-inputEmail.addEventListener("input", () => {
-  limparErro(inputEmail);
-  ativarBotaoSalvar();
-  gerarContratoCliente(false);
-});
+if (inputEmail) {
+  inputEmail.addEventListener("input", () => {
+    limparErro(inputEmail);
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
+}
 
-inputCpfCnpj.addEventListener("input", (e) => {
-  e.target.value = formatarCpfCnpj(e.target.value);
-  limparErro(inputCpfCnpj);
-  ativarBotaoSalvar();
-  gerarContratoCliente(false);
-});
+if (inputCpfCnpj) {
+  inputCpfCnpj.addEventListener("input", (event) => {
+    event.target.value = formatarCpfCnpj(event.target.value);
+    limparErro(inputCpfCnpj);
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
+}
 
-inputVencimento.addEventListener("input", () => {
-  limparErro(inputVencimento);
-  ativarBotaoSalvar();
-  gerarContratoCliente(false);
-});
+if (inputVencimento) {
+  inputVencimento.addEventListener("input", () => {
+    limparErro(inputVencimento);
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
 
-inputVencimento.addEventListener("change", () => {
-  limparErro(inputVencimento);
-  ativarBotaoSalvar();
-  gerarContratoCliente(false);
-});
+  inputVencimento.addEventListener("change", () => {
+    limparErro(inputVencimento);
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
+}
 
 if (inputValorContratado) {
-  inputValorContratado.addEventListener("input", (e) => {
-    e.target.value = formatarMoedaBR(e.target.value);
+  inputValorContratado.addEventListener("input", (event) => {
+    event.target.value = formatarMoedaBR(event.target.value);
     ativarBotaoSalvar();
     gerarContratoCliente(false);
   });
@@ -1378,8 +1476,15 @@ async function carregarCliente() {
     inputEmail.value = "";
     inputCpfCnpj.value = "";
     inputVencimento.value = "";
-    if (inputValorContratado) inputValorContratado.value = formatarMoedaBR("");
-    if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
+
+    if (inputValorContratado) {
+      inputValorContratado.value = formatarMoedaBR("");
+    }
+
+    if (inputDataPostagem) {
+      inputDataPostagem.value = new Date().toISOString().split("T")[0];
+    }
+
     atualizarStatusClienteVisual("Não ativo");
     renderizarPontosSelecionaveis([]);
     renderizarHistoricoArquivos([]);
@@ -1393,8 +1498,14 @@ async function carregarCliente() {
   inputEmail.value = data.email || "";
   inputCpfCnpj.value = formatarCpfCnpj(data.cpf_cnpj || "");
   inputVencimento.value = data.vencimento_exibicao || "";
-  if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? "");
-  if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
+
+  if (inputValorContratado) {
+    inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? "");
+  }
+
+  if (inputDataPostagem) {
+    inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
+  }
 
   let selecionados = [];
 
@@ -1423,16 +1534,18 @@ async function carregarCliente() {
   desativarBotaoSalvar();
 }
 
-botaoSalvar.addEventListener("click", salvarCliente);
+if (botaoSalvar) {
+  botaoSalvar.addEventListener("click", salvarCliente);
+}
 
-botaoVoltar.addEventListener("click", () => {
-  window.location.href = "/central-clientes.html";
-});
+if (botaoVoltar) {
+  botaoVoltar.addEventListener("click", () => {
+    window.location.href = "/central-clientes.html";
+  });
+}
 
-btnUploadCliente.addEventListener("click", uploadArquivoCliente);
-
-if (btnGerarContrato) {
-  btnGerarContrato.addEventListener("click", () => gerarContratoCliente(true));
+if (btnUploadCliente) {
+  btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 }
 
 if (btnBaixarContratoPdf) {
@@ -1443,6 +1556,12 @@ async function iniciar() {
   try {
     injetarEstilosScroll();
     codigoClienteAtual = obterCodigoDaUrl();
+
+    if (!codigoClienteAtual) {
+      mostrarMensagem("Código do cliente não encontrado na URL.", "#ff6b6b");
+      return;
+    }
+
     await carregarPontos();
     await carregarCliente();
   } catch (error) {
