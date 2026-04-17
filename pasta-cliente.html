@@ -79,26 +79,6 @@
       font-weight: bold;
     }
 
-    .botao-upgrade {
-      background: #7c3aed;
-      font-weight: bold;
-    }
-
-    .botao-excluir {
-      background: #7a2230;
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.88rem;
-      transition: 0.2s ease;
-    }
-
-    .botao-excluir:hover {
-      opacity: 0.92;
-    }
-
     .grid {
       display: grid;
       grid-template-columns: 1fr 380px;
@@ -392,12 +372,6 @@
       color: #7CFC9A;
     }
 
-    .contrato-status.upgrade {
-      background: rgba(255, 184, 107, 0.12);
-      border-color: rgba(255, 184, 107, 0.35);
-      color: #ffb86b;
-    }
-
     .contrato-acoes {
       display: flex;
       flex-wrap: wrap;
@@ -541,26 +515,6 @@
       border: 1px solid #2a3040;
       border-radius: 12px;
       padding: 16px;
-    }
-
-    @media print {
-      body * {
-        visibility: hidden;
-      }
-
-      #contratoPreview,
-      #contratoPreview * {
-        visibility: visible;
-      }
-
-      #contratoPreview {
-        position: absolute;
-        inset: 0;
-        max-height: none;
-        overflow: visible;
-        border-radius: 0;
-        padding: 32px;
-      }
     }
 
     @media (max-width: 900px) {
@@ -714,8 +668,7 @@
 
             <div class="contrato-acoes">
               <button id="btnGerarContrato" class="botao botao-salvar" type="button">Gerar contrato</button>
-              <button id="btnImprimirContrato" class="botao botao-voltar" type="button">Imprimir</button>
-              <button id="btnAtivarUpgradeContrato" class="botao botao-upgrade" type="button">Ativar upgrade</button>
+              <button id="btnBaixarContratoPdf" class="botao botao-voltar" type="button">Baixar PDF</button>
             </div>
 
             <div id="contratoPreview" class="contrato-preview">
@@ -757,6 +710,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=16"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="pasta-cliente.js?v=18"></script>
 </body>
 </html>
