@@ -588,7 +588,7 @@
               <div class="linha-assinatura">CONTRATANTE</div>
             </div>
             <div class="assinatura-box assinatura-box-duna">
-              <img src="a" alt="Assinatura Duna Branding" class="assinatura-img">
+              <img src="aassinatura.png" alt="Assinatura Duna Branding" class="assinatura-img">
               <div class="linha-assinatura">Duna Branding</div>
             </div>
           </div>
@@ -661,7 +661,7 @@
               <div class="linha-assinatura">ESTABELECIMENTO</div>
             </div>
             <div class="assinatura-box assinatura-box-duna">
-              <img src="a" alt="Assinatura Duna Branding" class="assinatura-img">
+              <img src="assinatura.png" alt="Assinatura Duna Branding" class="assinatura-img">
               <div class="linha-assinatura">Duna Branding</div>
             </div>
           </div>
@@ -948,7 +948,7 @@
           aplicarTextoCampo("responsavel", config.responsavel || "");
           aplicarTextoCampo("titulo_contrato", config.titulo_contrato || "");
           aplicarTextoCampo("subtitulo_contrato", config.subtitulo_contrato || "");
-          atualizarImagemAssinatura(config.assinatura_url || "a");
+          atualizarImagemAssinatura(config.assinatura_url || "assinatura.png");
         }
 
         if (Array.isArray(clausulas) && clausulas.length) {
@@ -1015,7 +1015,7 @@
 
         await desativarClausulasForo(contratoId);
 
-        atualizarImagemAssinatura(config.assinatura_url || "a");
+        atualizarImagemAssinatura(config.assinatura_url || "aassinatura.png");
         sairModoEdicao();
         mostrarAviso("Contrato salvo na Supabase com sucesso.", "ok");
       } catch (error) {
