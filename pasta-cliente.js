@@ -301,17 +301,19 @@ function renderizarPontosSelecionaveis(selecionados = []) {
       const card = `
         <label style="
           display:flex;
-          align-items:flex-start;
-          gap:12px;
-          padding:14px;
-          border-radius:12px;
-          min-height:72px;
+          align-items:center;
+          gap:8px;
+          padding:8px 10px;
+          border-radius:10px;
+          min-height:44px;
           cursor:pointer;
           border:1px solid ${checked ? "#8ce063" : "#6f8bff"};
           background:${checked ? "#76d34f" : "#4f6ff0"};
           color:#fff;
           overflow:hidden;
-          box-shadow:0 6px 18px rgba(0,0,0,0.18);
+          box-shadow:0 3px 10px rgba(0,0,0,0.14);
+        ">
+
         ">
           <input
             type="checkbox"
