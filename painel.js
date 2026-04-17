@@ -6,6 +6,8 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v1";
+const CACHE_PONTOS_TTL = 2 * 60 * 1000;
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -13,19 +15,11 @@ const loginBox = document.getElementById("loginBox");
 const conteudoPainel = document.getElementById("conteudoPainel");
 const senhaInput = document.getElementById("senhaInput");
 const btnLogin = document.getElementById("btnLogin");
-
 const loginErro = document.getElementById("loginErro");
 
-const statusEl = document.querySelector(".status-topo");
+const statusEl = document.querySelector(".status-topo") || document.getElementById("status");
 const listaPontos = document.getElementById("listaPontos");
 const pontoDetalhe = document.getElementById("pontoDetalhe");
-
-if (sessionStorage.getItem("painelLiberado") === "1") {
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
-  setStatus("Painel Ativo", "ok");
-  iniciarPainel();
-}
 
 const codigoAtual = document.getElementById("codigoAtual");
 const tituloPasta = document.getElementById("tituloPasta");
@@ -48,16 +42,23 @@ let pontosMap = {};
 let dragIndex = null;
 let arquivoImagemEdicao = null;
 let statusAnteriorMap = {};
+let painelIniciado = false;
+let botoesCardsAtivados = false;
 
 let posicaoImagemAtual = { x: 50, y: 50 };
 let arrastandoPreview = false;
 
 function setStatus(texto, tipo = "normal") {
   if (!statusEl) return;
+
   statusEl.textContent = texto;
-  statusEl.className = "status-box";
-  if (tipo === "ok") statusEl.classList.add("ok");
-  if (tipo === "erro") statusEl.classList.add("erro");
+
+  statusEl.classList.remove("ok", "erro", "normal");
+  statusEl.classList.add(tipo);
+
+  if (!statusEl.classList.contains("status-box")) {
+    statusEl.classList.add("status-box");
+  }
 }
 
 function escapeHtml(texto) {
@@ -92,6 +93,7 @@ function calcularStatusInfo(ponto) {
   }
 
   const dataPing = new Date(ponto.ultimo_ping);
+
   if (Number.isNaN(dataPing.getTime())) {
     return {
       texto: "Inativo",
@@ -123,15 +125,19 @@ function calcularStatusInfo(ponto) {
 
 function formatarData(valor) {
   if (!valor) return "Sem data";
+
   const data = new Date(valor);
   if (Number.isNaN(data.getTime())) return "Sem data";
+
   return data.toLocaleDateString("pt-BR");
 }
 
 function formatarDataHora(valor) {
   if (!valor) return "Sem data";
+
   const data = new Date(valor);
   if (Number.isNaN(data.getTime())) return "Sem data";
+
   return data.toLocaleString("pt-BR");
 }
 
@@ -167,6 +173,44 @@ function obterTextoEventoConexao(evento) {
   if (evento === "conectou") return "Conectou";
   if (evento === "desconectou") return "Desconectou";
   return evento || "Sem evento";
+}
+
+function lerCachePontos() {
+  try {
+    const bruto = sessionStorage.getItem(CACHE_PONTOS_KEY);
+    if (!bruto) return null;
+
+    const cache = JSON.parse(bruto);
+    const criadoEm = Number(cache.criadoEm || 0);
+    const pontos = Array.isArray(cache.pontos) ? cache.pontos : [];
+
+    if (!pontos.length) return null;
+
+    return {
+      pontos,
+      fresco: Date.now() - criadoEm < CACHE_PONTOS_TTL
+    };
+  } catch {
+    return null;
+  }
+}
+
+function salvarCachePontos(pontos) {
+  try {
+    sessionStorage.setItem(CACHE_PONTOS_KEY, JSON.stringify({
+      criadoEm: Date.now(),
+      pontos
+    }));
+  } catch {
+    return;
+  }
+}
+
+function ativarLazyImages() {
+  document.querySelectorAll(".card-imagem").forEach((imagem) => {
+    imagem.loading = "lazy";
+    imagem.decoding = "async";
+  });
 }
 
 async function uploadImagemPonto(file, codigo) {
@@ -228,11 +272,11 @@ function validarLogin() {
     return;
   }
 
-sessionStorage.setItem("painelLiberado", "1");
+  sessionStorage.setItem("painelLiberado", "1");
 
-if (loginErro) loginErro.textContent = "";
-if (loginBox) loginBox.style.display = "none";
-if (conteudoPainel) conteudoPainel.style.display = "block";
+  if (loginErro) loginErro.textContent = "";
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
 
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
@@ -243,30 +287,35 @@ if (btnLogin) {
 }
 
 if (senhaInput) {
-  senhaInput.addEventListener("keydown", e => {
-    if (e.key === "Enter") validarLogin();
+  senhaInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") validarLogin();
   });
 }
 
-async function buscarPontos() {
-  const { data, error } = await supabaseClient.from(TABELA_PONTOS).select("*");
+async function buscarPontosRemoto() {
+  const { data, error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .select("*");
 
   if (error) {
-    console.error(error);
-    setStatus("Erro ao carregar pontos", "erro");
-    return [];
+    throw error;
   }
 
   return data || [];
 }
 
-function renderizarCardsPontos(lista) {
+function renderizarCardsPontos(lista, opcoes = {}) {
+  const registrarHistorico = opcoes.registrarHistorico !== false;
+
   pontosMap = {};
-  lista.forEach(p => {
-    pontosMap[p.codigo] = p;
+
+  lista.forEach((ponto) => {
+    if (ponto?.codigo) {
+      pontosMap[ponto.codigo] = ponto;
+    }
   });
 
-  document.querySelectorAll(".card-ponto").forEach(card => {
+  document.querySelectorAll(".card-ponto").forEach((card) => {
     const codigo = String(card.dataset.codigo || "").trim();
     const ponto = pontosMap[codigo] || {};
 
@@ -280,7 +329,7 @@ function renderizarCardsPontos(lista) {
     const statusAtual = statusInfo.ativo ? "ativo" : "inativo";
     const statusAnterior = statusAnteriorMap[codigo];
 
-    if (statusAnterior && statusAnterior !== statusAtual) {
+    if (registrarHistorico && statusAnterior && statusAnterior !== statusAtual) {
       registrarEventoConexao(codigo, statusAtual);
     }
 
@@ -306,10 +355,46 @@ function renderizarCardsPontos(lista) {
     }
 
     if (imagemEl) {
-      imagemEl.src = obterImagemPonto(ponto);
+      const novaImagem = obterImagemPonto(ponto);
+
+      imagemEl.loading = "lazy";
+      imagemEl.decoding = "async";
+
+      if (imagemEl.src !== novaImagem) {
+        imagemEl.src = novaImagem;
+      }
+
       imagemEl.alt = ponto.nome || codigo;
       aplicarPosicaoImagem(imagemEl, lerPosicaoImagem(codigo));
     }
+  });
+}
+
+function ativarBotoesCards() {
+  if (botoesCardsAtivados) return;
+  botoesCardsAtivados = true;
+
+  document.querySelectorAll(".btn-abrir").forEach((btn) => {
+    btn.onclick = (event) => {
+      event.stopPropagation();
+      abrirPonto(btn.dataset.codigo);
+    };
+  });
+
+  document.querySelectorAll(".btn-copiar").forEach((btn) => {
+    btn.onclick = async (event) => {
+      event.stopPropagation();
+
+      const codigo = btn.dataset.codigo;
+      if (!codigo) return;
+
+      try {
+        await navigator.clipboard.writeText(codigo);
+        setStatus("Código copiado", "ok");
+      } catch {
+        setStatus("Erro ao copiar código", "erro");
+      }
+    };
   });
 }
 
@@ -352,6 +437,8 @@ function abrirPonto(codigo) {
   }
 
   if (imagemPonto) {
+    imagemPonto.loading = "lazy";
+    imagemPonto.decoding = "async";
     imagemPonto.src = obterImagemPonto(ponto);
     imagemPonto.alt = ponto.nome || codigoSelecionado;
     aplicarPosicaoImagem(imagemPonto, posicaoSalva);
@@ -369,10 +456,12 @@ function abrirModalEdicao() {
   if (editNome) editNome.value = ponto.nome || "";
   if (editCidade) editCidade.value = ponto.cidade || "";
   if (editEndereco) editEndereco.value = ponto.endereco || "";
+
   if (previewImagem) {
     previewImagem.src = obterImagemPonto(ponto);
     aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
   }
+
   if (inputImagem) inputImagem.value = "";
 
   arquivoImagemEdicao = null;
@@ -381,9 +470,11 @@ function abrirModalEdicao() {
 
 function fecharModalEdicao() {
   if (!modalEditar) return;
+
   modalEditar.style.display = "none";
   arquivoImagemEdicao = null;
   arrastandoPreview = false;
+
   if (inputImagem) inputImagem.value = "";
 }
 
@@ -420,28 +511,30 @@ if (btnFecharModal) {
 }
 
 if (modalEditar) {
-  modalEditar.addEventListener("click", e => {
-    if (e.target === modalEditar) {
+  modalEditar.addEventListener("click", (event) => {
+    if (event.target === modalEditar) {
       fecharModalEdicao();
     }
   });
 }
 
 if (inputImagem) {
-  inputImagem.addEventListener("change", e => {
-    const arquivo = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+  inputImagem.addEventListener("change", (event) => {
+    const arquivo = event.target.files && event.target.files[0] ? event.target.files[0] : null;
     if (!arquivo) return;
 
     arquivoImagemEdicao = arquivo;
     posicaoImagemAtual = { x: 50, y: 50 };
 
     const reader = new FileReader();
-    reader.onload = evento => {
+
+    reader.onload = (evento) => {
       if (previewImagem) {
         previewImagem.src = evento.target.result;
         aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
       }
     };
+
     reader.readAsDataURL(arquivo);
   });
 }
@@ -449,27 +542,28 @@ if (inputImagem) {
 if (previewImagem) {
   previewImagem.style.cursor = "grab";
 
-  previewImagem.addEventListener("mousedown", e => {
-    e.preventDefault();
+  previewImagem.addEventListener("mousedown", (event) => {
+    event.preventDefault();
     arrastandoPreview = true;
     previewImagem.style.cursor = "grabbing";
   });
 
   window.addEventListener("mouseup", () => {
     arrastandoPreview = false;
+
     if (previewImagem) {
       previewImagem.style.cursor = "grab";
     }
   });
 
-  previewImagem.addEventListener("mousemove", e => {
+  previewImagem.addEventListener("mousemove", (event) => {
     if (!arrastandoPreview) return;
 
     const rect = previewImagem.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
 
-    let x = ((e.clientX - rect.left) / rect.width) * 100;
-    let y = ((e.clientY - rect.top) / rect.height) * 100;
+    let x = ((event.clientX - rect.left) / rect.width) * 100;
+    let y = ((event.clientY - rect.top) / rect.height) * 100;
 
     x = Math.max(0, Math.min(100, x));
     y = Math.max(0, Math.min(100, y));
@@ -478,8 +572,8 @@ if (previewImagem) {
     aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
   });
 
-  previewImagem.addEventListener("dragstart", e => {
-    e.preventDefault();
+  previewImagem.addEventListener("dragstart", (event) => {
+    event.preventDefault();
   });
 }
 
@@ -537,10 +631,11 @@ if (btnSalvarEdicao) {
 
       pontosMap[codigoSelecionado] = ponto;
       salvarPosicaoImagem(codigoSelecionado, posicaoImagemAtual);
+      salvarCachePontos(Object.values(pontosMap));
 
       fecharModalEdicao();
       abrirPonto(codigoSelecionado);
-      renderizarCardsPontos(Object.values(pontosMap));
+      renderizarCardsPontos(Object.values(pontosMap), { registrarHistorico: false });
       setStatus("Atualizado com sucesso", "ok");
     } catch (error) {
       console.error("Erro geral ao salvar edição:", error);
@@ -616,6 +711,8 @@ function obterContainerHistoricoStatus() {
 async function carregarPlaylist() {
   if (!codigoSelecionado) return;
 
+  setStatus("Carregando playlist...", "normal");
+
   const [{ data: playlistData, error: playlistError }, { data: historicoData, error: historicoError }] = await Promise.all([
     supabaseClient
       .from(TABELA)
@@ -628,6 +725,7 @@ async function carregarPlaylist() {
       .select("*")
       .eq("codigo", codigoSelecionado)
       .order("data_hora", { ascending: false })
+      .limit(30)
   ]);
 
   if (playlistError) {
@@ -644,8 +742,8 @@ async function carregarPlaylist() {
 
   const lista = playlistData || [];
   const historicoConexao = historicoData || [];
-  const ativos = lista.filter(item => !itemEstaInativo(item));
-  const inativos = lista.filter(item => itemEstaInativo(item));
+  const ativos = lista.filter((item) => !itemEstaInativo(item));
+  const inativos = lista.filter((item) => itemEstaInativo(item));
 
   const playlistAtiva = document.getElementById("playlistAtiva");
   const historicoEncerramento = obterContainerHistoricoEncerramento();
@@ -671,12 +769,13 @@ async function carregarPlaylist() {
 
   ativarDrag(ativos);
   ativarExclusaoItens();
+  setStatus("Painel Ativo", "ok");
 }
 
 async function ativarExclusaoItens() {
-  document.querySelectorAll(".btn-excluir-item").forEach(btn => {
-    btn.onclick = async e => {
-      e.stopPropagation();
+  document.querySelectorAll(".btn-excluir-item").forEach((btn) => {
+    btn.onclick = async (event) => {
+      event.stopPropagation();
 
       const id = btn.dataset.id;
       if (!id) return;
@@ -702,7 +801,7 @@ async function ativarExclusaoItens() {
 }
 
 function limparEstadosDrag() {
-  document.querySelectorAll("#playlistAtiva .playlist-item").forEach(el => {
+  document.querySelectorAll("#playlistAtiva .playlist-item").forEach((el) => {
     el.classList.remove("drag-over", "drop-animating");
   });
 }
@@ -710,7 +809,7 @@ function limparEstadosDrag() {
 function ativarDrag(lista) {
   const items = document.querySelectorAll("#playlistAtiva .playlist-item");
 
-  items.forEach(item => {
+  items.forEach((item) => {
     item.addEventListener("dragstart", () => {
       dragIndex = Number(item.dataset.index);
       item.classList.add("dragging");
@@ -724,8 +823,9 @@ function ativarDrag(lista) {
       dragIndex = null;
     });
 
-    item.addEventListener("dragover", e => {
-      e.preventDefault();
+    item.addEventListener("dragover", (event) => {
+      event.preventDefault();
+
       if (!item.classList.contains("drag-over")) {
         limparEstadosDrag();
         item.classList.add("drag-over");
@@ -741,6 +841,7 @@ function ativarDrag(lista) {
       item.classList.add("drop-animating");
 
       const target = Number(item.dataset.index);
+
       if (Number.isNaN(dragIndex) || Number.isNaN(target) || dragIndex === target) {
         item.classList.remove("drop-animating");
         return;
@@ -774,28 +875,46 @@ function ativarDrag(lista) {
 }
 
 async function iniciarPainel() {
-  const pontos = await buscarPontos();
-  renderizarCardsPontos(pontos);
+  if (painelIniciado) return;
+  painelIniciado = true;
 
-  document.querySelectorAll(".btn-abrir").forEach(btn => {
-    btn.onclick = e => {
-      e.stopPropagation();
-      abrirPonto(btn.dataset.codigo);
-    };
-  });
+  ativarLazyImages();
+  ativarBotoesCards();
 
-  document.querySelectorAll(".btn-copiar").forEach(btn => {
-    btn.onclick = async e => {
-      e.stopPropagation();
-      const codigo = btn.dataset.codigo;
-      if (!codigo) return;
+  const cache = lerCachePontos();
 
-      try {
-        await navigator.clipboard.writeText(codigo);
-        setStatus("Código copiado", "ok");
-      } catch {
-        setStatus("Erro ao copiar código", "erro");
-      }
-    };
-  });
+  if (cache?.pontos?.length) {
+    renderizarCardsPontos(cache.pontos, { registrarHistorico: false });
+    setStatus(cache.fresco ? "Painel Ativo" : "Atualizando painel...", cache.fresco ? "ok" : "normal");
+
+    if (cache.fresco) {
+      return;
+    }
+  } else {
+    setStatus("Carregando pontos...", "normal");
+  }
+
+  try {
+    const pontos = await buscarPontosRemoto();
+
+    salvarCachePontos(pontos);
+    renderizarCardsPontos(pontos, { registrarHistorico: false });
+    setStatus("Painel Ativo", "ok");
+  } catch (error) {
+    console.error(error);
+
+    if (cache?.pontos?.length) {
+      setStatus("Painel Ativo", "ok");
+      return;
+    }
+
+    setStatus("Erro ao carregar pontos", "erro");
+  }
+}
+
+if (sessionStorage.getItem("painelLiberado") === "1") {
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
+  setStatus("Painel Ativo", "ok");
+  iniciarPainel();
 }
