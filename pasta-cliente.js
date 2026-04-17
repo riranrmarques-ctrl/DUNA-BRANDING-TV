@@ -48,7 +48,7 @@ let codigoClienteAtual = "";
 let houveAlteracao = true;
 
 let dadosDunaContrato = {
-  empresa: "DUNA AUDIOVISUAL",
+  empresa: "Duna Branding",
   cnpj: "",
   telefone: "",
   email: "",
@@ -266,7 +266,7 @@ async function carregarConfigContrato() {
 
     if (data) {
       dadosDunaContrato = {
-        empresa: data.empresa || "DUNA AUDIOVISUAL",
+        empresa: data.empresa || "Duna Branding",
         cnpj: data.cnpj || "",
         telefone: data.telefone || "",
         email: data.email || "",
@@ -1236,7 +1236,6 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     .forEach((codigo) => {
       const ponto = pontosData[codigo];
       const nome = obterNomeDoPonto(ponto, codigo);
-      const codigoExibicao = obterCodigoExibicaoDoPonto(ponto, codigo);
 
       const isSelecionado = selecionados.includes(codigo);
       const isInativo = pontoEstaInativo(ponto);
@@ -1245,7 +1244,6 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         selecionadosArr.push(
           montarCardPonto({
             codigo,
-            codigoExibicao,
             nome,
             tema: obterTemaStatus("selecionado"),
             desabilitado: false,
@@ -1256,7 +1254,6 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         inativosArr.push(
           montarCardPonto({
             codigo,
-            codigoExibicao,
             nome,
             tema: obterTemaStatus("inativo"),
             desabilitado: true,
@@ -1267,7 +1264,6 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         disponiveisArr.push(
           montarCardPonto({
             codigo,
-            codigoExibicao,
             nome,
             tema: obterTemaStatus("disponivel"),
             desabilitado: false,
@@ -1280,19 +1276,13 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   const grupos = [];
 
   if (selecionadosArr.length) {
-    grupos.push(
-      montarGrupoPontos("selecionado", "selecionado", selecionadosArr.join(""))
-    );
+    grupos.push(montarGrupoPontos("selecionado", "selecionado", selecionadosArr.join("")));
   }
 
-  grupos.push(
-    montarGrupoPontos("disponível", "disponivel", disponiveisArr.join(""))
-  );
+  grupos.push(montarGrupoPontos("disponível", "disponivel", disponiveisArr.join("")));
 
   if (inativosArr.length) {
-    grupos.push(
-      montarGrupoPontos("inativo", "inativo", inativosArr.join(""))
-    );
+    grupos.push(montarGrupoPontos("inativo", "inativo", inativosArr.join("")));
   }
 
   listaPontos.innerHTML = grupos.join("");
@@ -1374,6 +1364,155 @@ function renderizarHistoricoContrato(dados) {
 
 function montarContratoProfissional(dados) {
   return `
+    <style>
+      .contrato-pdf-folha {
+        width: 794px;
+        min-height: auto;
+        padding: 34px 44px 28px;
+        background: #ffffff;
+        color: #111827;
+        font-family: Arial, sans-serif;
+        font-size: 11.4px;
+        line-height: 1.42;
+      }
+
+      .contrato-pdf-topo {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        border-bottom: 2px solid #1f2937;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+      }
+
+      .contrato-pdf-marca h1 {
+        font-size: 23px;
+        letter-spacing: 0.5px;
+        color: #111827;
+        margin-bottom: 4px;
+      }
+
+      .contrato-pdf-marca p,
+      .contrato-pdf-codigo {
+        color: #475569;
+        font-size: 11.4px;
+      }
+
+      .contrato-pdf-codigo {
+        min-width: 190px;
+        text-align: right;
+        line-height: 1.6;
+      }
+
+      .contrato-pdf-secao {
+        margin-bottom: 12px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .contrato-pdf-secao h2 {
+        font-size: 13px;
+        color: #111827;
+        border-left: 4px solid #2563eb;
+        padding-left: 8px;
+        margin-bottom: 8px;
+      }
+
+      .contrato-pdf-texto {
+        break-inside: auto;
+        page-break-inside: auto;
+      }
+
+      .contrato-pdf-texto p {
+        margin-bottom: 7px;
+        text-align: justify;
+        color: #1f2937;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .contrato-pdf-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .contrato-pdf-campo {
+        border: 1px solid #e5e7eb;
+        background: #f8fafc;
+        border-radius: 8px;
+        min-height: 42px;
+        padding: 7px 9px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .contrato-pdf-campo.full {
+        grid-column: 1 / -1;
+      }
+
+      .contrato-pdf-campo strong {
+        display: block;
+        font-size: 10.5px;
+        color: #111827;
+        margin-bottom: 3px;
+      }
+
+      .contrato-pdf-campo span {
+        color: #475569;
+        font-size: 11.4px;
+      }
+
+      .contrato-pdf-assinaturas {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 22px;
+        align-items: end;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .contrato-pdf-assinatura {
+        min-height: 68px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        text-align: center;
+        color: #111827;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .contrato-pdf-assinatura img {
+        display: block;
+        width: 250px;
+        max-width: 94%;
+        height: 62px;
+        object-fit: contain;
+        object-position: center bottom;
+        margin: 0 auto -14px;
+        transform: scale(1.05);
+        transform-origin: center bottom;
+      }
+
+      .contrato-pdf-linha {
+        border-top: 1px solid #111827;
+        padding-top: 7px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .contrato-pdf-rodape {
+        margin-top: 14px;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 8px;
+        text-align: center;
+        color: #64748b;
+        font-size: 10.5px;
+      }
+    </style>
+
     <div class="contrato-pdf-folha">
       <div class="contrato-pdf-topo">
         <div class="contrato-pdf-marca">
@@ -1387,43 +1526,16 @@ function montarContratoProfissional(dados) {
         </div>
       </div>
 
-      <h1 class="contrato-pdf-titulo">
-        ${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais")}
-      </h1>
-
       <div class="contrato-pdf-secao">
         <h2>Dados da Contratada</h2>
 
         <div class="contrato-pdf-grid">
-          <div class="contrato-pdf-campo">
-            <strong>Empresa</strong>
-            <span>${escaparHtml(dadosDunaContrato.empresa || "-")}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>CNPJ</strong>
-            <span>${escaparHtml(dadosDunaContrato.cnpj || "-")}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Telefone</strong>
-            <span>${escaparHtml(dadosDunaContrato.telefone || "-")}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Email</strong>
-            <span>${escaparHtml(dadosDunaContrato.email || "-")}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Responsável</strong>
-            <span>${escaparHtml(dadosDunaContrato.responsavel || "-")}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Endereço</strong>
-            <span>${escaparHtml(dadosDunaContrato.endereco || "-")}</span>
-          </div>
+          <div class="contrato-pdf-campo"><strong>Empresa</strong><span>${escaparHtml(dadosDunaContrato.empresa || "-")}</span></div>
+          <div class="contrato-pdf-campo"><strong>CNPJ</strong><span>${escaparHtml(dadosDunaContrato.cnpj || "-")}</span></div>
+          <div class="contrato-pdf-campo"><strong>Telefone</strong><span>${escaparHtml(dadosDunaContrato.telefone || "-")}</span></div>
+          <div class="contrato-pdf-campo"><strong>Email</strong><span>${escaparHtml(dadosDunaContrato.email || "-")}</span></div>
+          <div class="contrato-pdf-campo"><strong>Responsável</strong><span>${escaparHtml(dadosDunaContrato.responsavel || "-")}</span></div>
+          <div class="contrato-pdf-campo"><strong>Endereço</strong><span>${escaparHtml(dadosDunaContrato.endereco || "-")}</span></div>
         </div>
       </div>
 
@@ -1431,40 +1543,13 @@ function montarContratoProfissional(dados) {
         <h2>Dados do Contratante</h2>
 
         <div class="contrato-pdf-grid">
-          <div class="contrato-pdf-campo">
-            <strong>Nome</strong>
-            <span>${escaparHtml(dados.nome)}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>CPF / CNPJ</strong>
-            <span>${escaparHtml(dados.cpfCnpj)}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Telefone</strong>
-            <span>${escaparHtml(dados.telefone)}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Email</strong>
-            <span>${escaparHtml(dados.email)}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Valor contratado</strong>
-            <span>${escaparHtml(dados.valor)}</span>
-          </div>
-
-          <div class="contrato-pdf-campo">
-            <strong>Período</strong>
-            <span>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</span>
-          </div>
-
-          <div class="contrato-pdf-campo full">
-            <strong>Pontos contratados</strong>
-            <span>${escaparHtml(dados.pontos)}</span>
-          </div>
+          <div class="contrato-pdf-campo"><strong>Nome</strong><span>${escaparHtml(dados.nome)}</span></div>
+          <div class="contrato-pdf-campo"><strong>CPF / CNPJ</strong><span>${escaparHtml(dados.cpfCnpj)}</span></div>
+          <div class="contrato-pdf-campo"><strong>Telefone</strong><span>${escaparHtml(dados.telefone)}</span></div>
+          <div class="contrato-pdf-campo"><strong>Email</strong><span>${escaparHtml(dados.email)}</span></div>
+          <div class="contrato-pdf-campo"><strong>Valor contratado</strong><span>${escaparHtml(dados.valor)}</span></div>
+          <div class="contrato-pdf-campo"><strong>Período</strong><span>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</span></div>
+          <div class="contrato-pdf-campo full"><strong>Pontos contratados</strong><span>${escaparHtml(dados.pontos)}</span></div>
         </div>
       </div>
 
@@ -1479,13 +1564,13 @@ function montarContratoProfissional(dados) {
         </div>
 
         <div class="contrato-pdf-assinatura">
-          <img src="${escaparHtml(dadosDunaContrato.assinatura_url || "/assinatura.png")}" alt="Assinatura ${escaparHtml(dadosDunaContrato.empresa || "DUNA AUDIOVISUAL")}">
-          <div class="contrato-pdf-linha">${escaparHtml(dadosDunaContrato.empresa || "DUNA AUDIOVISUAL")}</div>
+          <img src="${escaparHtml(dadosDunaContrato.assinatura_url || "/assinatura.png")}" alt="Assinatura ${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}">
+          <div class="contrato-pdf-linha">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
         </div>
       </div>
 
       <div class="contrato-pdf-rodape">
-        Documento gerado automaticamente pela ${escaparHtml(dadosDunaContrato.empresa || "DUNA AUDIOVISUAL")}.
+        Documento gerado automaticamente pela ${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}.
       </div>
     </div>
   `;
@@ -1499,16 +1584,12 @@ function gerarContratoCliente(exibirMensagem = false) {
   contratoPreview.innerHTML = `
     <div class="contrato-documento">
       <h3>Contrato pronto para download</h3>
-
       <p><strong>Cliente:</strong></p>
       <p>${escaparHtml(dados.nome)}</p>
-
       <p><strong>Valor:</strong></p>
       <p>${escaparHtml(dados.valor)}</p>
-
       <p><strong>Período:</strong></p>
       <p>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
-
       <p><strong>Pontos:</strong></p>
       <p>${escaparHtml(dados.pontos)}</p>
     </div>
@@ -1548,8 +1629,8 @@ function aguardarImagensContrato(container) {
 async function baixarContratoPdf() {
   if (!contratoPdfArea) return;
 
-  if (!window.jspdf || !window.html2canvas) {
-    mostrarMensagem("Bibliotecas de PDF não carregaram.", "#ff6b6b");
+  if (!window.html2pdf) {
+    mostrarMensagem("Biblioteca de PDF não carregou.", "#ff6b6b");
     return;
   }
 
@@ -1567,37 +1648,7 @@ async function baixarContratoPdf() {
     }
 
     await aguardarImagensContrato(contratoDocumento);
-    await new Promise((resolve) => setTimeout(resolve, 120));
-
-    const { jsPDF } = window.jspdf;
-
-    const canvas = await window.html2canvas(contratoDocumento, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      useCORS: true
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let position = 0;
-    let heightLeft = imgHeight;
-
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-    }
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
     const codigo = inputCodigo.value || codigoClienteAtual || "cliente";
     const nome = (inputNome.value || "contrato")
@@ -1607,7 +1658,36 @@ async function baixarContratoPdf() {
       .replace(/-+/g, "-")
       .toLowerCase();
 
-    pdf.save(`contrato-${codigo}-${nome}.pdf`);
+    await window.html2pdf()
+      .set({
+        margin: [6, 6, 6, 6],
+        filename: `contrato-${codigo}-${nome}.pdf`,
+        image: {
+          type: "jpeg",
+          quality: 0.98
+        },
+        html2canvas: {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+          scrollY: 0
+        },
+        jsPDF: {
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait"
+        },
+        pagebreak: {
+          mode: ["css", "legacy"],
+          avoid: [
+            ".contrato-pdf-campo",
+            ".contrato-pdf-assinaturas",
+            ".contrato-pdf-texto p"
+          ]
+        }
+      })
+      .from(contratoDocumento)
+      .save();
 
     contratoPdfArea.innerHTML = "";
     mostrarMensagem("PDF baixado com sucesso.", "#7CFC9A");
@@ -1686,7 +1766,6 @@ if (inputValorContratado) {
 
   inputValorContratado.addEventListener("blur", (event) => {
     event.target.value = formatarMoedaBR(event.target.value);
-
     ativarBotaoSalvar();
     gerarContratoCliente(false);
   });
