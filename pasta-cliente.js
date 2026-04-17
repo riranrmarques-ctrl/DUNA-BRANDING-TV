@@ -1557,7 +1557,7 @@ function montarContratoProfissional(dados) {
         </div>
 
         <div class="contrato-pdf-assinatura">
-          <img src="/assinatura.png" alt="Assinatura Duna Publicidade">
+          <img src="/A" alt="Assinatura Duna Publicidade">
           <div class="contrato-pdf-linha">Duna Publicidade</div>
         </div>
       </div>
