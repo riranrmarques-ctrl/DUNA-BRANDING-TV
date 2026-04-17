@@ -316,4 +316,40 @@ async function criarNovoCliente() {
 }
 
 function iniciarPagina() {
-  if (botaoVoltarPainel)
+  if (botaoVoltarPainel) {
+    botaoVoltarPainel.addEventListener("click", () => {
+      window.location.href = "/painel.html";
+    });
+  }
+
+  if (!verificarAcesso()) {
+    return;
+  }
+
+  if (!window.supabase) {
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Supabase não carregou.</div>`;
+    }
+
+    mostrarMensagem("Supabase não carregou. Verifique o script no HTML.", "#ff6b6b");
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  if (botaoNovoCliente) {
+    botaoNovoCliente.addEventListener("click", criarNovoCliente);
+  }
+
+  if (botaoAtualizar) {
+    botaoAtualizar.addEventListener("click", carregarClientes);
+  }
+
+  if (buscaCliente) {
+    buscaCliente.addEventListener("input", renderizarClientes);
+  }
+
+  carregarClientes();
+}
+
+iniciarPagina();
