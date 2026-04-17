@@ -334,78 +334,43 @@ function obterTemaStatus(tipo) {
   };
 }
 
-function montarCardPonto({
-  codigo,
-  codigoExibicao,
-  nome,
-  tema,
-  desabilitado = false,
-  marcado = false
-}) {
+function montarGrupoPontos(titulo, tipo, conteudoHtml) {
+  const tema = obterTemaStatus(tipo);
+
   return `
-    <label
-      style="
-        display:flex;
-        align-items:center;
-        gap:10px;
-        min-height:64px;
-        padding:12px 14px;
-        border-radius:12px;
-        border:1px solid ${tema.cardBorda};
-        background:${tema.cardFundo};
-        box-shadow:${tema.cardSombra};
-        color:#ffffff;
-        cursor:${desabilitado ? "not-allowed" : "pointer"};
-        opacity:${desabilitado ? "0.65" : "1"};
-        overflow:hidden;
-        transition:0.2s ease;
-      "
-    >
-      <input
-        type="checkbox"
-        name="pontos"
-        value="${escaparHtml(codigo)}"
-        ${marcado ? "checked" : ""}
-        ${desabilitado ? "disabled" : ""}
-        style="
-          width:16px;
-          height:16px;
-          accent-color:#2d8cff;
-          flex-shrink:0;
-          cursor:${desabilitado ? "not-allowed" : "pointer"};
-        "
-      >
-
+    <div style="margin-bottom:18px;">
       <div style="
-        display:flex;
-        flex-direction:column;
-        min-width:0;
-        flex:1;
-        line-height:1.15;
-      ">
-        <span style="
-          color:#ffffff;
-          font-size:0.92rem;
-          font-weight:700;
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          margin-bottom:4px;
-        ">${escaparHtml(nome)}</span>
+        color:${tema.titulo};
+        font-size:0.95rem;
+        font-weight:700;
+        margin-bottom:10px;
+        text-transform:lowercase;
+      ">${titulo}</div>
 
-        <span style="
-          color:rgba(255,255,255,0.72);
-          font-size:0.72rem;
-          font-weight:600;
-          letter-spacing:0.04em;
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
-        ">${escaparHtml(codigoExibicao)}</span>
+      <div
+        style="
+          display:grid;
+          grid-template-columns:repeat(3, minmax(150px, 1fr));
+          gap:12px;
+          min-height:108px;
+          max-height:300px;
+          overflow-y:auto;
+          overflow-x:hidden;
+          padding:14px;
+          border:1px solid ${tema.areaBorda};
+          border-radius:14px;
+          background:${tema.areaFundo};
+          scrollbar-width:none !important;
+          -ms-overflow-style:none !important;
+        "
+        class="grupo-pontos-scroll-${tipo}"
+      >
+        ${conteudoHtml}
       </div>
-    </label>
+    </div>
   `;
 }
+
 
 function montarGrupoPontos(titulo, tipo, conteudoHtml) {
   const tema = obterTemaStatus(tipo);
