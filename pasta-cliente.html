@@ -79,21 +79,6 @@
       font-weight: bold;
     }
 
-    .botao-excluir {
-      background: #7a2230;
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-size: 0.88rem;
-      transition: 0.2s ease;
-    }
-
-    .botao-excluir:hover {
-      opacity: 0.92;
-    }
-
     .grid {
       display: grid;
       grid-template-columns: 1fr 380px;
@@ -254,39 +239,6 @@
       min-height: 120px;
     }
 
-    .historico-item {
-      background: #10131a;
-      border: 1px solid #2a3040;
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      align-items: flex-start;
-    }
-
-    .historico-item-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .historico-item-titulo {
-      font-size: 0.96rem;
-      font-weight: bold;
-      color: #ffffff;
-      margin-bottom: 8px;
-      line-height: 1.4;
-      word-break: break-word;
-    }
-
-    .historico-item-linha {
-      color: #c6cedd;
-      font-size: 0.9rem;
-      line-height: 1.55;
-      margin-bottom: 4px;
-      word-break: break-word;
-    }
-
     .historico-vazio {
       color: #c6cedd;
       background: #10131a;
@@ -309,17 +261,10 @@
 
     @media (max-width: 900px) {
       .grid,
-      .grid-historicos {
-        grid-template-columns: 1fr;
-      }
-
+      .grid-historicos,
       .linha-dupla,
       .linha-tripla {
         grid-template-columns: 1fr;
-      }
-
-      .historico-item {
-        flex-direction: column;
       }
     }
 
@@ -436,14 +381,19 @@
                 color:#d5dbea;
                 font-size:0.9rem;
                 line-height:1.55;
-                max-height:260px;
+                max-height:220px;
                 overflow:auto;
                 padding:12px;
                 border:1px solid #2a3040;
                 border-radius:10px;
                 background:#0f1115;
+                margin-bottom:12px;
               "
             ></div>
+
+            <button id="btnBaixarContrato" class="botao botao-salvar" type="button">
+              Baixar contrato
+            </button>
           </div>
         </div>
 
@@ -478,6 +428,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=300"></script>
+  <script src="pasta-cliente.js?v=259"></script>
 </body>
 </html>
