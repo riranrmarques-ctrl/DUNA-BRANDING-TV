@@ -76,7 +76,7 @@ function carregarDadosSalvos() {
 }
 
 function irParaPlayer(codigo) {
-  window.location.href = `player.html?codigo=${encodeURIComponent(codigo)}`;
+  window.location.href = `https://dunatv.vercel.app/player.html?codigo=${encodeURIComponent(codigo)}`;
 }
 
 function iniciarAutoEntrada() {
