@@ -346,13 +346,16 @@ function montarCardPonto({
   desabilitado = false,
   marcado = false
 }) {
+  const ponto = pontosData[codigo] || {};
+  const cidade = String(ponto.cidade || "").trim() || "Cidade não definida";
+
   return `
     <label
       style="
         display:flex;
         align-items:flex-start;
         gap:10px;
-        min-height:76px;
+        min-height:70px;
         padding:14px 16px;
         border-radius:12px;
         border:1px solid ${tema.cardBorda};
@@ -386,40 +389,37 @@ function montarCardPonto({
         flex-direction:column;
         min-width:0;
         flex:1;
-        line-height:1.25;
+        line-height:1.2;
       ">
-        <span style="
-          color:#ffffff;
-          font-size:0.92rem;
-          font-weight:700;
-          white-space:normal;
-          overflow:visible;
-          text-overflow:clip;
-          overflow-wrap:anywhere;
-          word-break:normal;
-          margin-bottom:7px;
-        ">${escaparHtml(nome)}</span>
+        <span
+          title="${escaparHtml(nome)}"
+          style="
+            color:#ffffff;
+            font-size:0.92rem;
+            font-weight:700;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            margin-bottom:6px;
+          "
+        >${escaparHtml(nome)}</span>
 
-        <span style="
-          display:inline-flex;
-          align-items:center;
-          width:fit-content;
-          max-width:100%;
-          color:rgba(255,255,255,0.78);
-          background:rgba(0,0,0,0.16);
-          border:1px solid rgba(255,255,255,0.10);
-          border-radius:999px;
-          padding:4px 8px;
-          font-size:0.68rem;
-          font-weight:700;
-          line-height:1;
-          white-space:normal;
-          overflow-wrap:anywhere;
-        ">${escaparHtml(codigoExibicao)}</span>
+        <span
+          title="${escaparHtml(cidade)}"
+          style="
+            color:rgba(255,255,255,0.72);
+            font-size:0.74rem;
+            font-weight:600;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+          "
+        >${escaparHtml(cidade)}</span>
       </div>
     </label>
   `;
 }
+
 
 function montarGrupoPontos(titulo, tipo, conteudoHtml) {
   const tema = obterTemaStatus(tipo);
