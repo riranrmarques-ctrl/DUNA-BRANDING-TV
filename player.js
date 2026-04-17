@@ -14,9 +14,7 @@ let indiceAtual = 0;
 let timeoutMidia = null;
 
 function mostrarMensagem(texto) {
-  document.body.innerHTML = `
-    <div class="mensagem">${texto}</div>
-  `;
+  document.body.innerHTML = `<div class="mensagem">${texto}</div>`;
 }
 
 function salvarCachePlaylist() {
@@ -109,150 +107,37 @@ async function normalizarLista(registros) {
 }
 
 async function buscarPlaylist() {
-  try {
-    const { data, error } = await supabaseClient
-      .from(TABELA)
-      .select("*")
-      .eq("codigo", codigoAtual)
-      .order("ordem", { ascending: true });
+  const { data, error } = await supabaseClient
+    .from(TABELA)
+    .select("*")
+    .eq("codigo", codigoAtual)
+    .order("ordem", { ascending: true });
 
-    if (error) {
-      throw error;
-    }
-
-    const novaPlaylist = await normalizarLista(data);
-
-    if (novaPlaylist.length) {
-      const itemAtual = playlistAtual[indiceAtual];
-      playlistAtual = novaPlaylist;
-
-      if (itemAtual) {
-        const novoIndice = playlistAtual.findIndex((item) => item.id === itemAtual.id);
-        indiceAtual = novoIndice >= 0 ? novoIndice : 0;
-      } else if (indiceAtual >= playlistAtual.length) {
-        indiceAtual = 0;
-      }
-
-      salvarCachePlaylist();
-    }
-  } catch (error) {
-    console.error("Erro ao buscar playlist online:", error);
+  if (error) {
+    throw error;
   }
+
+  const novaPlaylist = await normalizarLista(data);
+
+  if (!novaPlaylist.length) {
+    playlistAtual = [];
+    indiceAtual = 0;
+    salvarCachePlaylist();
+    return;
+  }
+
+  const itemAtual = playlistAtual[indiceAtual];
+  playlistAtual = novaPlaylist;
+
+  if (itemAtual) {
+    const novoIndice = playlistAtual.findIndex((item) => item.id === itemAtual.id);
+    indiceAtual = novoIndice >= 0 ? novoIndice : 0;
+  } else if (indiceAtual >= playlistAtual.length) {
+    indiceAtual = 0;
+  }
+
+  salvarCachePlaylist();
 }
 
 function limparTela() {
-  clearTimeout(timeoutMidia);
-  document.body.innerHTML = `
-    <div class="player-container">
-      <video id="videoPlayer" autoplay muted playsinline></video>
-    </div>
-  `;
-}
-
-function tocarVideo(url) {
-  limparTela();
-
-  const vid = document.getElementById("videoPlayer");
-  vid.src = url;
-  vid.onended = proximo;
-  vid.onerror = proximo;
-  vid.play().catch(() => {
-    setTimeout(proximo, 3000);
-  });
-}
-
-function tocarImagem(url) {
-  clearTimeout(timeoutMidia);
-  document.body.innerHTML = `
-    <img src="${url}" style="width:100vw;height:100vh;object-fit:cover">
-  `;
-  timeoutMidia = setTimeout(proximo, 20000);
-}
-
-function tocarSite(url) {
-  clearTimeout(timeoutMidia);
-  document.body.innerHTML = `
-    <iframe src="${url}" style="width:100vw;height:100vh;border:none"></iframe>
-  `;
-  timeoutMidia = setTimeout(proximo, 20000);
-}
-
-function tocarMidia() {
-  if (!playlistAtual.length) {
-    mostrarMensagem("Sem conteúdo");
-    return;
-  }
-
-  if (indiceAtual >= playlistAtual.length) {
-    indiceAtual = 0;
-  }
-
-  const item = playlistAtual[indiceAtual];
-
-  if (!item || !item.url) {
-    proximo();
-    return;
-  }
-
-  salvarCachePlaylist();
-
-  if (item.tipo === "video") {
-    tocarVideo(item.url);
-    return;
-  }
-
-  if (item.tipo === "imagem") {
-    tocarImagem(item.url);
-    return;
-  }
-
-  if (item.tipo === "site") {
-    tocarSite(item.url);
-    return;
-  }
-
-  proximo();
-}
-
-function proximo() {
-  indiceAtual++;
-
-  if (indiceAtual >= playlistAtual.length) {
-    indiceAtual = 0;
-  }
-
-  salvarCachePlaylist();
-  tocarMidia();
-}
-
-async function iniciar() {
-  const params = new URLSearchParams(window.location.search);
-  codigoAtual = (params.get("codigo") || localStorage.getItem(CACHE_CODIGO_KEY) || "").trim().toUpperCase();
-
-  if (!codigoAtual) {
-    mostrarMensagem("Código não informado");
-    return;
-  }
-
-  const temCache = carregarCachePlaylist();
-
-  if (temCache && playlistAtual.length) {
-    tocarMidia();
-  } else {
-    mostrarMensagem("Carregando conteúdo...");
-  }
-
-  await buscarPlaylist();
-
-  if (playlistAtual.length) {
-    tocarMidia();
-  } else if (!temCache) {
-    mostrarMensagem("Sem conteúdo");
-  }
-
-  setInterval(async () => {
-    await buscarPlaylist();
-  }, 600000);
-}
-
-iniciar();
+  clearTimeout(timeoutMid
