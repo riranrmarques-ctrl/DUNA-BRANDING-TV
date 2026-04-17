@@ -1,8 +1,6 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const CODIGOS_FIXOS = [
   "H3L1",
   "E7N4",
@@ -26,6 +24,9 @@ const CODIGOS_FIXOS = [
   "E9N2"
 ];
 
+let supabaseClient = null;
+let clientesCarregados = [];
+
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
 const botaoNovoCliente = document.getElementById("botaoNovoCliente");
@@ -33,18 +34,20 @@ const botaoAtualizar = document.getElementById("botaoAtualizar");
 const buscaCliente = document.getElementById("buscaCliente");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
-let clientesCarregados = [];
-
 function verificarAcesso() {
   const liberado = sessionStorage.getItem("painelLiberado");
+
   if (liberado !== "1") {
     window.location.href = "/painel.html";
     return false;
   }
+
   return true;
 }
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
+  if (!mensagem) return;
+
   mensagem.textContent = texto;
   mensagem.style.color = cor;
 }
@@ -59,7 +62,7 @@ function escaparHtml(texto) {
 }
 
 function abrirCliente(codigo) {
-  window.location.href = `pasta-cliente.html?codigo=${encodeURIComponent(codigo)}`;
+  window.location.href = `/pasta-cliente.html?codigo=${encodeURIComponent(codigo)}`;
 }
 
 async function excluirCliente(codigo) {
@@ -92,7 +95,11 @@ async function excluirCliente(codigo) {
 }
 
 function obterListaFiltrada() {
-  const termo = (buscaCliente.value || "").trim().toLowerCase();
+  const termo = (buscaCliente?.value || "").trim().toLowerCase();
+
+  if (!termo) {
+    return clientesCarregados;
+  }
 
   return clientesCarregados.filter((cliente) => {
     const textoBusca = [
@@ -100,7 +107,9 @@ function obterListaFiltrada() {
       cliente.nome_completo,
       cliente.telefone,
       cliente.email,
-      cliente.cpf_cnpj
+      cliente.cpf_cnpj,
+      cliente.status,
+      Array.isArray(cliente.pontos) ? cliente.pontos.join(" ") : ""
     ]
       .join(" ")
       .toLowerCase();
@@ -110,6 +119,8 @@ function obterListaFiltrada() {
 }
 
 function renderizarClientes() {
+  if (!listaClientes) return;
+
   const filtrados = obterListaFiltrada();
 
   listaClientes.innerHTML = "";
@@ -144,21 +155,34 @@ function renderizarClientes() {
     const botaoAbrir = card.querySelector(".botao-abrir");
     const botaoExcluir = card.querySelector(".botao-excluir");
 
-    botaoAbrir.addEventListener("click", (event) => {
-      event.stopPropagation();
-      abrirCliente(cliente.codigo);
-    });
+    if (botaoAbrir) {
+      botaoAbrir.addEventListener("click", (event) => {
+        event.stopPropagation();
+        abrirCliente(cliente.codigo);
+      });
+    }
 
-    botaoExcluir.addEventListener("click", (event) => {
-      event.stopPropagation();
-      excluirCliente(cliente.codigo);
-    });
+    if (botaoExcluir) {
+      botaoExcluir.addEventListener("click", (event) => {
+        event.stopPropagation();
+        excluirCliente(cliente.codigo);
+      });
+    }
 
     listaClientes.appendChild(card);
   });
 }
 
 async function carregarClientes() {
+  if (!supabaseClient) {
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Erro ao conectar com o Supabase.</div>`;
+    }
+
+    mostrarMensagem("Supabase não carregou. Verifique o script CDN no HTML.", "#ff6b6b");
+    return;
+  }
+
   try {
     mostrarMensagem("Carregando clientes...");
 
@@ -182,6 +206,7 @@ async function carregarClientes() {
       if (!mapaPontos[item.cliente_codigo]) {
         mapaPontos[item.cliente_codigo] = [];
       }
+
       mapaPontos[item.cliente_codigo].push(item.ponto_codigo);
     });
 
@@ -194,7 +219,11 @@ async function carregarClientes() {
     mostrarMensagem("Carregado.", "#7CFC9A");
   } catch (error) {
     console.error(error);
-    listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
+
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
+    }
+
     mostrarMensagem("Erro ao carregar clientes do Supabase.", "#ff6b6b");
   }
 }
@@ -213,7 +242,10 @@ async function criarNovoCliente() {
   }
 
   try {
-    botaoNovoCliente.disabled = true;
+    if (botaoNovoCliente) {
+      botaoNovoCliente.disabled = true;
+    }
+
     mostrarMensagem("Criando novo cliente...");
 
     const payload = {
@@ -239,19 +271,47 @@ async function criarNovoCliente() {
     console.error(error);
     mostrarMensagem("Erro ao criar novo cliente.", "#ff6b6b");
   } finally {
-    botaoNovoCliente.disabled = false;
+    if (botaoNovoCliente) {
+      botaoNovoCliente.disabled = false;
+    }
   }
 }
 
-if (botaoVoltarPainel) {
-  botaoVoltarPainel.addEventListener("click", () => {
-    window.location.href = "/painel.html";
-  });
-}
+function iniciarPagina() {
+  if (botaoVoltarPainel) {
+    botaoVoltarPainel.addEventListener("click", () => {
+      window.location.href = "/painel.html";
+    });
+  }
 
-if (verificarAcesso()) {
-  botaoNovoCliente.addEventListener("click", criarNovoCliente);
-  botaoAtualizar.addEventListener("click", carregarClientes);
-  buscaCliente.addEventListener("input", renderizarClientes);
+  if (!verificarAcesso()) {
+    return;
+  }
+
+  if (!window.supabase) {
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Supabase não carregou.</div>`;
+    }
+
+    mostrarMensagem("Supabase não carregou. Verifique o script no HTML.", "#ff6b6b");
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  if (botaoNovoCliente) {
+    botaoNovoCliente.addEventListener("click", criarNovoCliente);
+  }
+
+  if (botaoAtualizar) {
+    botaoAtualizar.addEventListener("click", carregarClientes);
+  }
+
+  if (buscaCliente) {
+    buscaCliente.addEventListener("input", renderizarClientes);
+  }
+
   carregarClientes();
 }
+
+iniciarPagina();
