@@ -42,6 +42,20 @@ let pontosData = {};
 let codigoClienteAtual = "";
 let houveAlteracao = true;
 
+let dadosDunaContrato = {
+  empresa: "DUNA AUDIOVISUAL",
+  cnpj: "",
+  telefone: "",
+  email: "",
+  endereco: "",
+  responsavel: "",
+  assinatura_url: "/assinatura.png",
+  titulo_contrato: "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
+  subtitulo_contrato: "Contrato de prestação de serviços de publicidade em telas digitais."
+};
+
+let clausulasContrato = [];
+
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
   mensagem.textContent = texto;
@@ -200,8 +214,10 @@ function atualizarStatusClienteVisual(statusTexto) {
 
   const texto = String(statusTexto || "").trim().toLowerCase();
   const ativo = texto === "ativo";
+  const valor = ativo ? "Ativo" : "Não ativo";
 
-  statusCliente.textContent = ativo ? "Ativo" : "Não ativo";
+  statusCliente.textContent = valor;
+  statusCliente.value = valor;
   statusCliente.style.color = ativo ? "#7CFC9A" : "#ff6b6b";
 }
 
@@ -216,6 +232,69 @@ function itemEstaInativo(item) {
   fim.setHours(23, 59, 59, 999);
 
   return agora > fim;
+}
+
+function escaparHtml(texto) {
+  return String(texto ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function textoComQuebras(texto) {
+  return escaparHtml(texto).replace(/\n/g, "<br>");
+}
+
+async function carregarConfigContrato() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("config_contrato")
+      .select("*")
+      .eq("id", "duna")
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (data) {
+      dadosDunaContrato = {
+        empresa: data.empresa || "DUNA AUDIOVISUAL",
+        cnpj: data.cnpj || "",
+        telefone: data.telefone || "",
+        email: data.email || "",
+        endereco: data.endereco || "",
+        responsavel: data.responsavel || "",
+        assinatura_url: data.assinatura_url || "/assinatura.png",
+        titulo_contrato: data.titulo_contrato || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
+        subtitulo_contrato: data.subtitulo_contrato || "Contrato de prestação de serviços de publicidade em telas digitais."
+      };
+    }
+  } catch (error) {
+    console.error("Erro ao carregar configuração do contrato:", error);
+  }
+}
+
+async function carregarClausulasContrato() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("contrato_clausulas")
+      .select("*")
+      .eq("contrato_id", "duna")
+      .eq("ativo", true)
+      .order("ordem", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    clausulasContrato = Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Erro ao carregar cláusulas do contrato:", error);
+    clausulasContrato = [];
+  }
 }
 
 async function carregarPontos() {
@@ -279,6 +358,10 @@ function obterNomeDoPonto(ponto, codigo) {
   );
 }
 
+function obterCidadeDoPonto(ponto) {
+  return String(ponto?.cidade || "").trim();
+}
+
 function obterCodigoExibicaoDoPonto(ponto, codigo) {
   return String(
     ponto?.codigo_ponto ||
@@ -289,20 +372,36 @@ function obterCodigoExibicaoDoPonto(ponto, codigo) {
   ).trim();
 }
 
-function obterPontosContratoTexto() {
+function obterPontosContratoLista() {
   const pontosSelecionados = obterPontosMarcados();
 
-  if (!pontosSelecionados.length) {
+  return pontosSelecionados.map((codigo) => {
+    const ponto = pontosData[codigo];
+    const nome = obterNomeDoPonto(ponto, codigo);
+    const cidade = obterCidadeDoPonto(ponto);
+
+    return {
+      codigo,
+      nome,
+      cidade
+    };
+  });
+}
+
+function obterPontosContratoTexto() {
+  const pontos = obterPontosContratoLista();
+
+  if (!pontos.length) {
     return "Nenhum ponto selecionado";
   }
 
-  return pontosSelecionados
-    .map((codigo) => {
-      const ponto = pontosData[codigo];
-      const nome = obterNomeDoPonto(ponto, codigo);
-      const codigoExibicao = obterCodigoExibicaoDoPonto(ponto, codigo);
+  return pontos
+    .map((ponto) => {
+      if (ponto.cidade) {
+        return `${ponto.nome} - ${ponto.cidade}`;
+      }
 
-      return `${nome} (${codigoExibicao})`;
+      return ponto.nome;
     })
     .join(", ");
 }
@@ -338,15 +437,6 @@ async function atualizarResumo() {
     console.error(error);
     resumoCliente.innerHTML = `<div><strong>PONTOS:</strong> nenhum</div>`;
   }
-}
-
-function escaparHtml(texto) {
-  return String(texto ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
 
 function obterTemaStatus(tipo) {
@@ -1206,17 +1296,59 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 
 function obterDadosContratoCliente() {
   return {
-    codigo: inputCodigo.value || codigoClienteAtual || "-",
-    nome: inputNome.value.trim() || "-",
-    telefone: inputTelefone.value.trim() || "-",
-    email: inputEmail.value.trim() || "-",
-    cpfCnpj: inputCpfCnpj.value.trim() || "-",
+    codigo: inputCodigo?.value || codigoClienteAtual || "-",
+    nome: inputNome?.value?.trim() || "-",
+    telefone: inputTelefone?.value?.trim() || "-",
+    email: inputEmail?.value?.trim() || "-",
+    cpfCnpj: inputCpfCnpj?.value?.trim() || "-",
     valor: inputValorContratado?.value || "R$ 0,00",
     dataInicio: formatarDataBR(inputDataPostagem?.value),
-    dataVencimento: formatarDataBR(inputVencimento.value),
+    dataVencimento: formatarDataBR(inputVencimento?.value),
     pontos: obterPontosContratoTexto(),
-    status: statusCliente.textContent || "Não ativo"
+    status: statusCliente?.value || statusCliente?.textContent || "Não ativo",
+    emissao: new Date().toLocaleDateString("pt-BR")
   };
+}
+
+function preencherMarcadoresContrato(texto, dados) {
+  return String(texto || "")
+    .replaceAll("{{empresa}}", dadosDunaContrato.empresa || "")
+    .replaceAll("{{cnpj}}", dadosDunaContrato.cnpj || "")
+    .replaceAll("{{telefoneEmpresa}}", dadosDunaContrato.telefone || "")
+    .replaceAll("{{emailEmpresa}}", dadosDunaContrato.email || "")
+    .replaceAll("{{enderecoEmpresa}}", dadosDunaContrato.endereco || "")
+    .replaceAll("{{responsavel}}", dadosDunaContrato.responsavel || "")
+    .replaceAll("{{cliente}}", dados.nome || "")
+    .replaceAll("{{codigo}}", dados.codigo || "")
+    .replaceAll("{{cpfCnpj}}", dados.cpfCnpj || "")
+    .replaceAll("{{telefone}}", dados.telefone || "")
+    .replaceAll("{{email}}", dados.email || "")
+    .replaceAll("{{valor}}", dados.valor || "")
+    .replaceAll("{{dataInicio}}", dados.dataInicio || "")
+    .replaceAll("{{dataVencimento}}", dados.dataVencimento || "")
+    .replaceAll("{{pontos}}", dados.pontos || "")
+    .replaceAll("{{emissao}}", dados.emissao || "");
+}
+
+function montarClausulasContratoHtml(dados) {
+  if (!clausulasContrato.length) {
+    return `
+      <p><strong>CLÁUSULA 1 - OBJETO DO CONTRATO.</strong> O presente contrato tem por objeto a prestação de serviços de veiculação de publicidade em telas digitais, instaladas em pontos estratégicos operados pela CONTRATADA.</p>
+    `;
+  }
+
+  return clausulasContrato.map((clausula) => {
+    const ordem = clausula.ordem || "";
+    const titulo = clausula.titulo || "";
+    const textoPreenchido = preencherMarcadoresContrato(clausula.texto, dados);
+
+    return `
+      <p>
+        <strong>CLÁUSULA ${escaparHtml(ordem)} - ${escaparHtml(titulo)}.</strong>
+        ${textoComQuebras(textoPreenchido)}
+      </p>
+    `;
+  }).join("");
 }
 
 function renderizarHistoricoContrato(dados) {
@@ -1240,18 +1372,18 @@ function montarContratoProfissional(dados) {
     <div class="contrato-pdf-folha">
       <div class="contrato-pdf-topo">
         <div class="contrato-pdf-marca">
-          <h1>DUNA AUDIOVISUAL</h1>
-          <p>Contrato de prestação de serviços de publicidade em telas digitais.</p>
+          <h1>${escaparHtml(dadosDunaContrato.empresa)}</h1>
+          <p>${escaparHtml(dadosDunaContrato.subtitulo_contrato || "Contrato de prestação de serviços de publicidade em telas digitais.")}</p>
         </div>
 
         <div class="contrato-pdf-codigo">
-          <strong>Cliente:</strong> ${escaparHtml(dados.codigo)}<br>
-          <strong>Emissão:</strong> ${new Date().toLocaleDateString("pt-BR")}
+          <strong>Código do cliente:</strong> ${escaparHtml(dados.codigo)}<br>
+          <strong>Emissão:</strong> ${escaparHtml(dados.emissao)}
         </div>
       </div>
 
       <h1 class="contrato-pdf-titulo">
-        Contrato de Prestação de Serviços de Publicidade em Telas Digitais
+        ${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais")}
       </h1>
 
       <div class="contrato-pdf-secao">
@@ -1260,27 +1392,32 @@ function montarContratoProfissional(dados) {
         <div class="contrato-pdf-grid">
           <div class="contrato-pdf-campo">
             <strong>Empresa</strong>
-            <span>DUNA AUDIOVISUAL</span>
+            <span>${escaparHtml(dadosDunaContrato.empresa || "-")}</span>
           </div>
 
           <div class="contrato-pdf-campo">
             <strong>CNPJ</strong>
-            <span>[SEU CNPJ]</span>
+            <span>${escaparHtml(dadosDunaContrato.cnpj || "-")}</span>
           </div>
 
           <div class="contrato-pdf-campo">
             <strong>Telefone</strong>
-            <span>[SEU TELEFONE]</span>
+            <span>${escaparHtml(dadosDunaContrato.telefone || "-")}</span>
           </div>
 
           <div class="contrato-pdf-campo">
             <strong>Email</strong>
-            <span>[SEU EMAIL]</span>
+            <span>${escaparHtml(dadosDunaContrato.email || "-")}</span>
           </div>
 
-          <div class="contrato-pdf-campo full">
+          <div class="contrato-pdf-campo">
+            <strong>Responsável</strong>
+            <span>${escaparHtml(dadosDunaContrato.responsavel || "-")}</span>
+          </div>
+
+          <div class="contrato-pdf-campo">
             <strong>Endereço</strong>
-            <span>[SEU ENDEREÇO]</span>
+            <span>${escaparHtml(dadosDunaContrato.endereco || "-")}</span>
           </div>
         </div>
       </div>
@@ -1328,33 +1465,22 @@ function montarContratoProfissional(dados) {
 
       <div class="contrato-pdf-secao contrato-pdf-texto">
         <h2>Termos do Contrato</h2>
-
-        <p><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a prestação de serviços de publicidade e divulgação em telas digitais administradas pela CONTRATADA, conforme plano comercial ajustado entre as partes.</p>
-
-        <p><strong>CLÁUSULA 2 - VEICULAÇÃO.</strong> A exibição do material publicitário será realizada nos pontos contratados, durante o período informado neste documento, respeitando a disponibilidade operacional do sistema da CONTRATADA.</p>
-
-        <p><strong>CLÁUSULA 3 - CONTEÚDO.</strong> O CONTRATANTE declara ser responsável pelo conteúdo enviado para divulgação, incluindo textos, imagens, marcas, ofertas, promoções ou quaisquer materiais encaminhados para exibição.</p>
-
-        <p><strong>CLÁUSULA 4 - PRAZO.</strong> O contrato terá vigência a partir da data de início cadastrada, seguindo até a data de vencimento da mídia, podendo ser renovado mediante novo ajuste entre as partes.</p>
-
-        <p><strong>CLÁUSULA 5 - PAGAMENTO.</strong> Pelos serviços prestados, o CONTRATANTE pagará o valor descrito neste contrato. O não pagamento poderá acarretar suspensão da exibição até a regularização.</p>
-
-        <p><strong>CLÁUSULA 6 - ALTERAÇÕES.</strong> Eventuais alterações de material, campanha, período, valores ou pontos de exibição deverão ser registradas e aceitas entre as partes.</p>
-
-        <p><strong>CLÁUSULA 7 - CANCELAMENTO.</strong> O cancelamento antecipado poderá ser solicitado mediante comunicação prévia, observadas as condições comerciais pactuadas no momento da contratação.</p>
-
-        <p><strong>CLÁUSULA 8 - DISPOSIÇÕES GERAIS.</strong> Este instrumento representa o acordo entre as partes quanto à veiculação de publicidade nas telas operadas pela CONTRATADA.</p>
-
-        <p><strong>CLÁUSULA 9 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato.</p>
+        ${montarClausulasContratoHtml(dados)}
       </div>
 
       <div class="contrato-pdf-assinaturas">
-        <div class="contrato-pdf-assinatura">CONTRATANTE</div>
-        <div class="contrato-pdf-assinatura">DUNA AUDIOVISUAL</div>
+        <div class="contrato-pdf-assinatura">
+          <div class="contrato-pdf-linha">CONTRATANTE</div>
+        </div>
+
+        <div class="contrato-pdf-assinatura">
+          <img src="${escaparHtml(dadosDunaContrato.assinatura_url || "/assinatura.png")}" alt="Assinatura ${escaparHtml(dadosDunaContrato.empresa || "DUNA AUDIOVISUAL")}">
+          <div class="contrato-pdf-linha">${escaparHtml(dadosDunaContrato.empresa || "DUNA AUDIOVISUAL")}</div>
+        </div>
       </div>
 
       <div class="contrato-pdf-rodape">
-        Documento gerado automaticamente pela DUNA AUDIOVISUAL.
+        Documento gerado automaticamente pela ${escaparHtml(dadosDunaContrato.empresa || "DUNA AUDIOVISUAL")}.
       </div>
     </div>
   `;
@@ -1368,10 +1494,18 @@ function gerarContratoCliente(exibirMensagem = false) {
   contratoPreview.innerHTML = `
     <div class="contrato-documento">
       <h3>Contrato pronto para download</h3>
-      <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
-      <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
-      <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
-      <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+
+      <p><strong>Cliente:</strong></p>
+      <p>${escaparHtml(dados.nome)}</p>
+
+      <p><strong>Valor:</strong></p>
+      <p>${escaparHtml(dados.valor)}</p>
+
+      <p><strong>Período:</strong></p>
+      <p>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
+
+      <p><strong>Pontos:</strong></p>
+      <p>${escaparHtml(dados.pontos)}</p>
     </div>
   `;
 
@@ -1383,6 +1517,27 @@ function gerarContratoCliente(exibirMensagem = false) {
   if (exibirMensagem) {
     mostrarMensagem("Contrato atualizado com sucesso.", "#7CFC9A");
   }
+}
+
+function aguardarImagensContrato(container) {
+  const imagens = Array.from(container.querySelectorAll("img"));
+
+  if (!imagens.length) {
+    return Promise.resolve();
+  }
+
+  return Promise.all(
+    imagens.map((img) => {
+      if (img.complete) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    })
+  );
 }
 
 async function baixarContratoPdf() {
@@ -1406,7 +1561,8 @@ async function baixarContratoPdf() {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    await aguardarImagensContrato(contratoDocumento);
+    await new Promise((resolve) => setTimeout(resolve, 120));
 
     const { jsPDF } = window.jspdf;
 
@@ -1652,6 +1808,8 @@ async function iniciar() {
     }
 
     await carregarPontos();
+    await carregarConfigContrato();
+    await carregarClausulasContrato();
     await carregarCliente();
   } catch (error) {
     console.error(error);
