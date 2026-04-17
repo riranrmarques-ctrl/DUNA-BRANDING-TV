@@ -1,6 +1,5 @@
 const SUPABASE_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
 const SUPABASE_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
-
 const TABELA = "playlists_novo";
 const TABELA_PONTOS = "pontos";
 
