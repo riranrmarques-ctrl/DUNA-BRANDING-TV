@@ -409,7 +409,7 @@ async function atualizarResumo() {
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists")
+      .from("playlists_novo")
       .select("codigo, codigo_cliente, data_fim, ordem")
       .eq("codigo_cliente", codigoClienteAtual)
       .order("ordem", { ascending: false });
@@ -877,7 +877,7 @@ async function deletarItemHistorico(ids, storagePath) {
     }
 
     const { error: deleteError } = await supabaseClient
-      .from("playlists")
+      .from("playlists_novo")
       .delete()
       .in("id", listaIds);
 
@@ -923,7 +923,7 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists")
+      .from("playlists_novo")
       .select("*")
       .eq("codigo_cliente", codigoClienteAtual)
       .in("codigo", codigosDestino)
@@ -956,7 +956,7 @@ async function calcularStatusClienteRealPorCodigoCliente() {
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists")
+      .from("playlists_novo")
       .select("*")
       .eq("codigo_cliente", codigoClienteAtual)
       .order("ordem", { ascending: false });
@@ -1125,7 +1125,7 @@ async function uploadArquivoCliente() {
       }));
 
       const { error: insertError } = await supabaseClient
-        .from("playlists")
+        .from("playlists_novo")
         .insert(registros);
 
       if (insertError) throw insertError;
@@ -1171,7 +1171,7 @@ async function uploadArquivoCliente() {
       }));
 
       const { error: insertError } = await supabaseClient
-        .from("playlists")
+        .from("playlists_novo")
         .insert(registros);
 
       if (insertError) throw insertError;
