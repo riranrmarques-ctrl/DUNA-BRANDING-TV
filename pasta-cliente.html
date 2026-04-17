@@ -556,6 +556,15 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=202"></script>
+  <script src="pasta-cliente.js?v=250"></script>
 </body>
 </html>
+.grid-pontos-grupo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 700px) {
+  .grid-pontos-grupo {
+    grid-template-columns: 1fr !important;
+  }
+}
