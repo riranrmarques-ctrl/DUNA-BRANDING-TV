@@ -588,7 +588,7 @@
               <div class="linha-assinatura">CONTRATANTE</div>
             </div>
             <div class="assinatura-box assinatura-box-duna">
-              <img src="assinatura.png" alt="Assinatura Duna Branding" class="assinatura-img">
+              <img src="a" alt="Assinatura Duna Branding" class="assinatura-img">
               <div class="linha-assinatura">Duna Branding</div>
             </div>
           </div>
@@ -661,7 +661,7 @@
               <div class="linha-assinatura">ESTABELECIMENTO</div>
             </div>
             <div class="assinatura-box assinatura-box-duna">
-              <img src="assinatura.png" alt="Assinatura Duna Branding" class="assinatura-img">
+              <img src="a" alt="Assinatura Duna Branding" class="assinatura-img">
               <div class="linha-assinatura">Duna Branding</div>
             </div>
           </div>
@@ -853,7 +853,7 @@
     function obterAssinaturaAtual() {
       const contrato = obterContratoAtivo();
       const imagem = contrato?.querySelector(".assinatura-img");
-      return imagem?.getAttribute("src") || "/assinatura.png";
+      return imagem?.getAttribute("src") || "/a";
     }
 
     function coletarConfigContrato() {
@@ -867,7 +867,7 @@
         email: obterTextoCampo("email"),
         endereco: obterTextoCampo("endereco"),
         responsavel: obterTextoCampo("responsavel"),
-        assinatura_url: obterAssinaturaAtual() || "/assinatura.png",
+        assinatura_url: obterAssinaturaAtual() || "/a",
         titulo_contrato: obterTextoCampo("titulo_contrato"),
         subtitulo_contrato: obterTextoCampo("subtitulo_contrato"),
         updated_at: new Date().toISOString()
@@ -948,7 +948,7 @@
           aplicarTextoCampo("responsavel", config.responsavel || "");
           aplicarTextoCampo("titulo_contrato", config.titulo_contrato || "");
           aplicarTextoCampo("subtitulo_contrato", config.subtitulo_contrato || "");
-          atualizarImagemAssinatura(config.assinatura_url || "assinatura.png");
+          atualizarImagemAssinatura(config.assinatura_url || "a");
         }
 
         if (Array.isArray(clausulas) && clausulas.length) {
@@ -1015,7 +1015,7 @@
 
         await desativarClausulasForo(contratoId);
 
-        atualizarImagemAssinatura(config.assinatura_url || "assinatura.png");
+        atualizarImagemAssinatura(config.assinatura_url || "a");
         sairModoEdicao();
         mostrarAviso("Contrato salvo na Supabase com sucesso.", "ok");
       } catch (error) {
