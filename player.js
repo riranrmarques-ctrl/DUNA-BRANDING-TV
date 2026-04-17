@@ -1,6 +1,8 @@
 const SUPABASE_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
 const SUPABASE_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
-const TABELA = "playlists";
+const TABELA = "playlists_novo";
+const TABELA_PONTOS = "pontos";
+const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
