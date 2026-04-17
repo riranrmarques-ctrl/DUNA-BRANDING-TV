@@ -65,6 +65,18 @@ function abrirCliente(codigo) {
   window.location.href = `/pasta-cliente.html?codigo=${encodeURIComponent(codigo)}`;
 }
 
+function itemEstaInativo(item) {
+  if (!item?.data_fim) return false;
+
+  const agora = new Date();
+  const fim = new Date(item.data_fim);
+
+  if (Number.isNaN(fim.getTime())) return false;
+
+  fim.setHours(23, 59, 59, 999);
+  return agora > fim;
+}
+
 async function excluirCliente(codigo) {
   const confirmar = window.confirm(`Deseja excluir o cliente ${codigo}?`);
   if (!confirmar) return;
@@ -108,7 +120,7 @@ function obterListaFiltrada() {
       cliente.telefone,
       cliente.email,
       cliente.cpf_cnpj,
-      cliente.status,
+      cliente.status_real,
       Array.isArray(cliente.pontos) ? cliente.pontos.join(" ") : ""
     ]
       .join(" ")
@@ -138,9 +150,13 @@ function renderizarClientes() {
       ? cliente.pontos.join(", ")
       : "nenhum";
 
+    const statusReal = cliente.status_real || "Não ativo";
+    const corStatus = statusReal === "Ativo" ? "#7CFC9A" : "#ff6b6b";
+
     card.innerHTML = `
       <div class="cliente-codigo">${escaparHtml(cliente.codigo)}</div>
       <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
+      <p><strong>Status:</strong> <span style="color:${corStatus};font-weight:700;">${escaparHtml(statusReal)}</span></p>
       <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
       <p><strong>Email:</strong> ${escaparHtml(cliente.email || "-")}</p>
       <p><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</p>
@@ -200,7 +216,14 @@ async function carregarClientes() {
 
     if (errorVinculos) throw errorVinculos;
 
+    const { data: playlists, error: errorPlaylists } = await supabaseClient
+      .from("playlists")
+      .select("codigo_cliente, data_fim");
+
+    if (errorPlaylists) throw errorPlaylists;
+
     const mapaPontos = {};
+    const mapaAtivos = new Map();
 
     (vinculos || []).forEach((item) => {
       if (!mapaPontos[item.cliente_codigo]) {
@@ -210,10 +233,25 @@ async function carregarClientes() {
       mapaPontos[item.cliente_codigo].push(item.ponto_codigo);
     });
 
-    clientesCarregados = (clientes || []).map((cliente) => ({
-      ...cliente,
-      pontos: mapaPontos[cliente.codigo] || []
-    }));
+    (playlists || []).forEach((item) => {
+      const codigo = String(item.codigo_cliente || "").trim().toUpperCase();
+      if (!codigo) return;
+
+      if (!itemEstaInativo(item)) {
+        mapaAtivos.set(codigo, true);
+      }
+    });
+
+    clientesCarregados = (clientes || []).map((cliente) => {
+      const codigo = String(cliente.codigo || "").trim().toUpperCase();
+      const statusReal = mapaAtivos.has(codigo) ? "Ativo" : "Não ativo";
+
+      return {
+        ...cliente,
+        status_real: statusReal,
+        pontos: mapaPontos[cliente.codigo] || []
+      };
+    });
 
     renderizarClientes();
     mostrarMensagem("Carregado.", "#7CFC9A");
@@ -278,40 +316,4 @@ async function criarNovoCliente() {
 }
 
 function iniciarPagina() {
-  if (botaoVoltarPainel) {
-    botaoVoltarPainel.addEventListener("click", () => {
-      window.location.href = "/painel.html";
-    });
-  }
-
-  if (!verificarAcesso()) {
-    return;
-  }
-
-  if (!window.supabase) {
-    if (listaClientes) {
-      listaClientes.innerHTML = `<div class="vazio">Supabase não carregou.</div>`;
-    }
-
-    mostrarMensagem("Supabase não carregou. Verifique o script no HTML.", "#ff6b6b");
-    return;
-  }
-
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  if (botaoNovoCliente) {
-    botaoNovoCliente.addEventListener("click", criarNovoCliente);
-  }
-
-  if (botaoAtualizar) {
-    botaoAtualizar.addEventListener("click", carregarClientes);
-  }
-
-  if (buscaCliente) {
-    buscaCliente.addEventListener("input", renderizarClientes);
-  }
-
-  carregarClientes();
-}
-
-iniciarPagina();
+  if (botaoVoltarPainel)
