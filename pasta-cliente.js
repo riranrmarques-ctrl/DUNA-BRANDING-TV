@@ -38,6 +38,7 @@ const historicoArquivos = document.getElementById("historicoArquivos");
 
 const contratoPreview = document.getElementById("contratoPreview");
 const contratoStatus = document.getElementById("contratoStatus");
+const btnBaixarContrato = document.getElementById("btnBaixarContrato");
 
 let pontosData = {};
 let codigoClienteAtual = "";
@@ -68,9 +69,7 @@ function mostrarStatusUpload(texto, cor = "#9fd2ff") {
 
 function obterCodigoDaUrl() {
   const params = new URLSearchParams(window.location.search);
-  const codigo = String(params.get("codigo") || "").trim().toUpperCase();
-  console.log("Codigo recebido na URL:", codigo);
-  return codigo;
+  return String(params.get("codigo") || "").trim().toUpperCase();
 }
 
 function formatarTelefone(valor) {
@@ -135,11 +134,8 @@ function extrairNumeroMoeda(valor) {
 
 function formatarDataBR(valor) {
   if (!valor) return "-";
-
   const partes = String(valor).split("-");
-  if (partes.length === 3) {
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
-  }
+  if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
 
   const data = new Date(valor);
   if (Number.isNaN(data.getTime())) return String(valor);
@@ -149,10 +145,8 @@ function formatarDataBR(valor) {
 
 function formatarDataHistorico(valor) {
   if (!valor) return "-";
-
   const data = new Date(valor);
   if (Number.isNaN(data.getTime())) return String(valor);
-
   return data.toLocaleString("pt-BR");
 }
 
@@ -169,8 +163,7 @@ function limparErro(campo) {
 function atualizarStatusClienteVisual(statusTexto) {
   if (!statusCliente) return;
   const ativo = String(statusTexto || "").trim().toLowerCase() === "ativo";
-  const valor = ativo ? "Ativo" : "Não ativo";
-  statusCliente.textContent = valor;
+  statusCliente.textContent = ativo ? "Ativo" : "Não ativo";
   statusCliente.style.color = ativo ? "#7CFC9A" : "#ff6b6b";
 }
 
@@ -299,10 +292,7 @@ function obterCodigosDestinoSelecionados() {
 
 function obterPontosContratoTexto() {
   return obterPontosMarcados()
-    .map((codigoVisual) => {
-      const ponto = pontosData[codigoVisual];
-      return obterNomeDoPonto(ponto, codigoVisual);
-    })
+    .map((codigoVisual) => obterNomeDoPonto(pontosData[codigoVisual], codigoVisual))
     .filter(Boolean)
     .join(", ") || "Nenhum ponto selecionado";
 }
@@ -347,26 +337,22 @@ function gerarContratoCliente() {
 
   const dados = obterDadosContratoCliente();
 
-  let htmlClausulas = "";
-
-  if (clausulasContrato.length) {
-    htmlClausulas = clausulasContrato.map((clausula) => `
-      <p style="margin-bottom:10px;">
-        <strong>${escaparHtml(clausula.titulo || "")}:</strong>
-        ${escaparHtml(preencherMarcadoresContrato(clausula.texto || "", dados))}
-      </p>
-    `).join("");
-  } else {
-    htmlClausulas = `
-      <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
-      <p><strong>CPF/CNPJ:</strong> ${escaparHtml(dados.cpfCnpj)}</p>
-      <p><strong>Telefone:</strong> ${escaparHtml(dados.telefone)}</p>
-      <p><strong>Email:</strong> ${escaparHtml(dados.email)}</p>
-      <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
-      <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
-      <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
-    `;
-  }
+  const htmlClausulas = clausulasContrato.length
+    ? clausulasContrato.map((clausula) => `
+        <p style="margin-bottom:10px;">
+          <strong>${escaparHtml(clausula.titulo || "")}:</strong>
+          ${escaparHtml(preencherMarcadoresContrato(clausula.texto || "", dados))}
+        </p>
+      `).join("")
+    : `
+        <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+        <p><strong>CPF/CNPJ:</strong> ${escaparHtml(dados.cpfCnpj)}</p>
+        <p><strong>Telefone:</strong> ${escaparHtml(dados.telefone)}</p>
+        <p><strong>Email:</strong> ${escaparHtml(dados.email)}</p>
+        <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
+        <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
+        <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+      `;
 
   contratoPreview.innerHTML = `
     <div style="margin-bottom:12px;">
@@ -385,6 +371,110 @@ function gerarContratoCliente() {
   `;
 
   contratoStatus.textContent = "Modelo carregado";
+}
+
+function montarHtmlContratoCompleto() {
+  const dados = obterDadosContratoCliente();
+
+  const clausulasHtml = clausulasContrato.length
+    ? clausulasContrato.map((clausula) => `
+        <p style="margin:0 0 12px 0;line-height:1.7;text-align:justify;">
+          <strong>${escaparHtml(clausula.titulo || "")}:</strong>
+          ${escaparHtml(preencherMarcadoresContrato(clausula.texto || "", dados))}
+        </p>
+      `).join("")
+    : `
+        <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+        <p><strong>CPF/CNPJ:</strong> ${escaparHtml(dados.cpfCnpj)}</p>
+        <p><strong>Telefone:</strong> ${escaparHtml(dados.telefone)}</p>
+        <p><strong>Email:</strong> ${escaparHtml(dados.email)}</p>
+        <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
+        <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
+        <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+      `;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Contrato ${escaparHtml(dados.nome)}</title>
+      <style>
+        body { font-family: Arial, sans-serif; color: #111827; background: #fff; margin: 0; padding: 32px; }
+        .topo { border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 20px; }
+        h1 { font-size: 24px; margin: 0 0 6px 0; }
+        .sub { color: #475569; font-size: 14px; }
+        .bloco { margin-bottom: 18px; }
+        .bloco h2 { font-size: 16px; margin: 0 0 10px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .campo { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #f8fafc; font-size: 14px; }
+        .campo strong { display: block; margin-bottom: 4px; }
+        .assinaturas { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
+        .assinatura { text-align: center; padding-top: 60px; border-top: 1px solid #111827; font-weight: 700; }
+      </style>
+    </head>
+    <body>
+      <div class="topo">
+        <h1>${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato")}</h1>
+        <div class="sub">${escaparHtml(dadosDunaContrato.subtitulo_contrato || "")}</div>
+      </div>
+
+      <div class="bloco">
+        <h2>Dados da Contratada</h2>
+        <div class="grid">
+          <div class="campo"><strong>Empresa</strong>${escaparHtml(dadosDunaContrato.empresa || "-")}</div>
+          <div class="campo"><strong>CNPJ</strong>${escaparHtml(dadosDunaContrato.cnpj || "-")}</div>
+          <div class="campo"><strong>Telefone</strong>${escaparHtml(dadosDunaContrato.telefone || "-")}</div>
+          <div class="campo"><strong>Email</strong>${escaparHtml(dadosDunaContrato.email || "-")}</div>
+          <div class="campo"><strong>Endereço</strong>${escaparHtml(dadosDunaContrato.endereco || "-")}</div>
+          <div class="campo"><strong>Responsável</strong>${escaparHtml(dadosDunaContrato.responsavel || "-")}</div>
+        </div>
+      </div>
+
+      <div class="bloco">
+        <h2>Dados do Cliente</h2>
+        <div class="grid">
+          <div class="campo"><strong>Nome</strong>${escaparHtml(dados.nome)}</div>
+          <div class="campo"><strong>CPF/CNPJ</strong>${escaparHtml(dados.cpfCnpj)}</div>
+          <div class="campo"><strong>Telefone</strong>${escaparHtml(dados.telefone)}</div>
+          <div class="campo"><strong>Email</strong>${escaparHtml(dados.email)}</div>
+          <div class="campo"><strong>Valor</strong>${escaparHtml(dados.valor)}</div>
+          <div class="campo"><strong>Período</strong>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</div>
+          <div class="campo" style="grid-column:1 / -1;"><strong>Pontos</strong>${escaparHtml(dados.pontos)}</div>
+        </div>
+      </div>
+
+      <div class="bloco">
+        <h2>Termos do Contrato</h2>
+        ${clausulasHtml}
+      </div>
+
+      <div class="assinaturas">
+        <div class="assinatura">CONTRATANTE</div>
+        <div class="assinatura">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+function baixarContratoCliente() {
+  const html = montarHtmlContratoCompleto();
+  const janela = window.open("", "_blank");
+
+  if (!janela) {
+    mostrarMensagem("Não foi possível abrir a janela do contrato.", "#ff6b6b");
+    return;
+  }
+
+  janela.document.open();
+  janela.document.write(html);
+  janela.document.close();
+
+  setTimeout(() => {
+    janela.focus();
+    janela.print();
+  }, 500);
 }
 
 function obterTituloArquivo(item) {
@@ -453,10 +543,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     return;
   }
 
-  const selecionadosSet = new Set(
-    selecionados.map((item) => String(item || "").trim())
-  );
-
+  const selecionadosSet = new Set(selecionados.map((item) => String(item || "").trim()));
   const cardsSelecionados = [];
   const cardsDisponiveis = [];
 
@@ -496,14 +583,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
               cursor:pointer;
             "
           >
-
-          <div style="
-            display:flex;
-            align-items:center;
-            min-width:0;
-            flex:1;
-            overflow:hidden;
-          ">
+          <div style="display:flex;align-items:center;min-width:0;flex:1;overflow:hidden;">
             <span style="
               font-size:0.88rem;
               font-weight:700;
@@ -518,32 +598,16 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         </label>
       `;
 
-      if (checked) {
-        cardsSelecionados.push(card);
-      } else {
-        cardsDisponiveis.push(card);
-      }
+      if (checked) cardsSelecionados.push(card);
+      else cardsDisponiveis.push(card);
     });
 
   const montarGrupo = (titulo, cor, cards) => {
     if (!cards.length) return "";
-
     return `
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <div style="
-          font-size:0.92rem;
-          font-weight:700;
-          color:${cor};
-          text-transform:lowercase;
-        ">
-          ${titulo}
-        </div>
-
-        <div style="
-          display:grid;
-          grid-template-columns:repeat(2, minmax(0, 1fr));
-          gap:8px;
-        " class="grid-pontos-grupo">
+        <div style="font-size:0.92rem;font-weight:700;color:${cor};text-transform:lowercase;">${titulo}</div>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px;" class="grid-pontos-grupo">
           ${cards.join("")}
         </div>
       </div>
@@ -635,7 +699,6 @@ function validarCamposCliente() {
 
 async function deletarItemHistorico(ids, storagePath) {
   const listaIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
-
   if (!listaIds.length) return;
 
   const confirmar = window.confirm("Deseja deletar este arquivo de todos os pontos?");
@@ -645,20 +708,11 @@ async function deletarItemHistorico(ids, storagePath) {
     const caminho = String(storagePath || "").trim();
 
     if (caminho) {
-      const { error: storageError } = await supabaseClient.storage
-        .from(BUCKET)
-        .remove([caminho]);
-
-      if (storageError) {
-        console.error("Erro ao deletar do storage:", storageError);
-      }
+      const { error: storageError } = await supabaseClient.storage.from(BUCKET).remove([caminho]);
+      if (storageError) console.error("Erro ao deletar do storage:", storageError);
     }
 
-    const { error: deleteError } = await supabaseClient
-      .from("playlists")
-      .delete()
-      .in("id", listaIds);
-
+    const { error: deleteError } = await supabaseClient.from("playlists").delete().in("id", listaIds);
     if (deleteError) throw deleteError;
 
     await carregarHistoricoArquivos();
@@ -697,9 +751,7 @@ function renderizarHistoricoArquivos(itens = []) {
   historicoArquivos.innerHTML = "";
 
   if (!Array.isArray(itens) || !itens.length) {
-    historicoArquivos.innerHTML = `
-      <div class="historico-vazio">Nenhum arquivo enviado para esta pasta ainda.</div>
-    `;
+    historicoArquivos.innerHTML = `<div class="historico-vazio">Nenhum arquivo enviado para esta pasta ainda.</div>`;
     return;
   }
 
@@ -723,15 +775,9 @@ function renderizarHistoricoArquivos(itens = []) {
         background:#10131a;
       ">
         <div style="flex:1; min-width:0;">
-          <div style="
-            font-weight:700;
-            margin-bottom:8px;
-            color:#ffffff;
-            word-break:break-word;
-          ">
+          <div style="font-weight:700;margin-bottom:8px;color:#ffffff;word-break:break-word;">
             ${escaparHtml(grupo.titulo)}
           </div>
-
           <div style="color:#c6cedd;font-size:0.9rem;line-height:1.55;">
             <div><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</div>
             <div><strong>Tipo:</strong> ${escaparHtml(grupo.tipo)}</div>
@@ -740,13 +786,7 @@ function renderizarHistoricoArquivos(itens = []) {
           </div>
         </div>
 
-        <div style="
-          display:flex;
-          flex-direction:column;
-          gap:8px;
-          min-width:110px;
-          flex-shrink:0;
-        ">
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:110px;flex-shrink:0;">
           <a
             href="${escaparHtml(grupo.video_url || "#")}"
             target="_blank"
@@ -811,9 +851,7 @@ async function carregarHistoricoArquivos() {
     console.error(error);
 
     if (historicoArquivos) {
-      historicoArquivos.innerHTML = `
-        <div class="historico-vazio">Erro ao carregar historico de arquivo.</div>
-      `;
+      historicoArquivos.innerHTML = `<div class="historico-vazio">Erro ao carregar historico de arquivo.</div>`;
     }
 
     return [];
@@ -824,12 +862,7 @@ function gerarHistoricoContratoVisual() {
   if (!historicoContratos) return;
 
   const dados = obterDadosContratoCliente();
-
-  historicoContratos.innerHTML = `
-    <div class="historico-vazio">
-      Contrato padrão carregado para ${escaparHtml(dados.nome)}.
-    </div>
-  `;
+  historicoContratos.innerHTML = `<div class="historico-vazio">Contrato padrão carregado para ${escaparHtml(dados.nome)}.</div>`;
 }
 
 async function carregarCliente() {
@@ -863,7 +896,6 @@ async function carregarCliente() {
     desativarBotaoSalvar();
 
     mostrarMensagem(`Cliente ${codigoClienteAtual} não encontrado na tabela clientes_app.`, "#ff6b6b");
-    console.warn("Cliente nao encontrado:", codigoClienteAtual);
     return;
   }
 
@@ -940,10 +972,7 @@ async function salvarCliente() {
         ponto_codigo: obterCodigoRealDoPonto(codigoVisual)
       }));
 
-      const { error: errorInsert } = await supabaseClient
-        .from("cliente_pontos")
-        .insert(vinculos);
-
+      const { error: errorInsert } = await supabaseClient.from("cliente_pontos").insert(vinculos);
       if (errorInsert) throw errorInsert;
     }
 
@@ -1060,33 +1089,10 @@ if (listaPontos) {
   });
 }
 
-if (inputNome) {
-  inputNome.addEventListener("input", () => {
-    ativarBotaoSalvar();
-    gerarContratoCliente();
-  });
-}
-
-if (inputEmail) {
-  inputEmail.addEventListener("input", () => {
-    ativarBotaoSalvar();
-    gerarContratoCliente();
-  });
-}
-
-if (inputVencimento) {
-  inputVencimento.addEventListener("input", () => {
-    ativarBotaoSalvar();
-    gerarContratoCliente();
-  });
-}
-
-if (inputDataPostagem) {
-  inputDataPostagem.addEventListener("change", () => {
-    ativarBotaoSalvar();
-    gerarContratoCliente();
-  });
-}
+if (inputNome) inputNome.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputEmail) inputEmail.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputVencimento) inputVencimento.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputDataPostagem) inputDataPostagem.addEventListener("change", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
 
 if (inputTelefone) {
   inputTelefone.addEventListener("input", (event) => {
@@ -1116,19 +1122,10 @@ if (inputValorContratado) {
   }
 }
 
-if (botaoSalvar) {
-  botaoSalvar.addEventListener("click", salvarCliente);
-}
-
-if (botaoVoltar) {
-  botaoVoltar.addEventListener("click", () => {
-    window.location.href = "/central-clientes.html";
-  });
-}
-
-if (btnUploadCliente) {
-  btnUploadCliente.addEventListener("click", uploadArquivoCliente);
-}
+if (botaoSalvar) botaoSalvar.addEventListener("click", salvarCliente);
+if (botaoVoltar) botaoVoltar.addEventListener("click", () => { window.location.href = "/central-clientes.html"; });
+if (btnUploadCliente) btnUploadCliente.addEventListener("click", uploadArquivoCliente);
+if (btnBaixarContrato) btnBaixarContrato.addEventListener("click", baixarContratoCliente);
 
 async function iniciar() {
   try {
@@ -1137,7 +1134,6 @@ async function iniciar() {
     if (!codigoClienteAtual) {
       if (inputCodigo) inputCodigo.value = "";
       mostrarMensagem("Codigo do cliente nao encontrado na URL.", "#ff6b6b");
-      console.error("URL sem codigo:", window.location.href);
       return;
     }
 
