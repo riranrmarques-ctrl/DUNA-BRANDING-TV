@@ -62,7 +62,7 @@ function escaparHtml(texto) {
 }
 
 function abrirCliente(codigo) {
-  window.location.href = `/cliente.html?codigo=${encodeURIComponent(codigo)}`;
+  window.location.href = `/pasta-cliente.html?codigo=${encodeURIComponent(codigo)}`;
 }
 
 async function excluirCliente(codigo) {
