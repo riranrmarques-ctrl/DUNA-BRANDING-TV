@@ -79,6 +79,21 @@
       font-weight: bold;
     }
 
+    .botao-excluir {
+      background: #7a2230;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: 0.2s ease;
+    }
+
+    .botao-excluir:hover {
+      opacity: 0.92;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr 380px;
@@ -326,139 +341,63 @@
       transform: translateY(-1px);
     }
 
-    .contrato-box {
-      background: #10131a;
-      border: 1px dashed #2d8cff;
-      border-radius: 14px;
-      padding: 16px;
-    }
-
-    .contrato-topo {
+    .contrato-topo-linha {
       display: flex;
-      justify-content: space-between;
       align-items: flex-start;
+      justify-content: space-between;
       gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .contrato-topo strong {
-      display: block;
-      margin-bottom: 6px;
-      color: #ffffff;
-      font-size: 1rem;
-    }
-
-    .contrato-topo span {
-      display: block;
-      color: #bfc7d5;
-      font-size: 0.9rem;
-      line-height: 1.4;
+      margin-bottom: 12px;
     }
 
     .contrato-status {
-      flex-shrink: 0;
-      background: rgba(45, 140, 255, 0.14);
-      border: 1px solid rgba(45, 140, 255, 0.35);
-      color: #9fd2ff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 6px 12px;
       border-radius: 999px;
-      padding: 7px 10px;
+      background: rgba(124, 252, 154, 0.12);
+      border: 1px solid rgba(124, 252, 154, 0.45);
+      color: #7CFC9A;
       font-size: 0.78rem;
       font-weight: 700;
-    }
-
-    .contrato-status.gerado {
-      background: rgba(124, 252, 154, 0.12);
-      border-color: rgba(124, 252, 154, 0.35);
-      color: #7CFC9A;
+      white-space: nowrap;
     }
 
     .contrato-acoes {
       display: flex;
-      flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 14px;
+      flex-wrap: wrap;
+      margin: 14px 0;
     }
 
     .contrato-preview {
-      background: #ffffff;
-      color: #1f2937;
-      border-radius: 12px;
-      padding: 16px;
-      min-height: 180px;
-      max-height: 420px;
+      max-height: 340px;
       overflow-y: auto;
-      font-size: 0.88rem;
-      line-height: 1.6;
-    }
-
-    .contrato-vazio {
-      color: #6b7280;
-      background: #f5f7fb;
-      border: 1px dashed #cbd5e1;
-      border-radius: 10px;
-      padding: 16px;
-      text-align: center;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 12px;
     }
 
     .contrato-documento h3 {
-      color: #111827;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
+      line-height: 1.35;
       margin-bottom: 12px;
       text-align: center;
-    }
-
-    .contrato-documento h4 {
       color: #111827;
-      font-size: 0.95rem;
-      margin: 18px 0 8px;
-      padding-left: 8px;
-      border-left: 4px solid #2563eb;
     }
 
     .contrato-documento p {
-      margin-bottom: 10px;
-      text-align: justify;
+      font-size: 0.86rem;
+      color: #374151;
+      line-height: 1.55;
+      margin-bottom: 8px;
     }
 
-    .contrato-info-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-      margin: 12px 0;
-    }
-
-    .contrato-info-item {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 9px 10px;
-    }
-
-    .contrato-info-item strong {
-      display: block;
+    .contrato-documento strong {
       color: #111827;
-      margin-bottom: 3px;
-      font-size: 0.8rem;
-    }
-
-    .contrato-info-item span {
-      color: #4b5563;
-    }
-
-    .contrato-assinaturas {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-top: 34px;
-    }
-
-    .contrato-assinatura {
-      padding-top: 34px;
-      text-align: center;
-      border-top: 1px solid #111827;
-      color: #111827;
-      font-size: 0.85rem;
-      font-weight: 700;
     }
 
     .historico-lista {
@@ -517,6 +456,138 @@
       padding: 16px;
     }
 
+    .contrato-pdf-area {
+      position: fixed;
+      left: -99999px;
+      top: 0;
+      width: 794px;
+      background: #ffffff;
+      color: #111827;
+    }
+
+    .contrato-pdf-folha {
+      width: 794px;
+      min-height: 1123px;
+      background: #ffffff;
+      color: #111827;
+      padding: 54px 58px;
+      font-family: Arial, sans-serif;
+    }
+
+    .contrato-pdf-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      border-bottom: 3px solid #111827;
+      padding-bottom: 18px;
+      margin-bottom: 28px;
+    }
+
+    .contrato-pdf-marca h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+      color: #111827;
+    }
+
+    .contrato-pdf-marca p {
+      font-size: 12px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+
+    .contrato-pdf-codigo {
+      text-align: right;
+      font-size: 12px;
+      color: #374151;
+      line-height: 1.6;
+    }
+
+    .contrato-pdf-titulo {
+      text-align: center;
+      font-size: 19px;
+      line-height: 1.35;
+      margin: 26px 0;
+      color: #111827;
+      text-transform: uppercase;
+    }
+
+    .contrato-pdf-secao {
+      margin-bottom: 22px;
+    }
+
+    .contrato-pdf-secao h2 {
+      font-size: 15px;
+      color: #111827;
+      border-left: 4px solid #2563eb;
+      padding-left: 10px;
+      margin-bottom: 12px;
+    }
+
+    .contrato-pdf-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .contrato-pdf-campo {
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f9fafb;
+    }
+
+    .contrato-pdf-campo.full {
+      grid-column: 1 / -1;
+    }
+
+    .contrato-pdf-campo strong {
+      display: block;
+      font-size: 11px;
+      color: #374151;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .contrato-pdf-campo span {
+      display: block;
+      font-size: 13px;
+      color: #111827;
+      line-height: 1.35;
+    }
+
+    .contrato-pdf-texto p {
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: #1f2937;
+      margin-bottom: 10px;
+      text-align: justify;
+    }
+
+    .contrato-pdf-assinaturas {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 46px;
+      margin-top: 56px;
+    }
+
+    .contrato-pdf-assinatura {
+      border-top: 1px solid #111827;
+      text-align: center;
+      padding-top: 8px;
+      font-size: 12px;
+      color: #111827;
+    }
+
+    .contrato-pdf-rodape {
+      margin-top: 36px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 10px;
+      color: #6b7280;
+      text-align: center;
+    }
+
     @media (max-width: 900px) {
       .grid,
       .grid-historicos {
@@ -551,20 +622,13 @@
         grid-template-columns: 1fr;
       }
 
-      .contrato-topo {
-        flex-direction: column;
-      }
-
-      .contrato-acoes {
-        flex-direction: column;
-      }
-
-      .contrato-acoes .botao {
+      .acoes-topo {
         width: 100%;
       }
 
-      .contrato-assinaturas {
-        grid-template-columns: 1fr;
+      .botao {
+        flex: 1;
+        min-width: 130px;
       }
     }
   </style>
@@ -655,15 +719,16 @@
 
         <div class="campo">
           <label>Contrato</label>
-
-          <div class="contrato-box">
-            <div class="contrato-topo">
+          <div class="pdf-box">
+            <div class="contrato-topo-linha">
               <div>
                 <strong>Contrato do cliente</strong>
-                <span>Gere o contrato com os dados preenchidos automaticamente.</span>
+                <div style="color:#c6cedd; font-size:0.92rem; line-height:1.45;">
+                  Baixe o contrato com os dados preenchidos automaticamente.
+                </div>
               </div>
 
-              <div id="contratoStatus" class="contrato-status">Não gerado</div>
+              <span id="contratoStatus" class="contrato-status">Gerado</span>
             </div>
 
             <div class="contrato-acoes">
@@ -671,8 +736,9 @@
             </div>
 
             <div id="contratoPreview" class="contrato-preview">
-              <div class="contrato-vazio">
-                O contrato aparecerá aqui após ser gerado.
+              <div class="contrato-documento">
+                <h3>Contrato pronto para download</h3>
+                <p>O contrato será atualizado automaticamente com os dados do cliente.</p>
               </div>
             </div>
           </div>
@@ -684,7 +750,7 @@
             <strong>Espaço de upgrade de arquivo</strong>
 
             <div class="upload-acoes">
-              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
+              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
               <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
               <div id="statusUpload" class="status-upload"></div>
             </div>
@@ -697,7 +763,7 @@
       <div class="box">
         <h2>Histórico de contrato</h2>
         <div id="historicoContratos" class="historico-lista">
-          <div class="historico-vazio">Área reservada para o histórico de contratos.</div>
+          <div class="historico-vazio">O contrato será registrado aqui automaticamente.</div>
         </div>
       </div>
 
@@ -707,6 +773,8 @@
       </div>
     </div>
   </div>
+
+  <div id="contratoPdfArea" class="contrato-pdf-area"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
