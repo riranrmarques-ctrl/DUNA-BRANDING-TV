@@ -24,7 +24,6 @@ const inputDataPostagem = document.getElementById("dataPostagem");
 const statusCliente = document.getElementById("statusCliente");
 
 const listaPontos = document.getElementById("listaPontos");
-const resumoCliente = document.getElementById("resumoCliente");
 const mensagem = document.getElementById("mensagem");
 const botaoSalvar = document.getElementById("botaoSalvar");
 const botaoVoltar = document.getElementById("botaoVoltar");
@@ -459,22 +458,33 @@ function montarHtmlContratoCompleto() {
 }
 
 function baixarContratoCliente() {
+  const dados = obterDadosContratoCliente();
+
+  const nomeSeguro = String(dados.nome || "cliente")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9-_ ]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+
+  const codigoSeguro = String(dados.codigo || "sem-codigo")
+    .trim()
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+
   const html = montarHtmlContratoCompleto();
-  const janela = window.open("", "_blank");
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
 
-  if (!janela) {
-    mostrarMensagem("Não foi possível abrir a janela do contrato.", "#ff6b6b");
-    return;
-  }
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `contrato-${codigoSeguro}-${nomeSeguro || "cliente"}.html`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-  janela.document.open();
-  janela.document.write(html);
-  janela.document.close();
-
-  setTimeout(() => {
-    janela.focus();
-    janela.print();
-  }, 500);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function obterTituloArquivo(item) {
@@ -614,29 +624,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 }
 
 async function atualizarResumo() {
-  if (!resumoCliente) return;
-
-  const { data, error } = await supabaseClient
-    .from("playlists")
-    .select("codigo, data_fim")
-    .eq("codigo_cliente", codigoClienteAtual);
-
-  if (error) {
-    resumoCliente.innerHTML = `<div class="linha">Erro ao carregar resumo.</div>`;
-    return;
-  }
-
-  const pontosAtivos = [...new Set(
-    (data || [])
-      .filter((item) => !itemEstaInativo(item))
-      .map((item) => String(item.codigo || "").trim())
-      .filter(Boolean)
-  )];
-
-  resumoCliente.innerHTML = `
-    <div class="linha"><strong>Código:</strong> ${escaparHtml(codigoClienteAtual)}</div>
-    <div class="linha"><strong>Pontos ativos:</strong> ${escaparHtml(pontosAtivos.join(", ") || "nenhum")}</div>
-  `;
+  return;
 }
 
 async function calcularStatusClienteRealPorCodigoCliente() {
