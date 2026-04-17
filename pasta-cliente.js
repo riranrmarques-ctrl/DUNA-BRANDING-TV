@@ -86,8 +86,39 @@ function formatarCpfCnpj(valor) {
 }
 
 function formatarMoedaBR(valor) {
-  const numeros = String(valor || "").replace(/\D/g, "");
-  const numero = Number(numeros || 0) / 100;
+  const texto = String(valor ?? "").trim();
+
+  if (!texto) {
+    return (0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+  }
+
+  let numero;
+
+  if (typeof valor === "number") {
+    numero = valor;
+  } else {
+    const limpo = texto
+      .replace(/\s/g, "")
+      .replace("R$", "")
+      .replace(/[^\d,.-]/g, "");
+
+    if (limpo.includes(",")) {
+      numero = Number(
+        limpo
+          .replace(/\./g, "")
+          .replace(",", ".")
+      );
+    } else {
+      numero = Number(limpo);
+    }
+  }
+
+  if (!Number.isFinite(numero)) {
+    numero = 0;
+  }
 
   return numero.toLocaleString("pt-BR", {
     style: "currency",
@@ -96,15 +127,28 @@ function formatarMoedaBR(valor) {
 }
 
 function extrairNumeroMoeda(valor) {
-  const limpo = String(valor || "")
-    .replace(/\./g, "")
-    .replace(",", ".")
-    .replace(/[^\d.-]/g, "");
+  const texto = String(valor ?? "").trim();
 
-  if (!limpo) return null;
+  if (!texto) return 0;
 
-  const numero = Number(limpo);
-  return Number.isFinite(numero) ? numero : null;
+  const limpo = texto
+    .replace(/\s/g, "")
+    .replace("R$", "")
+    .replace(/[^\d,.-]/g, "");
+
+  let numero;
+
+  if (limpo.includes(",")) {
+    numero = Number(
+      limpo
+        .replace(/\./g, "")
+        .replace(",", ".")
+    );
+  } else {
+    numero = Number(limpo);
+  }
+
+  return Number.isFinite(numero) ? numero : 0;
 }
 
 function formatarDataBR(valor) {
@@ -419,7 +463,6 @@ function montarCardPonto({
     </label>
   `;
 }
-
 
 function montarGrupoPontos(titulo, tipo, conteudoHtml) {
   const tema = obterTemaStatus(tipo);
@@ -875,6 +918,7 @@ async function salvarCliente() {
 
   const pontosSelecionados = obterPontosMarcados();
   const statusRealAntesDeSalvar = await calcularStatusClienteRealPorCodigoCliente();
+  const valorContratoNumero = extrairNumeroMoeda(inputValorContratado?.value);
 
   const payload = {
     codigo: codigoClienteAtual,
@@ -884,7 +928,7 @@ async function salvarCliente() {
     cpf_cnpj: inputCpfCnpj.value.trim(),
     status: statusRealAntesDeSalvar,
     vencimento_exibicao: inputVencimento.value || null,
-    valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
+    valor_contratado: valorContratoNumero,
     data_postagem: inputDataPostagem.value || null
   };
 
@@ -922,6 +966,10 @@ async function salvarCliente() {
     await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
     await sincronizarStatusCliente();
     await atualizarResumo();
+
+    if (inputValorContratado) {
+      inputValorContratado.value = formatarMoedaBR(valorContratoNumero);
+    }
 
     gerarContratoCliente(false);
 
@@ -1313,12 +1361,9 @@ function montarContratoProfissional(dados) {
 }
 
 function gerarContratoCliente(exibirMensagem = false) {
-  if (!contratoPreview || !contratoStatus || !contratoPdfArea) return;
+  if (!contratoPreview || !contratoStatus) return;
 
   const dados = obterDadosContratoCliente();
-  const contratoHtml = montarContratoProfissional(dados);
-
-  contratoPdfArea.innerHTML = contratoHtml;
 
   contratoPreview.innerHTML = `
     <div class="contrato-documento">
@@ -1343,18 +1388,6 @@ function gerarContratoCliente(exibirMensagem = false) {
 async function baixarContratoPdf() {
   if (!contratoPdfArea) return;
 
-  let contratoDocumento = contratoPdfArea.querySelector(".contrato-pdf-folha");
-
-  if (!contratoDocumento) {
-    gerarContratoCliente(false);
-    contratoDocumento = contratoPdfArea.querySelector(".contrato-pdf-folha");
-  }
-
-  if (!contratoDocumento) {
-    mostrarMensagem("Contrato não encontrado para gerar PDF.", "#ff6b6b");
-    return;
-  }
-
   if (!window.jspdf || !window.html2canvas) {
     mostrarMensagem("Bibliotecas de PDF não carregaram.", "#ff6b6b");
     return;
@@ -1362,6 +1395,18 @@ async function baixarContratoPdf() {
 
   try {
     mostrarMensagem("Gerando PDF organizado...", "#9fd2ff");
+
+    const dados = obterDadosContratoCliente();
+    contratoPdfArea.innerHTML = montarContratoProfissional(dados);
+
+    const contratoDocumento = contratoPdfArea.querySelector(".contrato-pdf-folha");
+
+    if (!contratoDocumento) {
+      mostrarMensagem("Contrato não encontrado para gerar PDF.", "#ff6b6b");
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 80));
 
     const { jsPDF } = window.jspdf;
 
@@ -1403,6 +1448,7 @@ async function baixarContratoPdf() {
 
     pdf.save(`contrato-${codigo}-${nome}.pdf`);
 
+    contratoPdfArea.innerHTML = "";
     mostrarMensagem("PDF baixado com sucesso.", "#7CFC9A");
   } catch (error) {
     console.error(error);
@@ -1467,14 +1513,29 @@ if (inputVencimento) {
 }
 
 if (inputValorContratado) {
-  inputValorContratado.addEventListener("input", (event) => {
-    event.target.value = formatarMoedaBR(event.target.value);
+  inputValorContratado.addEventListener("paste", (event) => {
+    event.preventDefault();
+
+    const textoColado = event.clipboardData.getData("text");
+    event.target.value = formatarMoedaBR(textoColado);
+
     ativarBotaoSalvar();
     gerarContratoCliente(false);
   });
 
+  inputValorContratado.addEventListener("blur", (event) => {
+    event.target.value = formatarMoedaBR(event.target.value);
+
+    ativarBotaoSalvar();
+    gerarContratoCliente(false);
+  });
+
+  inputValorContratado.addEventListener("input", () => {
+    ativarBotaoSalvar();
+  });
+
   if (!inputValorContratado.value) {
-    inputValorContratado.value = formatarMoedaBR("");
+    inputValorContratado.value = formatarMoedaBR(0);
   }
 }
 
@@ -1506,7 +1567,7 @@ async function carregarCliente() {
     inputVencimento.value = "";
 
     if (inputValorContratado) {
-      inputValorContratado.value = formatarMoedaBR("");
+      inputValorContratado.value = formatarMoedaBR(0);
     }
 
     if (inputDataPostagem) {
@@ -1528,7 +1589,7 @@ async function carregarCliente() {
   inputVencimento.value = data.vencimento_exibicao || "";
 
   if (inputValorContratado) {
-    inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? "");
+    inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? 0);
   }
 
   if (inputDataPostagem) {
