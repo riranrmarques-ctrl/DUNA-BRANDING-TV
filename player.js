@@ -1,12 +1,8 @@
 const SUPABASE_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
 const SUPABASE_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
 const TABELA = "playlists_novo";
-const TABELA_PONTOS = "pontos";
-const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const video = document.getElementById("videoPlayer");
 
 const CACHE_PLAYLIST_KEY = "duna_playlist_cache";
 const CACHE_INDICE_KEY = "duna_playlist_indice";
@@ -17,9 +13,6 @@ let playlistAtual = [];
 let indiceAtual = 0;
 let timeoutMidia = null;
 
-/* =========================
-   HELPERS
-========================= */
 function mostrarMensagem(texto) {
   document.body.innerHTML = `
     <div class="mensagem">${texto}</div>
@@ -83,7 +76,7 @@ async function normalizarLista(registros) {
   const listaOrdenada = (registros || []).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
 
   const listaNormalizada = await Promise.all(
-    listaOrdenada.map(async item => {
+    listaOrdenada.map(async (item) => {
       let url = item.video_url;
       let tipo = item.tipo || "video";
 
@@ -106,13 +99,13 @@ async function normalizarLista(registros) {
       return {
         id: item.id,
         nome: item.nome,
-        url: url,
-        tipo: tipo
+        url,
+        tipo
       };
     })
   );
 
-  return listaNormalizada;
+  return listaNormalizada.filter((item) => item.url);
 }
 
 async function buscarPlaylist() {
@@ -134,7 +127,7 @@ async function buscarPlaylist() {
       playlistAtual = novaPlaylist;
 
       if (itemAtual) {
-        const novoIndice = playlistAtual.findIndex(item => item.id === itemAtual.id);
+        const novoIndice = playlistAtual.findIndex((item) => item.id === itemAtual.id);
         indiceAtual = novoIndice >= 0 ? novoIndice : 0;
       } else if (indiceAtual >= playlistAtual.length) {
         indiceAtual = 0;
@@ -147,9 +140,6 @@ async function buscarPlaylist() {
   }
 }
 
-/* =========================
-   PLAYER INTELIGENTE
-========================= */
 function limparTela() {
   clearTimeout(timeoutMidia);
   document.body.innerHTML = `
@@ -157,6 +147,34 @@ function limparTela() {
       <video id="videoPlayer" autoplay muted playsinline></video>
     </div>
   `;
+}
+
+function tocarVideo(url) {
+  limparTela();
+
+  const vid = document.getElementById("videoPlayer");
+  vid.src = url;
+  vid.onended = proximo;
+  vid.onerror = proximo;
+  vid.play().catch(() => {
+    setTimeout(proximo, 3000);
+  });
+}
+
+function tocarImagem(url) {
+  clearTimeout(timeoutMidia);
+  document.body.innerHTML = `
+    <img src="${url}" style="width:100vw;height:100vh;object-fit:cover">
+  `;
+  timeoutMidia = setTimeout(proximo, 20000);
+}
+
+function tocarSite(url) {
+  clearTimeout(timeoutMidia);
+  document.body.innerHTML = `
+    <iframe src="${url}" style="width:100vw;height:100vh;border:none"></iframe>
+  `;
+  timeoutMidia = setTimeout(proximo, 20000);
 }
 
 function tocarMidia() {
@@ -171,51 +189,45 @@ function tocarMidia() {
 
   const item = playlistAtual[indiceAtual];
 
-  if (!item) return;
+  if (!item || !item.url) {
+    proximo();
+    return;
+  }
 
   salvarCachePlaylist();
 
   if (item.tipo === "video") {
-    limparTela();
-
-    const vid = document.getElementById("videoPlayer");
-    vid.src = item.url;
-    vid.play().catch(() => {});
-    vid.onended = proximo;
-
-  } else if (item.tipo === "imagem") {
-    clearTimeout(timeoutMidia);
-    document.body.innerHTML = `
-      <img src="${item.url}" style="width:100vw;height:100vh;object-fit:cover">
-    `;
-
-    timeoutMidia = setTimeout(proximo, 20000);
-
-  } else if (item.tipo === "site") {
-    clearTimeout(timeoutMidia);
-    document.body.innerHTML = `
-      <iframe src="${item.url}" style="width:100vw;height:100vh;border:none"></iframe>
-    `;
-
-    timeoutMidia = setTimeout(proximo, 20000);
+    tocarVideo(item.url);
+    return;
   }
+
+  if (item.tipo === "imagem") {
+    tocarImagem(item.url);
+    return;
+  }
+
+  if (item.tipo === "site") {
+    tocarSite(item.url);
+    return;
+  }
+
+  proximo();
 }
 
 function proximo() {
   indiceAtual++;
+
   if (indiceAtual >= playlistAtual.length) {
     indiceAtual = 0;
   }
+
   salvarCachePlaylist();
   tocarMidia();
 }
 
-/* =========================
-   INIT
-========================= */
 async function iniciar() {
   const params = new URLSearchParams(window.location.search);
-  codigoAtual = params.get("codigo") || localStorage.getItem(CACHE_CODIGO_KEY);
+  codigoAtual = (params.get("codigo") || localStorage.getItem(CACHE_CODIGO_KEY) || "").trim().toUpperCase();
 
   if (!codigoAtual) {
     mostrarMensagem("Código não informado");
