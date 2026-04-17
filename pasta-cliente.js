@@ -532,6 +532,49 @@ function obterTituloArquivo(item) {
   return "Arquivo";
 }
 
+function criarChaveGrupoHistorico(item) {
+  return String(
+    item.storage_path ||
+    `${item.video_url || ""}|${item.data_inicio || ""}|${item.nome || ""}`
+  ).trim();
+}
+
+function agruparHistoricoArquivos(itens = []) {
+  const grupos = new Map();
+
+  itens.forEach((item) => {
+    const chave = criarChaveGrupoHistorico(item);
+    if (!chave) return;
+
+    if (!grupos.has(chave)) {
+      grupos.set(chave, {
+        ids: [],
+        storage_path: item.storage_path || "",
+        video_url: item.video_url || "",
+        titulo: obterTituloArquivo(item),
+        tipo: item.tipo || "-",
+        data_inicio: item.data_inicio || null,
+        data_fim: item.data_fim || null,
+        pontos: []
+      });
+    }
+
+    const grupo = grupos.get(chave);
+    grupo.ids.push(item.id);
+
+    const ponto = String(item.codigo || "").trim();
+    if (ponto && !grupo.pontos.includes(ponto)) {
+      grupo.pontos.push(ponto);
+    }
+
+    if (!grupo.data_fim && item.data_fim) {
+      grupo.data_fim = item.data_fim;
+    }
+  });
+
+  return Array.from(grupos.values());
+}
+
 function renderizarHistoricoArquivos(itens = []) {
   historicoArquivos.innerHTML = "";
 
@@ -542,13 +585,13 @@ function renderizarHistoricoArquivos(itens = []) {
     return;
   }
 
-  historicoArquivos.innerHTML = itens.map((item) => {
-    const titulo = obterTituloArquivo(item);
-    const pontoCodigo = item.codigo || "-";
-    const tipo = item.tipo || "-";
-    const inicio = formatarDataHistorico(item.data_inicio);
-    const fim = item.data_fim ? formatarDataHistorico(item.data_fim) : "-";
-    const link = item.video_url || "#";
+  const grupos = agruparHistoricoArquivos(itens);
+
+  historicoArquivos.innerHTML = grupos.map((grupo) => {
+    const inicio = formatarDataHistorico(grupo.data_inicio);
+    const fim = grupo.data_fim ? formatarDataHistorico(grupo.data_fim) : "-";
+    const pontosTexto = grupo.pontos.length ? grupo.pontos.join(", ") : "-";
+    const idsEncoded = encodeURIComponent(JSON.stringify(grupo.ids));
 
     return `
       <div style="
@@ -570,12 +613,12 @@ function renderizarHistoricoArquivos(itens = []) {
             overflow:hidden;
             text-overflow:ellipsis;
           ">
-            ${escaparHtml(titulo)}
+            ${escaparHtml(grupo.titulo)}
           </div>
 
           <div style="font-size:0.75rem; opacity:0.82; line-height:1.6;">
-            <div><strong>Ponto:</strong> ${escaparHtml(pontoCodigo)}</div>
-            <div><strong>Tipo:</strong> ${escaparHtml(tipo)}</div>
+            <div><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</div>
+            <div><strong>Tipo:</strong> ${escaparHtml(grupo.tipo)}</div>
             <div><strong>Início:</strong> ${escaparHtml(inicio)}</div>
             <div><strong>Fim:</strong> ${escaparHtml(fim)}</div>
           </div>
@@ -589,7 +632,7 @@ function renderizarHistoricoArquivos(itens = []) {
           min-width:110px;
         ">
           <a
-            href="${escaparHtml(link)}"
+            href="${escaparHtml(grupo.video_url || "#")}"
             download
             target="_blank"
             rel="noopener noreferrer"
@@ -613,8 +656,8 @@ function renderizarHistoricoArquivos(itens = []) {
           <button
             type="button"
             class="btn-deletar-historico"
-            data-id="${escaparHtml(item.id)}"
-            data-storage-path="${escaparHtml(item.storage_path || "")}"
+            data-ids="${idsEncoded}"
+            data-storage-path="${escaparHtml(grupo.storage_path || "")}"
             style="
               display:inline-flex;
               align-items:center;
@@ -642,8 +685,12 @@ function extrairCaminhoStorage(storagePath) {
   return String(storagePath || "").trim();
 }
 
-async function deletarItemHistorico(id, storagePath) {
-  const confirmar = window.confirm("Deseja deletar este arquivo do histórico?");
+async function deletarItemHistorico(ids, storagePath) {
+  const listaIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+
+  if (!listaIds.length) return;
+
+  const confirmar = window.confirm("Deseja deletar este arquivo de todos os pontos?");
   if (!confirmar) return;
 
   try {
@@ -664,7 +711,7 @@ async function deletarItemHistorico(id, storagePath) {
     const { error: deleteError } = await supabaseClient
       .from("playlists")
       .delete()
-      .eq("id", id);
+      .in("id", listaIds);
 
     if (deleteError) {
       throw deleteError;
@@ -674,7 +721,7 @@ async function deletarItemHistorico(id, storagePath) {
     await sincronizarStatusCliente();
     await atualizarResumo();
 
-    mostrarMensagem("Arquivo deletado com sucesso.", "#7CFC9A");
+    mostrarMensagem("Arquivo deletado de todos os pontos.", "#7CFC9A");
   } catch (error) {
     console.error(error);
     mostrarMensagem("Erro ao deletar arquivo.", "#ff6b6b");
@@ -684,12 +731,18 @@ async function deletarItemHistorico(id, storagePath) {
 function ativarBotoesDeletarHistorico() {
   document.querySelectorAll(".btn-deletar-historico").forEach((botao) => {
     botao.onclick = async () => {
-      const id = botao.dataset.id;
+      const idsRaw = botao.dataset.ids || "[]";
       const storagePath = botao.dataset.storagePath || "";
 
-      if (!id) return;
+      let ids = [];
 
-      await deletarItemHistorico(id, storagePath);
+      try {
+        ids = JSON.parse(decodeURIComponent(idsRaw));
+      } catch (error) {
+        console.error("Erro ao ler ids do histórico:", error);
+      }
+
+      await deletarItemHistorico(ids, storagePath);
     };
   });
 }
