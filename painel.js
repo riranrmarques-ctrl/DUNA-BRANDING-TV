@@ -3,6 +3,7 @@ const SUPABASE_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
 const TABELA = "playlists_novo";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
+const BUCKET = "pontos";
 
 const SENHA_PAINEL = "@Helena26";
 const CACHE_PONTOS_KEY = "painel_pontos_cache_v1";
@@ -213,6 +214,10 @@ function ativarLazyImages() {
 }
 
 async function uploadImagemPonto(file, codigo) {
+  if (!BUCKET) {
+    throw new Error("Bucket não configurado.");
+  }
+
   const extensao = (file.name.split(".").pop() || "jpg").toLowerCase();
   const nomeArquivo = `${codigo}/${Date.now()}.${extensao}`;
 
@@ -227,7 +232,10 @@ async function uploadImagemPonto(file, codigo) {
     throw uploadError;
   }
 
-  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(nomeArquivo);
+  const { data } = supabaseClient.storage
+    .from(BUCKET)
+    .getPublicUrl(nomeArquivo);
+
   return data.publicUrl;
 }
 
