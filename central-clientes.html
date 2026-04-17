@@ -91,6 +91,10 @@
       font-size: 1rem;
     }
 
+    .campo-busca input::placeholder {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
     .mensagem {
       min-height: 24px;
       color: #9fd2ff;
@@ -184,6 +188,15 @@
         font-size: 1.6rem;
       }
 
+      .acoes-topo {
+        width: 100%;
+      }
+
+      .botao {
+        flex: 1;
+        min-width: 140px;
+      }
+
       .cliente-card {
         padding: 16px;
       }
@@ -217,11 +230,13 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
     document.getElementById("botaoVoltarPainel").addEventListener("click", function () {
-      window.location.href = "/painel";
+      window.location.href = "/painel.html";
     });
   </script>
-  <script src="central-clientes.js?v=1"></script>
+
+  <script src="central-clientes.js?v=2"></script>
 </body>
 </html>
