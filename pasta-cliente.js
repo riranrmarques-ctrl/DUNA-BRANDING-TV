@@ -4,11 +4,16 @@ if (liberado !== "1") {
   window.location.replace("/painel.html");
 }
 
-const SUPABASE_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
-const SUPABASE_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
+const SUPABASE_APP_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
+const SUPABASE_APP_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+
+const SUPABASE_CONTRATO_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
+const SUPABASE_CONTRATO_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
+
 const BUCKET = "videos";
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_APP_URL, SUPABASE_APP_KEY);
+const supabaseContratoClient = window.supabase.createClient(SUPABASE_CONTRATO_URL, SUPABASE_CONTRATO_KEY);
 
 const inputCodigo = document.getElementById("codigo");
 const inputNome = document.getElementById("nome");
@@ -249,7 +254,7 @@ function textoComQuebras(texto) {
 
 async function carregarConfigContrato() {
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabaseContratoClient
       .from("config_contrato")
       .select("*")
       .eq("id", "duna")
@@ -279,7 +284,7 @@ async function carregarConfigContrato() {
 
 async function carregarClausulasContrato() {
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabaseContratoClient
       .from("contrato_clausulas")
       .select("*")
       .eq("contrato_id", "duna")
