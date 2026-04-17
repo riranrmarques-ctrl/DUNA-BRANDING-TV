@@ -535,7 +535,6 @@
               <div class="campo"><strong>Email</strong><span data-edit-key="email">[SEU EMAIL]</span></div>
               <div class="campo"><strong>Endereço</strong><span data-edit-key="endereco">[SEU ENDEREÇO]</span></div>
               <div class="campo"><strong>Responsável</strong><span data-edit-key="responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
-              <div class="campo"><strong>URL da assinatura</strong><span data-edit-key="assinatura_url">/assinatura.png</span></div>
             </div>
           </div>
 
@@ -619,7 +618,6 @@
               <div class="campo"><strong>Email</strong><span data-edit-key="email">[SEU EMAIL]</span></div>
               <div class="campo"><strong>Endereço</strong><span data-edit-key="endereco">[SEU ENDEREÇO]</span></div>
               <div class="campo"><strong>Responsável</strong><span data-edit-key="responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
-              <div class="campo"><strong>URL da assinatura</strong><span data-edit-key="assinatura_url">/assinatura.png</span></div>
             </div>
           </div>
 
@@ -845,6 +843,12 @@
       }
     }
 
+    function obterAssinaturaAtual() {
+      const contrato = obterContratoAtivo();
+      const imagem = contrato?.querySelector(".assinatura-img");
+      return imagem?.getAttribute("src") || "/assinatura.png";
+    }
+
     function coletarConfigContrato() {
       const contratoId = obterContratoIdAtivo();
 
@@ -856,7 +860,7 @@
         email: obterTextoCampo("email"),
         endereco: obterTextoCampo("endereco"),
         responsavel: obterTextoCampo("responsavel"),
-        assinatura_url: obterTextoCampo("assinatura_url") || "/assinatura.png",
+        assinatura_url: obterAssinaturaAtual() || "/assinatura.png",
         titulo_contrato: obterTextoCampo("titulo_contrato"),
         subtitulo_contrato: obterTextoCampo("subtitulo_contrato"),
         updated_at: new Date().toISOString()
@@ -931,7 +935,6 @@
           aplicarTextoCampo("email", config.email || "");
           aplicarTextoCampo("endereco", config.endereco || "");
           aplicarTextoCampo("responsavel", config.responsavel || "");
-          aplicarTextoCampo("assinatura_url", config.assinatura_url || "/assinatura.png");
           aplicarTextoCampo("titulo_contrato", config.titulo_contrato || "");
           aplicarTextoCampo("subtitulo_contrato", config.subtitulo_contrato || "");
           atualizarImagemAssinatura(config.assinatura_url || "assinatura.png");
@@ -948,6 +951,50 @@
       }
     }
 
+    async function salvarConfigContrato(config) {
+      const { data: atualizado, error: erroUpdate } = await supabaseClient
+        .from("config_contrato")
+        .update(config)
+        .eq("id", config.id)
+        .select("id");
+
+      if (erroUpdate) {
+        throw erroUpdate;
+      }
+
+      if (!atualizado || !atualizado.length) {
+        const { error: erroInsert } = await supabaseClient
+          .from("config_contrato")
+          .insert(config);
+
+        if (erroInsert) {
+          throw erroInsert;
+        }
+      }
+    }
+
+    async function salvarClausulaContrato(clausula) {
+      const { data: atualizado, error: erroUpdate } = await supabaseClient
+        .from("contrato_clausulas")
+        .update(clausula)
+        .eq("id", clausula.id)
+        .select("id");
+
+      if (erroUpdate) {
+        throw erroUpdate;
+      }
+
+      if (!atualizado || !atualizado.length) {
+        const { error: erroInsert } = await supabaseClient
+          .from("contrato_clausulas")
+          .insert(clausula);
+
+        if (erroInsert) {
+          throw erroInsert;
+        }
+      }
+    }
+
     async function salvarEdicoes() {
       try {
         mostrarAviso("Salvando contrato na Supabase...", "info");
@@ -955,22 +1002,10 @@
         const config = coletarConfigContrato();
         const clausulas = coletarClausulasContrato();
 
-        const { error: erroConfig } = await supabaseClient
-          .from("config_contrato")
-          .upsert(config, { onConflict: "id" });
+        await salvarConfigContrato(config);
 
-        if (erroConfig) {
-          throw erroConfig;
-        }
-
-        if (clausulas.length) {
-          const { error: erroClausulas } = await supabaseClient
-            .from("contrato_clausulas")
-            .upsert(clausulas, { onConflict: "id" });
-
-          if (erroClausulas) {
-            throw erroClausulas;
-          }
+        for (const clausula of clausulas) {
+          await salvarClausulaContrato(clausula);
         }
 
         atualizarImagemAssinatura(config.assinatura_url || "assinatura.png");
