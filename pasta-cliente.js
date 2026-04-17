@@ -1,8 +1,9 @@
 const liberado = sessionStorage.getItem("painelLiberado");
 
 if (liberado !== "1") {
-  window.location.href = "/painel";
+  window.location.replace("/painel.html");
 }
+
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const BUCKET = "videos";
@@ -875,24 +876,24 @@ async function uploadArquivoCliente() {
 
       if (insertError) throw insertError;
     } else {
-const nomeLimpo = file.name
-  .normalize("NFD")
-  .replace(/[\u0300-\u036f]/g, "")
-  .replace(/[^a-zA-Z0-9._-]/g, "-")
-  .replace(/-+/g, "-")
-  .toLowerCase();
+      const nomeLimpo = file.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9._-]/g, "-")
+        .replace(/-+/g, "-")
+        .toLowerCase();
 
-const path = `clientes/${codigoClienteAtual}/${Date.now()}-${nomeLimpo}`;
+      const path = `clientes/${codigoClienteAtual}/${Date.now()}-${nomeLimpo}`;
 
-const { error: uploadError } = await supabaseClient.storage
-  .from(BUCKET)
-  .upload(path, file);
+      const { error: uploadError } = await supabaseClient.storage
+        .from(BUCKET)
+        .upload(path, file);
 
-if (uploadError) throw uploadError;
+      if (uploadError) throw uploadError;
 
-const { data: publicData } = supabaseClient.storage
-  .from(BUCKET)
-  .getPublicUrl(path);
+      const { data: publicData } = supabaseClient.storage
+        .from(BUCKET)
+        .getPublicUrl(path);
 
       const nomeArquivo = file.name.toLowerCase();
       const tipoFinal =
@@ -1136,9 +1137,11 @@ async function carregarCliente() {
 }
 
 botaoSalvar.addEventListener("click", salvarCliente);
+
 botaoVoltar.addEventListener("click", () => {
-  window.location.href = "central-clientes.html";
+  window.location.href = "/central-clientes.html";
 });
+
 btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 
 async function iniciar() {
@@ -1152,4 +1155,5 @@ async function iniciar() {
     mostrarMensagem("Erro ao carregar pontos.", "#ff6b6b");
   }
 }
+
 iniciar();
