@@ -175,34 +175,38 @@ function itemEstaInativo(item) {
 }
 
 async function carregarPontos() {
-  const { data, error } = await supabaseClient
-    .from("pontos")
-    .select("*")
-    .order("nome", { ascending: true });
+  try {
+    const { data, error } = await supabaseClient
+      .from("pontos")
+      .select("*");
 
-  if (error) {
+    if (error) {
+      throw error;
+    }
+
+    pontosData = {};
+
+    (data || []).forEach((ponto) => {
+      const chaveInterna = String(
+        ponto.codigo_visual ||
+        ponto.codigo ||
+        ponto.codigo_ponto ||
+        ponto.id_ponto ||
+        ""
+      ).trim();
+
+      if (!chaveInterna) return;
+
+      pontosData[chaveInterna] = ponto;
+    });
+  } catch (error) {
+    console.error("Erro real ao carregar pontos:", error);
     throw error;
   }
-
-  pontosData = {};
-
-  (data || []).forEach((ponto) => {
-    const chaveInterna = String(
-      ponto.codigo_visual ||
-      ponto.codigo ||
-      ponto.codigo_ponto ||
-      ponto.id_ponto ||
-      ""
-    ).trim();
-
-    if (!chaveInterna) return;
-
-    pontosData[chaveInterna] = ponto;
-  });
 }
 
 function obterPontosMarcados() {
-  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((i) => i.value);
+  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((item) => item.value);
 }
 
 function obterCodigosDestinoSelecionados() {
@@ -334,43 +338,88 @@ function obterTemaStatus(tipo) {
   };
 }
 
-function montarGrupoPontos(titulo, tipo, conteudoHtml) {
-  const tema = obterTemaStatus(tipo);
-
+function montarCardPonto({
+  codigo,
+  codigoExibicao,
+  nome,
+  tema,
+  desabilitado = false,
+  marcado = false
+}) {
   return `
-    <div style="margin-bottom:18px;">
-      <div style="
-        color:${tema.titulo};
-        font-size:0.95rem;
-        font-weight:700;
-        margin-bottom:10px;
-        text-transform:lowercase;
-      ">${titulo}</div>
-
-      <div
+    <label
+      style="
+        display:flex;
+        align-items:flex-start;
+        gap:10px;
+        min-height:76px;
+        padding:14px 16px;
+        border-radius:12px;
+        border:1px solid ${tema.cardBorda};
+        background:${tema.cardFundo};
+        box-shadow:${tema.cardSombra};
+        color:#ffffff;
+        cursor:${desabilitado ? "not-allowed" : "pointer"};
+        opacity:${desabilitado ? "0.65" : "1"};
+        overflow:hidden;
+        transition:0.2s ease;
+      "
+    >
+      <input
+        type="checkbox"
+        name="pontos"
+        value="${escaparHtml(codigo)}"
+        ${marcado ? "checked" : ""}
+        ${desabilitado ? "disabled" : ""}
         style="
-          display:grid;
-          grid-template-columns:repeat(3, minmax(150px, 1fr));
-          gap:12px;
-          min-height:108px;
-          max-height:300px;
-          overflow-y:auto;
-          overflow-x:hidden;
-          padding:14px;
-          border:1px solid ${tema.areaBorda};
-          border-radius:14px;
-          background:${tema.areaFundo};
-          scrollbar-width:none !important;
-          -ms-overflow-style:none !important;
+          width:16px;
+          height:16px;
+          margin-top:4px;
+          accent-color:#2d8cff;
+          flex-shrink:0;
+          cursor:${desabilitado ? "not-allowed" : "pointer"};
         "
-        class="grupo-pontos-scroll-${tipo}"
       >
-        ${conteudoHtml}
+
+      <div style="
+        display:flex;
+        flex-direction:column;
+        min-width:0;
+        flex:1;
+        line-height:1.25;
+      ">
+        <span style="
+          color:#ffffff;
+          font-size:0.92rem;
+          font-weight:700;
+          white-space:normal;
+          overflow:visible;
+          text-overflow:clip;
+          overflow-wrap:anywhere;
+          word-break:normal;
+          margin-bottom:7px;
+        ">${escaparHtml(nome)}</span>
+
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          width:fit-content;
+          max-width:100%;
+          color:rgba(255,255,255,0.78);
+          background:rgba(0,0,0,0.16);
+          border:1px solid rgba(255,255,255,0.10);
+          border-radius:999px;
+          padding:4px 8px;
+          font-size:0.68rem;
+          font-weight:700;
+          line-height:1;
+          white-space:normal;
+          overflow-wrap:anywhere;
+        ">${escaparHtml(codigoExibicao)}</span>
       </div>
-    </div>
+    </label>
   `;
 }
-
 
 function montarGrupoPontos(titulo, tipo, conteudoHtml) {
   const tema = obterTemaStatus(tipo);
@@ -391,7 +440,7 @@ function montarGrupoPontos(titulo, tipo, conteudoHtml) {
           grid-template-columns:repeat(3, minmax(0, 1fr));
           gap:12px;
           min-height:108px;
-          max-height:260px;
+          max-height:300px;
           overflow-y:auto;
           overflow-x:hidden;
           padding:14px;
@@ -444,6 +493,14 @@ function injetarEstilosScroll() {
       background: transparent !important;
       border: none !important;
       box-shadow: none !important;
+    }
+
+    @media (max-width: 760px) {
+      .grupo-pontos-scroll-selecionado,
+      .grupo-pontos-scroll-disponivel,
+      .grupo-pontos-scroll-inativo {
+        grid-template-columns:1fr !important;
+      }
     }
   `;
 
@@ -1026,7 +1083,13 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   const inativosArr = [];
 
   codigos
-    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }))
+    .sort((a, b) => {
+      const pontoA = pontosData[a];
+      const pontoB = pontosData[b];
+      const nomeA = obterNomeDoPonto(pontoA, a);
+      const nomeB = obterNomeDoPonto(pontoB, b);
+      return nomeA.localeCompare(nomeB, "pt-BR", { numeric: true });
+    })
     .forEach((codigo) => {
       const ponto = pontosData[codigo];
       const nome = obterNomeDoPonto(ponto, codigo);
