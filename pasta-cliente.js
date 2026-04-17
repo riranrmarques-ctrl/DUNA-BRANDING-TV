@@ -478,6 +478,10 @@ function baixarContratoCliente() {
 }
 
 function obterTituloArquivo(item) {
+  if (item.titulo_arquivo && String(item.titulo_arquivo).trim()) {
+    return String(item.titulo_arquivo).trim();
+  }
+
   if (item.storage_path) {
     const partes = String(item.storage_path).split("/");
     return partes[partes.length - 1] || "Arquivo";
@@ -575,23 +579,10 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             name="pontos"
             value="${escaparHtml(codigoVisual)}"
             ${checked ? "checked" : ""}
-            style="
-              width:16px;
-              height:16px;
-              flex-shrink:0;
-              accent-color:#ffffff;
-              cursor:pointer;
-            "
+            style="width:16px;height:16px;flex-shrink:0;accent-color:#ffffff;cursor:pointer;"
           >
           <div style="display:flex;align-items:center;min-width:0;flex:1;overflow:hidden;">
-            <span style="
-              font-size:0.88rem;
-              font-weight:700;
-              line-height:1.15;
-              white-space:nowrap;
-              overflow:hidden;
-              text-overflow:ellipsis;
-            ">
+            <span style="font-size:0.88rem;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               ${escaparHtml(nome)}
             </span>
           </div>
@@ -697,6 +688,35 @@ function validarCamposCliente() {
   return true;
 }
 
+async function renomearGrupoHistorico(ids, tituloAtual) {
+  const listaIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  if (!listaIds.length) return;
+
+  const novoTitulo = window.prompt("Digite o novo nome do arquivo:", tituloAtual || "");
+  if (novoTitulo === null) return;
+
+  const tituloFinal = String(novoTitulo || "").trim();
+  if (!tituloFinal) {
+    mostrarMensagem("Digite um nome valido para o arquivo.", "#ff6b6b");
+    return;
+  }
+
+  try {
+    const { error } = await supabaseClient
+      .from("playlists")
+      .update({ titulo_arquivo: tituloFinal })
+      .in("id", listaIds);
+
+    if (error) throw error;
+
+    await carregarHistoricoArquivos();
+    mostrarMensagem("Nome do arquivo atualizado com sucesso.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao renomear arquivo.", "#ff6b6b");
+  }
+}
+
 async function deletarItemHistorico(ids, storagePath) {
   const listaIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
   if (!listaIds.length) return;
@@ -724,6 +744,25 @@ async function deletarItemHistorico(ids, storagePath) {
     console.error(error);
     mostrarMensagem("Erro ao excluir arquivo.", "#ff6b6b");
   }
+}
+
+function ativarBotoesRenomearHistorico() {
+  document.querySelectorAll(".btn-renomear-historico").forEach((botao) => {
+    botao.onclick = async () => {
+      const idsRaw = botao.dataset.ids || "[]";
+      const tituloAtual = botao.dataset.titulo || "";
+
+      let ids = [];
+
+      try {
+        ids = JSON.parse(decodeURIComponent(idsRaw));
+      } catch (error) {
+        console.error("Erro ao ler ids para renomear:", error);
+      }
+
+      await renomearGrupoHistorico(ids, tituloAtual);
+    };
+  });
 }
 
 function ativarBotoesDeletarHistorico() {
@@ -762,6 +801,7 @@ function renderizarHistoricoArquivos(itens = []) {
     const fim = grupo.data_fim ? formatarDataHistorico(grupo.data_fim) : "-";
     const pontosTexto = grupo.pontos.length ? grupo.pontos.join(", ") : "-";
     const idsEncoded = encodeURIComponent(JSON.stringify(grupo.ids));
+    const tituloSeguro = escaparHtml(grupo.titulo || "");
 
     return `
       <div style="
@@ -776,8 +816,9 @@ function renderizarHistoricoArquivos(itens = []) {
       ">
         <div style="flex:1; min-width:0;">
           <div style="font-weight:700;margin-bottom:8px;color:#ffffff;word-break:break-word;">
-            ${escaparHtml(grupo.titulo)}
+            ${tituloSeguro}
           </div>
+
           <div style="color:#c6cedd;font-size:0.9rem;line-height:1.55;">
             <div><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</div>
             <div><strong>Tipo:</strong> ${escaparHtml(grupo.tipo)}</div>
@@ -787,6 +828,27 @@ function renderizarHistoricoArquivos(itens = []) {
         </div>
 
         <div style="display:flex;flex-direction:column;gap:8px;min-width:110px;flex-shrink:0;">
+          <button
+            type="button"
+            class="btn-renomear-historico"
+            data-ids="${idsEncoded}"
+            data-titulo="${tituloSeguro}"
+            style="
+              display:inline-flex;
+              align-items:center;
+              justify-content:center;
+              height:36px;
+              padding:0 12px;
+              border:none;
+              border-radius:8px;
+              background:#f59e0b;
+              color:#fff;
+              font-size:0.82rem;
+              font-weight:700;
+              cursor:pointer;
+            "
+          >Renomear</button>
+
           <a
             href="${escaparHtml(grupo.video_url || "#")}"
             target="_blank"
@@ -832,6 +894,7 @@ function renderizarHistoricoArquivos(itens = []) {
     `;
   }).join("");
 
+  ativarBotoesRenomearHistorico();
   ativarBotoesDeletarHistorico();
 }
 
@@ -860,7 +923,6 @@ async function carregarHistoricoArquivos() {
 
 function gerarHistoricoContratoVisual() {
   if (!historicoContratos) return;
-
   const dados = obterDadosContratoCliente();
   historicoContratos.innerHTML = `<div class="historico-vazio">Contrato padrão carregado para ${escaparHtml(dados.nome)}.</div>`;
 }
@@ -1025,6 +1087,7 @@ async function uploadArquivoCliente() {
         codigo: codigoReal,
         codigo_cliente: codigoClienteAtual,
         nome: inputNome.value.trim(),
+        titulo_arquivo: file.name,
         video_url: url,
         tipo: "url",
         data_inicio: agoraIso,
@@ -1048,13 +1111,14 @@ async function uploadArquivoCliente() {
       const { error: uploadError } = await supabaseClient.storage.from(BUCKET).upload(path, file);
       if (uploadError) throw uploadError;
 
-      const { data: publicData } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+      const { data: publicData } = await supabaseClient.storage.from(BUCKET).getPublicUrl(path);
       const tipoFinal = /\.(jpg|jpeg|png|webp)$/i.test(file.name) ? "imagem" : "video";
 
       const registros = codigosDestino.map((codigoReal, index) => ({
         codigo: codigoReal,
         codigo_cliente: codigoClienteAtual,
         nome: inputNome.value.trim(),
+        titulo_arquivo: file.name,
         video_url: publicData.publicUrl,
         tipo: tipoFinal,
         data_inicio: agoraIso,
