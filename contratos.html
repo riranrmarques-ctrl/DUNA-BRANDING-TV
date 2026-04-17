@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Contratos - DUNA AUDIOVISUAL</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -13,7 +14,7 @@
 
     body {
       font-family: Arial, sans-serif;
-      background: #f5f7fb;
+      background: #eef3fb;
       color: #1f2937;
       min-height: 100vh;
     }
@@ -34,14 +35,16 @@
     }
 
     .topo-esquerda h1 {
-      font-size: 28px;
-      color: #111827;
+      font-size: 30px;
+      color: #0f172a;
       margin-bottom: 6px;
+      letter-spacing: 0.2px;
     }
 
     .topo-esquerda p {
-      color: #6b7280;
+      color: #64748b;
       font-size: 14px;
+      font-weight: 600;
     }
 
     .topo-acoes {
@@ -59,6 +62,7 @@
       padding: 12px 18px;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 700;
       transition: 0.2s;
     }
 
@@ -100,17 +104,19 @@
     .conteudo {
       background: #fff;
       border-radius: 16px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 44px rgba(15, 23, 42, 0.10);
+      border: 1px solid rgba(148, 163, 184, 0.18);
     }
 
     .sidebar {
       padding: 20px;
+      align-self: start;
     }
 
     .sidebar h2 {
       font-size: 18px;
       margin-bottom: 16px;
-      color: #111827;
+      color: #0f172a;
     }
 
     .pasta {
@@ -119,7 +125,7 @@
       gap: 12px;
       width: 100%;
       border: 1px solid #e5e7eb;
-      background: #f9fafb;
+      background: #f8fafc;
       border-radius: 14px;
       padding: 14px 16px;
       margin-bottom: 12px;
@@ -136,6 +142,7 @@
     .pasta.ativa {
       background: #e8f0ff;
       border-color: #93c5fd;
+      box-shadow: inset 4px 0 0 #2563eb;
     }
 
     .icone-pasta {
@@ -158,6 +165,48 @@
 
     .conteudo {
       padding: 24px;
+    }
+
+    .aviso-edicao,
+    .aviso-status {
+      display: none;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .aviso-edicao {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+    }
+
+    .aviso-status.ativo {
+      display: block;
+    }
+
+    .aviso-status.ok {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    .aviso-status.erro {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .aviso-status.info {
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+      color: #075985;
+    }
+
+    .editando .aviso-edicao {
+      display: block;
     }
 
     .cabecalho-contrato {
@@ -205,7 +254,7 @@
     }
 
     .campo {
-      background: #f9fafb;
+      background: #f8fafc;
       border: 1px solid #e5e7eb;
       border-radius: 10px;
       padding: 12px;
@@ -220,10 +269,11 @@
     }
 
     .campo span {
-      color: #6b7280;
+      color: #64748b;
       display: block;
       min-height: 18px;
       outline: none;
+      word-break: break-word;
     }
 
     .texto-contrato p {
@@ -235,7 +285,13 @@
       outline: none;
     }
 
-    .editando [data-edit-key] {
+    .texto-contrato strong {
+      color: #111827;
+    }
+
+    .editando [data-edit-key],
+    .editando [data-clausula-titulo],
+    .editando [data-clausula-texto] {
       cursor: text;
       border-radius: 6px;
       outline: 2px dashed rgba(37, 99, 235, 0.35);
@@ -243,23 +299,10 @@
       background: rgba(37, 99, 235, 0.06);
     }
 
-    .editando .texto-contrato [data-edit-key] {
-      padding: 6px;
-    }
-
-    .aviso-edicao {
-      display: none;
-      margin-bottom: 16px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1d4ed8;
-      font-size: 14px;
-    }
-
-    .editando .aviso-edicao {
-      display: block;
+    .editando .texto-contrato [data-clausula-texto],
+    .editando .texto-contrato [data-clausula-titulo] {
+      padding: 4px;
+      display: inline;
     }
 
     .assinaturas {
@@ -287,13 +330,13 @@
 
     .assinatura-img {
       display: block;
-      width: 430px;
-      max-width: 95%;
-      height: 155px;
+      width: 360px;
+      max-width: 92%;
+      height: 128px;
       object-fit: contain;
       object-position: center bottom;
-      margin: 0 auto -24px;
-      transform: scale(2.05);
+      margin: 0 auto -20px;
+      transform: scale(1.55);
       transform-origin: center bottom;
       pointer-events: none;
     }
@@ -305,6 +348,7 @@
       color: #111827;
       position: relative;
       z-index: 2;
+      font-weight: 700;
     }
 
     .acoes {
@@ -323,6 +367,7 @@
       font-size: 14px;
       cursor: pointer;
       transition: 0.2s;
+      font-weight: 700;
     }
 
     .btn-primario {
@@ -351,7 +396,8 @@
       .topo,
       .sidebar,
       .acoes,
-      .aviso-edicao {
+      .aviso-edicao,
+      .aviso-status {
         display: none !important;
       }
 
@@ -367,6 +413,7 @@
       .conteudo {
         box-shadow: none;
         border-radius: 0;
+        border: none;
       }
 
       .contrato {
@@ -381,25 +428,12 @@
         margin-top: 44px;
       }
 
-      .assinatura-box {
-        min-height: 150px;
-        overflow: visible;
-      }
-
-      .assinatura-box-duna {
-        min-height: 190px;
-        overflow: visible;
-      }
-
       .assinatura-img {
-        width: 430px;
-        max-width: 95%;
-        height: 155px;
-        object-fit: contain;
-        object-position: center bottom;
-        margin: 0 auto -24px;
-        transform: scale(2.05);
-        transform-origin: center bottom;
+        width: 360px;
+        max-width: 92%;
+        height: 128px;
+        margin: 0 auto -20px;
+        transform: scale(1.55);
       }
     }
 
@@ -434,19 +468,20 @@
       }
 
       .assinatura-img {
-        width: 330px;
-        height: 130px;
-        transform: scale(1.65);
+        width: 300px;
+        height: 120px;
+        transform: scale(1.35);
       }
     }
   </style>
 </head>
+
 <body>
   <div class="pagina">
     <div class="topo">
       <div class="topo-esquerda">
         <h1>Central de Contratos</h1>
-        <p>Escolha uma pasta para visualizar o modelo padrão do contrato.</p>
+        <p>Escolha uma pasta para visualizar e editar o modelo padrão do contrato.</p>
       </div>
 
       <div class="topo-acoes">
@@ -479,80 +514,87 @@
       </aside>
 
       <main id="conteudoContratos" class="conteudo">
+        <div id="avisoStatus" class="aviso-status"></div>
+
         <div class="aviso-edicao">
           Modo edição ativo. Clique nos campos ou textos do contrato para alterar. Depois clique em Salvar.
         </div>
 
-        <section id="contratante" class="contrato ativo">
+        <section id="contratante" class="contrato ativo" data-contrato-id="duna">
           <div class="cabecalho-contrato">
-            <h2 data-edit-key="contratante_titulo">Contrato Padrão - Contratante</h2>
-            <p data-edit-key="contratante_subtitulo">Modelo base para cliente anunciante nas telas.</p>
+            <h2 data-edit-key="titulo_contrato">Contrato de Prestação de Serviços de Publicidade em Telas Digitais</h2>
+            <p data-edit-key="subtitulo_contrato">Contrato de prestação de serviços de publicidade em telas digitais.</p>
           </div>
 
           <div class="bloco">
-            <h3 data-edit-key="contratante_bloco_contratada">Dados da Contratada</h3>
+            <h3>Dados da Contratada</h3>
             <div class="linha-info">
-              <div class="campo"><strong>Empresa</strong><span data-edit-key="duna_empresa">DUNA AUDIOVISUAL</span></div>
-              <div class="campo"><strong>CNPJ</strong><span data-edit-key="duna_cnpj">[SEU CNPJ]</span></div>
-              <div class="campo"><strong>Telefone</strong><span data-edit-key="duna_telefone">[SEU TELEFONE]</span></div>
-              <div class="campo"><strong>Email</strong><span data-edit-key="duna_email">[SEU EMAIL]</span></div>
-              <div class="campo"><strong>Endereço</strong><span data-edit-key="duna_endereco">[SEU ENDEREÇO]</span></div>
-              <div class="campo"><strong>Responsável</strong><span data-edit-key="duna_responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+              <div class="campo"><strong>Empresa</strong><span data-edit-key="empresa">DUNA AUDIOVISUAL</span></div>
+              <div class="campo"><strong>CNPJ</strong><span data-edit-key="cnpj">[SEU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span data-edit-key="telefone">[SEU TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span data-edit-key="email">[SEU EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span data-edit-key="endereco">[SEU ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span data-edit-key="responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+              <div class="campo"><strong>URL da assinatura</strong><span data-edit-key="assinatura_url">/assinatura.png</span></div>
             </div>
           </div>
 
           <div class="bloco">
-            <h3 data-edit-key="contratante_bloco_cliente">Dados do Contratante</h3>
+            <h3>Dados do Contratante</h3>
             <div class="linha-info">
-              <div class="campo"><strong>Nome</strong><span data-edit-key="contratante_nome">[NOME DO CLIENTE]</span></div>
-              <div class="campo"><strong>CPF/CNPJ</strong><span data-edit-key="contratante_cpf_cnpj">[CPF OU CNPJ]</span></div>
-              <div class="campo"><strong>Telefone</strong><span data-edit-key="contratante_telefone">[TELEFONE]</span></div>
-              <div class="campo"><strong>Email</strong><span data-edit-key="contratante_email">[EMAIL]</span></div>
-              <div class="campo"><strong>Valor</strong><span data-edit-key="contratante_valor">[VALOR DO CONTRATO]</span></div>
-              <div class="campo"><strong>Período</strong><span data-edit-key="contratante_periodo">[DATA DE INÍCIO] até [DATA DE VENCIMENTO]</span></div>
-              <div class="campo"><strong>Ambiente</strong><span data-edit-key="contratante_ambiente">[AMBIENTE / PONTO / LOCAL]</span></div>
+              <div class="campo"><strong>Nome</strong><span>[NOME DO CLIENTE]</span></div>
+              <div class="campo"><strong>CPF/CNPJ</strong><span>[CPF OU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span>[TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span>[EMAIL]</span></div>
+              <div class="campo"><strong>Valor</strong><span>[VALOR DO CONTRATO]</span></div>
+              <div class="campo"><strong>Período</strong><span>[DATA DE INÍCIO] até [DATA DE VENCIMENTO]</span></div>
+              <div class="campo"><strong>Ambiente</strong><span>[AMBIENTE / PONTO / LOCAL]</span></div>
             </div>
           </div>
 
           <div class="bloco texto-contrato">
-            <h3 data-edit-key="contratante_bloco_termos">Termos do Contrato</h3>
+            <h3>Termos do Contrato</h3>
 
-            <p data-edit-key="contratante_clausula_1"><strong>CLÁUSULA 1 - PARTES.</strong> Pelo presente instrumento, de um lado a CONTRATADA, responsável pela operação das telas digitais, e de outro lado a CONTRATANTE, identificada nos dados acima, resolvem firmar o presente contrato de prestação de serviços de veiculação publicitária.</p>
+            <div data-clausulas-container>
+              <p data-clausula data-clausula-id="duna-001"><strong data-clausula-titulo>PARTES</strong> <span data-clausula-texto>Pelo presente instrumento particular, de um lado {{empresa}}, doravante denominada CONTRATADA, e de outro lado {{cliente}}, doravante denominado CONTRATANTE, têm entre si justo e contratado o presente acordo de prestação de serviços de publicidade em telas digitais, mediante as cláusulas e condições seguintes.</span></p>
 
-            <p data-edit-key="contratante_clausula_2"><strong>CLÁUSULA 2 - OBJETO DO CONTRATO.</strong> O presente contrato tem por objeto a prestação de serviços de veiculação de publicidade em telas digitais instaladas em pontos estratégicos operados pela CONTRATADA.</p>
+              <p data-clausula data-clausula-id="duna-002"><strong data-clausula-titulo>OBJETO DO CONTRATO</strong> <span data-clausula-texto>O presente contrato tem por objeto a prestação de serviços de veiculação de publicidade em telas digitais, instaladas em pontos estratégicos operados pela CONTRATADA.</span></p>
 
-            <p data-edit-key="contratante_clausula_3"><strong>CLÁUSULA 3 - ESPECIFICAÇÕES DO SERVIÇO.</strong> A veiculação ocorrerá nos pontos contratados informados neste documento, pelo período definido entre as partes, com exibição diária durante o horário de funcionamento dos locais. O anúncio terá duração de até 20 segundos, em sistema de exibição rotativa, com limite de anunciantes simultâneos de até 10 empresas por circuito ou tela, conforme disponibilidade operacional.</p>
+              <p data-clausula data-clausula-id="duna-003"><strong data-clausula-titulo>ESPECIFICAÇÕES DO SERVIÇO</strong> <span data-clausula-texto>A publicidade será exibida nos pontos contratados: {{pontos}}. O período de veiculação será de {{dataInicio}} até {{dataVencimento}}. A exibição será diária, durante o horário de funcionamento dos locais, em sistema de exibição rotativa, com duração de anúncio de até 20 segundos.</span></p>
 
-            <p data-edit-key="contratante_clausula_4"><strong>CLÁUSULA 4 - EXCLUSIVIDADE E CONCORRÊNCIA.</strong> A CONTRATADA compromete-se a não veicular anúncios de concorrentes diretos da CONTRATANTE nas mesmas telas durante a vigência do contrato, quando aplicável ao segmento informado e previamente validado entre as partes.</p>
+              <p data-clausula data-clausula-id="duna-004"><strong data-clausula-titulo>LIMITE DE ANUNCIANTES SIMULTÂNEOS</strong> <span data-clausula-texto>A CONTRATADA poderá operar as telas com limite de até 10 empresas anunciantes simultâneas por ponto de exibição, respeitando a organização comercial e operacional da mídia.</span></p>
 
-            <p data-edit-key="contratante_clausula_5"><strong>CLÁUSULA 5 - ENTREGA E RESPONSABILIDADE DO CONTEÚDO.</strong> O CONTRATANTE é integralmente responsável pelo conteúdo enviado, incluindo imagens, vídeos, textos, marcas, ofertas e demais elementos publicitários, garantindo possuir os direitos de uso e que o material não infringe normas legais, direitos de terceiros ou regras aplicáveis à publicidade.</p>
+              <p data-clausula data-clausula-id="duna-005"><strong data-clausula-titulo>EXCLUSIVIDADE E CONCORRÊNCIA</strong> <span data-clausula-texto>A CONTRATADA compromete-se a não veicular anúncios de concorrentes diretos da CONTRATANTE nas mesmas telas durante a vigência do contrato, quando aplicável ao segmento informado e previamente acordado entre as partes.</span></p>
 
-            <p data-edit-key="contratante_clausula_6"><strong>CLÁUSULA 6 - RECUSA OU ADEQUAÇÃO DE MATERIAL.</strong> A CONTRATADA poderá recusar materiais que sejam ilegais, contenham conteúdo ofensivo, prejudiquem a imagem da empresa ou do local de exibição, ou não atendam aos padrões mínimos de qualidade técnica e profissional exigidos para veiculação, incluindo materiais considerados amadores. A CONTRATADA poderá orientar ajustes ou sugerir adequações, sem obrigação de edição, criação ou refação do material.</p>
+              <p data-clausula data-clausula-id="duna-006"><strong data-clausula-titulo>ENTREGA E RESPONSABILIDADE DO CONTEÚDO</strong> <span data-clausula-texto>O CONTRATANTE é integralmente responsável pelo conteúdo enviado, incluindo imagens, vídeos, textos, marcas, ofertas, promoções e demais materiais, garantindo possuir direitos de uso e que o conteúdo não infringe normas legais, direitos de terceiros ou regras comerciais aplicáveis.</span></p>
 
-            <p data-edit-key="contratante_clausula_7"><strong>CLÁUSULA 7 - PRAZO E VIGÊNCIA.</strong> O contrato entra em vigor na data de início acordada entre as partes, permanecendo válido até o término estipulado no presente documento, podendo ser renovado mediante novo acordo.</p>
+              <p data-clausula data-clausula-id="duna-007"><strong data-clausula-titulo>RECUSA OU ADEQUAÇÃO DE MATERIAL</strong> <span data-clausula-texto>A CONTRATADA poderá recusar materiais que sejam ilegais, contenham conteúdo ofensivo, prejudiquem a imagem da empresa ou do local de exibição, ou que não atendam aos padrões mínimos de qualidade técnica e profissional exigidos para veiculação, incluindo materiais considerados amadores. A CONTRATADA poderá orientar ajustes ou sugerir adequações no material, sem obrigação de edição, criação ou refação.</span></p>
 
-            <p data-edit-key="contratante_clausula_8"><strong>CLÁUSULA 8 - VALOR E CONDIÇÕES DE PAGAMENTO.</strong> Pela prestação dos serviços, a CONTRATANTE pagará à CONTRATADA o valor total informado neste contrato, por meio de PIX ou outro meio acordado entre as partes, observando-se a data de vencimento ou condição de pagamento definida comercialmente.</p>
+              <p data-clausula data-clausula-id="duna-008"><strong data-clausula-titulo>PRAZO E VIGÊNCIA</strong> <span data-clausula-texto>O contrato entra em vigor na data de início acordada, permanecendo válido até o término estipulado, podendo ser renovado mediante novo acordo entre as partes.</span></p>
 
-            <p data-edit-key="contratante_clausula_9"><strong>CLÁUSULA 9 - INADIMPLÊNCIA.</strong> Nos casos em que houver acordo de pagamento parcelado, mensal ou com vencimento futuro, o não pagamento de qualquer parcela poderá resultar na suspensão da veiculação da publicidade após o prazo de 5 (cinco) dias úteis do vencimento, permanecendo suspensa até a regularização do pagamento.</p>
+              <p data-clausula data-clausula-id="duna-009"><strong data-clausula-titulo>VALOR E CONDIÇÕES DE PAGAMENTO</strong> <span data-clausula-texto>Pelos serviços contratados, o CONTRATANTE pagará à CONTRATADA o valor total de {{valor}}. A forma de pagamento poderá ser PIX ou outro meio acordado entre as partes. O vencimento seguirá a data ou condição combinada entre CONTRATADA e CONTRATANTE.</span></p>
 
-            <p data-edit-key="contratante_clausula_10"><strong>CLÁUSULA 10 - GARANTIA DE VEICULAÇÃO.</strong> A CONTRATADA garante a exibição do anúncio conforme contratado. Em caso de falha técnica ou interrupção superior a 48 horas consecutivas, poderá ser concedida compensação proporcional no tempo de exibição ou extensão do período contratado, conforme avaliação da CONTRATADA.</p>
+              <p data-clausula data-clausula-id="duna-010"><strong data-clausula-titulo>INADIMPLÊNCIA</strong> <span data-clausula-texto>Nos casos em que houver acordo de pagamento parcelado, mensal ou com vencimento futuro, o não pagamento de qualquer parcela poderá resultar na suspensão da veiculação da publicidade após o prazo de 5 (cinco) dias úteis do vencimento, permanecendo suspensa até a regularização.</span></p>
 
-            <p data-edit-key="contratante_clausula_11"><strong>CLÁUSULA 11 - CANCELAMENTO E RESCISÃO.</strong> O contrato poderá ser encerrado por qualquer uma das partes a qualquer momento. Em caso de cancelamento, será considerado apenas o período em que a publicidade foi efetivamente exibida, com ajuste proporcional ao tempo utilizado. Havendo valor pago antecipadamente, poderá ser devolvida a diferença proporcional; havendo valor pendente, será cobrado apenas o período já utilizado.</p>
+              <p data-clausula data-clausula-id="duna-011"><strong data-clausula-titulo>GARANTIA DE VEICULAÇÃO</strong> <span data-clausula-texto>A CONTRATADA garante a exibição do anúncio conforme contratado. Em caso de falha técnica ou interrupção superior a 48 horas consecutivas, poderá ser concedida compensação proporcional no tempo de exibição ou extensão do período contratado, conforme avaliação da CONTRATADA.</span></p>
 
-            <p data-edit-key="contratante_clausula_12"><strong>CLÁUSULA 12 - LIMITAÇÃO DE RESPONSABILIDADE.</strong> A CONTRATADA não se responsabiliza por resultados comerciais da campanha, variações de público, volume de vendas, desempenho financeiro da CONTRATANTE ou fatores externos como queda de energia, falhas de internet, problemas estruturais do local, limitações técnicas de terceiros ou eventos de força maior.</p>
+              <p data-clausula data-clausula-id="duna-012"><strong data-clausula-titulo>CANCELAMENTO E RESCISÃO</strong> <span data-clausula-texto>O contrato poderá ser encerrado por qualquer uma das partes a qualquer momento. Em caso de cancelamento, será considerado apenas o período em que a publicidade foi efetivamente exibida, com ajuste proporcional ao tempo utilizado. Havendo valor pago antecipadamente, poderá ser devolvida a diferença proporcional. Havendo valor pendente, será cobrado apenas o período já utilizado.</span></p>
 
-            <p data-edit-key="contratante_clausula_13"><strong>CLÁUSULA 13 - DISPOSIÇÕES GERAIS.</strong> Este contrato representa o acordo entre as partes quanto à veiculação de publicidade em telas digitais operadas pela CONTRATADA, obrigando ambas ao cumprimento das condições aqui estabelecidas.</p>
+              <p data-clausula data-clausula-id="duna-013"><strong data-clausula-titulo>LIMITAÇÃO DE RESPONSABILIDADE</strong> <span data-clausula-texto>A CONTRATADA não se responsabiliza por resultados comerciais da campanha, variações de público, desempenho financeiro do CONTRATANTE ou fatores externos como queda de energia, falhas de internet, problemas estruturais do local, limitações técnicas de terceiros ou eventos de força maior.</span></p>
 
-            <p data-edit-key="contratante_clausula_14"><strong>CLÁUSULA 14 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato, com renúncia expressa de qualquer outro, por mais privilegiado que seja.</p>
+              <p data-clausula data-clausula-id="duna-014"><strong data-clausula-titulo>DISPOSIÇÕES GERAIS</strong> <span data-clausula-texto>Este contrato representa o acordo entre as partes quanto à veiculação de publicidade em telas digitais operadas pela CONTRATADA, obrigando ambas ao cumprimento das condições aqui estabelecidas.</span></p>
+
+              <p data-clausula data-clausula-id="duna-015"><strong data-clausula-titulo>FORO</strong> <span data-clausula-texto>Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato, com renúncia expressa de qualquer outro, por mais privilegiado que seja.</span></p>
+            </div>
           </div>
 
           <div class="assinaturas">
             <div class="assinatura-box">
-              <div class="linha-assinatura" data-edit-key="contratante_assinatura_cliente">CONTRATANTE</div>
+              <div class="linha-assinatura">CONTRATANTE</div>
             </div>
             <div class="assinatura-box assinatura-box-duna">
               <img src="assinatura.png" alt="Assinatura DUNA AUDIOVISUAL" class="assinatura-img">
-              <div class="linha-assinatura" data-edit-key="contratante_assinatura_duna">DUNA AUDIOVISUAL</div>
+              <div class="linha-assinatura">DUNA AUDIOVISUAL</div>
             </div>
           </div>
 
@@ -562,70 +604,73 @@
           </div>
         </section>
 
-        <section id="estabelecimento" class="contrato">
+        <section id="estabelecimento" class="contrato" data-contrato-id="estabelecimento">
           <div class="cabecalho-contrato">
-            <h2 data-edit-key="estabelecimento_titulo">Contrato Padrão - Estabelecimento</h2>
-            <p data-edit-key="estabelecimento_subtitulo">Modelo base para parceria com o local de instalação.</p>
+            <h2 data-edit-key="titulo_contrato">Contrato de Parceria com Estabelecimento</h2>
+            <p data-edit-key="subtitulo_contrato">Contrato de parceria para instalação e operação de telas digitais.</p>
           </div>
 
           <div class="bloco">
-            <h3 data-edit-key="estabelecimento_bloco_duna">Dados da DUNA AUDIOVISUAL</h3>
+            <h3>Dados da DUNA AUDIOVISUAL</h3>
             <div class="linha-info">
-              <div class="campo"><strong>Empresa</strong><span data-edit-key="duna_empresa">DUNA AUDIOVISUAL</span></div>
-              <div class="campo"><strong>CNPJ</strong><span data-edit-key="duna_cnpj">[SEU CNPJ]</span></div>
-              <div class="campo"><strong>Telefone</strong><span data-edit-key="duna_telefone">[SEU TELEFONE]</span></div>
-              <div class="campo"><strong>Email</strong><span data-edit-key="duna_email">[SEU EMAIL]</span></div>
-              <div class="campo"><strong>Endereço</strong><span data-edit-key="duna_endereco">[SEU ENDEREÇO]</span></div>
-              <div class="campo"><strong>Responsável</strong><span data-edit-key="duna_responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+              <div class="campo"><strong>Empresa</strong><span data-edit-key="empresa">DUNA AUDIOVISUAL</span></div>
+              <div class="campo"><strong>CNPJ</strong><span data-edit-key="cnpj">[SEU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span data-edit-key="telefone">[SEU TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span data-edit-key="email">[SEU EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span data-edit-key="endereco">[SEU ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span data-edit-key="responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+              <div class="campo"><strong>URL da assinatura</strong><span data-edit-key="assinatura_url">/assinatura.png</span></div>
             </div>
           </div>
 
           <div class="bloco">
-            <h3 data-edit-key="estabelecimento_bloco_estabelecimento">Dados do Estabelecimento</h3>
+            <h3>Dados do Estabelecimento</h3>
             <div class="linha-info">
-              <div class="campo"><strong>Nome do Estabelecimento</strong><span data-edit-key="estabelecimento_nome">[NOME DO ESTABELECIMENTO]</span></div>
-              <div class="campo"><strong>CPF/CNPJ</strong><span data-edit-key="estabelecimento_cpf_cnpj">[CPF OU CNPJ]</span></div>
-              <div class="campo"><strong>Telefone</strong><span data-edit-key="estabelecimento_telefone">[TELEFONE]</span></div>
-              <div class="campo"><strong>Email</strong><span data-edit-key="estabelecimento_email">[EMAIL]</span></div>
-              <div class="campo"><strong>Endereço</strong><span data-edit-key="estabelecimento_endereco">[ENDEREÇO]</span></div>
-              <div class="campo"><strong>Responsável</strong><span data-edit-key="estabelecimento_responsavel">[NOME DO RESPONSÁVEL]</span></div>
-              <div class="campo"><strong>Ambiente</strong><span data-edit-key="estabelecimento_ambiente">[AMBIENTE / LOCAL DA INSTALAÇÃO]</span></div>
+              <div class="campo"><strong>Nome do Estabelecimento</strong><span>[NOME DO ESTABELECIMENTO]</span></div>
+              <div class="campo"><strong>CPF/CNPJ</strong><span>[CPF OU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span>[TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span>[EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span>[ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span>[NOME DO RESPONSÁVEL]</span></div>
+              <div class="campo"><strong>Ambiente</strong><span>[AMBIENTE / LOCAL DA INSTALAÇÃO]</span></div>
             </div>
           </div>
 
           <div class="bloco texto-contrato">
-            <h3 data-edit-key="estabelecimento_bloco_termos">Termos do Contrato</h3>
+            <h3>Termos do Contrato</h3>
 
-            <p data-edit-key="estabelecimento_clausula_1"><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a parceria entre a DUNA AUDIOVISUAL e o ESTABELECIMENTO para instalação, operação e manutenção de telas digitais destinadas à exibição de publicidade, conteúdos institucionais, campanhas informativas e materiais compatíveis com o ambiente comercial.</p>
+            <div data-clausulas-container>
+              <p data-clausula data-clausula-id="estabelecimento-001"><strong data-clausula-titulo>OBJETO</strong> <span data-clausula-texto>O presente contrato tem por objeto a parceria entre a DUNA AUDIOVISUAL e o ESTABELECIMENTO para instalação, operação e manutenção de telas digitais destinadas à exibição de publicidade, conteúdos institucionais, campanhas informativas e materiais compatíveis com o ambiente comercial.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_2"><strong>CLÁUSULA 2 - AUTORIZAÇÃO DE USO DO ESPAÇO.</strong> O ESTABELECIMENTO autoriza a instalação e permanência dos equipamentos no ambiente definido entre as partes, comprometendo-se a permitir seu funcionamento regular durante os horários de operação do local.</p>
+              <p data-clausula data-clausula-id="estabelecimento-002"><strong data-clausula-titulo>AUTORIZAÇÃO DE USO DO ESPAÇO</strong> <span data-clausula-texto>O ESTABELECIMENTO autoriza a instalação e permanência dos equipamentos no ambiente definido entre as partes, comprometendo-se a permitir seu funcionamento regular durante os horários de operação do local.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_3"><strong>CLÁUSULA 3 - RESPONSABILIDADE DA DUNA AUDIOVISUAL.</strong> A instalação, configuração, gestão de conteúdo, atualização e manutenção operacional das telas ficarão sob responsabilidade da DUNA AUDIOVISUAL, salvo nos casos de danos causados por mau uso, terceiros, intervenções não autorizadas ou fatores externos fora de seu controle.</p>
+              <p data-clausula data-clausula-id="estabelecimento-003"><strong data-clausula-titulo>RESPONSABILIDADE DA DUNA AUDIOVISUAL</strong> <span data-clausula-texto>A instalação, configuração, gestão de conteúdo, atualização e manutenção operacional das telas ficarão sob responsabilidade da DUNA AUDIOVISUAL, salvo nos casos de danos causados por mau uso, terceiros, intervenções não autorizadas ou fatores externos fora de seu controle.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_4"><strong>CLÁUSULA 4 - RESPONSABILIDADE DO ESTABELECIMENTO.</strong> O ESTABELECIMENTO compromete-se a preservar os equipamentos instalados, zelar pelo bom funcionamento da estrutura, não alterar configurações sem autorização e comunicar à DUNA AUDIOVISUAL qualquer falha, dano, desligamento ou irregularidade percebida.</p>
+              <p data-clausula data-clausula-id="estabelecimento-004"><strong data-clausula-titulo>RESPONSABILIDADE DO ESTABELECIMENTO</strong> <span data-clausula-texto>O ESTABELECIMENTO compromete-se a preservar os equipamentos instalados, zelar pelo bom funcionamento da estrutura, não alterar configurações sem autorização e comunicar à DUNA AUDIOVISUAL qualquer falha, dano, desligamento ou irregularidade percebida.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_5"><strong>CLÁUSULA 5 - ACESSO TÉCNICO.</strong> O ESTABELECIMENTO permitirá o acesso da equipe técnica da DUNA AUDIOVISUAL, mediante alinhamento prévio sempre que possível, para manutenção, substituição, atualização, vistoria ou retirada dos equipamentos.</p>
+              <p data-clausula data-clausula-id="estabelecimento-005"><strong data-clausula-titulo>ACESSO TÉCNICO</strong> <span data-clausula-texto>O ESTABELECIMENTO permitirá o acesso da equipe técnica da DUNA AUDIOVISUAL, mediante alinhamento prévio sempre que possível, para manutenção, substituição, atualização, vistoria ou retirada dos equipamentos.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_6"><strong>CLÁUSULA 6 - FINALIDADE DA EXIBIÇÃO.</strong> As telas serão utilizadas para veiculação de publicidade, campanhas comerciais, informações institucionais e demais conteúdos definidos pela DUNA AUDIOVISUAL, respeitando o perfil do ambiente e as condições acordadas entre as partes.</p>
+              <p data-clausula data-clausula-id="estabelecimento-006"><strong data-clausula-titulo>FINALIDADE DA EXIBIÇÃO</strong> <span data-clausula-texto>As telas serão utilizadas para veiculação de publicidade, campanhas comerciais, informações institucionais e demais conteúdos definidos pela DUNA AUDIOVISUAL, respeitando o perfil do ambiente e as condições acordadas entre as partes.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_7"><strong>CLÁUSULA 7 - PRAZO DA PARCERIA.</strong> A parceria terá vigência conforme ajuste entre as partes, podendo ser renovada, alterada ou encerrada mediante comunicação prévia, observadas as condições comerciais e operacionais aplicáveis.</p>
+              <p data-clausula data-clausula-id="estabelecimento-007"><strong data-clausula-titulo>PRAZO DA PARCERIA</strong> <span data-clausula-texto>A parceria terá vigência conforme ajuste entre as partes, podendo ser renovada, alterada ou encerrada mediante comunicação prévia, observadas as condições comerciais e operacionais aplicáveis.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_8"><strong>CLÁUSULA 8 - INTERRUPÇÕES E MANUTENÇÕES.</strong> Eventuais interrupções causadas por falta de energia, internet, manutenção do local, reformas, restrições de acesso, eventos internos ou outros fatores relacionados ao ESTABELECIMENTO deverão ser comunicadas à DUNA AUDIOVISUAL para avaliação e providências cabíveis.</p>
+              <p data-clausula data-clausula-id="estabelecimento-008"><strong data-clausula-titulo>INTERRUPÇÕES E MANUTENÇÕES</strong> <span data-clausula-texto>Eventuais interrupções causadas por falta de energia, internet, manutenção do local, reformas, restrições de acesso, eventos internos ou outros fatores relacionados ao ESTABELECIMENTO deverão ser comunicadas à DUNA AUDIOVISUAL para avaliação e providências cabíveis.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_9"><strong>CLÁUSULA 9 - CANCELAMENTO OU RESCISÃO.</strong> O encerramento da parceria poderá ocorrer por iniciativa de qualquer das partes, mediante comunicação prévia, sendo necessária a retirada dos equipamentos e a regularização de eventuais pendências administrativas ou operacionais.</p>
+              <p data-clausula data-clausula-id="estabelecimento-009"><strong data-clausula-titulo>CANCELAMENTO OU RESCISÃO</strong> <span data-clausula-texto>O encerramento da parceria poderá ocorrer por iniciativa de qualquer das partes, mediante comunicação prévia, sendo necessária a retirada dos equipamentos e a regularização de eventuais pendências administrativas ou operacionais.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_10"><strong>CLÁUSULA 10 - DISPOSIÇÕES GERAIS.</strong> Este contrato formaliza a parceria operacional de mídia indoor entre as partes, obrigando ambas ao cumprimento das responsabilidades aqui previstas.</p>
+              <p data-clausula data-clausula-id="estabelecimento-010"><strong data-clausula-titulo>DISPOSIÇÕES GERAIS</strong> <span data-clausula-texto>Este contrato formaliza a parceria operacional de mídia indoor entre as partes, obrigando ambas ao cumprimento das responsabilidades aqui previstas.</span></p>
 
-            <p data-edit-key="estabelecimento_clausula_11"><strong>CLÁUSULA 11 - FORO.</strong> Fica eleito o foro da comarca da sede da DUNA AUDIOVISUAL para dirimir quaisquer dúvidas ou controvérsias oriundas deste instrumento, com renúncia expressa de qualquer outro, por mais privilegiado que seja.</p>
+              <p data-clausula data-clausula-id="estabelecimento-011"><strong data-clausula-titulo>FORO</strong> <span data-clausula-texto>Fica eleito o foro da comarca da sede da DUNA AUDIOVISUAL para dirimir quaisquer dúvidas ou controvérsias oriundas deste instrumento, com renúncia expressa de qualquer outro, por mais privilegiado que seja.</span></p>
+            </div>
           </div>
 
           <div class="assinaturas">
             <div class="assinatura-box">
-              <div class="linha-assinatura" data-edit-key="estabelecimento_assinatura_cliente">ESTABELECIMENTO</div>
+              <div class="linha-assinatura">ESTABELECIMENTO</div>
             </div>
             <div class="assinatura-box assinatura-box-duna">
               <img src="assinatura.png" alt="Assinatura DUNA AUDIOVISUAL" class="assinatura-img">
-              <div class="linha-assinatura" data-edit-key="estabelecimento_assinatura_duna">DUNA AUDIOVISUAL</div>
+              <div class="linha-assinatura">DUNA AUDIOVISUAL</div>
             </div>
           </div>
 
@@ -638,15 +683,65 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-    const STORAGE_PREFIX = "duna_contrato_modelo_";
+    const liberado = sessionStorage.getItem("painelLiberado");
+
+    if (liberado !== "1") {
+      window.location.replace("/painel.html");
+    }
+
+    const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const btnEditarPagina = document.getElementById("btnEditarPagina");
     const btnSalvarPagina = document.getElementById("btnSalvarPagina");
     const btnCancelarPagina = document.getElementById("btnCancelarPagina");
+    const avisoStatus = document.getElementById("avisoStatus");
 
     let backupEdicao = {};
+    let contratoAtual = "duna";
+
+    function escaparHtml(texto) {
+      return String(texto ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function mostrarAviso(texto, tipo = "info") {
+      if (!avisoStatus) return;
+
+      avisoStatus.textContent = texto;
+      avisoStatus.className = `aviso-status ativo ${tipo}`;
+
+      window.clearTimeout(mostrarAviso.timer);
+      mostrarAviso.timer = window.setTimeout(() => {
+        avisoStatus.className = "aviso-status";
+        avisoStatus.textContent = "";
+      }, 4500);
+    }
+
+    function obterContratoAtivo() {
+      return document.querySelector(".contrato.ativo");
+    }
+
+    function obterContratoIdAtivo() {
+      const contrato = obterContratoAtivo();
+      return contrato?.dataset.contratoId || "duna";
+    }
 
     function abrirContrato(id, botao) {
+      if (document.body.classList.contains("editando")) {
+        mostrarAviso("Salve ou cancele a edição antes de trocar de pasta.", "erro");
+        return;
+      }
+
       document.querySelectorAll(".contrato").forEach(function(contrato) {
         contrato.classList.remove("ativo");
       });
@@ -655,40 +750,33 @@
         item.classList.remove("ativa");
       });
 
-      document.getElementById(id).classList.add("ativo");
-      botao.classList.add("ativa");
+      const contrato = document.getElementById(id);
+      if (contrato) {
+        contrato.classList.add("ativo");
+        contratoAtual = contrato.dataset.contratoId || "duna";
+      }
+
+      if (botao) {
+        botao.classList.add("ativa");
+      }
+
+      carregarContratoDaSupabase();
     }
 
     function obterElementosEditaveis() {
-      return Array.from(document.querySelectorAll("[data-edit-key]"));
-    }
+      const contrato = obterContratoAtivo();
+      if (!contrato) return [];
 
-    function aplicarValorEmChave(chave, valor) {
-      document.querySelectorAll('[data-edit-key="' + chave + '"]').forEach(function(elemento) {
-        elemento.innerHTML = valor;
-      });
-    }
-
-    function carregarEdicoesSalvas() {
-      obterElementosEditaveis().forEach(function(elemento) {
-        const chave = elemento.dataset.editKey;
-        const salvo = localStorage.getItem(STORAGE_PREFIX + chave);
-
-        if (salvo !== null) {
-          elemento.innerHTML = salvo;
-        }
-      });
+      return Array.from(
+        contrato.querySelectorAll("[data-edit-key], [data-clausula-titulo], [data-clausula-texto]")
+      );
     }
 
     function criarBackupEdicao() {
       backupEdicao = {};
 
-      obterElementosEditaveis().forEach(function(elemento) {
-        const chave = elemento.dataset.editKey;
-
-        if (!(chave in backupEdicao)) {
-          backupEdicao[chave] = elemento.innerHTML;
-        }
+      obterElementosEditaveis().forEach((elemento, index) => {
+        backupEdicao[index] = elemento.innerHTML;
       });
     }
 
@@ -697,19 +785,21 @@
 
       document.body.classList.add("editando");
 
-      obterElementosEditaveis().forEach(function(elemento) {
+      obterElementosEditaveis().forEach((elemento) => {
         elemento.setAttribute("contenteditable", "true");
       });
 
       btnEditarPagina.style.display = "none";
       btnSalvarPagina.style.display = "inline-block";
       btnCancelarPagina.style.display = "inline-block";
+
+      mostrarAviso("Modo edição ativado.", "info");
     }
 
     function sairModoEdicao() {
       document.body.classList.remove("editando");
 
-      obterElementosEditaveis().forEach(function(elemento) {
+      obterElementosEditaveis().forEach((elemento) => {
         elemento.removeAttribute("contenteditable");
       });
 
@@ -718,31 +808,178 @@
       btnCancelarPagina.style.display = "none";
     }
 
-    function salvarEdicoes() {
-      const valoresPorChave = {};
-
-      obterElementosEditaveis().forEach(function(elemento) {
-        const chave = elemento.dataset.editKey;
-
-        if (!(chave in valoresPorChave)) {
-          valoresPorChave[chave] = elemento.innerHTML.trim();
+    function cancelarEdicoes() {
+      obterElementosEditaveis().forEach((elemento, index) => {
+        if (backupEdicao[index] !== undefined) {
+          elemento.innerHTML = backupEdicao[index];
         }
       });
 
-      Object.keys(valoresPorChave).forEach(function(chave) {
-        localStorage.setItem(STORAGE_PREFIX + chave, valoresPorChave[chave]);
-        aplicarValorEmChave(chave, valoresPorChave[chave]);
-      });
-
       sairModoEdicao();
+      mostrarAviso("Edição cancelada.", "info");
     }
 
-    function cancelarEdicoes() {
-      Object.keys(backupEdicao).forEach(function(chave) {
-        aplicarValorEmChave(chave, backupEdicao[chave]);
-      });
+    function obterTextoCampo(chave) {
+      const contrato = obterContratoAtivo();
+      const el = contrato?.querySelector(`[data-edit-key="${chave}"]`);
+      return el ? el.textContent.trim() : "";
+    }
 
-      sairModoEdicao();
+    function aplicarTextoCampo(chave, valor) {
+      const contrato = obterContratoAtivo();
+      if (!contrato) return;
+
+      const el = contrato.querySelector(`[data-edit-key="${chave}"]`);
+      if (el) {
+        el.textContent = valor || "";
+      }
+    }
+
+    function atualizarImagemAssinatura(url) {
+      const contrato = obterContratoAtivo();
+      if (!contrato) return;
+
+      const imagem = contrato.querySelector(".assinatura-img");
+      if (imagem && url) {
+        imagem.src = url;
+      }
+    }
+
+    function coletarConfigContrato() {
+      const contratoId = obterContratoIdAtivo();
+
+      return {
+        id: contratoId,
+        empresa: obterTextoCampo("empresa") || "DUNA AUDIOVISUAL",
+        cnpj: obterTextoCampo("cnpj"),
+        telefone: obterTextoCampo("telefone"),
+        email: obterTextoCampo("email"),
+        endereco: obterTextoCampo("endereco"),
+        responsavel: obterTextoCampo("responsavel"),
+        assinatura_url: obterTextoCampo("assinatura_url") || "/assinatura.png",
+        titulo_contrato: obterTextoCampo("titulo_contrato"),
+        subtitulo_contrato: obterTextoCampo("subtitulo_contrato"),
+        updated_at: new Date().toISOString()
+      };
+    }
+
+    function coletarClausulasContrato() {
+      const contrato = obterContratoAtivo();
+      const contratoId = obterContratoIdAtivo();
+
+      if (!contrato) return [];
+
+      return Array.from(contrato.querySelectorAll("[data-clausula]")).map((item, index) => {
+        const tituloEl = item.querySelector("[data-clausula-titulo]");
+        const textoEl = item.querySelector("[data-clausula-texto]");
+        const idExistente = item.dataset.clausulaId || `${contratoId}-${String(index + 1).padStart(3, "0")}`;
+
+        return {
+          id: idExistente,
+          contrato_id: contratoId,
+          ordem: index + 1,
+          titulo: tituloEl ? tituloEl.textContent.trim() : `CLÁUSULA ${index + 1}`,
+          texto: textoEl ? textoEl.textContent.trim() : "",
+          ativo: true,
+          updated_at: new Date().toISOString()
+        };
+      });
+    }
+
+    function renderizarClausulas(clausulas) {
+      const contrato = obterContratoAtivo();
+      const container = contrato?.querySelector("[data-clausulas-container]");
+
+      if (!container || !Array.isArray(clausulas) || !clausulas.length) return;
+
+      container.innerHTML = clausulas.map((clausula) => `
+        <p data-clausula data-clausula-id="${escaparHtml(clausula.id)}">
+          <strong data-clausula-titulo>${escaparHtml(clausula.titulo || "")}</strong>
+          <span data-clausula-texto>${escaparHtml(clausula.texto || "")}</span>
+        </p>
+      `).join("");
+    }
+
+    async function carregarContratoDaSupabase() {
+      const contratoId = obterContratoIdAtivo();
+
+      try {
+        mostrarAviso("Carregando contrato da Supabase...", "info");
+
+        const [{ data: config, error: erroConfig }, { data: clausulas, error: erroClausulas }] = await Promise.all([
+          supabaseClient
+            .from("config_contrato")
+            .select("*")
+            .eq("id", contratoId)
+            .maybeSingle(),
+
+          supabaseClient
+            .from("contrato_clausulas")
+            .select("*")
+            .eq("contrato_id", contratoId)
+            .eq("ativo", true)
+            .order("ordem", { ascending: true })
+        ]);
+
+        if (erroConfig) throw erroConfig;
+        if (erroClausulas) throw erroClausulas;
+
+        if (config) {
+          aplicarTextoCampo("empresa", config.empresa || "DUNA AUDIOVISUAL");
+          aplicarTextoCampo("cnpj", config.cnpj || "");
+          aplicarTextoCampo("telefone", config.telefone || "");
+          aplicarTextoCampo("email", config.email || "");
+          aplicarTextoCampo("endereco", config.endereco || "");
+          aplicarTextoCampo("responsavel", config.responsavel || "");
+          aplicarTextoCampo("assinatura_url", config.assinatura_url || "/assinatura.png");
+          aplicarTextoCampo("titulo_contrato", config.titulo_contrato || "");
+          aplicarTextoCampo("subtitulo_contrato", config.subtitulo_contrato || "");
+          atualizarImagemAssinatura(config.assinatura_url || "assinatura.png");
+        }
+
+        if (Array.isArray(clausulas) && clausulas.length) {
+          renderizarClausulas(clausulas);
+        }
+
+        mostrarAviso("Contrato carregado da Supabase.", "ok");
+      } catch (error) {
+        console.error(error);
+        mostrarAviso("Erro ao carregar contrato da Supabase.", "erro");
+      }
+    }
+
+    async function salvarEdicoes() {
+      try {
+        mostrarAviso("Salvando contrato na Supabase...", "info");
+
+        const config = coletarConfigContrato();
+        const clausulas = coletarClausulasContrato();
+
+        const { error: erroConfig } = await supabaseClient
+          .from("config_contrato")
+          .upsert(config, { onConflict: "id" });
+
+        if (erroConfig) {
+          throw erroConfig;
+        }
+
+        if (clausulas.length) {
+          const { error: erroClausulas } = await supabaseClient
+            .from("contrato_clausulas")
+            .upsert(clausulas, { onConflict: "id" });
+
+          if (erroClausulas) {
+            throw erroClausulas;
+          }
+        }
+
+        atualizarImagemAssinatura(config.assinatura_url || "assinatura.png");
+        sairModoEdicao();
+        mostrarAviso("Contrato salvo na Supabase com sucesso.", "ok");
+      } catch (error) {
+        console.error(error);
+        mostrarAviso("Erro ao salvar contrato na Supabase.", "erro");
+      }
     }
 
     if (btnEditarPagina) {
@@ -757,7 +994,10 @@
       btnCancelarPagina.addEventListener("click", cancelarEdicoes);
     }
 
-    carregarEdicoesSalvas();
+    document.addEventListener("DOMContentLoaded", () => {
+      contratoAtual = obterContratoIdAtivo();
+      carregarContratoDaSupabase();
+    });
   </script>
 </body>
 </html>
