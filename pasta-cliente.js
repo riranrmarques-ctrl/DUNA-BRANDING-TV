@@ -374,6 +374,7 @@ function gerarContratoCliente() {
 
 function montarHtmlContratoCompleto() {
   const dados = obterDadosContratoCliente();
+  const assinaturaUrl = `${window.location.origin}/assinatura.png`;
 
   const clausulasHtml = clausulasContrato.length
     ? clausulasContrato.map((clausula) => `
@@ -399,19 +400,116 @@ function montarHtmlContratoCompleto() {
       <meta charset="UTF-8">
       <title>Contrato ${escaparHtml(dados.nome)}</title>
       <style>
-        body { font-family: Arial, sans-serif; color: #111827; background: #fff; margin: 0; padding: 32px; }
-        .topo { border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 20px; }
-        h1 { font-size: 24px; margin: 0 0 6px 0; }
-        .sub { color: #475569; font-size: 14px; }
-        .bloco { margin-bottom: 18px; }
-        .bloco h2 { font-size: 16px; margin: 0 0 10px 0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .campo { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #f8fafc; font-size: 14px; }
-        .campo strong { display: block; margin-bottom: 4px; }
-        .assinaturas { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
-        .assinatura { text-align: center; padding-top: 60px; border-top: 1px solid #111827; font-weight: 700; }
+        body {
+          font-family: Arial, sans-serif;
+          color: #111827;
+          background: #fff;
+          margin: 0;
+          padding: 32px;
+        }
+
+        .topo {
+          border-bottom: 2px solid #111827;
+          padding-bottom: 12px;
+          margin-bottom: 20px;
+        }
+
+        h1 {
+          font-size: 24px;
+          margin: 0 0 6px 0;
+        }
+
+        .sub {
+          color: #475569;
+          font-size: 14px;
+        }
+
+        .bloco {
+          margin-bottom: 18px;
+        }
+
+        .bloco h2 {
+          font-size: 16px;
+          margin: 0 0 10px 0;
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .campo {
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          padding: 10px;
+          background: #f8fafc;
+          font-size: 14px;
+        }
+
+        .campo strong {
+          display: block;
+          margin-bottom: 4px;
+        }
+
+        .assinaturas {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(220px, 1fr));
+          gap: 20px;
+          margin-top: 46px;
+          align-items: end;
+        }
+
+        .assinatura-box {
+          text-align: center;
+          min-height: 120px;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+        }
+
+        .assinatura-box-duna {
+          position: relative;
+        }
+
+        .assinatura-img {
+          display: block;
+          width: 400px;
+          max-width: 400px;
+          height: 200px;
+          object-fit: contain;
+          object-position: center bottom;
+          margin: 0 auto 20px;
+          transform: none;
+          pointer-events: none;
+        }
+
+        .linha-assinatura {
+          border-top: 1px solid #111827;
+          padding-top: 8px;
+          font-size: 14px;
+          color: #111827;
+          position: relative;
+          z-index: 2;
+          font-weight: 700;
+        }
+
+        @media print {
+          body {
+            padding: 24px;
+          }
+
+          .assinatura-img {
+            width: 260px;
+            max-width: 260px;
+            height: 80px;
+            margin: 0 auto -12px;
+            transform: none;
+          }
+        }
       </style>
     </head>
+
     <body>
       <div class="topo">
         <h1>${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato")}</h1>
@@ -449,8 +547,14 @@ function montarHtmlContratoCompleto() {
       </div>
 
       <div class="assinaturas">
-        <div class="assinatura">CONTRATANTE</div>
-        <div class="assinatura">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
+        <div class="assinatura-box">
+          <div class="linha-assinatura">CONTRATANTE</div>
+        </div>
+
+        <div class="assinatura-box assinatura-box-duna">
+          <img src="${escaparHtml(assinaturaUrl)}" alt="Assinatura Duna Branding" class="assinatura-img">
+          <div class="linha-assinatura">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
+        </div>
       </div>
     </body>
     </html>
