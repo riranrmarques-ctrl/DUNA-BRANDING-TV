@@ -247,100 +247,6 @@
       gap: 14px;
     }
 
-    .grupo-pontos {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .grupo-pontos-titulo {
-      font-size: 0.92rem;
-      font-weight: bold;
-      text-transform: lowercase;
-      color: #d5dbea;
-    }
-
-    .grupo-pontos-titulo.selecionado {
-      color: #7CFC9A;
-    }
-
-    .grupo-pontos-titulo.disponivel {
-      color: #6ea8ff;
-    }
-
-    .grupo-pontos-titulo.inativo {
-      color: #ff6b6b;
-    }
-
-    .grupo-pontos-lista {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .item-ponto {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-      min-height: 46px;
-      transition: 0.2s ease;
-      border: 1px solid transparent;
-      color: #fff;
-      font-size: 0.9rem;
-      font-weight: bold;
-    }
-
-    .item-ponto input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: #ffffff;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .item-ponto-texto {
-      display: flex;
-      gap: 6px;
-      min-width: 0;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .item-ponto-codigo,
-    .item-ponto-nome {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-ponto.selecionado {
-      background: #76d34f;
-      border-color: #8ce063;
-      color: #ffffff;
-    }
-
-    .item-ponto.disponivel {
-      background: #4f6ff0;
-      border-color: #6f8bff;
-      color: #ffffff;
-    }
-
-    .item-ponto.inativo {
-      background: #ff3838;
-      border-color: #ff5c5c;
-      color: #ffffff;
-      cursor: not-allowed;
-      opacity: 0.92;
-    }
-
-    .item-ponto:hover:not(.inativo) {
-      filter: brightness(1.05);
-      transform: translateY(-1px);
-    }
-
     .historico-lista {
       display: flex;
       flex-direction: column;
@@ -397,6 +303,10 @@
       padding: 16px;
     }
 
+    .grid-pontos-grupo {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     @media (max-width: 900px) {
       .grid,
       .grid-historicos {
@@ -408,13 +318,14 @@
         grid-template-columns: 1fr;
       }
 
-      .historico-item,
-      .grupo-pontos-lista {
-        grid-template-columns: 1fr;
-      }
-
       .historico-item {
         flex-direction: column;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .grid-pontos-grupo {
+        grid-template-columns: 1fr !important;
       }
     }
 
@@ -426,15 +337,10 @@
       .topo h1 {
         font-size: 1.65rem;
       }
-
-      .grupo-pontos-lista {
-        grid-template-columns: 1fr;
-      }
     }
   </style>
 </head>
 <body>
-
   <div class="container">
     <div class="topo">
       <div>
@@ -519,8 +425,25 @@
         <div class="campo">
           <label>Contrato</label>
           <div class="pdf-box">
-            <strong>Espaço para contrato</strong>
-            Aqui ficará a área do contrato do cliente.
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+              <strong style="margin:0;">Contrato do cliente</strong>
+              <span id="contratoStatus" style="font-size:0.82rem;color:#9fd2ff;">Carregando...</span>
+            </div>
+
+            <div
+              id="contratoPreview"
+              style="
+                color:#d5dbea;
+                font-size:0.9rem;
+                line-height:1.55;
+                max-height:260px;
+                overflow:auto;
+                padding:12px;
+                border:1px solid #2a3040;
+                border-radius:10px;
+                background:#0f1115;
+              "
+            ></div>
           </div>
         </div>
 
@@ -530,7 +453,7 @@
             <strong>Espaço de upgrade de arquivo</strong>
 
             <div class="upload-acoes">
-              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.txt">
+              <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
               <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
               <div id="statusUpload" class="status-upload"></div>
             </div>
@@ -555,15 +478,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=257"></script>
+  <script src="pasta-cliente.js?v=258"></script>
 </body>
 </html>
-.grid-pontos-grupo {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-@media (max-width: 700px) {
-  .grid-pontos-grupo {
-    grid-template-columns: 1fr !important;
-  }
-}
