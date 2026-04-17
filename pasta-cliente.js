@@ -208,6 +208,71 @@ function obterCodigosDestinoSelecionados() {
   return obterPontosMarcados().map(obterCodigoRealDoPonto).filter(Boolean);
 }
 
+function formatarDataHistorico(valor) {
+  if (!valor) return "-";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor);
+
+  return data.toLocaleString("pt-BR");
+}
+
+function obterTituloArquivo(item) {
+  if (item.storage_path) {
+    const partes = String(item.storage_path).split("/");
+    return partes[partes.length - 1] || "Arquivo";
+  }
+
+  if (item.video_url) {
+    return item.tipo === "url" ? "Link externo" : "Arquivo enviado";
+  }
+
+  return "Arquivo";
+}
+
+function criarChaveGrupoHistorico(item) {
+  return String(
+    item.storage_path ||
+    `${item.video_url || ""}|${item.data_inicio || ""}|${item.nome || ""}`
+  ).trim();
+}
+
+function agruparHistoricoArquivos(itens = []) {
+  const grupos = new Map();
+
+  itens.forEach((item) => {
+    const chave = criarChaveGrupoHistorico(item);
+    if (!chave) return;
+
+    if (!grupos.has(chave)) {
+      grupos.set(chave, {
+        ids: [],
+        storage_path: item.storage_path || "",
+        video_url: item.video_url || "",
+        titulo: obterTituloArquivo(item),
+        tipo: item.tipo || "-",
+        data_inicio: item.data_inicio || null,
+        data_fim: item.data_fim || null,
+        pontos: []
+      });
+    }
+
+    const grupo = grupos.get(chave);
+    grupo.ids.push(item.id);
+
+    const ponto = String(item.codigo || "").trim();
+    if (ponto && !grupo.pontos.includes(ponto)) {
+      grupo.pontos.push(ponto);
+    }
+
+    if (!grupo.data_fim && item.data_fim) {
+      grupo.data_fim = item.data_fim;
+    }
+  });
+
+  return Array.from(grupos.values());
+}
+
 function renderizarPontosSelecionaveis(selecionados = []) {
   if (!listaPontos) return;
 
@@ -265,7 +330,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 
           <div style="
             display:flex;
-            flex-direction:column;
+            align-items:center;
             min-width:0;
             flex:1;
             overflow:hidden;
@@ -273,19 +338,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             <span style="
               font-size:0.95rem;
               font-weight:700;
-              line-height:1.2;
-              white-space:nowrap;
-              overflow:hidden;
-              text-overflow:ellipsis;
-            ">
-              ${escaparHtml(codigoVisual)}
-            </span>
-
-            <span style="
-              font-size:0.82rem;
-              opacity:0.95;
               line-height:1.25;
-              margin-top:4px;
               display:-webkit-box;
               -webkit-line-clamp:2;
               -webkit-box-orient:vertical;
@@ -413,49 +466,192 @@ function validarCamposCliente() {
   return true;
 }
 
+async function deletarItemHistorico(ids, storagePath) {
+  const listaIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+
+  if (!listaIds.length) return;
+
+  const confirmar = window.confirm("Deseja deletar este arquivo de todos os pontos?");
+  if (!confirmar) return;
+
+  try {
+    const caminho = String(storagePath || "").trim();
+
+    if (caminho) {
+      const { error: storageError } = await supabaseClient.storage
+        .from(BUCKET)
+        .remove([caminho]);
+
+      if (storageError) {
+        console.error("Erro ao deletar do storage:", storageError);
+      }
+    }
+
+    const { error: deleteError } = await supabaseClient
+      .from("playlists")
+      .delete()
+      .in("id", listaIds);
+
+    if (deleteError) throw deleteError;
+
+    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
+    await sincronizarStatusCliente();
+    await atualizarResumo();
+
+    mostrarMensagem("Arquivo excluido de todos os pontos.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao excluir arquivo.", "#ff6b6b");
+  }
+}
+
+function ativarBotoesDeletarHistorico() {
+  document.querySelectorAll(".btn-deletar-historico").forEach((botao) => {
+    botao.onclick = async () => {
+      const idsRaw = botao.dataset.ids || "[]";
+      const storagePath = botao.dataset.storagePath || "";
+
+      let ids = [];
+
+      try {
+        ids = JSON.parse(decodeURIComponent(idsRaw));
+      } catch (error) {
+        console.error("Erro ao ler ids do historico:", error);
+      }
+
+      await deletarItemHistorico(ids, storagePath);
+    };
+  });
+}
+
 function renderizarHistoricoArquivos(itens = []) {
   if (!historicoArquivos) return;
 
-  if (!itens.length) {
-    historicoArquivos.innerHTML = `<div class="historico-vazio">Nenhum arquivo enviado para esta pasta ainda.</div>`;
+  historicoArquivos.innerHTML = "";
+
+  if (!Array.isArray(itens) || !itens.length) {
+    historicoArquivos.innerHTML = `
+      <div class="historico-vazio">Nenhum arquivo enviado para esta pasta ainda.</div>
+    `;
     return;
   }
 
-  historicoArquivos.innerHTML = itens.map((item) => {
-    const titulo = item.storage_path
-      ? item.storage_path.split("/").pop()
-      : (item.video_url ? "Arquivo enviado" : "Arquivo");
+  const grupos = agruparHistoricoArquivos(itens);
+
+  historicoArquivos.innerHTML = grupos.map((grupo) => {
+    const inicio = formatarDataHistorico(grupo.data_inicio);
+    const fim = grupo.data_fim ? formatarDataHistorico(grupo.data_fim) : "-";
+    const pontosTexto = grupo.pontos.length ? grupo.pontos.join(", ") : "-";
+    const idsEncoded = encodeURIComponent(JSON.stringify(grupo.ids));
 
     return `
-      <div style="background:#10131a;border:1px solid #2a3040;border-radius:12px;padding:14px;">
-        <div style="font-weight:bold;margin-bottom:8px;">${escaparHtml(titulo || "Arquivo")}</div>
-        <div style="color:#c6cedd;font-size:0.9rem;line-height:1.5;"><strong>Ponto:</strong> ${escaparHtml(item.codigo || "-")}</div>
-        <div style="color:#c6cedd;font-size:0.9rem;line-height:1.5;"><strong>Tipo:</strong> ${escaparHtml(item.tipo || "-")}</div>
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        padding:12px;
+        border:1px solid #2a3040;
+        border-radius:12px;
+        background:#10131a;
+      ">
+        <div style="flex:1; min-width:0;">
+          <div style="
+            font-weight:700;
+            margin-bottom:8px;
+            color:#ffffff;
+            word-break:break-word;
+          ">
+            ${escaparHtml(grupo.titulo)}
+          </div>
+
+          <div style="color:#c6cedd;font-size:0.9rem;line-height:1.55;">
+            <div><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</div>
+            <div><strong>Tipo:</strong> ${escaparHtml(grupo.tipo)}</div>
+            <div><strong>Inicio:</strong> ${escaparHtml(inicio)}</div>
+            <div><strong>Fim:</strong> ${escaparHtml(fim)}</div>
+          </div>
+        </div>
+
+        <div style="
+          display:flex;
+          flex-direction:column;
+          gap:8px;
+          min-width:110px;
+          flex-shrink:0;
+        ">
+          <a
+            href="${escaparHtml(grupo.video_url || "#")}"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="
+              display:inline-flex;
+              align-items:center;
+              justify-content:center;
+              height:36px;
+              padding:0 12px;
+              border:none;
+              border-radius:8px;
+              background:#2d8cff;
+              color:#fff;
+              text-decoration:none;
+              font-size:0.82rem;
+              font-weight:700;
+            "
+          >Abrir</a>
+
+          <button
+            type="button"
+            class="btn-deletar-historico"
+            data-ids="${idsEncoded}"
+            data-storage-path="${escaparHtml(grupo.storage_path || "")}"
+            style="
+              display:inline-flex;
+              align-items:center;
+              justify-content:center;
+              height:36px;
+              padding:0 12px;
+              border:none;
+              border-radius:8px;
+              background:#ff5f5f;
+              color:#fff;
+              font-size:0.82rem;
+              font-weight:700;
+              cursor:pointer;
+            "
+          >Excluir</button>
+        </div>
       </div>
     `;
   }).join("");
+
+  ativarBotoesDeletarHistorico();
 }
 
-async function carregarHistoricoArquivos(codigosDestino = []) {
-  if (!codigosDestino.length) {
-    renderizarHistoricoArquivos([]);
-    return;
-  }
+async function carregarHistoricoArquivos() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("playlists")
+      .select("*")
+      .eq("codigo_cliente", codigoClienteAtual)
+      .order("ordem", { ascending: false });
 
-  const { data, error } = await supabaseClient
-    .from("playlists")
-    .select("*")
-    .eq("codigo_cliente", codigoClienteAtual)
-    .in("codigo", codigosDestino)
-    .order("ordem", { ascending: false });
+    if (error) throw error;
 
-  if (error) {
+    const itens = data || [];
+    renderizarHistoricoArquivos(itens);
+    return itens;
+  } catch (error) {
     console.error(error);
-    renderizarHistoricoArquivos([]);
-    return;
-  }
 
-  renderizarHistoricoArquivos(data || []);
+    if (historicoArquivos) {
+      historicoArquivos.innerHTML = `
+        <div class="historico-vazio">Erro ao carregar historico de arquivo.</div>
+      `;
+    }
+
+    return [];
+  }
 }
 
 function gerarContratoCliente() {
@@ -528,7 +724,7 @@ async function carregarCliente() {
   }
 
   renderizarPontosSelecionaveis(selecionados);
-  await carregarHistoricoArquivos(selecionados);
+  await carregarHistoricoArquivos();
   await sincronizarStatusCliente();
   await atualizarResumo();
   gerarContratoCliente();
@@ -580,6 +776,7 @@ async function salvarCliente() {
 
     await sincronizarStatusCliente();
     await atualizarResumo();
+    await carregarHistoricoArquivos();
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
   } catch (error) {
@@ -663,7 +860,7 @@ async function uploadArquivoCliente() {
       if (error) throw error;
     }
 
-    await carregarHistoricoArquivos(codigosDestino);
+    await carregarHistoricoArquivos();
     await sincronizarStatusCliente();
     await atualizarResumo();
     mostrarStatusUpload("Enviado com sucesso.", "#7CFC9A");
