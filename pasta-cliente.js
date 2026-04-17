@@ -11,6 +11,7 @@ const SUPABASE_CONTRATO_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
 const SUPABASE_CONTRATO_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
 
 const BUCKET = "videos";
+const TABELA_PLAYLIST = "playlists_novo";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_APP_URL, SUPABASE_APP_KEY);
 const supabaseContratoClient = window.supabase.createClient(SUPABASE_CONTRATO_URL, SUPABASE_CONTRATO_KEY);
@@ -409,7 +410,7 @@ async function atualizarResumo() {
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists_novo")
+      .from(TABELA_PLAYLIST)
       .select("codigo, codigo_cliente, data_fim, ordem")
       .eq("codigo_cliente", codigoClienteAtual)
       .order("ordem", { ascending: false });
@@ -877,7 +878,7 @@ async function deletarItemHistorico(ids, storagePath) {
     }
 
     const { error: deleteError } = await supabaseClient
-      .from("playlists_novo")
+      .from(TABELA_PLAYLIST)
       .delete()
       .in("id", listaIds);
 
@@ -923,7 +924,7 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists_novo")
+      .from(TABELA_PLAYLIST)
       .select("*")
       .eq("codigo_cliente", codigoClienteAtual)
       .in("codigo", codigosDestino)
@@ -956,7 +957,7 @@ async function calcularStatusClienteRealPorCodigoCliente() {
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists_novo")
+      .from(TABELA_PLAYLIST)
       .select("*")
       .eq("codigo_cliente", codigoClienteAtual)
       .order("ordem", { ascending: false });
@@ -1125,7 +1126,7 @@ async function uploadArquivoCliente() {
       }));
 
       const { error: insertError } = await supabaseClient
-        .from("playlists_novo")
+        .from(TABELA_PLAYLIST)
         .insert(registros);
 
       if (insertError) throw insertError;
@@ -1171,7 +1172,7 @@ async function uploadArquivoCliente() {
       }));
 
       const { error: insertError } = await supabaseClient
-        .from("playlists_novo")
+        .from(TABELA_PLAYLIST)
         .insert(registros);
 
       if (insertError) throw insertError;
