@@ -34,15 +34,13 @@ const historicoContratos = document.getElementById("historicoContratos");
 const historicoArquivos = document.getElementById("historicoArquivos");
 
 const btnGerarContrato = document.getElementById("btnGerarContrato");
-const btnImprimirContrato = document.getElementById("btnImprimirContrato");
-const btnAtivarUpgradeContrato = document.getElementById("btnAtivarUpgradeContrato");
+const btnBaixarContratoPdf = document.getElementById("btnBaixarContratoPdf");
 const contratoPreview = document.getElementById("contratoPreview");
 const contratoStatus = document.getElementById("contratoStatus");
 
 let pontosData = {};
 let codigoClienteAtual = "";
 let houveAlteracao = true;
-let contratoUpgradeAtivo = false;
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
@@ -1070,9 +1068,7 @@ function renderizarHistoricoContrato(dados) {
   historicoContratos.innerHTML = `
     <div class="historico-item">
       <div class="historico-item-info">
-        <div class="historico-item-titulo">
-          ${contratoUpgradeAtivo ? "Contrato gerado com upgrade" : "Contrato gerado"}
-        </div>
+        <div class="historico-item-titulo">Contrato gerado</div>
         <div class="historico-item-linha"><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</div>
         <div class="historico-item-linha"><strong>Valor:</strong> ${escaparHtml(dados.valor)}</div>
         <div class="historico-item-linha"><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</div>
@@ -1163,11 +1159,6 @@ function gerarContratoCliente(exibirMensagem = true) {
 
       <p><strong>CLÁUSULA 9 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato.</p>
 
-      ${contratoUpgradeAtivo ? `
-        <h4>Termo de Upgrade</h4>
-        <p><strong>UPGRADE CONTRATUAL.</strong> O CONTRATANTE solicita upgrade do contrato vigente, com atualização de pontos de exibição, período, valor contratado ou condições operacionais conforme os dados atualmente registrados nesta pasta de cliente.</p>
-      ` : ""}
-
       <div class="contrato-assinaturas">
         <div class="contrato-assinatura">CONTRATANTE</div>
         <div class="contrato-assinatura">DUNA AUDIOVISUAL</div>
@@ -1175,9 +1166,9 @@ function gerarContratoCliente(exibirMensagem = true) {
     </div>
   `;
 
-  contratoStatus.textContent = contratoUpgradeAtivo ? "Upgrade ativo" : "Gerado";
-  contratoStatus.classList.remove("gerado", "upgrade");
-  contratoStatus.classList.add(contratoUpgradeAtivo ? "upgrade" : "gerado");
+  contratoStatus.textContent = "Gerado";
+  contratoStatus.classList.remove("gerado");
+  contratoStatus.classList.add("gerado");
 
   renderizarHistoricoContrato(dados);
 
@@ -1186,22 +1177,70 @@ function gerarContratoCliente(exibirMensagem = true) {
   }
 }
 
-function imprimirContratoCliente() {
+async function baixarContratoPdf() {
   if (!contratoPreview) return;
 
-  const contratoFoiGerado = contratoPreview.querySelector(".contrato-documento");
+  let contratoDocumento = contratoPreview.querySelector(".contrato-documento");
 
-  if (!contratoFoiGerado) {
+  if (!contratoDocumento) {
     gerarContratoCliente(false);
+    contratoDocumento = contratoPreview.querySelector(".contrato-documento");
   }
 
-  window.print();
-}
+  if (!window.jspdf || !window.html2canvas) {
+    mostrarMensagem("Bibliotecas de PDF não carregaram.", "#ff6b6b");
+    return;
+  }
 
-function ativarUpgradeContrato() {
-  contratoUpgradeAtivo = true;
-  gerarContratoCliente(false);
-  mostrarMensagem("Upgrade de contrato ativado.", "#ffb86b");
+  try {
+    mostrarMensagem("Gerando PDF...", "#9fd2ff");
+
+    const { jsPDF } = window.jspdf;
+
+    const canvas = await window.html2canvas(contratoDocumento, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const margin = 10;
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = margin;
+
+    pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight - margin * 2;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight + margin;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", margin, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - margin * 2;
+    }
+
+    const codigo = inputCodigo.value || codigoClienteAtual || "cliente";
+    const nome = (inputNome.value || "contrato")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9-_]/g, "-")
+      .replace(/-+/g, "-")
+      .toLowerCase();
+
+    pdf.save(`contrato-${codigo}-${nome}.pdf`);
+
+    mostrarMensagem("PDF baixado com sucesso.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao gerar PDF.", "#ff6b6b");
+  }
 }
 
 listaPontos.addEventListener("change", () => {
@@ -1343,12 +1382,8 @@ if (btnGerarContrato) {
   btnGerarContrato.addEventListener("click", () => gerarContratoCliente(true));
 }
 
-if (btnImprimirContrato) {
-  btnImprimirContrato.addEventListener("click", imprimirContratoCliente);
-}
-
-if (btnAtivarUpgradeContrato) {
-  btnAtivarUpgradeContrato.addEventListener("click", ativarUpgradeContrato);
+if (btnBaixarContratoPdf) {
+  btnBaixarContratoPdf.addEventListener("click", baixarContratoPdf);
 }
 
 async function iniciar() {
