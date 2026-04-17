@@ -7,6 +7,7 @@ if (liberado !== "1") {
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 const BUCKET = "videos";
+const PLAYLISTS_TABLE = "playlists_novo";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -43,6 +44,12 @@ let pontosData = {};
 let codigoClienteAtual = "";
 let houveAlteracao = true;
 let contratoUpgradeAtivo = false;
+let configContrato = {
+  empresa: "Duna Publicidade",
+  cnpj: "",
+  telefone: "",
+  email: ""
+};
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
@@ -59,6 +66,18 @@ function mostrarStatusUpload(texto, cor = "#9fd2ff") {
 function obterCodigoDaUrl() {
   const params = new URLSearchParams(window.location.search);
   return (params.get("codigo") || "").trim().toUpperCase();
+}
+
+function gerarCodigoCliente() {
+  return `CLI-${Date.now().toString().slice(-8)}`;
+}
+
+function garantirCodigoCliente() {
+  if (!codigoClienteAtual) {
+    codigoClienteAtual = obterCodigoDaUrl() || gerarCodigoCliente();
+  }
+  inputCodigo.value = codigoClienteAtual;
+  return codigoClienteAtual;
 }
 
 function formatarTelefone(valor) {
@@ -96,13 +115,6 @@ function formatarMoedaBR(valor) {
   });
 }
 
-function extrairNumeroMoeda(valor) {
-  const limpo = String(valor || "").replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
-  if (!limpo) return null;
-  const numero = Number(limpo);
-  return Number.isFinite(numero) ? numero : null;
-}
-
 function formatarDataBR(valor) {
   if (!valor) return "-";
 
@@ -115,6 +127,15 @@ function formatarDataBR(valor) {
   if (Number.isNaN(data.getTime())) return String(valor);
 
   return data.toLocaleDateString("pt-BR");
+}
+
+function formatarDataHistorico(valor) {
+  if (!valor) return "-";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor);
+
+  return data.toLocaleString("pt-BR");
 }
 
 function marcarErro(campo) {
@@ -162,15 +183,35 @@ function itemEstaInativo(item) {
   return agora > fim;
 }
 
+async function carregarConfigContrato() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("config_contrato")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return;
+
+    configContrato = {
+      empresa: data.empresa || "Duna Publicidade",
+      cnpj: data.cnpj || "",
+      telefone: data.telefone || "",
+      email: data.email || ""
+    };
+  } catch (error) {
+    console.error("Erro ao carregar config_contrato:", error);
+  }
+}
+
 async function carregarPontos() {
   const { data, error } = await supabaseClient
     .from("pontos")
     .select("*")
     .order("nome", { ascending: true });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   pontosData = {};
 
@@ -253,14 +294,12 @@ async function atualizarResumo() {
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists")
+      .from(PLAYLISTS_TABLE)
       .select("codigo, codigo_cliente, data_fim, ordem")
       .eq("codigo_cliente", codigoClienteAtual)
       .order("ordem", { ascending: false });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     const pontosAtivos = [...new Set(
       (data || [])
@@ -450,20 +489,6 @@ function injetarEstilosScroll() {
       display: none !important;
       background: transparent !important;
     }
-
-    .grupo-pontos-scroll-selecionado::-webkit-scrollbar-thumb,
-    .grupo-pontos-scroll-disponivel::-webkit-scrollbar-thumb,
-    .grupo-pontos-scroll-inativo::-webkit-scrollbar-thumb,
-    .grupo-pontos-scroll-selecionado::-webkit-scrollbar-track,
-    .grupo-pontos-scroll-disponivel::-webkit-scrollbar-track,
-    .grupo-pontos-scroll-inativo::-webkit-scrollbar-track,
-    .grupo-pontos-scroll-selecionado::-webkit-scrollbar-corner,
-    .grupo-pontos-scroll-disponivel::-webkit-scrollbar-corner,
-    .grupo-pontos-scroll-inativo::-webkit-scrollbar-corner {
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-    }
   `;
   document.head.appendChild(style);
 }
@@ -509,15 +534,6 @@ function validarCamposCliente() {
   }
 
   return true;
-}
-
-function formatarDataHistorico(valor) {
-  if (!valor) return "-";
-
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return String(valor);
-
-  return data.toLocaleString("pt-BR");
 }
 
 function obterTituloArquivo(item) {
@@ -640,40 +656,30 @@ function renderizarHistoricoArquivos(itens = []) {
   ativarBotoesDeletarHistorico();
 }
 
-function extrairCaminhoStorage(storagePath) {
-  return String(storagePath || "").trim();
-}
-
 async function deletarItemHistorico(id, storagePath) {
   const confirmar = window.confirm("Deseja deletar este arquivo do histórico?");
   if (!confirmar) return;
 
   try {
     if (storagePath) {
-      const caminho = extrairCaminhoStorage(storagePath);
+      const { error: storageError } = await supabaseClient.storage
+        .from(BUCKET)
+        .remove([String(storagePath).trim()]);
 
-      if (caminho) {
-        const { error: storageError } = await supabaseClient.storage
-          .from(BUCKET)
-          .remove([caminho]);
-
-        if (storageError) {
-          console.error("Erro ao deletar do storage:", storageError);
-        }
+      if (storageError) {
+        console.error("Erro ao deletar do storage:", storageError);
       }
     }
 
     const { error: deleteError } = await supabaseClient
-      .from("playlists")
+      .from(PLAYLISTS_TABLE)
       .delete()
       .eq("id", id);
 
-    if (deleteError) {
-      throw deleteError;
-    }
+    if (deleteError) throw deleteError;
 
-    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
-    await sincronizarStatusCliente();
+    await carregarHistoricoArquivos();
+    await atualizarStatusCliente();
     await atualizarResumo();
 
     mostrarMensagem("Arquivo deletado com sucesso.", "#7CFC9A");
@@ -688,31 +694,26 @@ function ativarBotoesDeletarHistorico() {
     botao.onclick = async () => {
       const id = botao.dataset.id;
       const storagePath = botao.dataset.storagePath || "";
-
       if (!id) return;
-
       await deletarItemHistorico(id, storagePath);
     };
   });
 }
 
-async function carregarHistoricoArquivos(codigosDestino = []) {
-  if (!Array.isArray(codigosDestino) || !codigosDestino.length) {
+async function carregarHistoricoArquivos() {
+  if (!codigoClienteAtual) {
     renderizarHistoricoArquivos([]);
     return [];
   }
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists")
+      .from(PLAYLISTS_TABLE)
       .select("*")
       .eq("codigo_cliente", codigoClienteAtual)
-      .in("codigo", codigosDestino)
       .order("ordem", { ascending: false });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     const itens = data || [];
     renderizarHistoricoArquivos(itens);
@@ -726,47 +727,29 @@ async function carregarHistoricoArquivos(codigosDestino = []) {
   }
 }
 
-async function calcularStatusClienteRealPorCodigoCliente() {
+async function atualizarStatusCliente() {
   if (!codigoClienteAtual) {
+    atualizarStatusClienteVisual("Não ativo");
     return "Não ativo";
   }
 
   try {
     const { data, error } = await supabaseClient
-      .from("playlists")
-      .select("*")
-      .eq("codigo_cliente", codigoClienteAtual)
-      .order("ordem", { ascending: false });
+      .from(PLAYLISTS_TABLE)
+      .select("data_fim")
+      .eq("codigo_cliente", codigoClienteAtual);
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     const ativos = (data || []).filter((item) => !itemEstaInativo(item));
-
-    return ativos.length > 0 ? "Ativo" : "Não ativo";
+    const status = ativos.length ? "Ativo" : "Não ativo";
+    atualizarStatusClienteVisual(status);
+    return status;
   } catch (error) {
     console.error(error);
+    atualizarStatusClienteVisual("Não ativo");
     return "Não ativo";
   }
-}
-
-async function sincronizarStatusCliente() {
-  const statusReal = await calcularStatusClienteRealPorCodigoCliente();
-  atualizarStatusClienteVisual(statusReal);
-
-  if (codigoClienteAtual) {
-    const { error } = await supabaseClient
-      .from("clientes_app")
-      .update({ status: statusReal })
-      .eq("codigo", codigoClienteAtual);
-
-    if (error) {
-      console.error(error);
-    }
-  }
-
-  return statusReal;
 }
 
 async function salvarCliente() {
@@ -775,69 +758,10 @@ async function salvarCliente() {
     return false;
   }
 
-  const pontosSelecionados = obterPontosMarcados();
-  const statusRealAntesDeSalvar = await calcularStatusClienteRealPorCodigoCliente();
-
-  const payload = {
-    codigo: codigoClienteAtual,
-    nome_completo: inputNome.value.trim(),
-    telefone: inputTelefone.value.trim(),
-    email: inputEmail.value.trim(),
-    cpf_cnpj: inputCpfCnpj.value.trim(),
-    status: statusRealAntesDeSalvar,
-    vencimento_exibicao: inputVencimento.value || null,
-    valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
-    data_postagem: inputDataPostagem.value || null
-  };
-
-  botaoSalvar.disabled = true;
-  botaoSalvar.style.opacity = "0.7";
-  botaoSalvar.style.cursor = "wait";
-
-  try {
-    const { error: errorCliente } = await supabaseClient
-      .from("clientes_app")
-      .upsert(payload, { onConflict: "codigo" });
-
-    if (errorCliente) throw errorCliente;
-
-    const { error: errorDelete } = await supabaseClient
-      .from("cliente_pontos")
-      .delete()
-      .eq("cliente_codigo", codigoClienteAtual);
-
-    if (errorDelete) throw errorDelete;
-
-    if (pontosSelecionados.length) {
-      const vinculos = pontosSelecionados.map((pontoCodigo) => ({
-        cliente_codigo: codigoClienteAtual,
-        ponto_codigo: pontoCodigo
-      }));
-
-      const { error: errorInsert } = await supabaseClient
-        .from("cliente_pontos")
-        .insert(vinculos);
-
-      if (errorInsert) throw errorInsert;
-    }
-
-    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
-    await sincronizarStatusCliente();
-    await atualizarResumo();
-
-    gerarContratoCliente(false);
-
-    mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
-    desativarBotaoSalvar();
-    return true;
-  } catch (error) {
-    console.error(error);
-    mostrarMensagem("Erro ao salvar cliente.", "#ff6b6b");
-    ativarBotaoSalvar();
-    return false;
-  } finally {
-    botaoSalvar.style.cursor = botaoSalvar.disabled ? "not-allowed" : "pointer";
-  }
+  garantirCodigoCliente();
+  mostrarMensagem("Dados prontos para envio.", "#7CFC9A");
+  desativarBotaoSalvar();
+  return true;
 }
 
 async function uploadArquivoCliente() {
@@ -853,6 +777,8 @@ async function uploadArquivoCliente() {
     return;
   }
 
+  garantirCodigoCliente();
+
   const codigosDestino = obterCodigosDestinoSelecionados();
 
   if (!codigosDestino.length) {
@@ -866,9 +792,9 @@ async function uploadArquivoCliente() {
   btnUploadCliente.style.cursor = "wait";
 
   try {
-    const clienteSalvo = await salvarCliente();
-    if (!clienteSalvo) {
-      throw new Error("Falha ao salvar cliente antes do upload.");
+    const clientePronto = await salvarCliente();
+    if (!clientePronto) {
+      throw new Error("Falha ao validar dados antes do upload.");
     }
 
     const dataFim = inputVencimento.value || null;
@@ -896,7 +822,7 @@ async function uploadArquivoCliente() {
       }));
 
       const { error: insertError } = await supabaseClient
-        .from("playlists")
+        .from(PLAYLISTS_TABLE)
         .insert(registros);
 
       if (insertError) throw insertError;
@@ -942,14 +868,14 @@ async function uploadArquivoCliente() {
       }));
 
       const { error: insertError } = await supabaseClient
-        .from("playlists")
+        .from(PLAYLISTS_TABLE)
         .insert(registros);
 
       if (insertError) throw insertError;
     }
 
-    await carregarHistoricoArquivos(codigosDestino);
-    await sincronizarStatusCliente();
+    await carregarHistoricoArquivos();
+    await atualizarStatusCliente();
     await atualizarResumo();
 
     gerarContratoCliente(false);
@@ -958,7 +884,7 @@ async function uploadArquivoCliente() {
     arquivoInput.value = "";
   } catch (error) {
     console.error(error);
-    mostrarStatusUpload("Erro ao enviar", "#ff6b6b");
+    mostrarStatusUpload(`Erro ao enviar: ${error.message || error}`, "#ff6b6b");
   } finally {
     btnUploadCliente.disabled = false;
     btnUploadCliente.style.opacity = "1";
@@ -1030,19 +956,13 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   const grupos = [];
 
   if (selecionadosArr.length) {
-    grupos.push(
-      montarGrupoPontos("selecionado", "selecionado", selecionadosArr.join(""))
-    );
+    grupos.push(montarGrupoPontos("selecionado", "selecionado", selecionadosArr.join("")));
   }
 
-  grupos.push(
-    montarGrupoPontos("disponível", "disponivel", disponiveisArr.join(""))
-  );
+  grupos.push(montarGrupoPontos("disponível", "disponivel", disponiveisArr.join("")));
 
   if (inativosArr.length) {
-    grupos.push(
-      montarGrupoPontos("inativo", "inativo", inativosArr.join(""))
-    );
+    grupos.push(montarGrupoPontos("inativo", "inativo", inativosArr.join("")));
   }
 
   listaPontos.innerHTML = grupos.join("");
@@ -1095,15 +1015,15 @@ function gerarContratoCliente(exibirMensagem = true) {
       <div class="contrato-info-grid">
         <div class="contrato-info-item">
           <strong>Empresa</strong>
-          <span>DUNA AUDIOVISUAL</span>
+          <span>${escaparHtml(configContrato.empresa)}</span>
         </div>
         <div class="contrato-info-item">
           <strong>CNPJ</strong>
-          <span>[SEU CNPJ]</span>
+          <span>${escaparHtml(configContrato.cnpj || "-")}</span>
         </div>
         <div class="contrato-info-item">
           <strong>Contato</strong>
-          <span>[SEU TELEFONE] / [SEU EMAIL]</span>
+          <span>${escaparHtml(`${configContrato.telefone || "-"} / ${configContrato.email || "-"}`)}</span>
         </div>
       </div>
 
@@ -1143,34 +1063,9 @@ function gerarContratoCliente(exibirMensagem = true) {
         </div>
       </div>
 
-      <h4>Termos do Contrato</h4>
-
-      <p><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a prestação de serviços de publicidade e divulgação em telas digitais administradas pela CONTRATADA, conforme plano comercial ajustado entre as partes.</p>
-
-      <p><strong>CLÁUSULA 2 - DADOS DA VEICULAÇÃO.</strong> A exibição do material publicitário será realizada nos pontos contratados, durante o período informado neste documento, respeitando a disponibilidade operacional do sistema da CONTRATADA.</p>
-
-      <p><strong>CLÁUSULA 3 - RESPONSABILIDADE PELO CONTEÚDO.</strong> O CONTRATANTE declara ser responsável pelo conteúdo enviado para divulgação, assumindo responsabilidade por textos, imagens, marcas, ofertas, promoções ou quaisquer materiais encaminhados para exibição.</p>
-
-      <p><strong>CLÁUSULA 4 - PRAZO.</strong> O contrato terá vigência a partir da data de início cadastrada, seguindo até a data de vencimento da mídia, podendo ser renovado mediante novo ajuste entre as partes.</p>
-
-      <p><strong>CLÁUSULA 5 - PAGAMENTO.</strong> Pelos serviços prestados, o CONTRATANTE pagará o valor descrito neste contrato. O não pagamento poderá acarretar suspensão da exibição até a regularização.</p>
-
-      <p><strong>CLÁUSULA 6 - ALTERAÇÕES.</strong> Eventuais alterações de material, campanha, período, valores ou pontos de exibição deverão ser registradas e aceitas entre as partes.</p>
-
-      <p><strong>CLÁUSULA 7 - CANCELAMENTO.</strong> O cancelamento antecipado poderá ser solicitado mediante comunicação prévia, observadas as condições comerciais pactuadas no momento da contratação.</p>
-
-      <p><strong>CLÁUSULA 8 - DISPOSIÇÕES GERAIS.</strong> Este instrumento representa o acordo entre as partes quanto à veiculação de publicidade nas telas operadas pela CONTRATADA.</p>
-
-      <p><strong>CLÁUSULA 9 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato.</p>
-
-      ${contratoUpgradeAtivo ? `
-        <h4>Termo de Upgrade</h4>
-        <p><strong>UPGRADE CONTRATUAL.</strong> O CONTRATANTE solicita upgrade do contrato vigente, com atualização de pontos de exibição, período, valor contratado ou condições operacionais conforme os dados atualmente registrados nesta pasta de cliente.</p>
-      ` : ""}
-
       <div class="contrato-assinaturas">
         <div class="contrato-assinatura">CONTRATANTE</div>
-        <div class="contrato-assinatura">DUNA AUDIOVISUAL</div>
+        <div class="contrato-assinatura">${escaparHtml(configContrato.empresa)}</div>
       </div>
     </div>
   `;
@@ -1190,7 +1085,6 @@ function imprimirContratoCliente() {
   if (!contratoPreview) return;
 
   const contratoFoiGerado = contratoPreview.querySelector(".contrato-documento");
-
   if (!contratoFoiGerado) {
     gerarContratoCliente(false);
   }
@@ -1267,66 +1161,23 @@ if (inputDataPostagem) {
   });
 }
 
-async function carregarCliente() {
-  const { data, error } = await supabaseClient
-    .from("clientes_app")
-    .select("*")
-    .eq("codigo", codigoClienteAtual)
-    .maybeSingle();
+function carregarCliente() {
+  garantirCodigoCliente();
 
-  if (error) {
-    throw error;
+  inputNome.value = inputNome.value || "";
+  inputTelefone.value = formatarTelefone(inputTelefone.value || "");
+  inputEmail.value = inputEmail.value || "";
+  inputCpfCnpj.value = formatarCpfCnpj(inputCpfCnpj.value || "");
+  inputVencimento.value = inputVencimento.value || "";
+  if (inputValorContratado && !inputValorContratado.value) {
+    inputValorContratado.value = formatarMoedaBR("");
+  }
+  if (inputDataPostagem && !inputDataPostagem.value) {
+    inputDataPostagem.value = new Date().toISOString().split("T")[0];
   }
 
-  inputCodigo.value = codigoClienteAtual;
-
-  if (!data) {
-    inputNome.value = "";
-    inputTelefone.value = "";
-    inputEmail.value = "";
-    inputCpfCnpj.value = "";
-    inputVencimento.value = "";
-    if (inputValorContratado) inputValorContratado.value = formatarMoedaBR("");
-    if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
-    atualizarStatusClienteVisual("Não ativo");
-    renderizarPontosSelecionaveis([]);
-    renderizarHistoricoArquivos([]);
-    gerarContratoCliente(false);
-    desativarBotaoSalvar();
-    return;
-  }
-
-  inputNome.value = data.nome_completo || "";
-  inputTelefone.value = formatarTelefone(data.telefone || "");
-  inputEmail.value = data.email || "";
-  inputCpfCnpj.value = formatarCpfCnpj(data.cpf_cnpj || "");
-  inputVencimento.value = data.vencimento_exibicao || "";
-  if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? "");
-  if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
-
-  let selecionados = [];
-
-  try {
-    const { data: vinculos, error: erroVinculos } = await supabaseClient
-      .from("cliente_pontos")
-      .select("ponto_codigo")
-      .eq("cliente_codigo", codigoClienteAtual);
-
-    if (erroVinculos) {
-      throw erroVinculos;
-    }
-
-    selecionados = Array.isArray(vinculos)
-      ? vinculos.map((item) => item.ponto_codigo).filter(Boolean)
-      : [];
-  } catch (error) {
-    console.error(error);
-  }
-
-  renderizarPontosSelecionaveis(selecionados);
-  await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
-  await sincronizarStatusCliente();
-  await atualizarResumo();
+  atualizarStatusClienteVisual("Não ativo");
+  renderizarPontosSelecionaveis([]);
   gerarContratoCliente(false);
   desativarBotaoSalvar();
 }
@@ -1355,11 +1206,15 @@ async function iniciar() {
   try {
     injetarEstilosScroll();
     codigoClienteAtual = obterCodigoDaUrl();
+    await carregarConfigContrato();
     await carregarPontos();
-    await carregarCliente();
+    carregarCliente();
+    await carregarHistoricoArquivos();
+    await atualizarStatusCliente();
+    await atualizarResumo();
   } catch (error) {
-    console.error(error);
-    mostrarMensagem("Erro ao carregar pontos.", "#ff6b6b");
+    console.error("ERRO INICIAR:", error);
+    mostrarMensagem(`Erro ao carregar: ${error?.message || error}`, "#ff6b6b");
   }
 }
 
