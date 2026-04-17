@@ -212,26 +212,130 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   if (!listaPontos) return;
 
   const codigos = Object.keys(pontosData);
+
   if (!codigos.length) {
     listaPontos.innerHTML = `<div class="vazio">Nenhum ponto encontrado na tabela pontos.</div>`;
     return;
   }
 
-  const selecionadosSet = new Set(selecionados.map((item) => String(item || "").trim()));
+  const selecionadosSet = new Set(
+    selecionados.map((item) => String(item || "").trim())
+  );
 
-  listaPontos.innerHTML = codigos.map((codigoVisual) => {
-    const ponto = pontosData[codigoVisual];
-    const nome = obterNomeDoPonto(ponto, codigoVisual);
-    const codigoReal = obterCodigoRealDoPonto(codigoVisual);
-    const checked = selecionadosSet.has(codigoVisual) || selecionadosSet.has(codigoReal);
+  const cardsSelecionados = [];
+  const cardsDisponiveis = [];
+
+  codigos
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }))
+    .forEach((codigoVisual) => {
+      const ponto = pontosData[codigoVisual];
+      const nome = obterNomeDoPonto(ponto, codigoVisual);
+      const codigoReal = obterCodigoRealDoPonto(codigoVisual);
+      const checked = selecionadosSet.has(codigoVisual) || selecionadosSet.has(codigoReal);
+
+      const card = `
+        <label style="
+          display:flex;
+          align-items:flex-start;
+          gap:12px;
+          padding:14px;
+          border-radius:12px;
+          min-height:72px;
+          cursor:pointer;
+          border:1px solid ${checked ? "#8ce063" : "#6f8bff"};
+          background:${checked ? "#76d34f" : "#4f6ff0"};
+          color:#fff;
+          overflow:hidden;
+          box-shadow:0 6px 18px rgba(0,0,0,0.18);
+        ">
+          <input
+            type="checkbox"
+            name="pontos"
+            value="${escaparHtml(codigoVisual)}"
+            ${checked ? "checked" : ""}
+            style="
+              width:16px;
+              height:16px;
+              margin-top:4px;
+              flex-shrink:0;
+              accent-color:#ffffff;
+              cursor:pointer;
+            "
+          >
+
+          <div style="
+            display:flex;
+            flex-direction:column;
+            min-width:0;
+            flex:1;
+            overflow:hidden;
+          ">
+            <span style="
+              font-size:0.95rem;
+              font-weight:700;
+              line-height:1.2;
+              white-space:nowrap;
+              overflow:hidden;
+              text-overflow:ellipsis;
+            ">
+              ${escaparHtml(codigoVisual)}
+            </span>
+
+            <span style="
+              font-size:0.82rem;
+              opacity:0.95;
+              line-height:1.25;
+              margin-top:4px;
+              display:-webkit-box;
+              -webkit-line-clamp:2;
+              -webkit-box-orient:vertical;
+              overflow:hidden;
+              word-break:break-word;
+            ">
+              ${escaparHtml(nome)}
+            </span>
+          </div>
+        </label>
+      `;
+
+      if (checked) {
+        cardsSelecionados.push(card);
+      } else {
+        cardsDisponiveis.push(card);
+      }
+    });
+
+  const montarGrupo = (titulo, cor, cards) => {
+    if (!cards.length) return "";
 
     return `
-      <label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:${checked ? "#76d34f" : "#4f6ff0"};color:#fff;font-size:0.9rem;font-weight:bold;">
-        <input type="checkbox" name="pontos" value="${escaparHtml(codigoVisual)}" ${checked ? "checked" : ""}>
-        <span>${escaparHtml(codigoVisual)} - ${escaparHtml(nome)}</span>
-      </label>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="
+          font-size:0.92rem;
+          font-weight:700;
+          color:${cor};
+          text-transform:lowercase;
+        ">
+          ${titulo}
+        </div>
+
+        <div style="
+          display:grid;
+          grid-template-columns:repeat(2, minmax(0, 1fr));
+          gap:12px;
+        " class="grid-pontos-grupo">
+          ${cards.join("")}
+        </div>
+      </div>
     `;
-  }).join("");
+  };
+
+  listaPontos.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      ${montarGrupo("selecionado", "#7CFC9A", cardsSelecionados)}
+      ${montarGrupo("disponivel", "#6ea8ff", cardsDisponiveis)}
+    </div>
+  `;
 }
 
 async function atualizarResumo() {
@@ -606,11 +710,19 @@ if (inputValorContratado) {
   }
 }
 
-if (botaoSalvar) botaoSalvar.addEventListener("click", salvarCliente);
-if (botaoVoltar) botaoVoltar.addEventListener("click", () => {
-  window.location.href = "/central-clientes.html";
-});
-if (btnUploadCliente) btnUploadCliente.addEventListener("click", uploadArquivoCliente);
+if (botaoSalvar) {
+  botaoSalvar.addEventListener("click", salvarCliente);
+}
+
+if (botaoVoltar) {
+  botaoVoltar.addEventListener("click", () => {
+    window.location.href = "/central-clientes.html";
+  });
+}
+
+if (btnUploadCliente) {
+  btnUploadCliente.addEventListener("click", uploadArquivoCliente);
+}
 
 async function iniciar() {
   try {
