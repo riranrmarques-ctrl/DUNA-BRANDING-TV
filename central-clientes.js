@@ -245,7 +245,7 @@ async function criarNovoCliente() {
 
 if (botaoVoltarPainel) {
   botaoVoltarPainel.addEventListener("click", () => {
-    window.location.href = "/painel";
+    window.location.href = "/painel.html";
   });
 }
 
