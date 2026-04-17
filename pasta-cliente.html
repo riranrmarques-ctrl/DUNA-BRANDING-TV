@@ -79,6 +79,11 @@
       font-weight: bold;
     }
 
+    .botao-upgrade {
+      background: #7c3aed;
+      font-weight: bold;
+    }
+
     .botao-excluir {
       background: #7a2230;
       color: #fff;
@@ -341,6 +346,147 @@
       transform: translateY(-1px);
     }
 
+    .contrato-box {
+      background: #10131a;
+      border: 1px dashed #2d8cff;
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .contrato-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .contrato-topo strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #ffffff;
+      font-size: 1rem;
+    }
+
+    .contrato-topo span {
+      display: block;
+      color: #bfc7d5;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .contrato-status {
+      flex-shrink: 0;
+      background: rgba(45, 140, 255, 0.14);
+      border: 1px solid rgba(45, 140, 255, 0.35);
+      color: #9fd2ff;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .contrato-status.gerado {
+      background: rgba(124, 252, 154, 0.12);
+      border-color: rgba(124, 252, 154, 0.35);
+      color: #7CFC9A;
+    }
+
+    .contrato-status.upgrade {
+      background: rgba(255, 184, 107, 0.12);
+      border-color: rgba(255, 184, 107, 0.35);
+      color: #ffb86b;
+    }
+
+    .contrato-acoes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .contrato-preview {
+      background: #ffffff;
+      color: #1f2937;
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 180px;
+      max-height: 420px;
+      overflow-y: auto;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .contrato-vazio {
+      color: #6b7280;
+      background: #f5f7fb;
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .contrato-documento h3 {
+      color: #111827;
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .contrato-documento h4 {
+      color: #111827;
+      font-size: 0.95rem;
+      margin: 18px 0 8px;
+      padding-left: 8px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .contrato-documento p {
+      margin-bottom: 10px;
+      text-align: justify;
+    }
+
+    .contrato-info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .contrato-info-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 9px 10px;
+    }
+
+    .contrato-info-item strong {
+      display: block;
+      color: #111827;
+      margin-bottom: 3px;
+      font-size: 0.8rem;
+    }
+
+    .contrato-info-item span {
+      color: #4b5563;
+    }
+
+    .contrato-assinaturas {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 34px;
+    }
+
+    .contrato-assinatura {
+      padding-top: 34px;
+      text-align: center;
+      border-top: 1px solid #111827;
+      color: #111827;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
     .historico-lista {
       display: flex;
       flex-direction: column;
@@ -397,6 +543,26 @@
       padding: 16px;
     }
 
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #contratoPreview,
+      #contratoPreview * {
+        visibility: visible;
+      }
+
+      #contratoPreview {
+        position: absolute;
+        inset: 0;
+        max-height: none;
+        overflow: visible;
+        border-radius: 0;
+        padding: 32px;
+      }
+    }
+
     @media (max-width: 900px) {
       .grid,
       .grid-historicos {
@@ -428,6 +594,22 @@
       }
 
       .grupo-pontos-lista {
+        grid-template-columns: 1fr;
+      }
+
+      .contrato-topo {
+        flex-direction: column;
+      }
+
+      .contrato-acoes {
+        flex-direction: column;
+      }
+
+      .contrato-acoes .botao {
+        width: 100%;
+      }
+
+      .contrato-assinaturas {
         grid-template-columns: 1fr;
       }
     }
@@ -519,9 +701,28 @@
 
         <div class="campo">
           <label>Contrato</label>
-          <div class="pdf-box">
-            <strong>Espaço para contrato</strong>
-            Aqui ficará a área do contrato do cliente.
+
+          <div class="contrato-box">
+            <div class="contrato-topo">
+              <div>
+                <strong>Contrato do cliente</strong>
+                <span>Gere o contrato com os dados preenchidos automaticamente.</span>
+              </div>
+
+              <div id="contratoStatus" class="contrato-status">Não gerado</div>
+            </div>
+
+            <div class="contrato-acoes">
+              <button id="btnGerarContrato" class="botao botao-salvar" type="button">Gerar contrato</button>
+              <button id="btnImprimirContrato" class="botao botao-voltar" type="button">Imprimir</button>
+              <button id="btnAtivarUpgradeContrato" class="botao botao-upgrade" type="button">Ativar upgrade</button>
+            </div>
+
+            <div id="contratoPreview" class="contrato-preview">
+              <div class="contrato-vazio">
+                O contrato aparecerá aqui após ser gerado.
+              </div>
+            </div>
           </div>
         </div>
 
@@ -556,6 +757,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=14"></script>
+  <script src="pasta-cliente.js?v=16"></script>
 </body>
 </html>
