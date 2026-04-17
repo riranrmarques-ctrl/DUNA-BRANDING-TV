@@ -38,7 +38,7 @@ let clientesCarregados = [];
 function verificarAcesso() {
   const liberado = sessionStorage.getItem("painelLiberado");
   if (liberado !== "1") {
-    window.location.href = "/painel";
+    window.location.href = "/painel.html";
     return false;
   }
   return true;
