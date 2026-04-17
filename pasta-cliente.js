@@ -48,7 +48,7 @@ let codigoClienteAtual = "";
 let houveAlteracao = true;
 
 let dadosDunaContrato = {
-  empresa: "Duna Branding",
+  empresa: "Duna Publicidade",
   cnpj: "",
   telefone: "",
   email: "",
@@ -266,13 +266,13 @@ async function carregarConfigContrato() {
 
     if (data) {
       dadosDunaContrato = {
-        empresa: data.empresa || "Duna Branding",
+        empresa: "Duna Publicidade",
         cnpj: data.cnpj || "",
         telefone: data.telefone || "",
         email: data.email || "",
         endereco: data.endereco || "",
         responsavel: data.responsavel || "",
-        assinatura_url: data.assinatura_url || "/assinatura.png",
+        assinatura_url: "/assinatura.png",
         titulo_contrato: data.titulo_contrato || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
         subtitulo_contrato: data.subtitulo_contrato || "Contrato de prestação de serviços de publicidade em telas digitais."
       };
@@ -1332,18 +1332,25 @@ function montarClausulasContratoHtml(dados) {
     `;
   }
 
-  return clausulasContrato.map((clausula) => {
-    const ordem = clausula.ordem || "";
-    const titulo = clausula.titulo || "";
-    const textoPreenchido = preencherMarcadoresContrato(clausula.texto, dados);
+  return clausulasContrato
+    .filter((clausula) => {
+      const titulo = String(clausula?.titulo || "").trim();
+      const texto = String(preencherMarcadoresContrato(clausula?.texto || "", dados)).trim();
+      return titulo && texto && texto !== "-" && texto !== ".";
+    })
+    .map((clausula) => {
+      const ordem = clausula.ordem || "";
+      const titulo = clausula.titulo || "";
+      const textoPreenchido = preencherMarcadoresContrato(clausula.texto, dados);
 
-    return `
-      <p>
-        <strong>CLÁUSULA ${escaparHtml(ordem)} - ${escaparHtml(titulo)}.</strong>
-        ${textoComQuebras(textoPreenchido)}
-      </p>
-    `;
-  }).join("");
+      return `
+        <p>
+          <strong>CLÁUSULA ${escaparHtml(ordem)} - ${escaparHtml(titulo)}.</strong>
+          ${textoComQuebras(textoPreenchido)}
+        </p>
+      `;
+    })
+    .join("");
 }
 
 function renderizarHistoricoContrato(dados) {
@@ -1467,14 +1474,14 @@ function montarContratoProfissional(dados) {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
-        margin-top: 22px;
+        margin-top: 10px;
         align-items: end;
         break-inside: avoid;
         page-break-inside: avoid;
       }
 
       .contrato-pdf-assinatura {
-        min-height: 68px;
+        min-height: 58px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -1486,14 +1493,13 @@ function montarContratoProfissional(dados) {
 
       .contrato-pdf-assinatura img {
         display: block;
-        width: 250px;
-        max-width: 94%;
-        height: 62px;
+        width: 320px;
+        max-width: 320px;
+        height: 92px;
         object-fit: contain;
         object-position: center bottom;
         margin: 0 auto -14px;
-        transform: scale(1.05);
-        transform-origin: center bottom;
+        transform: none;
       }
 
       .contrato-pdf-linha {
@@ -1516,7 +1522,7 @@ function montarContratoProfissional(dados) {
     <div class="contrato-pdf-folha">
       <div class="contrato-pdf-topo">
         <div class="contrato-pdf-marca">
-          <h1>${escaparHtml(dadosDunaContrato.empresa)}</h1>
+          <h1>Duna Publicidade</h1>
           <p>${escaparHtml(dadosDunaContrato.subtitulo_contrato || "Contrato de prestação de serviços de publicidade em telas digitais.")}</p>
         </div>
 
@@ -1530,7 +1536,7 @@ function montarContratoProfissional(dados) {
         <h2>Dados da Contratada</h2>
 
         <div class="contrato-pdf-grid">
-          <div class="contrato-pdf-campo"><strong>Empresa</strong><span>${escaparHtml(dadosDunaContrato.empresa || "-")}</span></div>
+          <div class="contrato-pdf-campo"><strong>Empresa</strong><span>Duna Publicidade</span></div>
           <div class="contrato-pdf-campo"><strong>CNPJ</strong><span>${escaparHtml(dadosDunaContrato.cnpj || "-")}</span></div>
           <div class="contrato-pdf-campo"><strong>Telefone</strong><span>${escaparHtml(dadosDunaContrato.telefone || "-")}</span></div>
           <div class="contrato-pdf-campo"><strong>Email</strong><span>${escaparHtml(dadosDunaContrato.email || "-")}</span></div>
@@ -1564,13 +1570,13 @@ function montarContratoProfissional(dados) {
         </div>
 
         <div class="contrato-pdf-assinatura">
-          <img src="${escaparHtml(dadosDunaContrato.assinatura_url || "/assinatura.png")}" alt="Assinatura ${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}">
-          <div class="contrato-pdf-linha">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
+          <img src="/assinatura.png" alt="Assinatura Duna Publicidade">
+          <div class="contrato-pdf-linha">Duna Publicidade</div>
         </div>
       </div>
 
       <div class="contrato-pdf-rodape">
-        Documento gerado automaticamente pela ${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}.
+        Documento gerado automaticamente pela Duna Publicidade.
       </div>
     </div>
   `;
