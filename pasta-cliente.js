@@ -6,9 +6,12 @@ if (liberado !== "1") {
 
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
-const BUCKET = "videos"; 
+const SUPABASE_CONTRATO_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
+const SUPABASE_CONTRATO_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
+const BUCKET = "videos";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseContratoClient = window.supabase.createClient(SUPABASE_CONTRATO_URL, SUPABASE_CONTRATO_KEY);
 
 const inputCodigo = document.getElementById("codigo");
 const inputNome = document.getElementById("nome");
@@ -33,8 +36,23 @@ const statusUpload = document.getElementById("statusUpload");
 const historicoContratos = document.getElementById("historicoContratos");
 const historicoArquivos = document.getElementById("historicoArquivos");
 
+const contratoPreview = document.getElementById("contratoPreview");
+const contratoStatus = document.getElementById("contratoStatus");
+
 let pontosData = {};
 let codigoClienteAtual = "";
+let clausulasContrato = [];
+
+let dadosDunaContrato = {
+  empresa: "Duna Branding",
+  cnpj: "",
+  telefone: "",
+  email: "",
+  endereco: "",
+  responsavel: "",
+  titulo_contrato: "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
+  subtitulo_contrato: "Contrato de prestação de serviços de publicidade em telas digitais."
+};
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
@@ -82,6 +100,7 @@ function formatarCpfCnpj(valor) {
 
 function formatarMoedaBR(valor) {
   const texto = String(valor ?? "").trim();
+
   if (!texto) {
     return (0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
@@ -114,6 +133,29 @@ function extrairNumeroMoeda(valor) {
   return Number.isFinite(numero) ? numero : 0;
 }
 
+function formatarDataBR(valor) {
+  if (!valor) return "-";
+
+  const partes = String(valor).split("-");
+  if (partes.length === 3) {
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  }
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor);
+
+  return data.toLocaleDateString("pt-BR");
+}
+
+function formatarDataHistorico(valor) {
+  if (!valor) return "-";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor);
+
+  return data.toLocaleString("pt-BR");
+}
+
 function marcarErro(campo) {
   if (!campo) return;
   campo.style.border = "1px solid #ff6b6b";
@@ -134,9 +176,12 @@ function atualizarStatusClienteVisual(statusTexto) {
 
 function itemEstaInativo(item) {
   if (!item?.data_fim) return false;
+
   const agora = new Date();
   const fim = new Date(item.data_fim);
+
   if (Number.isNaN(fim.getTime())) return false;
+
   fim.setHours(23, 59, 59, 999);
   return agora > fim;
 }
@@ -185,6 +230,50 @@ async function carregarPontos() {
   });
 }
 
+async function carregarConfigContrato() {
+  try {
+    const { data, error } = await supabaseContratoClient
+      .from("config_contrato")
+      .select("*")
+      .eq("id", "duna")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data) {
+      dadosDunaContrato = {
+        empresa: data.empresa || "Duna Branding",
+        cnpj: data.cnpj || "",
+        telefone: data.telefone || "",
+        email: data.email || "",
+        endereco: data.endereco || "",
+        responsavel: data.responsavel || "",
+        titulo_contrato: data.titulo_contrato || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
+        subtitulo_contrato: data.subtitulo_contrato || "Contrato de prestação de serviços de publicidade em telas digitais."
+      };
+    }
+  } catch (error) {
+    console.error("Erro ao carregar config do contrato:", error);
+  }
+}
+
+async function carregarClausulasContrato() {
+  try {
+    const { data, error } = await supabaseContratoClient
+      .from("contrato_clausulas")
+      .select("*")
+      .eq("contrato_id", "duna")
+      .eq("ativo", true)
+      .order("ordem", { ascending: true });
+
+    if (error) throw error;
+    clausulasContrato = Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Erro ao carregar clausulas:", error);
+    clausulasContrato = [];
+  }
+}
+
 function obterNomeDoPonto(ponto, codigo) {
   return ponto?.nome || ponto?.nome_painel || ponto?.titulo || ponto?.ambiente || `Ponto ${codigo}`;
 }
@@ -208,13 +297,94 @@ function obterCodigosDestinoSelecionados() {
   return obterPontosMarcados().map(obterCodigoRealDoPonto).filter(Boolean);
 }
 
-function formatarDataHistorico(valor) {
-  if (!valor) return "-";
+function obterPontosContratoTexto() {
+  return obterPontosMarcados()
+    .map((codigoVisual) => {
+      const ponto = pontosData[codigoVisual];
+      return obterNomeDoPonto(ponto, codigoVisual);
+    })
+    .filter(Boolean)
+    .join(", ") || "Nenhum ponto selecionado";
+}
 
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return String(valor);
+function preencherMarcadoresContrato(texto, dados) {
+  return String(texto || "")
+    .replaceAll("{{empresa}}", dadosDunaContrato.empresa || "")
+    .replaceAll("{{cnpj}}", dadosDunaContrato.cnpj || "")
+    .replaceAll("{{telefoneEmpresa}}", dadosDunaContrato.telefone || "")
+    .replaceAll("{{emailEmpresa}}", dadosDunaContrato.email || "")
+    .replaceAll("{{enderecoEmpresa}}", dadosDunaContrato.endereco || "")
+    .replaceAll("{{responsavel}}", dadosDunaContrato.responsavel || "")
+    .replaceAll("{{cliente}}", dados.nome || "")
+    .replaceAll("{{codigo}}", dados.codigo || "")
+    .replaceAll("{{cpfCnpj}}", dados.cpfCnpj || "")
+    .replaceAll("{{telefone}}", dados.telefone || "")
+    .replaceAll("{{email}}", dados.email || "")
+    .replaceAll("{{valor}}", dados.valor || "")
+    .replaceAll("{{dataInicio}}", dados.dataInicio || "")
+    .replaceAll("{{dataVencimento}}", dados.dataVencimento || "")
+    .replaceAll("{{pontos}}", dados.pontos || "")
+    .replaceAll("{{emissao}}", dados.emissao || "");
+}
 
-  return data.toLocaleString("pt-BR");
+function obterDadosContratoCliente() {
+  return {
+    codigo: inputCodigo?.value || codigoClienteAtual || "-",
+    nome: inputNome?.value?.trim() || "-",
+    telefone: inputTelefone?.value?.trim() || "-",
+    email: inputEmail?.value?.trim() || "-",
+    cpfCnpj: inputCpfCnpj?.value?.trim() || "-",
+    valor: inputValorContratado?.value || "R$ 0,00",
+    dataInicio: formatarDataBR(inputDataPostagem?.value),
+    dataVencimento: formatarDataBR(inputVencimento?.value),
+    pontos: obterPontosContratoTexto(),
+    emissao: new Date().toLocaleDateString("pt-BR")
+  };
+}
+
+function gerarContratoCliente() {
+  if (!contratoPreview || !contratoStatus) return;
+
+  const dados = obterDadosContratoCliente();
+
+  let htmlClausulas = "";
+
+  if (clausulasContrato.length) {
+    htmlClausulas = clausulasContrato.map((clausula) => `
+      <p style="margin-bottom:10px;">
+        <strong>${escaparHtml(clausula.titulo || "")}:</strong>
+        ${escaparHtml(preencherMarcadoresContrato(clausula.texto || "", dados))}
+      </p>
+    `).join("");
+  } else {
+    htmlClausulas = `
+      <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+      <p><strong>CPF/CNPJ:</strong> ${escaparHtml(dados.cpfCnpj)}</p>
+      <p><strong>Telefone:</strong> ${escaparHtml(dados.telefone)}</p>
+      <p><strong>Email:</strong> ${escaparHtml(dados.email)}</p>
+      <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
+      <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
+      <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+    `;
+  }
+
+  contratoPreview.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:1rem;font-weight:700;color:#fff;">${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato")}</div>
+      <div style="font-size:0.82rem;color:#9fb0cb;margin-top:4px;">${escaparHtml(dadosDunaContrato.subtitulo_contrato || "")}</div>
+    </div>
+
+    <div style="margin-bottom:12px;color:#d5dbea;">
+      <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+      <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+    </div>
+
+    <div style="color:#d5dbea;">
+      ${htmlClausulas}
+    </div>
+  `;
+
+  contratoStatus.textContent = "Modelo carregado";
 }
 
 function obterTituloArquivo(item) {
@@ -302,18 +472,16 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         <label style="
           display:flex;
           align-items:center;
-          gap:8px;
-          padding:8px 10px;
+          gap:10px;
+          padding:10px 12px;
           border-radius:10px;
-          min-height:44px;
+          min-height:52px;
           cursor:pointer;
           border:1px solid ${checked ? "#8ce063" : "#6f8bff"};
           background:${checked ? "#76d34f" : "#4f6ff0"};
           color:#fff;
           overflow:hidden;
-          box-shadow:0 3px 10px rgba(0,0,0,0.14);
-        ">
-
+          box-shadow:0 4px 12px rgba(0,0,0,0.16);
         ">
           <input
             type="checkbox"
@@ -323,7 +491,6 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             style="
               width:16px;
               height:16px;
-              margin-top:4px;
               flex-shrink:0;
               accent-color:#ffffff;
               cursor:pointer;
@@ -338,14 +505,12 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             overflow:hidden;
           ">
             <span style="
-              font-size:0.95rem;
+              font-size:0.88rem;
               font-weight:700;
-              line-height:1.25;
-              display:-webkit-box;
-              -webkit-line-clamp:2;
-              -webkit-box-orient:vertical;
+              line-height:1.15;
+              white-space:nowrap;
               overflow:hidden;
-              word-break:break-word;
+              text-overflow:ellipsis;
             ">
               ${escaparHtml(nome)}
             </span>
@@ -364,7 +529,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     if (!cards.length) return "";
 
     return `
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
         <div style="
           font-size:0.92rem;
           font-weight:700;
@@ -377,7 +542,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         <div style="
           display:grid;
           grid-template-columns:repeat(2, minmax(0, 1fr));
-          gap:12px;
+          gap:8px;
         " class="grid-pontos-grupo">
           ${cards.join("")}
         </div>
@@ -386,7 +551,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   };
 
   listaPontos.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:16px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
       ${montarGrupo("selecionado", "#7CFC9A", cardsSelecionados)}
       ${montarGrupo("disponivel", "#6ea8ff", cardsDisponiveis)}
     </div>
@@ -496,7 +661,7 @@ async function deletarItemHistorico(ids, storagePath) {
 
     if (deleteError) throw deleteError;
 
-    await carregarHistoricoArquivos(obterCodigosDestinoSelecionados());
+    await carregarHistoricoArquivos();
     await sincronizarStatusCliente();
     await atualizarResumo();
 
@@ -640,9 +805,8 @@ async function carregarHistoricoArquivos() {
 
     if (error) throw error;
 
-    const itens = data || [];
-    renderizarHistoricoArquivos(itens);
-    return itens;
+    renderizarHistoricoArquivos(data || []);
+    return data || [];
   } catch (error) {
     console.error(error);
 
@@ -656,12 +820,14 @@ async function carregarHistoricoArquivos() {
   }
 }
 
-function gerarContratoCliente() {
+function gerarHistoricoContratoVisual() {
   if (!historicoContratos) return;
+
+  const dados = obterDadosContratoCliente();
 
   historicoContratos.innerHTML = `
     <div class="historico-vazio">
-      Área reservada para o histórico de contratos.
+      Contrato padrão carregado para ${escaparHtml(dados.nome)}.
     </div>
   `;
 }
@@ -692,6 +858,7 @@ async function carregarCliente() {
     atualizarStatusClienteVisual("Não ativo");
     renderizarPontosSelecionaveis([]);
     renderizarHistoricoArquivos([]);
+    gerarHistoricoContratoVisual();
     gerarContratoCliente();
     desativarBotaoSalvar();
 
@@ -729,6 +896,7 @@ async function carregarCliente() {
   await carregarHistoricoArquivos();
   await sincronizarStatusCliente();
   await atualizarResumo();
+  gerarHistoricoContratoVisual();
   gerarContratoCliente();
   desativarBotaoSalvar();
 
@@ -736,7 +904,7 @@ async function carregarCliente() {
 }
 
 async function salvarCliente() {
-  if (!validarCamposCliente()) return;
+  if (!validarCamposCliente()) return false;
 
   const payload = {
     codigo: codigoClienteAtual,
@@ -772,18 +940,26 @@ async function salvarCliente() {
         ponto_codigo: obterCodigoRealDoPonto(codigoVisual)
       }));
 
-      const { error: errorInsert } = await supabaseClient.from("cliente_pontos").insert(vinculos);
+      const { error: errorInsert } = await supabaseClient
+        .from("cliente_pontos")
+        .insert(vinculos);
+
       if (errorInsert) throw errorInsert;
     }
 
     await sincronizarStatusCliente();
     await atualizarResumo();
     await carregarHistoricoArquivos();
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
+    return true;
   } catch (error) {
     console.error(error);
     mostrarMensagem("Erro ao salvar cliente.", "#ff6b6b");
+    return false;
   }
 }
 
@@ -805,7 +981,8 @@ async function uploadArquivoCliente() {
   }
 
   try {
-    await salvarCliente();
+    const clienteSalvo = await salvarCliente();
+    if (!clienteSalvo) return;
 
     const dataFim = inputVencimento.value || null;
     const agoraIso = new Date().toISOString();
@@ -843,7 +1020,6 @@ async function uploadArquivoCliente() {
       if (uploadError) throw uploadError;
 
       const { data: publicData } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
-
       const tipoFinal = /\.(jpg|jpeg|png|webp)$/i.test(file.name) ? "imagem" : "video";
 
       const registros = codigosDestino.map((codigoReal, index) => ({
@@ -865,6 +1041,9 @@ async function uploadArquivoCliente() {
     await carregarHistoricoArquivos();
     await sincronizarStatusCliente();
     await atualizarResumo();
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+
     mostrarStatusUpload("Enviado com sucesso.", "#7CFC9A");
     arquivoInput.value = "";
   } catch (error) {
@@ -875,19 +1054,45 @@ async function uploadArquivoCliente() {
 
 if (listaPontos) {
   listaPontos.addEventListener("change", () => {
+    renderizarPontosSelecionaveis(obterPontosMarcados());
     ativarBotaoSalvar();
+    gerarContratoCliente();
   });
 }
 
-if (inputNome) inputNome.addEventListener("input", ativarBotaoSalvar);
-if (inputEmail) inputEmail.addEventListener("input", ativarBotaoSalvar);
-if (inputVencimento) inputVencimento.addEventListener("input", ativarBotaoSalvar);
-if (inputDataPostagem) inputDataPostagem.addEventListener("change", ativarBotaoSalvar);
+if (inputNome) {
+  inputNome.addEventListener("input", () => {
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
+}
+
+if (inputEmail) {
+  inputEmail.addEventListener("input", () => {
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
+}
+
+if (inputVencimento) {
+  inputVencimento.addEventListener("input", () => {
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
+}
+
+if (inputDataPostagem) {
+  inputDataPostagem.addEventListener("change", () => {
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
+}
 
 if (inputTelefone) {
   inputTelefone.addEventListener("input", (event) => {
     event.target.value = formatarTelefone(event.target.value);
     ativarBotaoSalvar();
+    gerarContratoCliente();
   });
 }
 
@@ -895,6 +1100,7 @@ if (inputCpfCnpj) {
   inputCpfCnpj.addEventListener("input", (event) => {
     event.target.value = formatarCpfCnpj(event.target.value);
     ativarBotaoSalvar();
+    gerarContratoCliente();
   });
 }
 
@@ -902,6 +1108,7 @@ if (inputValorContratado) {
   inputValorContratado.addEventListener("blur", (event) => {
     event.target.value = formatarMoedaBR(event.target.value);
     ativarBotaoSalvar();
+    gerarContratoCliente();
   });
 
   if (!inputValorContratado.value) {
@@ -939,7 +1146,10 @@ async function iniciar() {
     mostrarMensagem(`Carregando cliente ${codigoClienteAtual}...`, "#9fd2ff");
 
     await carregarPontos();
+    await carregarConfigContrato();
+    await carregarClausulasContrato();
     await carregarCliente();
+    gerarContratoCliente();
   } catch (error) {
     console.error("Erro ao iniciar pasta-cliente:", error);
     mostrarMensagem("Erro ao carregar dados da pasta do cliente.", "#ff6b6b");
