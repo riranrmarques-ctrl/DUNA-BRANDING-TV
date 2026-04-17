@@ -54,7 +54,6 @@ let dadosDunaContrato = {
   email: "",
   endereco: "",
   responsavel: "",
-  assinatura_url: "/assinatura.png",
   titulo_contrato: "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
   subtitulo_contrato: "Contrato de prestação de serviços de publicidade em telas digitais."
 };
@@ -272,7 +271,6 @@ async function carregarConfigContrato() {
         email: data.email || "",
         endereco: data.endereco || "",
         responsavel: data.responsavel || "",
-        assinatura_url: "/assinatura.png",
         titulo_contrato: data.titulo_contrato || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
         subtitulo_contrato: data.subtitulo_contrato || "Contrato de prestação de serviços de publicidade em telas digitais."
       };
@@ -365,16 +363,6 @@ function obterNomeDoPonto(ponto, codigo) {
 
 function obterCidadeDoPonto(ponto) {
   return String(ponto?.cidade || "").trim();
-}
-
-function obterCodigoExibicaoDoPonto(ponto, codigo) {
-  return String(
-    ponto?.codigo_ponto ||
-    ponto?.codigo ||
-    ponto?.codigo_visual ||
-    codigo ||
-    ""
-  ).trim();
 }
 
 function obterPontosContratoLista() {
@@ -479,7 +467,6 @@ function obterTemaStatus(tipo) {
 
 function montarCardPonto({
   codigo,
-  codigoExibicao,
   nome,
   tema,
   desabilitado = false,
@@ -1474,14 +1461,14 @@ function montarContratoProfissional(dados) {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
-        margin-top: 10px;
+        margin-top: 18px;
         align-items: end;
         break-inside: avoid;
         page-break-inside: avoid;
       }
 
       .contrato-pdf-assinatura {
-        min-height: 58px;
+        min-height: 86px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -1493,12 +1480,12 @@ function montarContratoProfissional(dados) {
 
       .contrato-pdf-assinatura img {
         display: block;
-        width: 320px;
-        max-width: 320px;
-        height: 92px;
+        width: 360px;
+        max-width: 94%;
+        height: 120px;
         object-fit: contain;
         object-position: center bottom;
-        margin: 0 auto -14px;
+        margin: 0 auto -18px;
         transform: none;
       }
 
