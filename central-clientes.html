@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Central Clientes</title>
+
+  <script>
+    if (sessionStorage.getItem("painelLiberado") !== "1") {
+      window.location.replace("/painel.html");
+    }
+  </script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -202,12 +209,6 @@
       }
     }
   </style>
-
-  <script>
-    if (sessionStorage.getItem("painelLiberado") !== "1") {
-      window.location.replace("/painel.html");
-    }
-  </script>
 </head>
 <body>
   <div class="container">
@@ -236,6 +237,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="central-clientes.js?v=6"></script>
+  <script src="central-clientes.js?v=7"></script>
 </body>
 </html>
