@@ -31,13 +31,14 @@ let clientesCarregados = [];
 let carregandoClientes = false;
 let timerBusca = null;
 let dragCodigo = null;
+let filtroAtual = "status";
 
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
 const botaoNovoCliente = document.getElementById("botaoNovoCliente");
 const botaoAtualizar = document.getElementById("botaoAtualizar");
 const buscaCliente = document.getElementById("buscaCliente");
-const filtroOrganizacao = document.getElementById("filtroOrganizacao");
+const botoesFiltro = document.querySelectorAll("[data-filtro]");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
 function verificarAcesso() {
@@ -139,6 +140,12 @@ function obterNomeCliente(cliente) {
   return String(cliente.nome_completo || "Novo Cliente").trim();
 }
 
+function atualizarBotoesFiltro() {
+  botoesFiltro.forEach((botao) => {
+    botao.classList.toggle("ativo", botao.dataset.filtro === filtroAtual);
+  });
+}
+
 function obterListaFiltrada() {
   const termo = (buscaCliente?.value || "").trim().toLowerCase();
 
@@ -164,10 +171,9 @@ function obterListaFiltrada() {
 }
 
 function ordenarClientes(lista) {
-  const tipo = filtroOrganizacao?.value || "status";
   const copia = [...lista];
 
-  if (tipo === "personalizado") {
+  if (filtroAtual === "personalizado") {
     const ordem = lerOrdemPersonalizada();
     const posicoes = new Map(ordem.map((codigo, index) => [normalizarCodigo(codigo), index]));
 
@@ -182,11 +188,11 @@ function ordenarClientes(lista) {
     });
   }
 
-  if (tipo === "nome") {
+  if (filtroAtual === "nome") {
     return copia.sort((a, b) => obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR"));
   }
 
-  if (tipo === "cidade") {
+  if (filtroAtual === "cidade") {
     return copia.sort((a, b) => {
       const cidadeA = String(a.cidade_ativa || "");
       const cidadeB = String(b.cidade_ativa || "");
@@ -237,8 +243,14 @@ function atualizarOrdemAposArrastar(codigoOrigem, codigoDestino) {
   salvarOrdemPersonalizada(novaOrdem);
 }
 
+function limparAlvosDrop() {
+  document.querySelectorAll(".cliente-card.alvo-drop").forEach((card) => {
+    card.classList.remove("alvo-drop");
+  });
+}
+
 function ativarArrasteCards() {
-  if (filtroOrganizacao?.value !== "personalizado") return;
+  if (filtroAtual !== "personalizado") return;
 
   document.querySelectorAll(".cliente-card").forEach((card) => {
     card.addEventListener("dragstart", () => {
@@ -249,10 +261,31 @@ function ativarArrasteCards() {
     card.addEventListener("dragend", () => {
       dragCodigo = null;
       card.classList.remove("arrastando");
+      limparAlvosDrop();
+    });
+
+    card.addEventListener("dragenter", (event) => {
+      event.preventDefault();
+
+      if (!dragCodigo || card.dataset.codigo === dragCodigo) return;
+
+      limparAlvosDrop();
+      card.classList.add("alvo-drop");
     });
 
     card.addEventListener("dragover", (event) => {
       event.preventDefault();
+
+      if (!dragCodigo || card.dataset.codigo === dragCodigo) return;
+
+      if (!card.classList.contains("alvo-drop")) {
+        limparAlvosDrop();
+        card.classList.add("alvo-drop");
+      }
+    });
+
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("alvo-drop");
     });
 
     card.addEventListener("drop", (event) => {
@@ -262,6 +295,7 @@ function ativarArrasteCards() {
       if (!dragCodigo || !destino || dragCodigo === destino) return;
 
       atualizarOrdemAposArrastar(dragCodigo, destino);
+      limparAlvosDrop();
       renderizarClientes();
     });
   });
@@ -270,8 +304,10 @@ function ativarArrasteCards() {
 function renderizarClientes() {
   if (!listaClientes) return;
 
+  atualizarBotoesFiltro();
+
   const filtrados = ordenarClientes(obterListaFiltrada());
-  const personalizado = filtroOrganizacao?.value === "personalizado";
+  const personalizado = filtroAtual === "personalizado";
 
   listaClientes.innerHTML = "";
 
@@ -555,10 +591,18 @@ function iniciarPagina() {
     });
   }
 
-  if (filtroOrganizacao) {
-    filtroOrganizacao.addEventListener("change", renderizarClientes);
-  }
+  botoesFiltro.forEach((botao) => {
+    botao.addEventListener("click", () => {
+      filtroAtual = botao.dataset.filtro || "status";
+      renderizarClientes();
 
+      if (filtroAtual === "personalizado") {
+        mostrarMensagem("Modo personalizado ativo: arraste os cards para organizar.", "#facc15");
+      }
+    });
+  });
+
+  atualizarBotoesFiltro();
   carregarClientes();
 }
 
