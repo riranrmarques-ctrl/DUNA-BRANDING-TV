@@ -1,830 +1,798 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>Duna TV | Área do Cliente</title>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contratos - DUNA AUDIOVISUAL</title>
   <style>
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --bg: #050917;
-      --panel: rgba(10, 18, 40, 0.92);
-      --panel-2: rgba(16, 28, 58, 0.88);
-      --line: rgba(255, 255, 255, 0.08);
-      --text: #ffffff;
-      --muted: #aebce0;
-      --green: #22c55e;
-      --red: #ef4444;
-      --blue: #4f7cff;
     }
 
     body {
-      min-height: 100vh;
       font-family: Arial, sans-serif;
-      color: var(--text);
       background:
-        radial-gradient(circle at top center, rgba(75, 114, 255, 0.2), transparent 36%),
-        linear-gradient(180deg, #07122a 0%, #050917 58%, #03050c 100%);
-      padding: 26px 18px 54px;
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 34%),
+        linear-gradient(180deg, #eef3fb 0%, #f8fafc 42%, #edf2f7 100%);
+      color: #182033;
+      min-height: 100vh;
     }
 
-    button,
-    input {
-      font-family: inherit;
-    }
-
-    .login-screen {
-      min-height: calc(100vh - 52px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .login-card {
-      width: min(100%, 440px);
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      padding: 34px 26px;
-      background: rgba(10, 18, 40, 0.94);
-      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
-      text-align: center;
-    }
-
-    .login-logo {
-      width: 118px;
-      height: auto;
-      margin: 0 auto 26px;
-      display: block;
-      object-fit: contain;
-      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.24));
-    }
-
-    .login-card h1 {
-      font-size: 2rem;
-      line-height: 1.05;
-      margin-bottom: 10px;
-    }
-
-    .login-card p {
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.4;
-      margin-bottom: 22px;
-    }
-
-    .login-card input {
-      width: 100%;
-      height: 52px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.06);
-      color: #fff;
-      padding: 0 16px;
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-align: center;
-      outline: none;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-    }
-
-    .login-card input::placeholder {
-      color: rgba(255, 255, 255, 0.38);
-      letter-spacing: 0;
-      text-transform: none;
-      font-weight: 600;
-    }
-
-    .login-card button {
-      width: 100%;
-      height: 52px;
-      border: none;
-      border-radius: 12px;
-      background: #ffffff;
-      color: #0b1226;
-      font-weight: 900;
-      cursor: pointer;
-      transition: 0.18s ease;
-    }
-
-    .login-card button:hover {
-      filter: brightness(0.94);
-      transform: translateY(-1px);
-    }
-
-    .login-erro {
-      min-height: 20px;
-      margin-top: 12px;
-      color: #fca5a5;
-      font-size: 0.86rem;
-      font-weight: 800;
-    }
-
-    .cliente-shell {
-      width: min(100%, 1180px);
+    .pagina {
+      max-width: 1320px;
       margin: 0 auto;
+      padding: 28px;
     }
 
-    .topo-cliente {
+    .topo {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 34px;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      background: linear-gradient(135deg, #0f172a 0%, #172554 58%, #1e3a8a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      padding: 22px 24px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
     }
 
-    .logo-cliente {
-      width: 118px;
-      height: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.25));
+    .topo-esquerda h1 {
+      font-size: 28px;
+      color: #ffffff;
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
     }
 
-    .btn-sair,
-    .btn-atualizar {
-      height: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      padding: 0 16px;
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      font-weight: 800;
-      cursor: pointer;
-      transition: 0.18s ease;
-    }
-
-    .btn-sair:hover,
-    .btn-atualizar:hover {
-      background: rgba(255, 255, 255, 0.14);
+    .topo-esquerda p {
+      color: #cbd5e1;
+      font-size: 14px;
     }
 
     .topo-acoes {
       display: flex;
-      align-items: center;
       gap: 10px;
-    }
-
-    .boas-vindas {
-      min-height: 250px;
-      border: 1px solid var(--line);
-      border-radius: 26px;
-      padding: 34px 28px;
-      background:
-        linear-gradient(135deg, rgba(21, 34, 72, 0.95), rgba(7, 13, 31, 0.94)),
-        var(--panel);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
-      display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: center;
-      text-align: center;
-      margin-bottom: 24px;
     }
 
-    .eyebrow {
-      color: #8ab0ff;
-      font-size: 0.78rem;
-      font-weight: 900;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    .boas-vindas h1 {
-      font-size: clamp(2.4rem, 6vw, 5rem);
-      line-height: 0.96;
-      letter-spacing: 0.01em;
-      margin-bottom: 16px;
-      max-width: 900px;
-    }
-
-    .boas-vindas p {
-      color: var(--muted);
-      font-size: clamp(1rem, 1.5vw, 1.22rem);
-      line-height: 1.45;
-      max-width: 760px;
-    }
-
-    .mensagem {
-      min-height: 26px;
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-size: 0.95rem;
-      font-weight: 700;
-    }
-
-    .mensagem.ok {
-      color: #86efac;
-    }
-
-    .mensagem.erro {
-      color: #fca5a5;
-    }
-
-    .cliente-layout {
-      display: grid;
-      grid-template-columns: 360px minmax(0, 1fr);
-      gap: 22px;
-      align-items: start;
-    }
-
-    .coluna-esquerda {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .pontos-cliente,
-    .detalhe-ponto,
-    .contrato-card {
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background: var(--panel);
-      box-shadow: 0 20px 54px rgba(0, 0, 0, 0.22);
-    }
-
-    .pontos-cliente {
-      padding: 18px;
-    }
-
-    .contrato-card {
-      padding: 18px;
-      background: rgba(255, 255, 255, 0.92);
-      color: #101827;
-    }
-
-    .contrato-card h2 {
-      font-size: 1.2rem;
-      line-height: 1.1;
-      margin-bottom: 8px;
-    }
-
-    .contrato-card p {
-      color: #4b5563;
-      font-size: 0.9rem;
-      line-height: 1.35;
-      margin-bottom: 14px;
-    }
-
-    .contrato-badge {
-      width: fit-content;
-      border-radius: 999px;
-      padding: 7px 11px;
-      background: rgba(34, 197, 94, 0.12);
-      color: #15803d;
-      font-size: 0.74rem;
-      font-weight: 900;
-      margin-bottom: 12px;
-    }
-
-    .contrato-badge.inativo {
-      background: rgba(239, 68, 68, 0.12);
-      color: #b91c1c;
-    }
-
-    .codigo-cliente {
-      width: fit-content;
-      border: none;
-      border-radius: 9px;
-      padding: 8px 12px;
-      background: #e8edf8;
-      color: #111827;
-      font-size: 0.78rem;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      cursor: pointer;
-    }
-
-    .secao-topo {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .secao-topo h2 {
-      font-size: 1.05rem;
-    }
-
-    .contador-pontos {
-      border-radius: 999px;
-      padding: 7px 10px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--muted);
-      font-size: 0.75rem;
-      font-weight: 900;
-    }
-
-    .lista-pontos {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .ponto-card {
-      width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 16px;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.045);
+    .btn-voltar {
+      background: rgba(255, 255, 255, 0.12);
       color: #fff;
-      display: grid;
-      grid-template-columns: 82px minmax(0, 1fr);
-      gap: 12px;
-      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+      padding: 12px 18px;
       cursor: pointer;
-      transition: 0.18s ease;
+      font-size: 14px;
+      transition: 0.2s;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
     }
 
-    .ponto-card:hover,
-    .ponto-card.ativo {
-      border-color: rgba(79, 124, 255, 0.55);
-      background: rgba(79, 124, 255, 0.12);
-      transform: translateY(-1px);
+    .btn-voltar:hover {
+      background: rgba(255, 255, 255, 0.18);
     }
 
-    .ponto-card img {
-      width: 82px;
-      height: 64px;
-      object-fit: cover;
-      border-radius: 11px;
-      background: rgba(255, 255, 255, 0.08);
+    .btn-editar {
+      background: #2563eb;
+      border-color: rgba(255, 255, 255, 0.22);
     }
 
-    .ponto-card h3 {
-      font-size: 0.95rem;
-      line-height: 1.15;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .btn-editar:hover {
+      background: #1d4ed8;
     }
 
-    .ponto-card p {
-      color: var(--muted);
-      font-size: 0.76rem;
-      line-height: 1.25;
-      margin-bottom: 7px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    .btn-salvar {
+      background: #16a34a;
     }
 
-    .status-mini {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 0.72rem;
-      font-weight: 900;
+    .btn-salvar:hover {
+      background: #15803d;
     }
 
-    .status-mini::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #94a3b8;
+    .btn-cancelar {
+      background: #64748b;
     }
 
-    .status-mini.ativo {
-      color: #86efac;
+    .btn-cancelar:hover {
+      background: #4b5563;
     }
 
-    .status-mini.ativo::before {
-      background: var(--green);
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
     }
 
-    .status-mini.inativo,
-    .status-mini.indisponivel {
-      color: #fca5a5;
+    .sidebar,
+    .conteudo {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 18px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+      backdrop-filter: blur(12px);
     }
 
-    .status-mini.inativo::before,
-    .status-mini.indisponivel::before {
-      background: var(--red);
-    }
-
-    .detalhe-ponto {
-      min-height: 620px;
+    .sidebar {
       padding: 20px;
     }
 
-    .estado-vazio {
-      min-height: 540px;
-      border: 1px dashed rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
+    .sidebar h2 {
+      font-size: 17px;
+      margin-bottom: 16px;
+      color: #0f172a;
+      letter-spacing: 0.2px;
+    }
+
+    .pasta {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      text-align: center;
-      padding: 30px;
-      line-height: 1.4;
-      font-weight: 700;
+      gap: 12px;
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+      text-align: left;
     }
 
-    .detalhe-cabecalho {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
-      align-items: start;
-      margin-bottom: 18px;
+    .pasta:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      transform: translateY(-1px);
     }
 
-    .detalhe-cabecalho h2 {
-      font-size: clamp(1.55rem, 3vw, 2.4rem);
-      line-height: 1.03;
-      margin-bottom: 6px;
+    .pasta.ativa {
+      background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+      border-color: #60a5fa;
+      box-shadow: 0 10px 22px rgba(37, 99, 235, 0.12);
     }
 
-    .detalhe-cabecalho p {
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.35;
+    .icone-pasta {
+      font-size: 24px;
+      line-height: 1;
     }
 
-    .status-grande {
-      border-radius: 999px;
-      padding: 10px 14px;
-      background: rgba(148, 163, 184, 0.13);
-      color: #dbeafe;
-      font-size: 0.78rem;
-      font-weight: 900;
-      white-space: nowrap;
+    .pasta-texto strong {
+      display: block;
+      font-size: 15px;
+      color: #0f172a;
+      margin-bottom: 4px;
     }
 
-    .status-grande.ativo {
-      background: rgba(34, 197, 94, 0.14);
-      color: #86efac;
+    .pasta-texto span {
+      display: block;
+      font-size: 13px;
+      color: #64748b;
     }
 
-    .status-grande.inativo,
-    .status-grande.indisponivel {
-      background: rgba(239, 68, 68, 0.14);
-      color: #fca5a5;
+    .conteudo {
+      padding: 24px;
     }
 
-    .preview-box {
+    .cabecalho-contrato {
+      border-bottom: 1px solid #dbe3ef;
+      padding-bottom: 18px;
       margin-bottom: 20px;
     }
 
-    .preview-topo {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+    .cabecalho-contrato h2 {
+      font-size: 26px;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .cabecalho-contrato p {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .contrato {
+      display: none;
+    }
+
+    .contrato.ativo {
+      display: block;
+    }
+
+    .bloco {
+      margin-bottom: 22px;
+    }
+
+    .bloco h3 {
+      font-size: 16px;
+      color: #0f172a;
+      margin-bottom: 10px;
+      padding: 8px 0 8px 12px;
+      border-left: 5px solid #2563eb;
+      background: linear-gradient(90deg, rgba(37, 99, 235, 0.08), transparent);
+      border-radius: 8px;
+    }
+
+    .linha-info {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 10px 18px;
       margin-bottom: 10px;
     }
 
-    .preview-topo h3,
-    .subsecao h3 {
-      font-size: 1rem;
-      color: #dce7ff;
+    .campo {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.70);
     }
 
-    .preview-nome {
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 800;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 340px;
-    }
-
-    .preview-midia {
-      width: 100%;
-      aspect-ratio: 16 / 8.2;
-      border-radius: 20px;
-      overflow: hidden;
-      background: #000;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .preview-midia img,
-    .preview-midia video,
-    .preview-midia iframe {
-      width: 100%;
-      height: 100%;
+    .campo strong {
+      color: #0f172a;
       display: block;
-      border: none;
-      object-fit: cover;
-      background: #000;
+      margin-bottom: 4px;
+      font-size: 13px;
     }
 
-    .preview-vazio {
-      width: 100%;
-      height: 100%;
-      min-height: 240px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      text-align: center;
-      padding: 24px;
-      font-weight: 700;
+    .campo span {
+      color: #475569;
+      display: block;
+      min-height: 18px;
+      outline: none;
     }
 
-    .subsecao {
-      margin-top: 20px;
+    .texto-contrato p {
+      font-size: 14.2px;
+      line-height: 1.75;
+      margin-bottom: 14px;
+      text-align: justify;
+      color: #334155;
+      outline: none;
     }
 
-    .tabela-materiais {
-      margin-top: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 18px;
-      overflow: hidden;
-      background: rgba(255, 255, 255, 0.025);
+    .texto-contrato p strong {
+      color: #172554;
     }
 
-    .linha-material,
-    .linha-material-head {
-      display: grid;
-      grid-template-columns: 44px minmax(0, 1fr) 150px 130px;
-      gap: 12px;
-      align-items: center;
+    .editando [data-edit-key] {
+      cursor: text;
+      border-radius: 6px;
+      outline: 2px dashed rgba(37, 99, 235, 0.35);
+      outline-offset: 3px;
+      background: rgba(37, 99, 235, 0.06);
+    }
+
+    .editando .texto-contrato [data-edit-key] {
+      padding: 6px;
+    }
+
+    .aviso-edicao {
+      display: none;
+      margin-bottom: 16px;
       padding: 12px 14px;
+      border-radius: 10px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 14px;
     }
 
-    .linha-material-head {
-      color: var(--muted);
-      font-size: 0.74rem;
-      font-weight: 900;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    .editando .aviso-edicao {
+      display: block;
     }
 
-    .linha-material {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+    .assinaturas {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 34px;
+      align-items: end;
+    }
+
+    .assinatura-box {
+      padding-top: 18px;
+      text-align: center;
+      min-height: 138px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: visible;
+    }
+
+    .assinatura-box-duna {
+      min-height: 148px;
+      padding-top: 0;
+      overflow: visible;
+    }
+
+    .assinatura-img {
+      display: block;
+      width: 360px;
+      max-width: 92%;
+      height: 120px;
+      object-fit: contain;
+      object-position: center bottom;
+      margin: 0 auto -34px;
+      transform: scale(1.45);
+      transform-origin: center bottom;
+      pointer-events: none;
+    }
+
+    .linha-assinatura {
+      border-top: 1.4px solid #0f172a;
+      padding-top: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: 0.2px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid #dbe3ef;
+    }
+
+    .btn-acao {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-primario {
+      background: #2563eb;
       color: #fff;
     }
 
-    .linha-material:last-child {
-      border-bottom: none;
+    .btn-primario:hover {
+      background: #1d4ed8;
     }
 
-    .linha-material strong {
-      display: block;
-      font-size: 0.92rem;
-      line-height: 1.2;
-      margin-bottom: 3px;
+    .btn-secundario {
+      background: #e2e8f0;
+      color: #0f172a;
     }
 
-    .linha-material small {
-      display: block;
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .btn-secundario:hover {
+      background: #d1d5db;
     }
 
-    .linha-material span {
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.25;
-    }
+    @media print {
+      body {
+        background: #ffffff !important;
+      }
 
-    .historico-lista {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 280px;
-      overflow: auto;
-      padding-right: 4px;
-    }
+      .topo,
+      .sidebar,
+      .acoes,
+      .aviso-edicao {
+        display: none !important;
+      }
 
-    .historico-item {
-      display: grid;
-      grid-template-columns: 34px minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.055);
-      border-radius: 14px;
-      padding: 11px 12px;
-      background: rgba(255, 255, 255, 0.025);
-    }
+      .pagina {
+        max-width: none;
+        padding: 0;
+      }
 
-    .historico-item span {
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 800;
-    }
+      .layout {
+        display: block;
+      }
 
-    .historico-evento {
-      color: #fff !important;
-      font-size: 0.86rem !important;
-    }
+      .conteudo {
+        box-shadow: none !important;
+        border-radius: 0;
+        border: none !important;
+        backdrop-filter: none !important;
+      }
 
-    .historico-evento.ativo {
-      color: #86efac !important;
-    }
+      .contrato {
+        display: none !important;
+      }
 
-    .historico-evento.inativo {
-      color: #fca5a5 !important;
-    }
+      .contrato.ativo {
+        display: block !important;
+      }
 
-    .vazio {
-      border: 1px dashed rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 18px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 0.9rem;
-      font-weight: 700;
+      .bloco h3 {
+        background: transparent !important;
+      }
+
+      .assinaturas {
+        margin-top: 32px;
+      }
+
+      .assinatura-box {
+        min-height: 138px;
+        overflow: visible;
+      }
+
+      .assinatura-box-duna {
+        min-height: 148px;
+        overflow: visible;
+      }
+
+      .assinatura-img {
+        width: 360px;
+        max-width: 92%;
+        height: 120px;
+        object-fit: contain;
+        object-position: center bottom;
+        margin: 0 auto -34px;
+        transform: scale(1.45);
+        transform-origin: center bottom;
+      }
     }
 
     @media (max-width: 980px) {
-      .cliente-layout {
+      .layout {
         grid-template-columns: 1fr;
-      }
-
-      .lista-pontos {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 680px) {
-      body {
-        padding: 18px 12px 44px;
+      .linha-info,
+      .assinaturas {
+        grid-template-columns: 1fr;
       }
 
-      .topo-cliente {
+      .conteudo,
+      .sidebar {
+        padding: 18px;
+      }
+
+      .topo {
         align-items: flex-start;
+        padding: 18px;
       }
 
       .topo-acoes {
-        flex-direction: column;
-        align-items: stretch;
+        width: 100%;
       }
 
-      .logo-cliente {
-        width: 96px;
+      .topo-acoes button {
+        flex: 1;
+        min-width: 120px;
       }
 
-      .boas-vindas {
-        padding: 24px 18px;
-        min-height: 230px;
-      }
-
-      .lista-pontos {
-        grid-template-columns: 1fr;
-      }
-
-      .detalhe-cabecalho {
-        grid-template-columns: 1fr;
-      }
-
-      .linha-material-head {
-        display: none;
-      }
-
-      .linha-material {
-        grid-template-columns: 34px minmax(0, 1fr);
-        gap: 8px;
-      }
-
-      .linha-material span:nth-child(3),
-      .linha-material span:nth-child(4) {
-        grid-column: 2 / 3;
-      }
-
-      .preview-topo {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .preview-nome {
-        max-width: 100%;
-      }
-
-      .historico-item {
-        grid-template-columns: 28px minmax(0, 1fr);
-      }
-
-      .historico-item span:last-child {
-        grid-column: 2 / 3;
+      .assinatura-img {
+        width: 300px;
+        height: 105px;
+        margin-bottom: -28px;
+        transform: scale(1.25);
       }
     }
   </style>
 </head>
-
 <body>
-  <section id="loginScreen" class="login-screen">
-    <div class="login-card">
-      <img src="logo.png" class="login-logo" alt="Duna TV">
-      <h1>Acesso do cliente</h1>
-      <p>Digite o código do cliente para abrir suas pastas contratadas, materiais e status dos pontos.</p>
-
-      <input id="codigoLogin" type="text" placeholder="Código do cliente" autocomplete="off">
-      <button id="btnEntrarCliente" type="button">Entrar</button>
-
-      <div id="loginErro" class="login-erro"></div>
-    </div>
-  </section>
-
-  <main id="areaCliente" class="cliente-shell" style="display:none;">
-    <header class="topo-cliente">
-      <img src="logo.png" class="logo-cliente" alt="Duna TV">
+  <div class="pagina">
+    <div class="topo">
+      <div class="topo-esquerda">
+        <h1>Central de Contratos</h1>
+        <p>Escolha uma pasta para visualizar o modelo padrão do contrato.</p>
+      </div>
 
       <div class="topo-acoes">
-        <button id="btnAtualizar" class="btn-atualizar" type="button">Atualizar</button>
-        <button id="btnSair" class="btn-sair" type="button">Sair</button>
+        <button id="btnEditarPagina" class="btn-voltar btn-editar" type="button">Editar</button>
+        <button id="btnSalvarPagina" class="btn-voltar btn-salvar" type="button" style="display:none;">Salvar</button>
+        <button id="btnCancelarPagina" class="btn-voltar btn-cancelar" type="button" style="display:none;">Cancelar</button>
+        <button class="btn-voltar" type="button" onclick="history.back()">Voltar</button>
       </div>
-    </header>
+    </div>
 
-    <section class="boas-vindas">
-      <div class="eyebrow">Área do cliente</div>
-      <h1 id="tituloBoasVindas">Seja bem-vindo(a)</h1>
-      <p id="subtituloCliente">Acompanhe seus pontos contratados, materiais em exibição, preview em tempo real e histórico de status.</p>
-    </section>
+    <div class="layout">
+      <aside class="sidebar">
+        <h2>Pastas</h2>
 
-    <p id="mensagemCliente" class="mensagem"></p>
-
-    <section class="cliente-layout">
-      <div class="coluna-esquerda">
-        <aside class="pontos-cliente">
-          <div class="secao-topo">
-            <h2>Pastas dos pontos</h2>
-            <span id="contadorPontos" class="contador-pontos">0 pontos</span>
+        <button class="pasta ativa" type="button" onclick="abrirContrato('contratante', this)">
+          <div class="icone-pasta">📁</div>
+          <div class="pasta-texto">
+            <strong>Contratante</strong>
+            <span>Cliente de telas</span>
           </div>
+        </button>
 
-          <div id="listaPontosCliente" class="lista-pontos"></div>
-        </aside>
+        <button class="pasta" type="button" onclick="abrirContrato('estabelecimento', this)">
+          <div class="icone-pasta">📁</div>
+          <div class="pasta-texto">
+            <strong>Estabelecimento</strong>
+            <span>Contrato com o local</span>
+          </div>
+        </button>
+      </aside>
 
-        <aside class="contrato-card">
-          <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
-          <h2>Espaço do contrato</h2>
-          <p id="contratoInfo">Carregando informações do contrato...</p>
-          <button id="codigoCliente" class="codigo-cliente" type="button" title="Clique para copiar"></button>
-        </aside>
-      </div>
-
-      <section class="detalhe-ponto">
-        <div id="estadoVazio" class="estado-vazio">
-          Selecione uma pasta de ponto para ver o preview em tempo real, materiais contratados e histórico de status.
+      <main id="conteudoContratos" class="conteudo">
+        <div class="aviso-edicao">
+          Modo edição ativo. Clique nos campos ou textos do contrato para alterar. Depois clique em Salvar.
         </div>
 
-        <div id="detalhePonto" style="display:none;">
-          <div class="detalhe-cabecalho">
-            <div>
-              <h2 id="nomePontoDetalhe"></h2>
-              <p id="localPontoDetalhe"></p>
-            </div>
-
-            <div id="statusPontoDetalhe" class="status-grande"></div>
+        <section id="contratante" class="contrato ativo">
+          <div class="cabecalho-contrato">
+            <h2 data-edit-key="contratante_titulo">Contrato Padrão - Contratante</h2>
+            <p data-edit-key="contratante_subtitulo">Modelo base para cliente anunciante nas telas.</p>
           </div>
 
-          <div class="preview-box">
-            <div class="preview-topo">
-              <h3>Preview em tempo real</h3>
-              <div id="previewNome" class="preview-nome"></div>
-            </div>
-
-            <div id="previewMidia" class="preview-midia"></div>
-          </div>
-
-          <div class="subsecao">
-            <h3>Materiais da playlist</h3>
-
-            <div class="tabela-materiais">
-              <div class="linha-material-head">
-                <span>#</span>
-                <span>Cliente / Arquivo</span>
-                <span>Postado</span>
-                <span>Encerramento</span>
-              </div>
-
-              <div id="listaMateriais"></div>
+          <div class="bloco">
+            <h3 data-edit-key="contratante_bloco_contratada">Dados da Contratada</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Empresa</strong><span data-edit-key="duna_empresa">DUNA AUDIOVISUAL</span></div>
+              <div class="campo"><strong>CNPJ</strong><span data-edit-key="duna_cnpj">[SEU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span data-edit-key="duna_telefone">[SEU TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span data-edit-key="duna_email">[SEU EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span data-edit-key="duna_endereco">[SEU ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span data-edit-key="duna_responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
             </div>
           </div>
 
-          <div class="subsecao">
-            <h3>Histórico de status do ponto</h3>
-            <div id="historicoStatusPonto" class="historico-lista"></div>
+          <div class="bloco">
+            <h3 data-edit-key="contratante_bloco_cliente">Dados do Contratante</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Nome</strong><span data-edit-key="contratante_nome">[NOME DO CLIENTE]</span></div>
+              <div class="campo"><strong>CPF/CNPJ</strong><span data-edit-key="contratante_cpf_cnpj">[CPF OU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span data-edit-key="contratante_telefone">[TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span data-edit-key="contratante_email">[EMAIL]</span></div>
+              <div class="campo"><strong>Valor</strong><span data-edit-key="contratante_valor">[VALOR DO CONTRATO]</span></div>
+              <div class="campo"><strong>Período</strong><span data-edit-key="contratante_periodo">[DATA DE INÍCIO] até [DATA DE VENCIMENTO]</span></div>
+              <div class="campo"><strong>Ambiente</strong><span data-edit-key="contratante_ambiente">[AMBIENTE / PONTO / LOCAL]</span></div>
+            </div>
           </div>
-        </div>
-      </section>
-    </section>
-  </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="cliente.js?v=2"></script>
+          <div class="bloco texto-contrato">
+            <h3 data-edit-key="contratante_bloco_termos">Termos do Contrato</h3>
+
+            <p data-edit-key="contratante_clausula_1"><strong>CLÁUSULA 1 - PARTES.</strong> Pelo presente instrumento, de um lado a CONTRATADA, responsável pela operação das telas digitais, e de outro lado a CONTRATANTE, identificada nos dados acima, resolvem firmar o presente contrato de prestação de serviços de veiculação publicitária.</p>
+
+            <p data-edit-key="contratante_clausula_2"><strong>CLÁUSULA 2 - OBJETO DO CONTRATO.</strong> O presente contrato tem por objeto a prestação de serviços de veiculação de publicidade em telas digitais instaladas em pontos estratégicos operados pela CONTRATADA.</p>
+
+            <p data-edit-key="contratante_clausula_3"><strong>CLÁUSULA 3 - ESPECIFICAÇÕES DO SERVIÇO.</strong> A veiculação ocorrerá nos pontos contratados informados neste documento, pelo período definido entre as partes, com exibição diária durante o horário de funcionamento dos locais. O anúncio terá duração de até 20 segundos, em sistema de exibição rotativa, com limite de anunciantes simultâneos de até 10 empresas por circuito ou tela, conforme disponibilidade operacional.</p>
+
+            <p data-edit-key="contratante_clausula_4"><strong>CLÁUSULA 4 - EXCLUSIVIDADE E CONCORRÊNCIA.</strong> A CONTRATADA compromete-se a não veicular anúncios de concorrentes diretos da CONTRATANTE nas mesmas telas durante a vigência do contrato, quando aplicável ao segmento informado e previamente validado entre as partes.</p>
+
+            <p data-edit-key="contratante_clausula_5"><strong>CLÁUSULA 5 - ENTREGA E RESPONSABILIDADE DO CONTEÚDO.</strong> O CONTRATANTE é integralmente responsável pelo conteúdo enviado, incluindo imagens, vídeos, textos, marcas, ofertas e demais elementos publicitários, garantindo possuir os direitos de uso e que o material não infringe normas legais, direitos de terceiros ou regras aplicáveis à publicidade.</p>
+
+            <p data-edit-key="contratante_clausula_6"><strong>CLÁUSULA 6 - RECUSA OU ADEQUAÇÃO DE MATERIAL.</strong> A CONTRATADA poderá recusar materiais que sejam ilegais, contenham conteúdo ofensivo, prejudiquem a imagem da empresa ou do local de exibição, ou não atendam aos padrões mínimos de qualidade técnica e profissional exigidos para veiculação, incluindo materiais considerados amadores. A CONTRATADA poderá orientar ajustes ou sugerir adequações, sem obrigação de edição, criação ou refação do material.</p>
+
+            <p data-edit-key="contratante_clausula_7"><strong>CLÁUSULA 7 - PRAZO E VIGÊNCIA.</strong> O contrato entra em vigor na data de início acordada entre as partes, permanecendo válido até o término estipulado no presente documento, podendo ser renovado mediante novo acordo.</p>
+
+            <p data-edit-key="contratante_clausula_8"><strong>CLÁUSULA 8 - VALOR E CONDIÇÕES DE PAGAMENTO.</strong> Pela prestação dos serviços, a CONTRATANTE pagará à CONTRATADA o valor total informado neste contrato, por meio de PIX ou outro meio acordado entre as partes, observando-se a data de vencimento ou condição de pagamento definida comercialmente.</p>
+
+            <p data-edit-key="contratante_clausula_9"><strong>CLÁUSULA 9 - INADIMPLÊNCIA.</strong> Nos casos em que houver acordo de pagamento parcelado, mensal ou com vencimento futuro, o não pagamento de qualquer parcela poderá resultar na suspensão da veiculação da publicidade após o prazo de 5 (cinco) dias úteis do vencimento, permanecendo suspensa até a regularização do pagamento.</p>
+
+            <p data-edit-key="contratante_clausula_10"><strong>CLÁUSULA 10 - GARANTIA DE VEICULAÇÃO.</strong> A CONTRATADA garante a exibição do anúncio conforme contratado. Em caso de falha técnica ou interrupção superior a 48 horas consecutivas, poderá ser concedida compensação proporcional no tempo de exibição ou extensão do período contratado, conforme avaliação da CONTRATADA.</p>
+
+            <p data-edit-key="contratante_clausula_11"><strong>CLÁUSULA 11 - CANCELAMENTO E RESCISÃO.</strong> O contrato poderá ser encerrado por qualquer uma das partes a qualquer momento. Em caso de cancelamento, será considerado apenas o período em que a publicidade foi efetivamente exibida, com ajuste proporcional ao tempo utilizado. Havendo valor pago antecipadamente, poderá ser devolvida a diferença proporcional; havendo valor pendente, será cobrado apenas o período já utilizado.</p>
+
+            <p data-edit-key="contratante_clausula_12"><strong>CLÁUSULA 12 - LIMITAÇÃO DE RESPONSABILIDADE.</strong> A CONTRATADA não se responsabiliza por resultados comerciais da campanha, variações de público, volume de vendas, desempenho financeiro da CONTRATANTE ou fatores externos como queda de energia, falhas de internet, problemas estruturais do local, limitações técnicas de terceiros ou eventos de força maior.</p>
+
+            <p data-edit-key="contratante_clausula_13"><strong>CLÁUSULA 13 - DISPOSIÇÕES GERAIS.</strong> Este contrato representa o acordo entre as partes quanto à veiculação de publicidade em telas digitais operadas pela CONTRATADA, obrigando ambas ao cumprimento das condições aqui estabelecidas.</p>
+
+            <p data-edit-key="contratante_clausula_14"><strong>CLÁUSULA 14 - FORO.</strong> Fica eleito o foro da comarca da sede da CONTRATADA para dirimir quaisquer dúvidas ou controvérsias oriundas deste contrato, com renúncia expressa de qualquer outro, por mais privilegiado que seja.</p>
+          </div>
+
+          <div class="assinaturas">
+            <div class="assinatura-box">
+              <div class="linha-assinatura" data-edit-key="contratante_assinatura_cliente">CONTRATANTE</div>
+            </div>
+            <div class="assinatura-box assinatura-box-duna">
+              <img src="assinatura.png" alt="Assinatura DUNA AUDIOVISUAL" class="assinatura-img">
+              <div class="linha-assinatura" data-edit-key="contratante_assinatura_duna">DUNA AUDIOVISUAL</div>
+            </div>
+          </div>
+
+          <div class="acoes">
+            <button class="btn-acao btn-primario" type="button" onclick="window.print()">Imprimir</button>
+            <button class="btn-acao btn-secundario" type="button" onclick="window.print()">Baixar PDF</button>
+          </div>
+        </section>
+
+        <section id="estabelecimento" class="contrato">
+          <div class="cabecalho-contrato">
+            <h2 data-edit-key="estabelecimento_titulo">Contrato Padrão - Estabelecimento</h2>
+            <p data-edit-key="estabelecimento_subtitulo">Modelo base para parceria com o local de instalação.</p>
+          </div>
+
+          <div class="bloco">
+            <h3 data-edit-key="estabelecimento_bloco_duna">Dados da DUNA AUDIOVISUAL</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Empresa</strong><span data-edit-key="duna_empresa">DUNA AUDIOVISUAL</span></div>
+              <div class="campo"><strong>CNPJ</strong><span data-edit-key="duna_cnpj">[SEU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span data-edit-key="duna_telefone">[SEU TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span data-edit-key="duna_email">[SEU EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span data-edit-key="duna_endereco">[SEU ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span data-edit-key="duna_responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+            </div>
+          </div>
+
+          <div class="bloco">
+            <h3 data-edit-key="estabelecimento_bloco_estabelecimento">Dados do Estabelecimento</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Nome do Estabelecimento</strong><span data-edit-key="estabelecimento_nome">[NOME DO ESTABELECIMENTO]</span></div>
+              <div class="campo"><strong>CPF/CNPJ</strong><span data-edit-key="estabelecimento_cpf_cnpj">[CPF OU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span data-edit-key="estabelecimento_telefone">[TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span data-edit-key="estabelecimento_email">[EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span data-edit-key="estabelecimento_endereco">[ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span data-edit-key="estabelecimento_responsavel">[NOME DO RESPONSÁVEL]</span></div>
+              <div class="campo"><strong>Ambiente</strong><span data-edit-key="estabelecimento_ambiente">[AMBIENTE / LOCAL DA INSTALAÇÃO]</span></div>
+            </div>
+          </div>
+
+          <div class="bloco texto-contrato">
+            <h3 data-edit-key="estabelecimento_bloco_termos">Termos do Contrato</h3>
+
+            <p data-edit-key="estabelecimento_clausula_1"><strong>CLÁUSULA 1 - OBJETO.</strong> O presente contrato tem por objeto a parceria entre a DUNA AUDIOVISUAL e o ESTABELECIMENTO para instalação, operação e manutenção de telas digitais destinadas à exibição de publicidade, conteúdos institucionais, campanhas informativas e materiais compatíveis com o ambiente comercial.</p>
+
+            <p data-edit-key="estabelecimento_clausula_2"><strong>CLÁUSULA 2 - AUTORIZAÇÃO DE USO DO ESPAÇO.</strong> O ESTABELECIMENTO autoriza a instalação e permanência dos equipamentos no ambiente definido entre as partes, comprometendo-se a permitir seu funcionamento regular durante os horários de operação do local.</p>
+
+            <p data-edit-key="estabelecimento_clausula_3"><strong>CLÁUSULA 3 - RESPONSABILIDADE DA DUNA AUDIOVISUAL.</strong> A instalação, configuração, gestão de conteúdo, atualização e manutenção operacional das telas ficarão sob responsabilidade da DUNA AUDIOVISUAL, salvo nos casos de danos causados por mau uso, terceiros, intervenções não autorizadas ou fatores externos fora de seu controle.</p>
+
+            <p data-edit-key="estabelecimento_clausula_4"><strong>CLÁUSULA 4 - RESPONSABILIDADE DO ESTABELECIMENTO.</strong> O ESTABELECIMENTO compromete-se a preservar os equipamentos instalados, zelar pelo bom funcionamento da estrutura, não alterar configurações sem autorização e comunicar à DUNA AUDIOVISUAL qualquer falha, dano, desligamento ou irregularidade percebida.</p>
+
+            <p data-edit-key="estabelecimento_clausula_5"><strong>CLÁUSULA 5 - ACESSO TÉCNICO.</strong> O ESTABELECIMENTO permitirá o acesso da equipe técnica da DUNA AUDIOVISUAL, mediante alinhamento prévio sempre que possível, para manutenção, substituição, atualização, vistoria ou retirada dos equipamentos.</p>
+
+            <p data-edit-key="estabelecimento_clausula_6"><strong>CLÁUSULA 6 - FINALIDADE DA EXIBIÇÃO.</strong> As telas serão utilizadas para veiculação de publicidade, campanhas comerciais, informações institucionais e demais conteúdos definidos pela DUNA AUDIOVISUAL, respeitando o perfil do ambiente e as condições acordadas entre as partes.</p>
+
+            <p data-edit-key="estabelecimento_clausula_7"><strong>CLÁUSULA 7 - PRAZO DA PARCERIA.</strong> A parceria terá vigência conforme ajuste entre as partes, podendo ser renovada, alterada ou encerrada mediante comunicação prévia, observadas as condições comerciais e operacionais aplicáveis.</p>
+
+            <p data-edit-key="estabelecimento_clausula_8"><strong>CLÁUSULA 8 - INTERRUPÇÕES E MANUTENÇÕES.</strong> Eventuais interrupções causadas por falta de energia, internet, manutenção do local, reformas, restrições de acesso, eventos internos ou outros fatores relacionados ao ESTABELECIMENTO deverão ser comunicadas à DUNA AUDIOVISUAL para avaliação e providências cabíveis.</p>
+
+            <p data-edit-key="estabelecimento_clausula_9"><strong>CLÁUSULA 9 - CANCELAMENTO OU RESCISÃO.</strong> O encerramento da parceria poderá ocorrer por iniciativa de qualquer das partes, mediante comunicação prévia, sendo necessária a retirada dos equipamentos e a regularização de eventuais pendências administrativas ou operacionais.</p>
+
+            <p data-edit-key="estabelecimento_clausula_10"><strong>CLÁUSULA 10 - DISPOSIÇÕES GERAIS.</strong> Este contrato formaliza a parceria operacional de mídia indoor entre as partes, obrigando ambas ao cumprimento das responsabilidades aqui previstas.</p>
+
+            <p data-edit-key="estabelecimento_clausula_11"><strong>CLÁUSULA 11 - FORO.</strong> Fica eleito o foro da comarca da sede da DUNA AUDIOVISUAL para dirimir quaisquer dúvidas ou controvérsias oriundas deste instrumento, com renúncia expressa de qualquer outro, por mais privilegiado que seja.</p>
+          </div>
+
+          <div class="assinaturas">
+            <div class="assinatura-box">
+              <div class="linha-assinatura" data-edit-key="estabelecimento_assinatura_cliente">ESTABELECIMENTO</div>
+            </div>
+            <div class="assinatura-box assinatura-box-duna">
+              <img src="assinatura.png" alt="Assinatura DUNA AUDIOVISUAL" class="assinatura-img">
+              <div class="linha-assinatura" data-edit-key="estabelecimento_assinatura_duna">DUNA AUDIOVISUAL</div>
+            </div>
+          </div>
+
+          <div class="acoes">
+            <button class="btn-acao btn-primario" type="button" onclick="window.print()">Imprimir</button>
+            <button class="btn-acao btn-secundario" type="button" onclick="window.print()">Baixar PDF</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_PREFIX = "duna_contrato_modelo_";
+    const btnEditarPagina = document.getElementById("btnEditarPagina");
+    const btnSalvarPagina = document.getElementById("btnSalvarPagina");
+    const btnCancelarPagina = document.getElementById("btnCancelarPagina");
+
+    let backupEdicao = {};
+
+    function abrirContrato(id, botao) {
+      document.querySelectorAll(".contrato").forEach(function(contrato) {
+        contrato.classList.remove("ativo");
+      });
+
+      document.querySelectorAll(".pasta").forEach(function(item) {
+        item.classList.remove("ativa");
+      });
+
+      document.getElementById(id).classList.add("ativo");
+      botao.classList.add("ativa");
+    }
+
+    function obterElementosEditaveis() {
+      return Array.from(document.querySelectorAll("[data-edit-key]"));
+    }
+
+    function aplicarValorEmChave(chave, valor) {
+      document.querySelectorAll('[data-edit-key="' + chave + '"]').forEach(function(elemento) {
+        elemento.innerHTML = valor;
+      });
+    }
+
+    function carregarEdicoesSalvas() {
+      obterElementosEditaveis().forEach(function(elemento) {
+        const chave = elemento.dataset.editKey;
+        const salvo = localStorage.getItem(STORAGE_PREFIX + chave);
+
+        if (salvo !== null) {
+          elemento.innerHTML = salvo;
+        }
+      });
+    }
+
+    function criarBackupEdicao() {
+      backupEdicao = {};
+
+      obterElementosEditaveis().forEach(function(elemento) {
+        const chave = elemento.dataset.editKey;
+
+        if (!(chave in backupEdicao)) {
+          backupEdicao[chave] = elemento.innerHTML;
+        }
+      });
+    }
+
+    function entrarModoEdicao() {
+      criarBackupEdicao();
+
+      document.body.classList.add("editando");
+
+      obterElementosEditaveis().forEach(function(elemento) {
+        elemento.setAttribute("contenteditable", "true");
+      });
+
+      btnEditarPagina.style.display = "inline-block";
+      btnEditarPagina.style.display = "none";
+      btnSalvarPagina.style.display = "inline-block";
+      btnCancelarPagina.style.display = "inline-block";
+    }
+
+    function sairModoEdicao() {
+      document.body.classList.remove("editando");
+
+      obterElementosEditaveis().forEach(function(elemento) {
+        elemento.removeAttribute("contenteditable");
+      });
+
+      btnEditarPagina.style.display = "inline-block";
+      btnSalvarPagina.style.display = "none";
+      btnCancelarPagina.style.display = "none";
+    }
+
+    function salvarEdicoes() {
+      const valoresPorChave = {};
+
+      obterElementosEditaveis().forEach(function(elemento) {
+        const chave = elemento.dataset.editKey;
+
+        if (!(chave in valoresPorChave)) {
+          valoresPorChave[chave] = elemento.innerHTML.trim();
+        }
+      });
+
+      Object.keys(valoresPorChave).forEach(function(chave) {
+        localStorage.setItem(STORAGE_PREFIX + chave, valoresPorChave[chave]);
+        aplicarValorEmChave(chave, valoresPorChave[chave]);
+      });
+
+      sairModoEdicao();
+    }
+
+    function cancelarEdicoes() {
+      Object.keys(backupEdicao).forEach(function(chave) {
+        aplicarValorEmChave(chave, backupEdicao[chave]);
+      });
+
+      sairModoEdicao();
+    }
+
+    if (btnEditarPagina) {
+      btnEditarPagina.addEventListener("click", entrarModoEdicao);
+    }
+
+    if (btnSalvarPagina) {
+      btnSalvarPagina.addEventListener("click", salvarEdicoes);
+    }
+
+    if (btnCancelarPagina) {
+      btnCancelarPagina.addEventListener("click", cancelarEdicoes);
+    }
+
+    carregarEdicoesSalvas();
+  </script>
 </body>
 </html>
