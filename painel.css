@@ -1458,3 +1458,47 @@ body {
   background: #ef4444 !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
 }
+
+.toggle-ponto,
+#btnToggleDisponibilidade {
+  min-width: 112px !important;
+  height: 32px !important;
+  padding: 0 8px !important;
+  gap: 7px !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+}
+
+.toggle-ponto .toggle-texto,
+#btnToggleDisponibilidade .toggle-texto {
+  display: inline-block !important;
+  min-width: 76px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-align: left !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+}
+
+.toggle-ponto .toggle-bolinha,
+#btnToggleDisponibilidade .toggle-bolinha {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+}
+
+.card-ponto.card-indisponivel {
+  opacity: 0.58 !important;
+  filter: grayscale(0.75) saturate(0.75) brightness(0.94) !important;
+  cursor: pointer !important;
+  transition: opacity 0.22s ease, filter 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease !important;
+}
+
+.card-ponto.card-indisponivel:hover {
+  opacity: 1 !important;
+  filter: grayscale(0.15) saturate(1.08) brightness(1.04) !important;
+  transform: translateY(-4px) !important;
+  box-shadow:
+    0 22px 46px rgba(0, 0, 0, 0.32),
+    0 0 0 2px rgba(239, 68, 68, 0.16) !important;
+}
