@@ -175,11 +175,19 @@ function eventoEhInativo(evento) {
   return valor === "inativo" || valor === "desconectou" || valor === "offline";
 }
 
+function obterTextoEvento(evento) {
+  if (eventoEhAtivo(evento)) return "Ativado";
+  if (eventoEhInativo(evento)) return "Inativo";
+  if (evento === "conectou") return "Ativado";
+  if (evento === "desconectou") return "Inativo";
+  return evento || "Registro";
+}
+
 function calcularStatusPonto(ponto, historico = []) {
   if (!pontoEstaDisponivel(ponto)) {
     return {
       texto: "Indisponível",
-      detalhe: "Ponto indisponível",
+      detalhe: "desde sem histórico",
       classe: "indisponivel"
     };
   }
@@ -191,7 +199,7 @@ function calcularStatusPonto(ponto, historico = []) {
   if (!dataReferencia) {
     return {
       texto: "Inativo",
-      detalhe: "Inativo desde sem histórico",
+      detalhe: "desde sem histórico",
       classe: "inativo"
     };
   }
@@ -201,7 +209,7 @@ function calcularStatusPonto(ponto, historico = []) {
   if (Number.isNaN(data.getTime())) {
     return {
       texto: "Inativo",
-      detalhe: "Inativo desde sem histórico",
+      detalhe: "desde sem histórico",
       classe: "inativo"
     };
   }
@@ -209,7 +217,7 @@ function calcularStatusPonto(ponto, historico = []) {
   if (ultimoEvento && eventoEhAtivo(ultimoEvento.evento)) {
     return {
       texto: "Ativo",
-      detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`,
+      detalhe: `desde ${formatarDataHora(dataReferencia)}`,
       classe: "ativo"
     };
   }
@@ -217,7 +225,7 @@ function calcularStatusPonto(ponto, historico = []) {
   if (ultimoEvento && eventoEhInativo(ultimoEvento.evento)) {
     return {
       texto: "Inativo",
-      detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`,
+      detalhe: `desde ${formatarDataHora(dataReferencia)}`,
       classe: "inativo"
     };
   }
@@ -227,14 +235,14 @@ function calcularStatusPonto(ponto, historico = []) {
   if (diff < 5 * 60 * 1000) {
     return {
       texto: "Ativo",
-      detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`,
+      detalhe: `desde ${formatarDataHora(dataReferencia)}`,
       classe: "ativo"
     };
   }
 
   return {
     texto: "Inativo",
-    detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`,
+    detalhe: `desde ${formatarDataHora(dataReferencia)}`,
     classe: "inativo"
   };
 }
@@ -479,10 +487,30 @@ function montarCardPonto(ponto) {
       <div>
         <h3>${escapeHtml(obterNomePonto(ponto))}</h3>
         <p>${escapeHtml(obterLocalizacaoPonto(ponto))}</p>
-        <span class="status-mini ${status.classe}">${escapeHtml(status.detalhe)}</span>
+        <span class="status-mini ${status.classe}">${escapeHtml(status.texto)} ${escapeHtml(status.detalhe)}</span>
       </div>
     </button>
   `;
+}
+
+function ordenarPontosPorStatus(pontos) {
+  return [...pontos]
+    .map((ponto, index) => {
+      const codigo = normalizarCodigo(ponto.codigo);
+      const historico = historicosPorPonto[codigo] || [];
+      const status = calcularStatusPonto(ponto, historico);
+
+      return {
+        ponto,
+        index,
+        prioridade: status.classe === "ativo" ? 0 : 1
+      };
+    })
+    .sort((a, b) => {
+      if (a.prioridade !== b.prioridade) return a.prioridade - b.prioridade;
+      return a.index - b.index;
+    })
+    .map((item) => item.ponto);
 }
 
 function renderizarListaPontos() {
@@ -498,7 +526,8 @@ function renderizarListaPontos() {
     return;
   }
 
-  listaPontosCliente.innerHTML = pontosContratados.map(montarCardPonto).join("");
+  const pontosOrdenados = ordenarPontosPorStatus(pontosContratados);
+  listaPontosCliente.innerHTML = pontosOrdenados.map(montarCardPonto).join("");
 
   document.querySelectorAll(".ponto-card").forEach((card) => {
     card.onclick = () => {
@@ -653,14 +682,6 @@ function renderizarMateriais(lista) {
   }).join("");
 }
 
-function obterTextoEvento(evento) {
-  if (eventoEhAtivo(evento)) return "Ativo";
-  if (eventoEhInativo(evento)) return "Inativo";
-  if (evento === "conectou") return "Ativo";
-  if (evento === "desconectou") return "Inativo";
-  return evento || "Registro";
-}
-
 function renderizarHistorico(historico) {
   if (!historicoStatusPonto) return;
 
@@ -681,14 +702,14 @@ function renderizarHistorico(historico) {
   }
 
   historicoStatusPonto.innerHTML = historico72h.map((item, index) => {
-    const texto = obterTextoEvento(item.evento);
+    const evento = obterTextoEvento(item.evento);
+    const data = formatarDataHora(obterDataHistorico(item));
+    const texto = evento === "Ativado" ? `Ativado desde ${data}` : `Inativo desde ${data}`;
     const classeMaisRecente = index === 0 ? "mais-recente" : "";
 
     return `
       <div class="historico-item ${classeMaisRecente}">
-        <span>${index + 1}.</span>
         <span class="historico-evento">${escapeHtml(texto)}</span>
-        <span>${formatarDataHora(obterDataHistorico(item))}</span>
       </div>
     `;
   }).join("");
@@ -709,8 +730,11 @@ function renderizarDetalheBase(ponto, historico) {
   }
 
   if (statusPontoDetalhe) {
-    statusPontoDetalhe.textContent = status.detalhe;
     statusPontoDetalhe.className = `status-grande ${status.classe}`;
+    statusPontoDetalhe.innerHTML = `
+      <strong>${escapeHtml(status.texto)}</strong>
+      <small>${escapeHtml(status.detalhe)}</small>
+    `;
   }
 }
 
@@ -917,7 +941,8 @@ async function carregarAreaCliente(codigo) {
     renderizarListaPontos();
 
     if (pontosContratados.length) {
-      await abrirPonto(pontosContratados[0].codigo);
+      const primeiroAtivo = ordenarPontosPorStatus(pontosContratados)[0];
+      await abrirPonto(primeiroAtivo.codigo);
     } else {
       if (estadoVazio) {
         estadoVazio.style.display = "flex";
