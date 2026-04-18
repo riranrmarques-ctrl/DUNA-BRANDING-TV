@@ -48,7 +48,6 @@
       font-weight: 800;
     }
 
-
     .topo-esquerda p {
       color: #bfc7d5;
       font-size: clamp(1.2rem, 1.9vw, 1.65rem);
@@ -248,7 +247,7 @@
 
     .cliente-topo {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 18px;
@@ -265,6 +264,15 @@
       border: 1px solid #2a3040;
       color: #9fd2ff;
       cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .cliente-selos {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .cliente-status {
@@ -289,6 +297,24 @@
       color: #ffb0b0;
       background: #633030;
       border: 1px solid #9a4848;
+    }
+
+    .cliente-tipo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .cliente-tipo.supervisor {
+      color: #bfdbfe;
+      background: rgba(59, 130, 246, 0.18);
+      border: 1px solid rgba(96, 165, 250, 0.45);
     }
 
     .cliente-card h3 {
@@ -380,6 +406,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="central-clientes.js?v=520"></script>
+  <script src="central-clientes.js?v=530"></script>
 </body>
 </html>
