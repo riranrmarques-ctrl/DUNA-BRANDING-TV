@@ -38,10 +38,12 @@ const historicoArquivos = document.getElementById("historicoArquivos");
 const contratoPreview = document.getElementById("contratoPreview");
 const contratoStatus = document.getElementById("contratoStatus");
 const btnBaixarContrato = document.getElementById("btnBaixarContrato");
+const btnToggleContrato = document.getElementById("btnToggleContrato");
 
 let pontosData = {};
 let codigoClienteAtual = "";
 let clausulasContrato = [];
+let contratoAtivo = true;
 
 let dadosDunaContrato = {
   empresa: "Duna Branding",
@@ -201,6 +203,55 @@ function ativarBotaoSalvar() {
   botaoSalvar.style.cursor = "pointer";
 }
 
+function atualizarVisualContratoAtivo() {
+  if (!btnToggleContrato) return;
+
+  const texto = btnToggleContrato.querySelector(".toggle-texto");
+
+  btnToggleContrato.classList.toggle("ativo", contratoAtivo);
+  btnToggleContrato.setAttribute("aria-pressed", contratoAtivo ? "true" : "false");
+
+  if (texto) {
+    texto.textContent = contratoAtivo ? "Ativado" : "Desativado";
+  }
+
+  if (btnBaixarContrato) {
+    btnBaixarContrato.disabled = !contratoAtivo;
+    btnBaixarContrato.style.opacity = contratoAtivo ? "1" : "0.45";
+    btnBaixarContrato.style.cursor = contratoAtivo ? "pointer" : "not-allowed";
+  }
+
+  if (!contratoAtivo && contratoStatus) {
+    contratoStatus.textContent = "Desativado";
+  }
+}
+
+async function alternarContratoAtivo() {
+  contratoAtivo = !contratoAtivo;
+  atualizarVisualContratoAtivo();
+  gerarContratoCliente();
+
+  try {
+    const { error } = await supabaseClient
+      .from("clientes_app")
+      .update({ contrato_ativo: contratoAtivo })
+      .eq("codigo", codigoClienteAtual);
+
+    if (error) throw error;
+
+    mostrarMensagem(
+      contratoAtivo ? "Contrato ativado para este cliente." : "Contrato desativado para este cliente.",
+      contratoAtivo ? "#7CFC9A" : "#ffb86b"
+    );
+  } catch (error) {
+    console.error(error);
+    contratoAtivo = !contratoAtivo;
+    atualizarVisualContratoAtivo();
+    gerarContratoCliente();
+    mostrarMensagem("Erro ao atualizar status do contrato.", "#ff6b6b");
+  }
+}
+
 async function carregarPontos() {
   const { data, error } = await supabaseClient.from("pontos").select("*");
   if (error) throw error;
@@ -334,6 +385,21 @@ function obterDadosContratoCliente() {
 function gerarContratoCliente() {
   if (!contratoPreview || !contratoStatus) return;
 
+  if (!contratoAtivo) {
+    contratoPreview.innerHTML = `
+      <div style="color:#ffb86b;font-weight:700;">
+        Contrato desativado para este cliente.
+      </div>
+      <div style="color:#c6cedd;margin-top:8px;">
+        Ative o contrato para visualizar ou baixar.
+      </div>
+    `;
+
+    contratoStatus.textContent = "Desativado";
+    atualizarVisualContratoAtivo();
+    return;
+  }
+
   const dados = obterDadosContratoCliente();
 
   const htmlClausulas = clausulasContrato.length
@@ -370,6 +436,7 @@ function gerarContratoCliente() {
   `;
 
   contratoStatus.textContent = "Modelo carregado";
+  atualizarVisualContratoAtivo();
 }
 
 function montarHtmlContratoCompleto() {
@@ -468,10 +535,6 @@ function montarHtmlContratoCompleto() {
           justify-content: flex-end;
         }
 
-        .assinatura-box-duna {
-          position: relative;
-        }
-
         .assinatura-img {
           display: block;
           width: 400px;
@@ -480,7 +543,6 @@ function montarHtmlContratoCompleto() {
           object-fit: contain;
           object-position: center bottom;
           margin: 0 auto 20px;
-          transform: none;
           pointer-events: none;
         }
 
@@ -504,7 +566,6 @@ function montarHtmlContratoCompleto() {
             max-width: 260px;
             height: 80px;
             margin: 0 auto -12px;
-            transform: none;
           }
         }
       </style>
@@ -551,7 +612,7 @@ function montarHtmlContratoCompleto() {
           <div class="linha-assinatura">CONTRATANTE</div>
         </div>
 
-        <div class="assinatura-box assinatura-box-duna">
+        <div class="assinatura-box">
           <img src="${escaparHtml(assinaturaUrl)}" alt="Assinatura Duna Branding" class="assinatura-img">
           <div class="linha-assinatura">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
         </div>
@@ -562,6 +623,11 @@ function montarHtmlContratoCompleto() {
 }
 
 function baixarContratoCliente() {
+  if (!contratoAtivo) {
+    mostrarMensagem("Contrato desativado para este cliente.", "#ffb86b");
+    return;
+  }
+
   const dados = obterDadosContratoCliente();
 
   const nomeSeguro = String(dados.nome || "cliente")
@@ -1016,7 +1082,10 @@ async function carregarHistoricoArquivos() {
 function gerarHistoricoContratoVisual() {
   if (!historicoContratos) return;
   const dados = obterDadosContratoCliente();
-  historicoContratos.innerHTML = `<div class="historico-vazio">Contrato padrão carregado para ${escaparHtml(dados.nome)}.</div>`;
+
+  historicoContratos.innerHTML = contratoAtivo
+    ? `<div class="historico-vazio">Contrato padrão carregado para ${escaparHtml(dados.nome)}.</div>`
+    : `<div class="historico-vazio">Contrato desativado para ${escaparHtml(dados.nome)}.</div>`;
 }
 
 async function carregarCliente() {
@@ -1042,6 +1111,8 @@ async function carregarCliente() {
     if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(0);
     if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
 
+    contratoAtivo = true;
+    atualizarVisualContratoAtivo();
     atualizarStatusClienteVisual("Não ativo");
     renderizarPontosSelecionaveis([]);
     renderizarHistoricoArquivos([]);
@@ -1060,6 +1131,9 @@ async function carregarCliente() {
   if (inputVencimento) inputVencimento.value = data.vencimento_exibicao || "";
   if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? 0);
   if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
+
+  contratoAtivo = data.contrato_ativo !== false;
+  atualizarVisualContratoAtivo();
 
   let selecionados = [];
 
@@ -1101,6 +1175,7 @@ async function salvarCliente() {
     vencimento_exibicao: inputVencimento.value || null,
     valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
     data_postagem: inputDataPostagem.value || null,
+    contrato_ativo: contratoAtivo,
     status: await calcularStatusClienteRealPorCodigoCliente()
   };
 
@@ -1282,6 +1357,7 @@ if (botaoSalvar) botaoSalvar.addEventListener("click", salvarCliente);
 if (botaoVoltar) botaoVoltar.addEventListener("click", () => { window.location.href = "/central-clientes.html"; });
 if (btnUploadCliente) btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 if (btnBaixarContrato) btnBaixarContrato.addEventListener("click", baixarContratoCliente);
+if (btnToggleContrato) btnToggleContrato.addEventListener("click", alternarContratoAtivo);
 
 async function iniciar() {
   try {
@@ -1296,6 +1372,8 @@ async function iniciar() {
     if (inputCodigo) inputCodigo.value = codigoClienteAtual;
 
     mostrarMensagem(`Carregando cliente ${codigoClienteAtual}...`, "#9fd2ff");
+
+    atualizarVisualContratoAtivo();
 
     await carregarPontos();
     await carregarConfigContrato();
