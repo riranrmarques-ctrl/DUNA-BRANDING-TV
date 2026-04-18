@@ -1502,3 +1502,68 @@ body {
     0 22px 46px rgba(0, 0, 0, 0.32),
     0 0 0 2px rgba(239, 68, 68, 0.16) !important;
 }
+
+.topo-centro p {
+  font-size: clamp(1.18rem, 1.85vw, 1.55rem) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+  color: rgba(226, 234, 255, 0.86) !important;
+}
+
+.playlist-header-textos h2,
+#tituloPasta {
+  font-size: clamp(1.45rem, 2.6vw, 2rem) !important;
+  line-height: 1.05 !important;
+  margin: 0 0 4px !important;
+  max-width: 520px !important;
+}
+
+.playlist-info-extra {
+  margin: 0 0 8px !important;
+  gap: 4px !important;
+}
+
+.playlist-info-item {
+  font-size: 0.95rem !important;
+  line-height: 1.18 !important;
+}
+
+.playlist-codigo-linha {
+  margin-top: 8px !important;
+  margin-bottom: 10px !important;
+  gap: 10px !important;
+}
+
+.toggle-ponto,
+#btnToggleDisponibilidade {
+  min-width: 132px !important;
+  width: 132px !important;
+  height: 34px !important;
+  padding: 0 10px !important;
+  gap: 8px !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+  flex-shrink: 0 !important;
+}
+
+.toggle-ponto .toggle-texto,
+#btnToggleDisponibilidade .toggle-texto {
+  display: inline-block !important;
+  width: 88px !important;
+  min-width: 88px !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-align: left !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.toggle-ponto .toggle-bolinha,
+#btnToggleDisponibilidade .toggle-bolinha {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  flex-shrink: 0 !important;
+}
