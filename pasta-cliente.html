@@ -54,6 +54,7 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .botao {
@@ -82,6 +83,9 @@
     .botao-excluir-cliente {
       background: #d9534f;
       font-weight: bold;
+      padding: 9px 14px;
+      font-size: 0.86rem;
+      border-radius: 10px;
     }
 
     .botao-excluir-cliente:hover {
@@ -212,6 +216,12 @@
 
     .upload-acoes .botao {
       width: fit-content;
+    }
+
+    .botao-upload-cheio {
+      width: 100% !important;
+      border-radius: 10px;
+      padding: 13px 18px;
     }
 
     .status-upload {
@@ -438,8 +448,8 @@
                 color:#d5dbea;
                 font-size:0.9rem;
                 line-height:1.55;
-                max-height:360px;
-                min-height:300px;
+                max-height:520px;
+                min-height:430px;
                 overflow:auto;
                 padding:12px;
                 border:1px solid #2a3040;
@@ -462,13 +472,13 @@
           </div>
         </div>
 
-        <div class="campo" style="margin-top:20px;">
+        <div class="campo" style="margin-top:28px;">
           <div class="upload-box">
             <strong>Espaço de upgrade de arquivo</strong>
 
             <div class="upload-acoes">
               <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
-              <button id="btnUploadCliente" class="botao botao-salvar" type="button">Enviar</button>
+              <button id="btnUploadCliente" class="botao botao-salvar botao-upload-cheio" type="button">Enviar</button>
               <div id="statusUpload" class="status-upload"></div>
             </div>
           </div>
