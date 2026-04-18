@@ -47,7 +47,6 @@ function verificarAcesso() {
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
-
   mensagem.textContent = texto;
   mensagem.style.color = cor;
 }
@@ -226,11 +225,13 @@ async function carregarClientes() {
     const mapaAtivos = new Map();
 
     (vinculos || []).forEach((item) => {
-      if (!mapaPontos[item.cliente_codigo]) {
-        mapaPontos[item.cliente_codigo] = [];
+      const clienteCodigo = String(item.cliente_codigo || "").trim();
+
+      if (!mapaPontos[clienteCodigo]) {
+        mapaPontos[clienteCodigo] = [];
       }
 
-      mapaPontos[item.cliente_codigo].push(item.ponto_codigo);
+      mapaPontos[clienteCodigo].push(item.ponto_codigo);
     });
 
     (playlists || []).forEach((item) => {
@@ -243,13 +244,14 @@ async function carregarClientes() {
     });
 
     clientesCarregados = (clientes || []).map((cliente) => {
-      const codigo = String(cliente.codigo || "").trim().toUpperCase();
-      const statusReal = mapaAtivos.has(codigo) ? "Ativo" : "Não ativo";
+      const codigoOriginal = String(cliente.codigo || "").trim();
+      const codigoNormalizado = codigoOriginal.toUpperCase();
+      const statusReal = mapaAtivos.has(codigoNormalizado) ? "Ativo" : "Não ativo";
 
       return {
         ...cliente,
         status_real: statusReal,
-        pontos: mapaPontos[cliente.codigo] || []
+        pontos: mapaPontos[codigoOriginal] || []
       };
     });
 
@@ -316,4 +318,40 @@ async function criarNovoCliente() {
 }
 
 function iniciarPagina() {
-  if (botaoVoltarPainel)
+  if (botaoVoltarPainel) {
+    botaoVoltarPainel.addEventListener("click", () => {
+      window.location.href = "/painel.html";
+    });
+  }
+
+  if (!verificarAcesso()) {
+    return;
+  }
+
+  if (!window.supabase) {
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Supabase não carregou.</div>`;
+    }
+
+    mostrarMensagem("Supabase não carregou. Verifique o script no HTML.", "#ff6b6b");
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  if (botaoNovoCliente) {
+    botaoNovoCliente.addEventListener("click", criarNovoCliente);
+  }
+
+  if (botaoAtualizar) {
+    botaoAtualizar.addEventListener("click", carregarClientes);
+  }
+
+  if (buscaCliente) {
+    buscaCliente.addEventListener("input", renderizarClientes);
+  }
+
+  carregarClientes();
+}
+
+iniciarPagina();
