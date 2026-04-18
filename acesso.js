@@ -344,13 +344,17 @@ function renderizarContrato() {
   const vencimento = clienteAtual.vencimento_exibicao || clienteAtual.vencimento || clienteAtual.data_fim;
   const valor = clienteAtual.valor_contratado || clienteAtual.valor || "";
 
-  if (tituloBoasVindas) {
-    tituloBoasVindas.textContent = `Seja bem-vindo(a), ${nome}`;
-  }
+if (tituloBoasVindas) {
+  tituloBoasVindas.innerHTML = `
+    <span class="hero-linha">Seja bem-vindo(a),</span>
+    <span class="hero-linha nome">${escapeHtml(nome)}</span>
+  `;
+}
 
-  if (subtituloCliente) {
-    subtituloCliente.textContent = "Acompanhe seus pontos contratados, materiais em exibição, preview em tempo real e histórico de status.";
-  }
+if (subtituloCliente) {
+  subtituloCliente.textContent = "";
+  subtituloCliente.style.display = "none";
+}
 
   if (codigoClienteEl) {
     codigoClienteEl.textContent = codigoClienteAtual;
