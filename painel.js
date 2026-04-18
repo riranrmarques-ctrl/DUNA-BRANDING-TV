@@ -6,10 +6,27 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v2";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v3";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v1_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v2_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
+
+function limparCachesAntigos() {
+  try {
+    sessionStorage.removeItem("painel_pontos_cache_v1");
+    sessionStorage.removeItem("painel_pontos_cache_v2");
+
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith("painel_playlist_cache_v1_")) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  } catch {
+    return;
+  }
+}
+
+limparCachesAntigos();
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -31,6 +48,8 @@ const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 const btnEditarInfo = document.getElementById("btnEditarInfo");
 const btnToggleDisponibilidade = document.getElementById("btnToggleDisponibilidade");
 const btnNovoPonto = document.getElementById("btnNovoPonto");
+const btnUpgradePlaylist = document.getElementById("btnUpgradePlaylist");
+const inputUpgradePlaylist = document.getElementById("inputUpgradePlaylist");
 
 const modalEditar = document.getElementById("modalEditar");
 const editNome = document.getElementById("editNome");
@@ -70,7 +89,9 @@ function escapeHtml(texto) {
   return String(texto || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function obterImagemPonto(ponto) {
@@ -318,6 +339,108 @@ async function uploadImagemPonto(file, codigo) {
   return data.publicUrl;
 }
 
+function limparNomeArquivo(nome) {
+  return String(nome || "arquivo")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function detectarTipoArquivoPlaylist(file) {
+  const nome = String(file?.name || "").toLowerCase();
+
+  if (
+    nome.endsWith(".jpg") ||
+    nome.endsWith(".jpeg") ||
+    nome.endsWith(".png") ||
+    nome.endsWith(".webp")
+  ) {
+    return "imagem";
+  }
+
+  if (nome.endsWith(".txt")) {
+    return "site";
+  }
+
+  return "video";
+}
+
+async function obterProximaOrdemPlaylist() {
+  const { data, error } = await supabaseClient
+    .from(TABELA)
+    .select("ordem")
+    .eq("codigo", codigoSelecionado)
+    .order("ordem", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.warn("Não foi possível buscar ordem da playlist:", error);
+    return 1;
+  }
+
+  const maiorOrdem = Number(data?.[0]?.ordem || 0);
+  return maiorOrdem + 1;
+}
+
+async function enviarMaterialDiretoPlaylist(file) {
+  if (!codigoSelecionado) {
+    setStatus("Selecione um ponto primeiro", "erro");
+    return;
+  }
+
+  if (!file) {
+    setStatus("Selecione um arquivo", "erro");
+    return;
+  }
+
+  try {
+    setStatus("Enviando material...", "normal");
+
+    const nomeLimpo = limparNomeArquivo(file.name);
+    const path = `playlists/${codigoSelecionado}/${Date.now()}-${nomeLimpo}`;
+    const tipo = detectarTipoArquivoPlaylist(file);
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from(BUCKET)
+      .upload(path, file, {
+        cacheControl: "86400",
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicData } = supabaseClient.storage
+      .from(BUCKET)
+      .getPublicUrl(path);
+
+    const ordem = await obterProximaOrdemPlaylist();
+
+    const { error: insertError } = await supabaseClient
+      .from(TABELA)
+      .insert({
+        codigo: codigoSelecionado,
+        nome: file.name,
+        titulo_arquivo: file.name,
+        video_url: publicData.publicUrl,
+        storage_path: path,
+        tipo,
+        ordem
+      });
+
+    if (insertError) throw insertError;
+
+    limparCachePlaylist(codigoSelecionado);
+    await carregarPlaylist();
+
+    setStatus("Material enviado para a playlist", "ok");
+  } catch (error) {
+    console.error("Erro ao enviar material:", error);
+    setStatus("Erro ao enviar material", "erro");
+  }
+}
+
 function obterChavePosicaoImagem(codigo) {
   return `ponto_imagem_posicao_${codigo}`;
 }
@@ -561,19 +684,7 @@ function ativarBotoesCards() {
   });
 
   document.querySelectorAll(".btn-copiar").forEach((btn) => {
-    btn.onclick = async (event) => {
-      event.stopPropagation();
-
-      const codigo = btn.dataset.codigo;
-      if (!codigo) return;
-
-      try {
-        await navigator.clipboard.writeText(codigo);
-        setStatus("Código copiado", "ok");
-      } catch {
-        setStatus("Erro ao copiar código", "erro");
-      }
-    };
+    btn.style.display = "none";
   });
 
   document.querySelectorAll(".card-codigo").forEach((codigoEl) => {
@@ -649,7 +760,7 @@ function abrirPonto(codigo) {
 
   if (statusPonto) {
     statusPonto.textContent = statusInfo.texto;
-    statusPonto.classList.remove("ativo", "inativo");
+    statusPonto.classList.remove("ativo", "inativo", "indisponivel");
     statusPonto.classList.add(statusInfo.classe);
     statusPonto.dataset.status = statusInfo.texto.toLowerCase();
   }
@@ -705,6 +816,8 @@ if (btnVoltar) {
 }
 
 if (btnCopiarCodigo) {
+  btnCopiarCodigo.style.display = "none";
+
   btnCopiarCodigo.onclick = async () => {
     if (!codigoSelecionado) return;
 
@@ -739,6 +852,18 @@ if (btnEditarInfo) {
 if (btnToggleDisponibilidade) {
   btnToggleDisponibilidade.onclick = () => {
     alternarDisponibilidadePonto();
+  };
+}
+
+if (btnUpgradePlaylist && inputUpgradePlaylist) {
+  btnUpgradePlaylist.onclick = () => {
+    inputUpgradePlaylist.click();
+  };
+
+  inputUpgradePlaylist.onchange = async (event) => {
+    const file = event.target.files?.[0];
+    await enviarMaterialDiretoPlaylist(file);
+    inputUpgradePlaylist.value = "";
   };
 }
 
@@ -882,7 +1007,31 @@ if (btnSalvarEdicao) {
   };
 }
 
+function obterNomeArquivoPlaylist(item) {
+  if (item.titulo_arquivo && String(item.titulo_arquivo).trim()) {
+    return String(item.titulo_arquivo).trim();
+  }
+
+  if (item.nome && String(item.nome).trim()) {
+    return String(item.nome).trim();
+  }
+
+  if (item.storage_path) {
+    const partes = String(item.storage_path).split("/");
+    return partes[partes.length - 1] || "Arquivo";
+  }
+
+  if (item.video_url) {
+    const partes = String(item.video_url).split("/");
+    return partes[partes.length - 1]?.split("?")[0] || "Arquivo";
+  }
+
+  return "Arquivo";
+}
+
 function montarItemPlaylist(item, index) {
+  const nomeArquivo = obterNomeArquivoPlaylist(item);
+
   return `
     <div class="playlist-item" draggable="true" data-index="${index}" data-id="${item.id}">
       <div class="playlist-item-linha">
@@ -890,7 +1039,7 @@ function montarItemPlaylist(item, index) {
 
         <div class="playlist-item-ordem">${index + 1}.</div>
 
-        <div class="playlist-item-nome" title="${escapeHtml(item.nome)}">${escapeHtml(item.nome)}</div>
+        <div class="playlist-item-nome" title="${escapeHtml(nomeArquivo)}">${escapeHtml(nomeArquivo)}</div>
 
         <div class="playlist-item-data playlist-item-postado">
           ${formatarDataHora(item.created_at)}
@@ -909,10 +1058,12 @@ function montarItemPlaylist(item, index) {
 }
 
 function montarItemHistoricoEncerramento(item, index) {
+  const nomeArquivo = obterNomeArquivoPlaylist(item);
+
   return `
     <div class="historico-item">
       <span class="historico-item-ordem">${index + 1}.</span>
-      <span class="historico-item-nome">${escapeHtml(item.nome)}</span>
+      <span class="historico-item-nome">${escapeHtml(nomeArquivo)}</span>
       <span class="historico-item-valor">${formatarData(item.data_fim)}</span>
     </div>
   `;
@@ -980,7 +1131,7 @@ async function buscarPlaylistRemota(codigo) {
   const [{ data: playlistData, error: playlistError }, { data: historicoData, error: historicoError }] = await Promise.all([
     supabaseClient
       .from(TABELA)
-      .select("id,nome,created_at,data_fim,ordem")
+      .select("id,nome,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem")
       .eq("codigo", codigo)
       .order("ordem", { ascending: true }),
 
