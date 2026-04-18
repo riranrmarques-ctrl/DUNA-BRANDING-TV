@@ -245,6 +245,51 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .contrato-acoes {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .toggle-contrato {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 116px;
+      height: 42px;
+      padding: 0 12px 0 44px;
+      border: none;
+      border-radius: 999px;
+      background: #7a2230;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 700;
+      transition: 0.2s ease;
+    }
+
+    .toggle-contrato .toggle-bola {
+      position: absolute;
+      left: 6px;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: #fff;
+      transition: 0.2s ease;
+    }
+
+    .toggle-contrato.ativo {
+      background: #178b45;
+      padding-left: 12px;
+      padding-right: 44px;
+    }
+
+    .toggle-contrato.ativo .toggle-bola {
+      left: calc(100% - 36px);
+    }
+
     @media (max-width: 900px) {
       .grid,
       .grid-historicos,
@@ -267,6 +312,16 @@
 
       .topo h1 {
         font-size: 1.65rem;
+      }
+
+      .contrato-acoes {
+        align-items: stretch;
+      }
+
+      .contrato-acoes .botao,
+      .contrato-acoes .toggle-contrato {
+        width: 100%;
+        justify-content: center;
       }
     }
   </style>
@@ -375,9 +430,16 @@
               "
             ></div>
 
-            <button id="btnBaixarContrato" class="botao botao-salvar" type="button">
-              Baixar contrato
-            </button>
+            <div class="contrato-acoes">
+              <button id="btnBaixarContrato" class="botao botao-salvar" type="button">
+                Baixar contrato
+              </button>
+
+              <button id="btnToggleContrato" class="toggle-contrato ativo" type="button" aria-pressed="true">
+                <span class="toggle-bola"></span>
+                <span class="toggle-texto">Ativado</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -412,6 +474,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=402"></script>
+  <script src="pasta-cliente.js?v=403"></script>
 </body>
 </html>
