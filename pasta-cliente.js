@@ -22,6 +22,8 @@ const inputVencimento = document.getElementById("vencimentoExibicao");
 const inputValorContratado = document.getElementById("valorContratado");
 const inputDataPostagem = document.getElementById("dataPostagem");
 const statusCliente = document.getElementById("statusCliente");
+const tipoAcessoCliente = document.getElementById("tipoAcessoCliente");
+const materialUpgradeAtivo = document.getElementById("materialUpgradeAtivo");
 
 const listaPontos = document.getElementById("listaPontos");
 const mensagem = document.getElementById("mensagem");
@@ -72,6 +74,14 @@ function mostrarStatusUpload(texto, cor = "#9fd2ff") {
 function obterCodigoDaUrl() {
   const params = new URLSearchParams(window.location.search);
   return String(params.get("codigo") || "").trim().toUpperCase();
+}
+
+function obterTipoAcessoAtual() {
+  return tipoAcessoCliente?.value === "supervisor" ? "supervisor" : "cliente";
+}
+
+function materialUpgradeEstaAtivo() {
+  return materialUpgradeAtivo?.value !== "false";
 }
 
 function formatarTelefone(valor) {
@@ -1210,6 +1220,39 @@ async function carregarHistoricoArquivos() {
   }
 }
 
+async function carregarVinculosCliente() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("cliente_pontos")
+      .select("ponto_codigo,tipo_vinculo")
+      .eq("cliente_codigo", codigoClienteAtual);
+
+    if (error) throw error;
+
+    return Array.isArray(data)
+      ? data.map((item) => String(item.ponto_codigo || "").trim()).filter(Boolean)
+      : [];
+  } catch (error) {
+    console.warn("Falha ao buscar tipo_vinculo. Tentando buscar somente ponto_codigo.", error);
+
+    try {
+      const { data, error: erroFallback } = await supabaseClient
+        .from("cliente_pontos")
+        .select("ponto_codigo")
+        .eq("cliente_codigo", codigoClienteAtual);
+
+      if (erroFallback) throw erroFallback;
+
+      return Array.isArray(data)
+        ? data.map((item) => String(item.ponto_codigo || "").trim()).filter(Boolean)
+        : [];
+    } catch (fallbackError) {
+      console.error("Erro ao buscar vinculos em cliente_pontos:", fallbackError);
+      return [];
+    }
+  }
+}
+
 async function carregarCliente() {
   const { data, error } = await supabaseClient
     .from("clientes_app")
@@ -1232,6 +1275,8 @@ async function carregarCliente() {
     if (inputVencimento) inputVencimento.value = "";
     if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(0);
     if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
+    if (tipoAcessoCliente) tipoAcessoCliente.value = "cliente";
+    if (materialUpgradeAtivo) materialUpgradeAtivo.value = "true";
 
     contratoAtivo = true;
     atualizarToggleContratoVisual();
@@ -1253,26 +1298,13 @@ async function carregarCliente() {
   if (inputVencimento) inputVencimento.value = data.vencimento_exibicao || "";
   if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? 0);
   if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
+  if (tipoAcessoCliente) tipoAcessoCliente.value = data.tipo_acesso === "supervisor" ? "supervisor" : "cliente";
+  if (materialUpgradeAtivo) materialUpgradeAtivo.value = data.material_upgrade_ativo === false ? "false" : "true";
 
   contratoAtivo = data.contrato_ativo !== false;
   atualizarToggleContratoVisual();
 
-  let selecionados = [];
-
-  try {
-    const { data: vinculos, error: erroVinculos } = await supabaseClient
-      .from("cliente_pontos")
-      .select("ponto_codigo")
-      .eq("cliente_codigo", codigoClienteAtual);
-
-    if (erroVinculos) throw erroVinculos;
-
-    selecionados = Array.isArray(vinculos)
-      ? vinculos.map((item) => String(item.ponto_codigo || "").trim()).filter(Boolean)
-      : [];
-  } catch (error) {
-    console.error("Erro ao buscar vinculos em cliente_pontos:", error);
-  }
+  const selecionados = await carregarVinculosCliente();
 
   renderizarPontosSelecionaveis(selecionados);
   await carregarHistoricoArquivos();
@@ -1288,6 +1320,9 @@ async function carregarCliente() {
 async function salvarCliente() {
   if (!validarCamposCliente()) return false;
 
+  const tipoAcesso = obterTipoAcessoAtual();
+  const tipoVinculo = tipoAcesso === "supervisor" ? "supervisor" : "cliente";
+
   const payload = {
     codigo: codigoClienteAtual,
     nome_completo: inputNome.value.trim(),
@@ -1298,7 +1333,9 @@ async function salvarCliente() {
     valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
     data_postagem: inputDataPostagem.value || null,
     status: await calcularStatusClienteRealPorCodigoCliente(),
-    contrato_ativo: contratoAtivo
+    contrato_ativo: contratoAtivo,
+    tipo_acesso: tipoAcesso,
+    material_upgrade_ativo: materialUpgradeEstaAtivo()
   };
 
   try {
@@ -1320,7 +1357,8 @@ async function salvarCliente() {
     if (pontosSelecionados.length) {
       const vinculos = pontosSelecionados.map((codigoVisual) => ({
         cliente_codigo: codigoClienteAtual,
-        ponto_codigo: obterCodigoRealDoPonto(codigoVisual)
+        ponto_codigo: obterCodigoRealDoPonto(codigoVisual),
+        tipo_vinculo: tipoVinculo
       }));
 
       const { error: errorInsert } = await supabaseClient.from("cliente_pontos").insert(vinculos);
@@ -1492,6 +1530,19 @@ if (inputNome) inputNome.addEventListener("input", () => { ativarBotaoSalvar(); 
 if (inputEmail) inputEmail.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
 if (inputVencimento) inputVencimento.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
 if (inputDataPostagem) inputDataPostagem.addEventListener("change", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+
+if (tipoAcessoCliente) {
+  tipoAcessoCliente.addEventListener("change", () => {
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
+}
+
+if (materialUpgradeAtivo) {
+  materialUpgradeAtivo.addEventListener("change", () => {
+    ativarBotaoSalvar();
+  });
+}
 
 if (inputTelefone) {
   inputTelefone.addEventListener("input", (event) => {
