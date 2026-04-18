@@ -204,6 +204,10 @@ function ativarBotaoSalvar() {
   botaoSalvar.style.cursor = "pointer";
 }
 
+function pontoEstaDisponivel(ponto) {
+  return ponto?.disponivel !== false;
+}
+
 function atualizarToggleContratoVisual() {
   if (!btnToggleContrato) return;
 
@@ -512,10 +516,6 @@ function montarHtmlContratoCompleto(dadosContrato = null) {
           justify-content: flex-end;
         }
 
-        .assinatura-box-duna {
-          position: relative;
-        }
-
         .assinatura-img {
           display: block;
           width: 400px;
@@ -524,7 +524,6 @@ function montarHtmlContratoCompleto(dadosContrato = null) {
           object-fit: contain;
           object-position: center bottom;
           margin: 0 auto 20px;
-          transform: none;
           pointer-events: none;
         }
 
@@ -548,7 +547,6 @@ function montarHtmlContratoCompleto(dadosContrato = null) {
             max-width: 260px;
             height: 80px;
             margin: 0 auto -12px;
-            transform: none;
           }
         }
       </style>
@@ -595,7 +593,7 @@ function montarHtmlContratoCompleto(dadosContrato = null) {
           <div class="linha-assinatura">CONTRATANTE</div>
         </div>
 
-        <div class="assinatura-box assinatura-box-duna">
+        <div class="assinatura-box">
           <img src="${escaparHtml(assinaturaUrl)}" alt="Assinatura Duna Branding" class="assinatura-img">
           <div class="linha-assinatura">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
         </div>
@@ -623,21 +621,22 @@ function salvarHistoricoContratosGerados(lista) {
   localStorage.setItem(obterChaveHistoricoContratos(), JSON.stringify(lista));
 }
 
-function obterNomeArquivoContrato(dados) {
-  const nomeSeguro = String(dados.nome || "cliente")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9-_ ]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .toLowerCase();
+function obterProximoNumeroContrato() {
+  const historico = lerHistoricoContratosGerados();
 
-  const codigoSeguro = String(dados.codigo || "sem-codigo")
-    .trim()
-    .replace(/\s+/g, "-")
-    .toLowerCase();
+  const maiorNumero = historico.reduce((maior, item) => {
+    const nome = String(item.nome_arquivo || "");
+    const match = nome.match(/^branding-(\d+)\.html$/i);
+    const numero = match ? Number(match[1]) : 0;
 
-  return `contrato-${codigoSeguro}-${nomeSeguro || "cliente"}.html`;
+    return Number.isFinite(numero) && numero > maior ? numero : maior;
+  }, 0);
+
+  return maiorNumero + 1;
+}
+
+function obterNomeArquivoContrato() {
+  return `branding-${obterProximoNumeroContrato()}.html`;
 }
 
 function baixarHtmlContrato(html, nomeArquivo) {
@@ -666,7 +665,7 @@ function gerarContratoClienteParaHistorico() {
   const item = {
     id: `${Date.now()}`,
     criado_em: new Date().toISOString(),
-    nome_arquivo: obterNomeArquivoContrato(dados),
+    nome_arquivo: obterNomeArquivoContrato(),
     dados
   };
 
@@ -851,6 +850,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
   const selecionadosSet = new Set(selecionados.map((item) => String(item || "").trim()));
   const cardsSelecionados = [];
   const cardsDisponiveis = [];
+  const cardsIndisponiveis = [];
 
   codigos
     .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }))
@@ -859,6 +859,8 @@ function renderizarPontosSelecionaveis(selecionados = []) {
       const nome = obterNomeDoPonto(ponto, codigoVisual);
       const codigoReal = obterCodigoRealDoPonto(codigoVisual);
       const checked = selecionadosSet.has(codigoVisual) || selecionadosSet.has(codigoReal);
+      const disponivel = pontoEstaDisponivel(ponto);
+      const disabled = !disponivel;
 
       const card = `
         <label style="
@@ -868,10 +870,11 @@ function renderizarPontosSelecionaveis(selecionados = []) {
           padding:10px 12px;
           border-radius:10px;
           min-height:52px;
-          cursor:pointer;
-          border:1px solid ${checked ? "#8ce063" : "#6f8bff"};
-          background:${checked ? "#76d34f" : "#4f6ff0"};
-          color:#fff;
+          cursor:${disabled ? "not-allowed" : "pointer"};
+          border:1px solid ${checked ? "#8ce063" : disabled ? "#454b59" : "#6f8bff"};
+          background:${checked ? "#76d34f" : disabled ? "#2a2f3a" : "#4f6ff0"};
+          color:${disabled ? "#9aa3b2" : "#fff"};
+          opacity:${disabled ? "0.72" : "1"};
           overflow:hidden;
           box-shadow:0 4px 12px rgba(0,0,0,0.16);
         ">
@@ -880,7 +883,8 @@ function renderizarPontosSelecionaveis(selecionados = []) {
             name="pontos"
             value="${escaparHtml(codigoVisual)}"
             ${checked ? "checked" : ""}
-            style="width:16px;height:16px;flex-shrink:0;accent-color:#ffffff;cursor:pointer;"
+            ${disabled ? "disabled" : ""}
+            style="width:16px;height:16px;flex-shrink:0;accent-color:#ffffff;cursor:${disabled ? "not-allowed" : "pointer"};"
           >
           <div style="display:flex;align-items:center;min-width:0;flex:1;overflow:hidden;">
             <span style="font-size:0.88rem;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
@@ -890,8 +894,13 @@ function renderizarPontosSelecionaveis(selecionados = []) {
         </label>
       `;
 
-      if (checked) cardsSelecionados.push(card);
-      else cardsDisponiveis.push(card);
+      if (checked) {
+        cardsSelecionados.push(card);
+      } else if (!disponivel) {
+        cardsIndisponiveis.push(card);
+      } else {
+        cardsDisponiveis.push(card);
+      }
     });
 
   const montarGrupo = (titulo, cor, cards) => {
@@ -910,6 +919,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     <div style="display:flex;flex-direction:column;gap:12px;">
       ${montarGrupo("selecionado", "#7CFC9A", cardsSelecionados)}
       ${montarGrupo("disponivel", "#6ea8ff", cardsDisponiveis)}
+      ${montarGrupo("indisponivel", "#ff8f8f", cardsIndisponiveis)}
     </div>
   `;
 }
