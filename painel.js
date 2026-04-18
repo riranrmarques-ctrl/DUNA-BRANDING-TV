@@ -385,12 +385,14 @@ async function alternarDisponibilidadePonto() {
 
     if (error) throw error;
 
+    renderizarCardsPontos(Object.values(pontosMap), { registrarHistorico: false });
     setStatus(novoStatus ? "Ponto disponível" : "Ponto indisponível", "ok");
   } catch (error) {
     console.error("Erro ao atualizar disponibilidade:", error);
 
     atualizarVisualDisponibilidade(disponivelAtual);
     atualizarCachePonto(codigoSelecionado, { disponivel: disponivelAtual });
+    renderizarCardsPontos(Object.values(pontosMap), { registrarHistorico: false });
 
     setStatus("Erro ao atualizar disponibilidade", "erro");
   }
@@ -485,9 +487,21 @@ function renderizarCardsPontos(lista, opcoes = {}) {
     const nome = obterNomePonto(ponto, codigo);
     const cidade = obterCidadePonto(ponto);
     const imagem = obterImagemPonto(ponto);
-    const statusInfo = calcularStatusInfo(ponto);
-    const statusAtual = statusInfo.ativo ? "ativo" : "inativo";
+    const disponivel = pontoEstaDisponivel(ponto);
+
+    const statusInfo = disponivel
+      ? calcularStatusInfo(ponto)
+      : {
+          texto: "Indisponível",
+          detalhe: "ponto desativado",
+          ativo: false,
+          classe: "indisponivel"
+        };
+
+    const statusAtual = disponivel ? (statusInfo.ativo ? "ativo" : "inativo") : "indisponivel";
     const statusAnterior = statusAnteriorMap[codigo];
+
+    card.classList.toggle("card-indisponivel", !disponivel);
 
     if (registrarHistorico && statusAnterior && statusAnterior !== statusAtual) {
       registrarEventoConexao(codigo, statusAtual);
@@ -510,13 +524,15 @@ function renderizarCardsPontos(lista, opcoes = {}) {
 
     if (statusElCard) {
       statusElCard.textContent = statusInfo.texto;
-      statusElCard.classList.toggle("ativo", statusInfo.ativo);
-      statusElCard.classList.toggle("inativo", !statusInfo.ativo);
+      statusElCard.classList.toggle("ativo", disponivel && statusInfo.ativo);
+      statusElCard.classList.toggle("inativo", disponivel && !statusInfo.ativo);
+      statusElCard.classList.toggle("indisponivel", !disponivel);
     }
 
     if (bolinhaEl) {
-      bolinhaEl.classList.toggle("ativo", statusInfo.ativo);
-      bolinhaEl.classList.toggle("inativo", !statusInfo.ativo);
+      bolinhaEl.classList.toggle("ativo", disponivel && statusInfo.ativo);
+      bolinhaEl.classList.toggle("inativo", disponivel && !statusInfo.ativo);
+      bolinhaEl.classList.toggle("indisponivel", !disponivel);
     }
 
     if (imagemEl) {
@@ -609,9 +625,17 @@ function abrirPonto(codigo) {
   const statusPonto = document.getElementById("statusPonto");
   const imagemPonto = document.getElementById("imagemPonto");
 
-  const statusInfo = calcularStatusInfo(ponto);
-  const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
   const disponivel = pontoEstaDisponivel(ponto);
+  const statusInfo = disponivel
+    ? calcularStatusInfo(ponto)
+    : {
+        texto: "Indisponível",
+        detalhe: "ponto desativado",
+        ativo: false,
+        classe: "inativo"
+      };
+
+  const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
 
   atualizarVisualDisponibilidade(disponivel);
 
