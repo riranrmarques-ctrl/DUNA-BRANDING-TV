@@ -4,54 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=102">
-
-  <style>
-    .toggle-ponto {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 104px;
-      height: 30px;
-      padding: 0 10px 0 32px;
-      border: none;
-      border-radius: 999px;
-      background: #7a2230;
-      color: #fff;
-      cursor: pointer;
-      font-size: 0.76rem;
-      font-weight: 700;
-      transition: 0.2s ease;
-    }
-
-    .toggle-ponto .toggle-bola {
-      position: absolute;
-      left: 4px;
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      background: #fff;
-      transition: 0.2s ease;
-    }
-
-    .toggle-ponto.ativo {
-      background: #178b45;
-      padding-left: 10px;
-      padding-right: 32px;
-    }
-
-    .toggle-ponto.ativo .toggle-bola {
-      left: calc(100% - 26px);
-    }
-
-    .playlist-codigo-linha {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-  </style>
+  <link rel="stylesheet" href="painel.css?v=106">
 </head>
 <body>
 
@@ -66,34 +19,32 @@
 
   <div id="conteudoPainel" style="display:none;">
     
-<div class="topo-fixo novo-topo">
+    <div class="topo-fixo novo-topo">
+      <div class="topo-esquerda">
+        <div class="menu-topo-wrap">
+          <div class="menu-topo-btn">☰ Menu</div>
 
-<div class="topo-esquerda">
-  <div class="menu-topo-wrap">
-    <div class="menu-topo-btn">☰ Menu</div>
+          <div class="menu-topo-dropdown">
+            <a class="menu-item" href="/central-clientes.html">Clientes</a>
+            <a class="menu-item" href="/contratos.html">Contratos</a>
+            <a class="menu-item" href="#">Downloads</a>
+            <a class="menu-item" href="#">Financeiro</a>
+            <a class="menu-item" href="#">Relatórios</a>
+            <a class="menu-item" href="#">Configuração</a>
+          </div>
+        </div>
+      </div>
 
-    <div class="menu-topo-dropdown">
-      <a class="menu-item" href="/central-clientes.html">Clientes</a>
-      <a class="menu-item" href="/contratos.html">Contratos</a>
-      <a class="menu-item" href="#">Downloads</a>
-      <a class="menu-item" href="#">Financeiro</a>
-      <a class="menu-item" href="#">Relatórios</a>
-      <a class="menu-item" href="#">Configuração</a>
+      <div class="topo-centro">
+        <h1>Gerenciador de Pontos</h1>
+        <p>Gerencie seus pontos e playlists.</p>
+      </div>
+
+      <div class="topo-direita">
+        <img src="logo.png" class="logo-topo-img" alt="Duna TV">
+        <div class="status-topo">Painel Ativo</div>
+      </div>
     </div>
-  </div>
-</div>
-
-  <div class="topo-centro">
-    <h1>Gerenciador de Pontos</h1>
-    <p>Gerencie seus pontos e playlists.</p>
-  </div>
-
-  <div class="topo-direita">
-    <img src="logo.png" class="logo-topo-img" alt="Duna TV">
-    <div class="status-topo">Painel Ativo</div>
-  </div>
-
-</div>
 
     <div class="painel-shell">
       <div id="listaPontos">
@@ -314,6 +265,10 @@
             </div>
           </div>
         </div>
+
+        <div class="novo-ponto-area">
+          <button id="btnNovoPonto" class="btn-novo-ponto" type="button">+ Novo ponto</button>
+        </div>
       </div>
 
       <div id="pontoDetalhe" class="playlist-box" style="display:none;">
@@ -397,29 +352,28 @@
       </div>
     </div>
 
-  <div id="modalEditar" class="modal-editar" style="display:none;">
-    <div class="modal-conteudo">
-      <h3>Editar Informações</h3>
+    <div id="modalEditar" class="modal-editar" style="display:none;">
+      <div class="modal-conteudo">
+        <h3>Editar Informações</h3>
 
-      <input type="text" id="editNome" placeholder="Nome do ponto">
-      <input type="text" id="editCidade" placeholder="Cidade">
-      <input type="text" id="editEndereco" placeholder="Endereço">
+        <input type="text" id="editNome" placeholder="Nome do ponto">
+        <input type="text" id="editCidade" placeholder="Cidade">
+        <input type="text" id="editEndereco" placeholder="Endereço">
 
-      <div class="edit-imagem-box">
-        <img id="previewImagem" src="" alt="Preview da imagem">
-        <input type="file" id="inputImagem" accept="image/*">
-      </div>
+        <div class="edit-imagem-box">
+          <img id="previewImagem" src="" alt="Preview da imagem">
+          <input type="file" id="inputImagem" accept="image/*">
+        </div>
 
-      <div class="edit-botoes">
-        <button id="btnSalvarEdicao" type="button">Salvar</button>
-        <button id="btnFecharModal" type="button">Cancelar</button>
+        <div class="edit-botoes">
+          <button id="btnSalvarEdicao" type="button">Salvar</button>
+          <button id="btnFecharModal" type="button">Cancelar</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <button id="btnNovoPonto" class="btn-novo-ponto" type="button">+ Novo ponto</button>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=512"></script>
+  <script src="painel.js?v=101"></script>
 </body>
 </html>
