@@ -502,47 +502,68 @@ input {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 22px;
   align-items: start;
-  margin-bottom: 30px;
+  margin-bottom: 26px;
 }
 
 .detalhe-cabecalho h2 {
-  font-family: "Helvetica Neue", "Avenir Next", "Segoe UI", Arial, sans-serif;
-  font-size: clamp(3.4rem, 5.4vw, 5.4rem);
-  line-height: 0.95;
-  font-weight: 700;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(2.55rem, 4.1vw, 3.9rem);
+  line-height: 1;
+  font-weight: 650;
   letter-spacing: -0.055em;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   color: #ffffff;
 }
 
 .detalhe-cabecalho p {
   color: #aab5cf;
-  font-size: clamp(1.15rem, 1.7vw, 1.45rem);
+  font-size: clamp(1rem, 1.35vw, 1.16rem);
   line-height: 1.35;
   font-weight: 500;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
 }
 
 .status-grande {
-  border-radius: 999px;
-  padding: 13px 20px;
-  background: rgba(148, 163, 184, 0.12);
-  color: #dbeafe;
-  font-size: 0.78rem;
-  font-weight: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  color: #ffffff;
   white-space: nowrap;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
-.status-grande.ativo {
-  background: rgba(34, 197, 94, 0.14);
+.status-grande strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.status-grande small {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.status-grande.ativo strong {
+  background: rgba(34, 197, 94, 0.16);
   color: #86efac;
 }
 
-.status-grande.inativo,
-.status-grande.indisponivel {
-  background: rgba(239, 68, 68, 0.14);
+.status-grande.inativo strong,
+.status-grande.indisponivel strong {
+  background: rgba(239, 68, 68, 0.16);
   color: #fca5a5;
 }
 
@@ -551,17 +572,17 @@ input {
 }
 
 .preview-topo {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  display: flex;
   align-items: baseline;
-  justify-content: start;
-  gap: 34px;
+  justify-content: flex-end;
+  gap: 10px;
   margin-bottom: 18px;
+  text-align: right;
 }
 
 .preview-topo h3,
 #tituloPreview {
-  font-size: 1.08rem;
+  font-size: 1rem;
   color: #e6eeff;
   letter-spacing: -0.01em;
   font-weight: 500;
@@ -569,20 +590,21 @@ input {
 }
 
 .subsecao h3 {
-  font-size: 1.45rem;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.28rem;
   color: #e6eeff;
-  letter-spacing: -0.03em;
-  font-weight: 800;
+  letter-spacing: -0.025em;
+  font-weight: 750;
 }
 
 .preview-nome {
   color: #aeb8d2;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: none;
+  max-width: min(520px, 58%);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -680,9 +702,9 @@ input {
 
 .linha-material-head {
   color: #aeb8d2;
-  font-size: 0.78rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -702,16 +724,17 @@ input {
 
 .linha-material > span:first-child {
   color: #dce6ff;
-  font-size: 1.05rem;
-  font-weight: 800;
+  font-size: 0.98rem;
+  font-weight: 500;
 }
 
 .linha-material strong {
   display: block;
-  font-size: 1.08rem;
+  font-size: 1.02rem;
   line-height: 1.2;
   margin-bottom: 0;
   color: #ffffff;
+  font-weight: 650;
 }
 
 .linha-material small {
@@ -720,8 +743,9 @@ input {
 
 .linha-material span {
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   line-height: 1.25;
+  font-weight: 500;
 }
 
 .historico-lista {
@@ -736,7 +760,7 @@ input {
 
 .historico-item {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -748,12 +772,13 @@ input {
 .historico-item span {
   color: #ffffff;
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .historico-evento {
   color: #ffffff !important;
   font-size: 0.95rem !important;
+  font-weight: 500 !important;
 }
 
 .historico-item.mais-recente .historico-evento {
@@ -841,16 +866,22 @@ input {
   }
 
   .detalhe-cabecalho h2 {
-    font-size: clamp(2.4rem, 12vw, 3.8rem);
+    font-size: clamp(2.1rem, 10vw, 3rem);
   }
 
   .detalhe-cabecalho p {
-    font-size: 1rem;
+    font-size: 0.96rem;
+  }
+
+  .status-grande {
+    align-items: flex-start;
   }
 
   .preview-topo {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    justify-content: flex-start;
+    text-align: left;
+    flex-wrap: wrap;
+    gap: 7px;
   }
 
   .preview-topo h3,
@@ -859,9 +890,13 @@ input {
     white-space: normal;
   }
 
+  .preview-nome {
+    max-width: 100%;
+  }
+
   .linha-material-head {
     display: grid;
-    grid-template-columns: 120px minmax(0, 1fr);
+    grid-template-columns: 130px minmax(0, 1fr);
   }
 
   .linha-material-head span:nth-child(3),
@@ -870,7 +905,7 @@ input {
   }
 
   .linha-material {
-    grid-template-columns: 120px minmax(0, 1fr);
+    grid-template-columns: 130px minmax(0, 1fr);
     gap: 12px;
   }
 
@@ -880,10 +915,6 @@ input {
   }
 
   .historico-item {
-    grid-template-columns: 34px minmax(0, 1fr);
-  }
-
-  .historico-item span:last-child {
-    grid-column: 2 / 3;
+    grid-template-columns: 1fr;
   }
 }
