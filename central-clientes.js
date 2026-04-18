@@ -357,6 +357,11 @@ function renderizarClientes() {
         <span class="cliente-status ${ativo ? "ativo" : "nao-ativo"}">
           ${escaparHtml(statusReal)}
         </span>
+
+        ${cliente.tipo_acesso === "supervisor" ? `
+          <span class="cliente-tipo supervisor">Supervisor</span>
+        ` : ""}
+
       </div>
 
       <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
