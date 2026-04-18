@@ -24,16 +24,20 @@ const CODIGOS_FIXOS = [
   "E9N2"
 ];
 
+const ORDEM_PERSONALIZADA_KEY = "central_clientes_ordem_personalizada_v1";
+
 let supabaseClient = null;
 let clientesCarregados = [];
 let carregandoClientes = false;
 let timerBusca = null;
+let dragCodigo = null;
 
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
 const botaoNovoCliente = document.getElementById("botaoNovoCliente");
 const botaoAtualizar = document.getElementById("botaoAtualizar");
 const buscaCliente = document.getElementById("buscaCliente");
+const filtroOrganizacao = document.getElementById("filtroOrganizacao");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
 function verificarAcesso() {
@@ -71,6 +75,23 @@ function obterDataHojeISO() {
   return new Date().toISOString().split("T")[0];
 }
 
+function normalizarCodigo(codigo) {
+  return String(codigo || "").trim().toUpperCase();
+}
+
+function lerOrdemPersonalizada() {
+  try {
+    const lista = JSON.parse(localStorage.getItem(ORDEM_PERSONALIZADA_KEY) || "[]");
+    return Array.isArray(lista) ? lista : [];
+  } catch {
+    return [];
+  }
+}
+
+function salvarOrdemPersonalizada(lista) {
+  localStorage.setItem(ORDEM_PERSONALIZADA_KEY, JSON.stringify(lista));
+}
+
 async function copiarCodigoCliente(codigo) {
   const codigoFinal = String(codigo || "").trim();
   if (!codigoFinal) return;
@@ -82,6 +103,40 @@ async function copiarCodigoCliente(codigo) {
     console.error(error);
     mostrarMensagem("Não foi possível copiar o código.", "#ff6b6b");
   }
+}
+
+function obterChavesPonto(ponto) {
+  return [
+    ponto.codigo,
+    ponto.codigo_visual,
+    ponto.codigo_ponto,
+    ponto.id_ponto,
+    ponto.id
+  ]
+    .map((item) => normalizarCodigo(item))
+    .filter(Boolean);
+}
+
+function montarMapaPontos(pontos = []) {
+  const mapa = new Map();
+
+  pontos.forEach((ponto) => {
+    obterChavesPonto(ponto).forEach((chave) => {
+      if (!mapa.has(chave)) {
+        mapa.set(chave, ponto);
+      }
+    });
+  });
+
+  return mapa;
+}
+
+function obterCidadeDoPonto(ponto) {
+  return String(ponto?.cidade || ponto?.municipio || ponto?.localidade || "").trim();
+}
+
+function obterNomeCliente(cliente) {
+  return String(cliente.nome_completo || "Novo Cliente").trim();
 }
 
 function obterListaFiltrada() {
@@ -99,7 +154,7 @@ function obterListaFiltrada() {
       cliente.email,
       cliente.cpf_cnpj,
       cliente.status_real,
-      Array.isArray(cliente.pontos) ? cliente.pontos.join(" ") : ""
+      cliente.cidade_ativa
     ]
       .join(" ")
       .toLowerCase();
@@ -108,10 +163,115 @@ function obterListaFiltrada() {
   });
 }
 
+function ordenarClientes(lista) {
+  const tipo = filtroOrganizacao?.value || "status";
+  const copia = [...lista];
+
+  if (tipo === "personalizado") {
+    const ordem = lerOrdemPersonalizada();
+    const posicoes = new Map(ordem.map((codigo, index) => [normalizarCodigo(codigo), index]));
+
+    return copia.sort((a, b) => {
+      const codigoA = normalizarCodigo(a.codigo);
+      const codigoB = normalizarCodigo(b.codigo);
+      const posA = posicoes.has(codigoA) ? posicoes.get(codigoA) : 9999;
+      const posB = posicoes.has(codigoB) ? posicoes.get(codigoB) : 9999;
+
+      if (posA !== posB) return posA - posB;
+      return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
+    });
+  }
+
+  if (tipo === "nome") {
+    return copia.sort((a, b) => obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR"));
+  }
+
+  if (tipo === "cidade") {
+    return copia.sort((a, b) => {
+      const cidadeA = String(a.cidade_ativa || "");
+      const cidadeB = String(b.cidade_ativa || "");
+      const compararCidade = cidadeA.localeCompare(cidadeB, "pt-BR");
+
+      if (compararCidade !== 0) return compararCidade;
+      return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
+    });
+  }
+
+  return copia.sort((a, b) => {
+    const ativoA = a.status_real === "Ativo" ? 0 : 1;
+    const ativoB = b.status_real === "Ativo" ? 0 : 1;
+
+    if (ativoA !== ativoB) return ativoA - ativoB;
+    return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
+  });
+}
+
+function atualizarOrdemAposArrastar(codigoOrigem, codigoDestino) {
+  const visiveis = ordenarClientes(obterListaFiltrada()).map((cliente) => normalizarCodigo(cliente.codigo));
+  const todos = clientesCarregados.map((cliente) => normalizarCodigo(cliente.codigo));
+  const ordemAtual = lerOrdemPersonalizada().filter((codigo) => todos.includes(normalizarCodigo(codigo)));
+
+  todos.forEach((codigo) => {
+    if (!ordemAtual.includes(codigo)) {
+      ordemAtual.push(codigo);
+    }
+  });
+
+  const origem = normalizarCodigo(codigoOrigem);
+  const destino = normalizarCodigo(codigoDestino);
+
+  if (!origem || !destino || origem === destino) return;
+
+  const ordemVisivel = visiveis.filter((codigo) => ordemAtual.includes(codigo));
+  const indexOrigem = ordemVisivel.indexOf(origem);
+  const indexDestino = ordemVisivel.indexOf(destino);
+
+  if (indexOrigem < 0 || indexDestino < 0) return;
+
+  ordemVisivel.splice(indexOrigem, 1);
+  ordemVisivel.splice(indexDestino, 0, origem);
+
+  const novaOrdem = ordemAtual.filter((codigo) => !visiveis.includes(codigo));
+  ordemVisivel.forEach((codigo) => novaOrdem.push(codigo));
+
+  salvarOrdemPersonalizada(novaOrdem);
+}
+
+function ativarArrasteCards() {
+  if (filtroOrganizacao?.value !== "personalizado") return;
+
+  document.querySelectorAll(".cliente-card").forEach((card) => {
+    card.addEventListener("dragstart", () => {
+      dragCodigo = card.dataset.codigo;
+      card.classList.add("arrastando");
+    });
+
+    card.addEventListener("dragend", () => {
+      dragCodigo = null;
+      card.classList.remove("arrastando");
+    });
+
+    card.addEventListener("dragover", (event) => {
+      event.preventDefault();
+    });
+
+    card.addEventListener("drop", (event) => {
+      event.preventDefault();
+
+      const destino = card.dataset.codigo;
+      if (!dragCodigo || !destino || dragCodigo === destino) return;
+
+      atualizarOrdemAposArrastar(dragCodigo, destino);
+      renderizarClientes();
+    });
+  });
+}
+
 function renderizarClientes() {
   if (!listaClientes) return;
 
-  const filtrados = obterListaFiltrada();
+  const filtrados = ordenarClientes(obterListaFiltrada());
+  const personalizado = filtroOrganizacao?.value === "personalizado";
 
   listaClientes.innerHTML = "";
 
@@ -127,57 +287,29 @@ function renderizarClientes() {
 
     const statusReal = cliente.status_real || "Não ativo";
     const ativo = statusReal === "Ativo";
-    const corStatus = ativo ? "#7CFC9A" : "#ff8f8f";
-    const fundoStatus = ativo ? "rgba(124, 252, 154, 0.12)" : "rgba(255, 107, 107, 0.12)";
-    const bordaStatus = ativo ? "rgba(124, 252, 154, 0.28)" : "rgba(255, 107, 107, 0.28)";
-    const bordaCard = ativo ? "rgba(124, 252, 154, 0.35)" : "rgba(255, 107, 107, 0.34)";
-    const brilhoCard = ativo ? "rgba(61, 145, 71, 0.22)" : "rgba(217, 83, 79, 0.2)";
+    const cidadeAtiva = cliente.cidade_ativa || "-";
 
-    card.className = "cliente-card";
-
-    card.style.position = "relative";
-    card.style.overflow = "hidden";
-    card.style.borderColor = bordaCard;
-    card.style.background = `linear-gradient(135deg, ${brilhoCard}, rgba(23, 26, 33, 0.96) 46%), #171a21`;
+    card.className = `cliente-card ${ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""}`;
+    card.dataset.codigo = cliente.codigo;
+    card.draggable = personalizado;
 
     card.innerHTML = `
-      <div style="
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-        margin-bottom:12px;
-      ">
+      <div class="cliente-topo">
         <button
           class="cliente-codigo"
           type="button"
           data-codigo="${escaparHtml(cliente.codigo)}"
           title="Clique para copiar o código"
-          style="
-            cursor:pointer;
-            border:1px solid #2a3040;
-            background:#10131a;
-          "
         >${escaparHtml(cliente.codigo)}</button>
 
-        <span style="
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          min-height:28px;
-          padding:5px 10px;
-          border-radius:999px;
-          border:1px solid ${bordaStatus};
-          background:${fundoStatus};
-          color:${corStatus};
-          font-size:0.78rem;
-          font-weight:800;
-          white-space:nowrap;
-        ">${escaparHtml(statusReal)}</span>
+        <span class="cliente-status ${ativo ? "ativo" : "nao-ativo"}">
+          ${escaparHtml(statusReal)}
+        </span>
       </div>
 
       <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
       <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
+      <p><strong>Cidade ativa:</strong> ${escaparHtml(cidadeAtiva)}</p>
     `;
 
     card.addEventListener("click", () => abrirCliente(cliente.codigo));
@@ -195,6 +327,7 @@ function renderizarClientes() {
   });
 
   listaClientes.appendChild(fragmento);
+  ativarArrasteCards();
 }
 
 async function carregarClientes() {
@@ -225,7 +358,8 @@ async function carregarClientes() {
     const [
       { data: clientes, error: errorClientes },
       { data: vinculos, error: errorVinculos },
-      { data: playlists, error: errorPlaylists }
+      { data: playlists, error: errorPlaylists },
+      { data: pontos, error: errorPontos }
     ] = await Promise.all([
       supabaseClient
         .from("clientes_app")
@@ -239,16 +373,23 @@ async function carregarClientes() {
 
       supabaseClient
         .from("playlists")
-        .select("codigo_cliente,data_fim")
-        .or(`data_fim.is.null,data_fim.gte.${hoje}`)
+        .select("codigo_cliente,codigo,data_fim")
+        .or(`data_fim.is.null,data_fim.gte.${hoje}`),
+
+      supabaseClient
+        .from("pontos")
+        .select("*")
     ]);
 
     if (errorClientes) throw errorClientes;
     if (errorVinculos) throw errorVinculos;
     if (errorPlaylists) throw errorPlaylists;
+    if (errorPontos) throw errorPontos;
 
     const mapaPontos = {};
     const mapaAtivos = new Map();
+    const mapaCidadesAtivas = new Map();
+    const pontosMap = montarMapaPontos(pontos || []);
 
     (vinculos || []).forEach((item) => {
       const codigo = String(item.cliente_codigo || "").trim();
@@ -266,20 +407,39 @@ async function carregarClientes() {
     });
 
     (playlists || []).forEach((item) => {
-      const codigo = String(item.codigo_cliente || "").trim().toUpperCase();
-      if (!codigo) return;
+      const codigoCliente = normalizarCodigo(item.codigo_cliente);
+      const codigoPonto = normalizarCodigo(item.codigo);
 
-      mapaAtivos.set(codigo, true);
+      if (!codigoCliente) return;
+
+      mapaAtivos.set(codigoCliente, true);
+
+      const ponto = pontosMap.get(codigoPonto);
+      const cidade = obterCidadeDoPonto(ponto);
+
+      if (cidade) {
+        if (!mapaCidadesAtivas.has(codigoCliente)) {
+          mapaCidadesAtivas.set(codigoCliente, []);
+        }
+
+        const cidades = mapaCidadesAtivas.get(codigoCliente);
+
+        if (!cidades.includes(cidade)) {
+          cidades.push(cidade);
+        }
+      }
     });
 
     clientesCarregados = (clientes || []).map((cliente) => {
       const codigoOriginal = String(cliente.codigo || "").trim();
-      const codigoNormalizado = codigoOriginal.toUpperCase();
+      const codigoNormalizado = normalizarCodigo(codigoOriginal);
       const statusReal = mapaAtivos.has(codigoNormalizado) ? "Ativo" : "Não ativo";
+      const cidadesAtivas = mapaCidadesAtivas.get(codigoNormalizado) || [];
 
       return {
         ...cliente,
         status_real: statusReal,
+        cidade_ativa: cidadesAtivas.length ? cidadesAtivas.join(", ") : "-",
         pontos: mapaPontos[codigoOriginal] || []
       };
     });
@@ -393,6 +553,10 @@ function iniciarPagina() {
       clearTimeout(timerBusca);
       timerBusca = setTimeout(renderizarClientes, 180);
     });
+  }
+
+  if (filtroOrganizacao) {
+    filtroOrganizacao.addEventListener("change", renderizarClientes);
   }
 
   carregarClientes();
