@@ -432,7 +432,7 @@ async function carregarClientes(opcoes = {}) {
     ] = await Promise.all([
       supabaseClient
         .from("clientes_app")
-        .select("codigo,nome_completo,telefone,email,cpf_cnpj,status,contrato_ativo,data_postagem")
+        .select("codigo,nome_completo,telefone,email,cpf_cnpj,status,contrato_ativo,data_postagem,tipo_acesso,material_upgrade_ativo")
         .order("codigo", { ascending: true }),
 
       supabaseClient
