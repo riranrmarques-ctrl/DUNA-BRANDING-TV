@@ -10,14 +10,11 @@
   --panel-2: rgba(15, 27, 57, 0.74);
   --panel-soft: rgba(255, 255, 255, 0.04);
   --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.14);
   --text: #f8fbff;
   --muted: #9eaccd;
   --muted-2: #7f8dad;
   --green: #3ddc84;
   --red: #ff6b6b;
-  --blue: #7ea2ff;
-  --blue-strong: #9ab5ff;
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
 }
 
@@ -63,7 +60,6 @@ input {
   margin: 0 auto 26px;
   display: block;
   object-fit: contain;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.24));
 }
 
 .login-card h1 {
@@ -113,12 +109,6 @@ input {
   color: #0b1226;
   font-weight: 900;
   cursor: pointer;
-  transition: transform 0.18s ease, filter 0.18s ease;
-}
-
-.login-card button:hover {
-  filter: brightness(0.95);
-  transform: translateY(-1px);
 }
 
 .login-erro {
@@ -145,7 +135,7 @@ input {
 .topo-esquerda {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 .logo-cliente {
@@ -153,14 +143,13 @@ input {
   height: auto;
   object-fit: contain;
   flex: 0 0 auto;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
 }
 
 .topo-label {
   color: #b7c0d8;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.32em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
@@ -180,15 +169,7 @@ input {
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
   backdrop-filter: blur(10px);
-}
-
-.btn-sair:hover,
-.btn-atualizar:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.16);
-  transform: translateY(-1px);
 }
 
 .boas-vindas {
@@ -201,10 +182,9 @@ input {
   justify-content: flex-start;
   text-align: center;
   margin: 0 0 20px;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   overflow: visible;
 }
 
@@ -218,10 +198,6 @@ input {
   pointer-events: none;
 }
 
-.boas-vindas .eyebrow {
-  display: none !important;
-}
-
 .boas-vindas h1,
 #tituloBoasVindas {
   position: relative;
@@ -233,7 +209,6 @@ input {
   font-weight: 600;
   margin: 0;
   color: #f8fbff;
-  text-shadow: none !important;
 }
 
 .hero-linha {
@@ -255,10 +230,6 @@ input {
   font-weight: 700;
   color: #ffffff;
   letter-spacing: 0.012em;
-}
-
-.cliente-shell .boas-vindas {
-  background-image: none !important;
 }
 
 .boas-vindas p,
@@ -403,14 +374,6 @@ input {
   gap: 14px;
   text-align: left;
   cursor: pointer;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-}
-
-.ponto-card:hover,
-.ponto-card.ativo {
-  border-color: rgba(126, 162, 255, 0.5);
-  background: rgba(126, 162, 255, 0.11);
-  transform: translateY(-1px);
 }
 
 .ponto-card img {
@@ -592,10 +555,7 @@ input {
   background: #000;
 }
 
-.preview-midia video::-webkit-media-controls {
-  display: none !important;
-}
-
+.preview-midia video::-webkit-media-controls,
 .preview-midia video::-webkit-media-controls-enclosure {
   display: none !important;
 }
