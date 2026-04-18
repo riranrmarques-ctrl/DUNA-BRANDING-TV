@@ -26,6 +26,8 @@ const CODIGOS_FIXOS = [
 
 let supabaseClient = null;
 let clientesCarregados = [];
+let carregandoClientes = false;
+let timerBusca = null;
 
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
@@ -47,6 +49,7 @@ function verificarAcesso() {
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
+
   mensagem.textContent = texto;
   mensagem.style.color = cor;
 }
@@ -64,16 +67,8 @@ function abrirCliente(codigo) {
   window.location.href = `/pasta-cliente.html?codigo=${encodeURIComponent(codigo)}`;
 }
 
-function itemEstaInativo(item) {
-  if (!item?.data_fim) return false;
-
-  const agora = new Date();
-  const fim = new Date(item.data_fim);
-
-  if (Number.isNaN(fim.getTime())) return false;
-
-  fim.setHours(23, 59, 59, 999);
-  return agora > fim;
+function obterDataHojeISO() {
+  return new Date().toISOString().split("T")[0];
 }
 
 async function excluirCliente(codigo) {
@@ -141,6 +136,8 @@ function renderizarClientes() {
     return;
   }
 
+  const fragmento = document.createDocumentFragment();
+
   filtrados.forEach((cliente) => {
     const card = document.createElement("div");
     card.className = "cliente-card";
@@ -184,11 +181,15 @@ function renderizarClientes() {
       });
     }
 
-    listaClientes.appendChild(card);
+    fragmento.appendChild(card);
   });
+
+  listaClientes.appendChild(fragmento);
 }
 
 async function carregarClientes() {
+  if (carregandoClientes) return;
+
   if (!supabaseClient) {
     if (listaClientes) {
       listaClientes.innerHTML = `<div class="vazio">Erro ao conectar com o Supabase.</div>`;
@@ -198,49 +199,66 @@ async function carregarClientes() {
     return;
   }
 
+  carregandoClientes = true;
+
+  if (botaoAtualizar) {
+    botaoAtualizar.disabled = true;
+    botaoAtualizar.style.opacity = "0.6";
+    botaoAtualizar.style.cursor = "not-allowed";
+  }
+
   try {
     mostrarMensagem("Carregando clientes...");
 
-    const { data: clientes, error } = await supabaseClient
-      .from("clientes_app")
-      .select("*")
-      .order("codigo", { ascending: true });
+    const hoje = obterDataHojeISO();
 
-    if (error) throw error;
+    const [
+      { data: clientes, error: errorClientes },
+      { data: vinculos, error: errorVinculos },
+      { data: playlists, error: errorPlaylists }
+    ] = await Promise.all([
+      supabaseClient
+        .from("clientes_app")
+        .select("codigo,nome_completo,telefone,email,cpf_cnpj,status")
+        .order("codigo", { ascending: true }),
 
-    const { data: vinculos, error: errorVinculos } = await supabaseClient
-      .from("cliente_pontos")
-      .select("*")
-      .order("cliente_codigo", { ascending: true });
+      supabaseClient
+        .from("cliente_pontos")
+        .select("cliente_codigo,ponto_codigo")
+        .order("cliente_codigo", { ascending: true }),
 
+      supabaseClient
+        .from("playlists")
+        .select("codigo_cliente,data_fim")
+        .or(`data_fim.is.null,data_fim.gte.${hoje}`)
+    ]);
+
+    if (errorClientes) throw errorClientes;
     if (errorVinculos) throw errorVinculos;
-
-    const { data: playlists, error: errorPlaylists } = await supabaseClient
-      .from("playlists")
-      .select("codigo_cliente, data_fim");
-
     if (errorPlaylists) throw errorPlaylists;
 
     const mapaPontos = {};
     const mapaAtivos = new Map();
 
     (vinculos || []).forEach((item) => {
-      const clienteCodigo = String(item.cliente_codigo || "").trim();
+      const codigo = String(item.cliente_codigo || "").trim();
+      const ponto = String(item.ponto_codigo || "").trim();
 
-      if (!mapaPontos[clienteCodigo]) {
-        mapaPontos[clienteCodigo] = [];
+      if (!codigo || !ponto) return;
+
+      if (!mapaPontos[codigo]) {
+        mapaPontos[codigo] = [];
       }
 
-      mapaPontos[clienteCodigo].push(item.ponto_codigo);
+      if (!mapaPontos[codigo].includes(ponto)) {
+        mapaPontos[codigo].push(ponto);
+      }
     });
 
     (playlists || []).forEach((item) => {
       const codigo = String(item.codigo_cliente || "").trim().toUpperCase();
       if (!codigo) return;
-
-      if (!itemEstaInativo(item)) {
-        mapaAtivos.set(codigo, true);
-      }
+      mapaAtivos.set(codigo, true);
     });
 
     clientesCarregados = (clientes || []).map((cliente) => {
@@ -265,6 +283,14 @@ async function carregarClientes() {
     }
 
     mostrarMensagem("Erro ao carregar clientes do Supabase.", "#ff6b6b");
+  } finally {
+    carregandoClientes = false;
+
+    if (botaoAtualizar) {
+      botaoAtualizar.disabled = false;
+      botaoAtualizar.style.opacity = "1";
+      botaoAtualizar.style.cursor = "pointer";
+    }
   }
 }
 
@@ -284,6 +310,8 @@ async function criarNovoCliente() {
   try {
     if (botaoNovoCliente) {
       botaoNovoCliente.disabled = true;
+      botaoNovoCliente.style.opacity = "0.6";
+      botaoNovoCliente.style.cursor = "not-allowed";
     }
 
     mostrarMensagem("Criando novo cliente...");
@@ -313,6 +341,8 @@ async function criarNovoCliente() {
   } finally {
     if (botaoNovoCliente) {
       botaoNovoCliente.disabled = false;
+      botaoNovoCliente.style.opacity = "1";
+      botaoNovoCliente.style.cursor = "pointer";
     }
   }
 }
@@ -348,7 +378,10 @@ function iniciarPagina() {
   }
 
   if (buscaCliente) {
-    buscaCliente.addEventListener("input", renderizarClientes);
+    buscaCliente.addEventListener("input", () => {
+      clearTimeout(timerBusca);
+      timerBusca = setTimeout(renderizarClientes, 180);
+    });
   }
 
   carregarClientes();
