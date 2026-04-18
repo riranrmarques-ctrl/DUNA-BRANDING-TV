@@ -5,6 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Painel</title>
   <link rel="stylesheet" href="painel.css?v=102">
+
+  <style>
+    .toggle-ponto {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 132px;
+      height: 40px;
+      padding: 0 12px 0 42px;
+      border: none;
+      border-radius: 999px;
+      background: #7a2230;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 700;
+      transition: 0.2s ease;
+    }
+
+    .toggle-ponto .toggle-bola {
+      position: absolute;
+      left: 6px;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #fff;
+      transition: 0.2s ease;
+    }
+
+    .toggle-ponto.ativo {
+      background: #178b45;
+      padding-left: 12px;
+      padding-right: 42px;
+    }
+
+    .toggle-ponto.ativo .toggle-bola {
+      left: calc(100% - 34px);
+    }
+  </style>
 </head>
 <body>
 
@@ -302,6 +342,11 @@
 
               <div class="playlist-acoes-topo">
                 <button id="btnEditarInfo" type="button" class="btn-secundario">Editar informações</button>
+
+                <button id="btnToggleDisponibilidade" class="toggle-ponto ativo" type="button" aria-pressed="true">
+                  <span class="toggle-bola"></span>
+                  <span class="toggle-texto">Disponível</span>
+                </button>
               </div>
             </div>
           </div>
