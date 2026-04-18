@@ -6,18 +6,22 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v3";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v4";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v2_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v3_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 
 function limparCachesAntigos() {
   try {
     sessionStorage.removeItem("painel_pontos_cache_v1");
     sessionStorage.removeItem("painel_pontos_cache_v2");
+    sessionStorage.removeItem("painel_pontos_cache_v3");
 
     Object.keys(sessionStorage).forEach((key) => {
-      if (key.startsWith("painel_playlist_cache_v1_")) {
+      if (
+        key.startsWith("painel_playlist_cache_v1_") ||
+        key.startsWith("painel_playlist_cache_v2_")
+      ) {
         sessionStorage.removeItem(key);
       }
     });
@@ -125,9 +129,23 @@ function obterUltimoPingPonto(ponto) {
   return ponto?.ultimo_ping || ponto?.last_ping || ponto?.updated_at || ponto?.data_ping || null;
 }
 
-function obterCidadeComNomeEmNegrito(cidade) {
-  const nome = String(cidade || "").trim();
-  return nome ? `Cidade de <strong>${escapeHtml(nome)}</strong>` : "Cidade não definida";
+function obterLocalizacaoPonto(cidade, endereco = "") {
+  const cidadeFinal = String(cidade || "").trim();
+  const enderecoFinal = String(endereco || "").trim();
+
+  if (cidadeFinal && enderecoFinal) {
+    return `<strong>${escapeHtml(cidadeFinal)}</strong> | ${escapeHtml(enderecoFinal)}`;
+  }
+
+  if (cidadeFinal) {
+    return `<strong>${escapeHtml(cidadeFinal)}</strong>`;
+  }
+
+  if (enderecoFinal) {
+    return escapeHtml(enderecoFinal);
+  }
+
+  return "Localização não definida";
 }
 
 function pontoEstaDisponivel(ponto) {
@@ -609,6 +627,7 @@ function renderizarCardsPontos(lista, opcoes = {}) {
 
     const nome = obterNomePonto(ponto, codigo);
     const cidade = obterCidadePonto(ponto);
+    const endereco = obterEnderecoPonto(ponto);
     const imagem = obterImagemPonto(ponto);
     const disponivel = pontoEstaDisponivel(ponto);
 
@@ -637,7 +656,7 @@ function renderizarCardsPontos(lista, opcoes = {}) {
     }
 
     if (cidadeEl) {
-      cidadeEl.innerHTML = obterCidadeComNomeEmNegrito(cidade);
+      cidadeEl.innerHTML = obterLocalizacaoPonto(cidade, endereco);
     }
 
     if (codigoEl) {
@@ -751,7 +770,7 @@ function abrirPonto(codigo) {
   atualizarVisualDisponibilidade(disponivel);
 
   if (cidadePonto) {
-    cidadePonto.innerHTML = obterCidadeComNomeEmNegrito(cidade);
+    cidadePonto.innerHTML = obterLocalizacaoPonto(cidade, endereco);
   }
 
   if (enderecoPonto) {
