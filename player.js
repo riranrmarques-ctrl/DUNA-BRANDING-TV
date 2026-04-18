@@ -6,7 +6,7 @@ const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
-const DURACAO_IMAGEM = 20000;
+const DURACAO_IMAGEM = 10000;
 const DURACAO_SITE = 10000;
 const INTERVALO_PING = 60000;
 const INTERVALO_ATUALIZAR_PLAYLIST = 30000;
