@@ -1541,3 +1541,539 @@ body {
 .status-bolinha {
   box-shadow: 0 0 14px currentColor;
 }
+/* ===== Upgrade visual painel Duna TV ===== */
+
+:root {
+  --duna-bg: #071022;
+  --duna-bg-2: #0b1630;
+  --duna-card: #182449;
+  --duna-card-2: #101a35;
+  --duna-line: rgba(135, 160, 255, 0.18);
+  --duna-blue: #5b72ff;
+  --duna-blue-2: #7aa2ff;
+  --duna-cyan: #4ee7ff;
+  --duna-green: #64e887;
+  --duna-red: #ff4f67;
+  --duna-yellow: #f7c948;
+  --duna-text: #f7f9ff;
+  --duna-muted: #aeb9d7;
+  --duna-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+}
+
+body {
+  background:
+    radial-gradient(circle at 16% 8%, rgba(75, 113, 255, 0.26), transparent 30%),
+    radial-gradient(circle at 86% 18%, rgba(78, 231, 255, 0.12), transparent 24%),
+    linear-gradient(180deg, #08132b 0%, #060b18 58%, #05070d 100%);
+  color: var(--duna-text);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.72), transparent 78%);
+  z-index: -1;
+}
+
+/* Topo */
+
+.topo-fixo.novo-topo {
+  position: relative;
+  max-width: 1120px;
+  margin: 0 auto 30px;
+  padding: 36px 24px 28px;
+  border-radius: 0 0 34px 34px;
+  background:
+    linear-gradient(135deg, rgba(35, 54, 111, 0.72), rgba(7, 16, 34, 0.18)),
+    radial-gradient(circle at 50% 0%, rgba(91, 114, 255, 0.34), transparent 46%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+}
+
+.topo-centro h1 {
+  letter-spacing: 0.14em;
+  text-transform: none;
+  text-shadow: 0 8px 30px rgba(91, 114, 255, 0.28);
+}
+
+.topo-centro p {
+  color: var(--duna-muted);
+  margin-top: 8px;
+}
+
+.logo-topo-img {
+  filter: drop-shadow(0 8px 18px rgba(255, 255, 255, 0.12));
+}
+
+.status-topo,
+.status-box {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3d9147, #65d980);
+  color: #071022;
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgba(100, 232, 135, 0.26);
+}
+
+.menu-topo-btn {
+  border-radius: 14px;
+  background: linear-gradient(135deg, #253965, #1a2747);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.menu-topo-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(122, 162, 255, 0.5);
+}
+
+.menu-topo-dropdown {
+  border-radius: 16px;
+  background: rgba(13, 22, 46, 0.96);
+  border: 1px solid rgba(122, 162, 255, 0.2);
+  box-shadow: var(--duna-shadow);
+  overflow: hidden;
+}
+
+.menu-item {
+  transition: background 0.18s ease, padding-left 0.18s ease;
+}
+
+.menu-item:hover {
+  background: rgba(91, 114, 255, 0.18);
+  padding-left: 20px;
+}
+
+/* Shell geral */
+
+.painel-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 18px 20px 28px;
+  border-radius: 30px;
+  background:
+    linear-gradient(180deg, rgba(14, 25, 54, 0.86), rgba(7, 12, 25, 0.82)),
+    rgba(7, 12, 25, 0.82);
+  border: 1px solid rgba(135, 160, 255, 0.13);
+  box-shadow: var(--duna-shadow);
+}
+
+/* Cards dos pontos */
+
+.pontos-box {
+  gap: 18px;
+}
+
+.card-ponto {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, #202d59, #131d3d);
+  border: 1px solid rgba(135, 160, 255, 0.16);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition:
+    transform 0.24s cubic-bezier(.2,.9,.2,1),
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.card-ponto::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(78, 231, 255, 0.14), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 48%);
+  opacity: 0.8;
+}
+
+.card-ponto:hover {
+  transform: translateY(-6px);
+  border-color: rgba(122, 162, 255, 0.65);
+  box-shadow:
+    0 26px 54px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(91, 114, 255, 0.18);
+}
+
+.card-ponto > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card-status-topo {
+  padding: 10px 12px 8px;
+}
+
+.status-bolinha {
+  box-shadow: 0 0 12px currentColor;
+}
+
+.status-bolinha.ativo {
+  background: var(--duna-green);
+  color: var(--duna-green);
+}
+
+.status-bolinha.inativo {
+  background: var(--duna-red);
+  color: var(--duna-red);
+}
+
+.card-status {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.card-status.ativo {
+  color: #a8ffba;
+}
+
+.card-status.inativo {
+  color: #ff9aa8;
+}
+
+.card-imagem-box {
+  margin: 0 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #090f20;
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.card-imagem {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  filter: saturate(1.08) contrast(1.04);
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.card-ponto:hover .card-imagem {
+  transform: scale(1.035);
+  filter: saturate(1.18) contrast(1.08) brightness(1.03);
+}
+
+.card-conteudo {
+  padding: 13px 14px 10px;
+}
+
+.card-nome {
+  color: #ffffff;
+  font-size: 1.06rem;
+  letter-spacing: 0.01em;
+}
+
+.card-info-linha {
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.card-cidade {
+  color: #d5def8;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.card-codigo {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd6ff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-copiar {
+  border-radius: 8px;
+  background: rgba(122, 162, 255, 0.14);
+  border: 1px solid rgba(122, 162, 255, 0.18);
+  color: #dbe5ff;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.btn-copiar:hover {
+  transform: translateY(-1px);
+  background: rgba(122, 162, 255, 0.28);
+}
+
+.card-acoes {
+  padding: 0 12px 12px;
+}
+
+.btn-abrir {
+  width: 100%;
+  border-radius: 10px;
+  min-height: 44px;
+  background:
+    linear-gradient(135deg, #5d72ff, #6f86ff);
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 14px 26px rgba(91, 114, 255, 0.26);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.btn-abrir:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.07);
+}
+
+/* Pasta do ponto / playlist */
+
+.playlist-box {
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(11, 20, 43, 0.96), rgba(7, 12, 25, 0.96));
+  border: 1px solid rgba(135, 160, 255, 0.14);
+  box-shadow: var(--duna-shadow);
+}
+
+.playlist-topbar-novo {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.btn-secundario,
+.btn-voltar-topo {
+  border-radius: 12px;
+  background: #202b47;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f7f9ff;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-secundario:hover,
+.btn-voltar-topo:hover {
+  transform: translateY(-2px);
+  border-color: rgba(122, 162, 255, 0.45);
+}
+
+.topbar-titulo {
+  color: #d7def7;
+  font-weight: 800;
+}
+
+.status-destaque {
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-weight: 900;
+}
+
+.status-destaque.ativo {
+  color: #071022;
+  background: linear-gradient(135deg, #63e887, #b3ffbe);
+  box-shadow: 0 12px 26px rgba(99, 232, 135, 0.2);
+}
+
+.status-destaque.inativo {
+  color: #ffe5e8;
+  background: rgba(255, 79, 103, 0.14);
+  border: 1px solid rgba(255, 79, 103, 0.28);
+}
+
+.playlist-header-novo {
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(91, 114, 255, 0.20), transparent 36%),
+    rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.playlist-imagem-box {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.36);
+}
+
+#imagemPonto {
+  filter: saturate(1.1) contrast(1.05);
+}
+
+.playlist-header-textos h2 {
+  color: #ffffff;
+  letter-spacing: 0.01em;
+  text-shadow: 0 10px 24px rgba(91, 114, 255, 0.18);
+}
+
+.playlist-info-item {
+  color: #cfd8f5;
+}
+
+.playlist-codigo-linha {
+  gap: 8px;
+}
+
+#codigoAtual {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #dce5ff;
+  padding: 7px 10px;
+  font-weight: 900;
+}
+
+.btn-copiar-playlist {
+  border-radius: 10px;
+  background: rgba(122, 162, 255, 0.16);
+  border: 1px solid rgba(122, 162, 255, 0.2);
+  color: #eaf0ff;
+}
+
+.playlist-secao {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.playlist-secao-topo h4 {
+  color: #a8ffba;
+  letter-spacing: 0.02em;
+}
+
+.playlist-secao-historico .playlist-secao-topo h4 {
+  color: #ffb3bb;
+}
+
+.playlist-header-linha {
+  color: #aeb9d7;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.playlist-item,
+.historico-item,
+.playlist-vazia {
+  border-radius: 14px;
+  background: rgba(8, 14, 30, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.playlist-item {
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.playlist-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(122, 162, 255, 0.34);
+  background: rgba(13, 22, 46, 0.9);
+}
+
+.playlist-item.drag-over {
+  border-color: var(--duna-yellow);
+  box-shadow: 0 0 0 2px rgba(247, 201, 72, 0.18);
+}
+
+.playlist-acao {
+  border-radius: 10px;
+}
+
+/* Modal */
+
+.modal-editar {
+  backdrop-filter: blur(8px);
+  background: rgba(3, 7, 16, 0.72);
+}
+
+.modal-conteudo {
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, #182449, #0f1831);
+  border: 1px solid rgba(122, 162, 255, 0.18);
+  box-shadow: var(--duna-shadow);
+}
+
+.modal-conteudo h3 {
+  color: #ffffff;
+}
+
+.modal-conteudo input {
+  border-radius: 12px;
+  border: 1px solid rgba(122, 162, 255, 0.18);
+  background: #0b1328;
+  color: #ffffff;
+}
+
+.edit-imagem-box {
+  border-radius: 16px;
+  background: #0b1328;
+  border: 1px solid rgba(122, 162, 255, 0.16);
+}
+
+#previewImagem {
+  border-radius: 12px;
+}
+
+#btnSalvarEdicao {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #5d72ff, #7aa2ff);
+  font-weight: 900;
+}
+
+#btnFecharModal {
+  border-radius: 12px;
+  background: #2a3147;
+}
+
+/* Login */
+
+.login-screen {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(91, 114, 255, 0.22), transparent 32%),
+    linear-gradient(180deg, #08132b, #05070d);
+}
+
+.login-card {
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(24, 36, 73, 0.96), rgba(10, 17, 35, 0.96));
+  border: 1px solid rgba(122, 162, 255, 0.18);
+  box-shadow: var(--duna-shadow);
+}
+
+.login-card input {
+  border-radius: 14px;
+  background: #0b1328;
+  border: 1px solid rgba(122, 162, 255, 0.18);
+  color: #fff;
+}
+
+#btnLogin {
+  border-radius: 14px;
+  background: linear-gradient(135deg, #5d72ff, #7aa2ff);
+  font-weight: 900;
+}
+
+/* Mobile */
+
+@media (max-width: 760px) {
+  .topo-fixo.novo-topo {
+    border-radius: 0 0 24px 24px;
+    padding: 26px 16px 22px;
+  }
+
+  .topo-centro h1 {
+    font-size: 1.65rem;
+    letter-spacing: 0.08em;
+  }
+
+  .painel-shell {
+    padding: 14px;
+    border-radius: 22px;
+  }
+
+  .card-ponto {
+    border-radius: 13px;
+  }
+}
