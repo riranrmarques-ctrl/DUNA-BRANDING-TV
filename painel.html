@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Duna Branding | Painel</title>
-  <link rel="stylesheet" href="painel.css?v=106">
-</head>
-<body>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 
+  <title>Duna Branding | Painel</title>
+  <link rel="stylesheet" href="painel.css?v=107">
+</head>
+
+<body>
   <div id="loginBox" class="login-screen">
     <div class="login-card">
       <h2>Acesso ao Painel</h2>
@@ -18,7 +22,6 @@
   </div>
 
   <div id="conteudoPainel" style="display:none;">
-    
     <div class="topo-fixo novo-topo">
       <div class="topo-esquerda">
         <div class="menu-topo-wrap">
@@ -41,7 +44,7 @@
       </div>
 
       <div class="topo-direita">
-        <img src="logo.png" class="logo-topo-img" alt="Duna TV">
+        <img src="logo.png?v=2" class="logo-topo-img" alt="Duna TV">
         <div class="status-topo">Painel Ativo</div>
       </div>
     </div>
@@ -65,8 +68,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">H4E9L2A</div>
-                  <button class="btn-copiar" data-codigo="H4E9L2A" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">H4E9L2A</div>
                 </div>
               </div>
             </div>
@@ -92,8 +94,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">N7H3E8L</div>
-                  <button class="btn-copiar" data-codigo="N7H3E8L" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">N7H3E8L</div>
                 </div>
               </div>
             </div>
@@ -119,8 +120,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">E2A6H9N</div>
-                  <button class="btn-copiar" data-codigo="E2A6H9N" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">E2A6H9N</div>
                 </div>
               </div>
             </div>
@@ -146,8 +146,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">L8E1N5A</div>
-                  <button class="btn-copiar" data-codigo="L8E1N5A" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">L8E1N5A</div>
                 </div>
               </div>
             </div>
@@ -173,8 +172,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">H6N4E7A</div>
-                  <button class="btn-copiar" data-codigo="H6N4E7A" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">H6N4E7A</div>
                 </div>
               </div>
             </div>
@@ -200,8 +198,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">A9L3E2H</div>
-                  <button class="btn-copiar" data-codigo="A9L3E2H" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">A9L3E2H</div>
                 </div>
               </div>
             </div>
@@ -227,8 +224,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">E5H8A1N</div>
-                  <button class="btn-copiar" data-codigo="E5H8A1N" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">E5H8A1N</div>
                 </div>
               </div>
             </div>
@@ -254,8 +250,7 @@
                 <div class="card-cidade">Cidade não definida</div>
 
                 <div class="card-codigo-area">
-                  <div class="card-codigo">N2E7L4A</div>
-                  <button class="btn-copiar" data-codigo="N2E7L4A" title="Copiar código" type="button">⧉</button>
+                  <div class="card-codigo" title="Clique para copiar">N2E7L4A</div>
                 </div>
               </div>
             </div>
@@ -269,13 +264,12 @@
         <div class="novo-ponto-area">
           <button id="btnNovoPonto" class="btn-novo-ponto" type="button">+ Novo ponto</button>
         </div>
-        
+
         <div class="assinatura-duna">
           Desenvolvido por <strong>Duna Branding</strong>
         </div>
       </div>
-    </div>
-    
+
       <div id="pontoDetalhe" class="playlist-box" style="display:none;">
         <div class="playlist-topbar playlist-topbar-novo">
           <div class="topbar-esquerda">
@@ -304,16 +298,17 @@
 
               <div class="playlist-codigo-linha">
                 <button id="btnToggleDisponibilidade" class="toggle-ponto ativo" type="button" aria-pressed="true">
-                  <span class="toggle-bola"></span>
+                  <span class="toggle-bolinha"></span>
                   <span class="toggle-texto">Disponível</span>
                 </button>
 
-                <span id="codigoAtual"></span>
-                <button id="btnCopiarCodigo" type="button" class="btn-copiar-playlist" title="Copiar código">⧉</button>
+                <span id="codigoAtual" title="Clique para copiar"></span>
               </div>
 
               <div class="playlist-acoes-topo">
                 <button id="btnEditarInfo" type="button" class="btn-secundario">Editar informações</button>
+                <button id="btnUpgradePlaylist" type="button" class="btn-upgrade-playlist">upgrade</button>
+                <input id="inputUpgradePlaylist" type="file" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt" hidden>
               </div>
             </div>
           </div>
@@ -379,6 +374,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=558"></script>
+  <script src="painel.js?v=560"></script>
 </body>
 </html>
