@@ -68,6 +68,14 @@ function normalizarCodigo(codigo) {
   return String(codigo || "").trim().toUpperCase();
 }
 
+function normalizarTexto(valor) {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 function formatarData(valor) {
   if (!valor) return "Sem data";
 
@@ -223,7 +231,7 @@ function calcularStatusPonto(ponto, historico = []) {
   return {
     texto: "Inativo",
     detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`,
-      classe: "inativo"
+    classe: "inativo"
   };
 }
 
@@ -302,6 +310,32 @@ function obterNomeArquivo(item) {
 
 function obterNomeClientePlaylist(item) {
   return item?.nome_cliente || item?.cliente_nome || item?.cliente || item?.nome || obterNomeCliente(clienteAtual);
+}
+
+function pertenceAoClienteAtual(item) {
+  const codigoItem = normalizarCodigo(item?.codigo_cliente || item?.cliente_codigo);
+  const codigoAtual = normalizarCodigo(codigoClienteAtual);
+
+  if (codigoItem && codigoAtual && codigoItem === codigoAtual) return true;
+
+  const nomeAtual = normalizarTexto(obterNomeCliente(clienteAtual));
+  const nomesItem = [
+    item?.nome_cliente,
+    item?.cliente_nome,
+    item?.cliente,
+    item?.nome
+  ]
+    .map(normalizarTexto)
+    .filter(Boolean);
+
+  if (nomeAtual && nomesItem.includes(nomeAtual)) return true;
+
+  return !codigoItem && !nomesItem.length;
+}
+
+function filtrarMateriaisDoCliente(lista) {
+  const filtrados = (lista || []).filter(pertenceAoClienteAtual);
+  return filtrados.length ? filtrados : lista || [];
 }
 
 function limparTelaDetalhe() {
@@ -425,36 +459,31 @@ function renderizarListaPontos() {
 }
 
 function renderizarPreview(lista) {
-  const ativos = lista.filter((item) => !itemEstaInativo(item));
-  const item = ativos[0] || lista[0] || null;
+  const materiaisCliente = filtrarMateriaisDoCliente(lista);
+  const ativos = materiaisCliente.filter((item) => !itemEstaInativo(item));
+  const item = ativos[0] || materiaisCliente[0] || null;
+
   const pontoAtual = pontosContratados.find(
     (ponto) => normalizarCodigo(ponto.codigo) === pontoSelecionado
   );
   const historicoAtual = historicosPorPonto[pontoSelecionado] || [];
   const statusAtual = pontoAtual ? calcularStatusPonto(pontoAtual, historicoAtual) : null;
   const pontoInativo = statusAtual?.classe === "inativo" || statusAtual?.classe === "indisponivel";
+  const nomeArquivoAtual = item ? obterNomeArquivo(item) : "";
 
   if (!previewMidia) return;
 
   if (tituloPreview) {
-    tituloPreview.textContent = pontoInativo ? "Playlist office" : "Exibição da playlist";
-  }
-
-  if (!item) {
-    if (previewNome) {
-      previewNome.textContent = pontoInativo
-        ? "Quer assistir a playlist office?"
-        : "Playlist em exibição";
-    }
-
-    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material disponível para este ponto.</div>`;
-    return;
+    tituloPreview.textContent = pontoInativo ? "Exibição offline" : "Exibição em tempo real";
   }
 
   if (previewNome) {
-    previewNome.textContent = pontoInativo
-      ? "Quer assistir a playlist office?"
-      : "Playlist em exibição";
+    previewNome.textContent = nomeArquivoAtual;
+  }
+
+  if (!item) {
+    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material disponível para este ponto.</div>`;
+    return;
   }
 
   if (pontoInativo) {
@@ -462,8 +491,11 @@ function renderizarPreview(lista) {
 
     previewMidia.innerHTML = `
       <div class="preview-office">
-        <img src="${escapeHtml(imagemOffice)}" alt="Playlist office">
-        <div class="preview-office-legenda">Quer assistir a playlist office?</div>
+        <img src="${escapeHtml(imagemOffice)}" alt="${escapeHtml(nomeArquivoAtual || "Exibição offline")}">
+        <div class="preview-office-legenda">
+          <span>Você está assistindo off.</span>
+          <small>Nunca pare a exibição.</small>
+        </div>
       </div>
     `;
     return;
@@ -478,7 +510,7 @@ function renderizarPreview(lista) {
   }
 
   if (tipo === "imagem") {
-    previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="Playlist em exibição">`;
+    previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(nomeArquivoAtual || "Exibição em tempo real")}">`;
     return;
   }
 
@@ -488,28 +520,29 @@ function renderizarPreview(lista) {
   }
 
   previewMidia.innerHTML = `
-    <video src="${escapeHtml(url)}" autoplay muted loop playsinline controls></video>
+    <video src="${escapeHtml(url)}" autoplay muted loop playsinline></video>
   `;
 }
 
 function renderizarMateriais(lista) {
   if (!listaMateriais) return;
 
-  if (!lista.length) {
-    listaMateriais.innerHTML = `<div class="vazio">Nenhum material encontrado neste ponto.</div>`;
+  const materiaisCliente = filtrarMateriaisDoCliente(lista);
+
+  if (!materiaisCliente.length) {
+    listaMateriais.innerHTML = `<div class="vazio">Nenhum material encontrado para este cliente.</div>`;
     return;
   }
 
-  listaMateriais.innerHTML = lista.map((item, index) => {
-    const cliente = obterNomeClientePlaylist(item);
+  listaMateriais.innerHTML = materiaisCliente.map((item, index) => {
     const arquivo = obterNomeArquivo(item);
 
     return `
       <div class="linha-material">
         <span>${index + 1}.</span>
         <div>
-          <strong>${escapeHtml(cliente)}</strong>
-          <small>${escapeHtml(arquivo)}</small>
+          <strong>${escapeHtml(arquivo)}</strong>
+          <small>${escapeHtml(formatarDataHora(item.created_at))}</small>
         </div>
         <span>${formatarDataHora(item.created_at)}</span>
         <span>${formatarData(item.data_fim)}</span>
@@ -879,7 +912,7 @@ window.addEventListener("load", () => {
   }
 
   if (tituloPreview) {
-    tituloPreview.textContent = "Exibição da playlist";
+    tituloPreview.textContent = "Exibição em tempo real";
   }
 
   if (previewNome) {
