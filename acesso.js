@@ -515,8 +515,8 @@ function ordenarPontosPorStatus(pontos) {
 
 function renderizarListaPontos() {
   if (contadorPontos) {
-    const total = pontosContratados.length;
-    contadorPontos.textContent = total === 1 ? "1 ponto" : `${total} pontos`;
+    contadorPontos.textContent = "";
+    contadorPontos.style.display = "none";
   }
 
   if (!listaPontosCliente) return;
