@@ -12,24 +12,24 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 132px;
-      height: 40px;
-      padding: 0 12px 0 42px;
+      min-width: 104px;
+      height: 30px;
+      padding: 0 10px 0 32px;
       border: none;
       border-radius: 999px;
       background: #7a2230;
       color: #fff;
       cursor: pointer;
-      font-size: 0.86rem;
+      font-size: 0.76rem;
       font-weight: 700;
       transition: 0.2s ease;
     }
 
     .toggle-ponto .toggle-bola {
       position: absolute;
-      left: 6px;
-      width: 28px;
-      height: 28px;
+      left: 4px;
+      width: 22px;
+      height: 22px;
       border-radius: 999px;
       background: #fff;
       transition: 0.2s ease;
@@ -37,12 +37,19 @@
 
     .toggle-ponto.ativo {
       background: #178b45;
-      padding-left: 12px;
-      padding-right: 42px;
+      padding-left: 10px;
+      padding-right: 32px;
     }
 
     .toggle-ponto.ativo .toggle-bola {
-      left: calc(100% - 34px);
+      left: calc(100% - 26px);
+    }
+
+    .playlist-codigo-linha {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
   </style>
 </head>
@@ -336,17 +343,17 @@
               </div>
 
               <div class="playlist-codigo-linha">
+                <button id="btnToggleDisponibilidade" class="toggle-ponto ativo" type="button" aria-pressed="true">
+                  <span class="toggle-bola"></span>
+                  <span class="toggle-texto">Disponível</span>
+                </button>
+
                 <span id="codigoAtual"></span>
                 <button id="btnCopiarCodigo" type="button" class="btn-copiar-playlist" title="Copiar código">⧉</button>
               </div>
 
               <div class="playlist-acoes-topo">
                 <button id="btnEditarInfo" type="button" class="btn-secundario">Editar informações</button>
-
-                <button id="btnToggleDisponibilidade" class="toggle-ponto ativo" type="button" aria-pressed="true">
-                  <span class="toggle-bola"></span>
-                  <span class="toggle-texto">Disponível</span>
-                </button>
               </div>
             </div>
           </div>
@@ -411,6 +418,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=400"></script>
+  <script src="painel.js?v=101"></script>
 </body>
 </html>
