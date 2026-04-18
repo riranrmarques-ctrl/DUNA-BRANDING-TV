@@ -1350,3 +1350,41 @@ body {
     flex-direction: column;
   }
 }
+.topo-centro p {
+  font-size: clamp(1.08rem, 1.55vw, 1.38rem) !important;
+  font-weight: 700 !important;
+  color: #dce6ff !important;
+  letter-spacing: 0.01em !important;
+}
+
+.btn-novo-ponto {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  padding: 10px 16px !important;
+  font-size: 0.82rem !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 26px rgba(59, 130, 246, 0.28) !important;
+}
+
+.btn-novo-ponto:hover {
+  filter: brightness(1.06) !important;
+  transform: translateY(-1px) !important;
+}
+
+.assinatura-duna {
+  width: 100%;
+  max-width: 1120px;
+  margin: 26px auto 0;
+  padding: 0 16px 18px;
+  text-align: center;
+  color: rgba(220, 230, 255, 0.72);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.assinatura-duna strong {
+  color: #ffffff;
+  font-weight: 900;
+}
