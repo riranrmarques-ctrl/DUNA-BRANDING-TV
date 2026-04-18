@@ -6,9 +6,9 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v4";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v5";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v3_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v4_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 
 function limparCachesAntigos() {
@@ -16,11 +16,13 @@ function limparCachesAntigos() {
     sessionStorage.removeItem("painel_pontos_cache_v1");
     sessionStorage.removeItem("painel_pontos_cache_v2");
     sessionStorage.removeItem("painel_pontos_cache_v3");
+    sessionStorage.removeItem("painel_pontos_cache_v4");
 
     Object.keys(sessionStorage).forEach((key) => {
       if (
         key.startsWith("painel_playlist_cache_v1_") ||
-        key.startsWith("painel_playlist_cache_v2_")
+        key.startsWith("painel_playlist_cache_v2_") ||
+        key.startsWith("painel_playlist_cache_v3_")
       ) {
         sessionStorage.removeItem(key);
       }
@@ -158,9 +160,10 @@ function calcularStatusInfo(ponto) {
   if (!ultimoPing) {
     return {
       texto: "Inativo",
-      detalhe: "sem histórico",
+      detalhe: "Inativo desde sem histórico",
       ativo: false,
-      classe: "inativo"
+      classe: "inativo",
+      desde: null
     };
   }
 
@@ -169,29 +172,23 @@ function calcularStatusInfo(ponto) {
   if (Number.isNaN(dataPing.getTime())) {
     return {
       texto: "Inativo",
-      detalhe: "sem histórico",
+      detalhe: "Inativo desde sem histórico",
       ativo: false,
-      classe: "inativo"
+      classe: "inativo",
+      desde: null
     };
   }
 
   const diff = Date.now() - dataPing.getTime();
+  const ativo = diff < 5 * 60 * 1000;
   const horario = dataPing.toLocaleString("pt-BR");
 
-  if (diff < 5 * 60 * 1000) {
-    return {
-      texto: "Ativo",
-      detalhe: horario,
-      ativo: true,
-      classe: "ativo"
-    };
-  }
-
   return {
-    texto: "Inativo",
-    detalhe: horario,
-    ativo: false,
-    classe: "inativo"
+    texto: ativo ? "Ativo" : "Inativo",
+    detalhe: `${ativo ? "Ativo" : "Inativo"} desde ${horario}`,
+    ativo,
+    classe: ativo ? "ativo" : "inativo",
+    desde: dataPing.toISOString()
   };
 }
 
@@ -227,24 +224,27 @@ function itemEstaInativo(item) {
 }
 
 async function registrarEventoConexao(codigo, statusAtual) {
-  const evento = statusAtual === "ativo" ? "conectou" : "desconectou";
+  const evento = statusAtual === "ativo" ? "ativo" : "inativo";
 
   const { error } = await supabaseClient
     .from(TABELA_HISTORICO_CONEXAO)
     .insert({
       codigo,
-      evento
+      evento,
+      data_hora: new Date().toISOString()
     });
 
   if (error) {
-    console.error("Erro ao registrar histórico de conexão:", error);
+    console.error("Erro ao registrar histórico de status:", error);
   }
 }
 
 function obterTextoEventoConexao(evento) {
-  if (evento === "conectou") return "Conectou";
-  if (evento === "desconectou") return "Desconectou";
-  return evento || "Sem evento";
+  if (evento === "conectou") return "Ativo";
+  if (evento === "desconectou") return "Inativo";
+  if (evento === "ativo") return "Ativo";
+  if (evento === "inativo") return "Inativo";
+  return evento || "Sem status";
 }
 
 function lerCachePontos() {
@@ -635,7 +635,7 @@ function renderizarCardsPontos(lista, opcoes = {}) {
       ? calcularStatusInfo(ponto)
       : {
           texto: "Indisponível",
-          detalhe: "ponto desativado",
+          detalhe: "Indisponível",
           ativo: false,
           classe: "indisponivel"
         };
@@ -760,9 +760,9 @@ function abrirPonto(codigo) {
     ? calcularStatusInfo(ponto)
     : {
         texto: "Indisponível",
-        detalhe: "ponto desativado",
+        detalhe: "Indisponível",
         ativo: false,
-        classe: "inativo"
+        classe: "indisponivel"
       };
 
   const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
@@ -778,7 +778,7 @@ function abrirPonto(codigo) {
   }
 
   if (statusPonto) {
-    statusPonto.textContent = statusInfo.texto;
+    statusPonto.textContent = statusInfo.detalhe || statusInfo.texto;
     statusPonto.classList.remove("ativo", "inativo", "indisponivel");
     statusPonto.classList.add(statusInfo.classe);
     statusPonto.dataset.status = statusInfo.texto.toLowerCase();
@@ -1031,10 +1031,6 @@ function obterNomeArquivoPlaylist(item) {
     return String(item.titulo_arquivo).trim();
   }
 
-  if (item.nome && String(item.nome).trim()) {
-    return String(item.nome).trim();
-  }
-
   if (item.storage_path) {
     const partes = String(item.storage_path).split("/");
     return partes[partes.length - 1] || "Arquivo";
@@ -1048,8 +1044,30 @@ function obterNomeArquivoPlaylist(item) {
   return "Arquivo";
 }
 
+function obterNomeClientePlaylist(item) {
+  if (item.nome && String(item.nome).trim()) {
+    return String(item.nome).trim();
+  }
+
+  if (item.nome_cliente && String(item.nome_cliente).trim()) {
+    return String(item.nome_cliente).trim();
+  }
+
+  if (item.codigo_cliente && String(item.codigo_cliente).trim()) {
+    return `Cliente ${String(item.codigo_cliente).trim()}`;
+  }
+
+  return "Cliente não informado";
+}
+
+function obterUrlDownloadPlaylist(item) {
+  return item.video_url || item.arquivo_url || item.url || "";
+}
+
 function montarItemPlaylist(item, index) {
   const nomeArquivo = obterNomeArquivoPlaylist(item);
+  const nomeCliente = obterNomeClientePlaylist(item);
+  const urlDownload = obterUrlDownloadPlaylist(item);
 
   return `
     <div class="playlist-item" draggable="true" data-index="${index}" data-id="${item.id}">
@@ -1058,7 +1076,10 @@ function montarItemPlaylist(item, index) {
 
         <div class="playlist-item-ordem">${index + 1}.</div>
 
-        <div class="playlist-item-nome" title="${escapeHtml(nomeArquivo)}">${escapeHtml(nomeArquivo)}</div>
+        <div class="playlist-item-nome" title="${escapeHtml(nomeCliente)} - ${escapeHtml(nomeArquivo)}">
+          <strong>${escapeHtml(nomeCliente)}</strong>
+          <small>${escapeHtml(nomeArquivo)}</small>
+        </div>
 
         <div class="playlist-item-data playlist-item-postado">
           ${formatarDataHora(item.created_at)}
@@ -1069,6 +1090,8 @@ function montarItemPlaylist(item, index) {
         </div>
 
         <div class="playlist-item-acoes-laterais">
+          <button class="playlist-acao btn-renomear-item" type="button" data-id="${item.id}" data-nome="${escapeHtml(nomeArquivo)}" title="Renomear">✎</button>
+          <a class="playlist-acao btn-baixar-item" href="${escapeHtml(urlDownload || "#")}" download target="_blank" rel="noopener" title="Baixar">↓</a>
           <button class="playlist-acao btn-excluir-item" type="button" data-id="${item.id}" title="Excluir">×</button>
         </div>
       </div>
@@ -1078,11 +1101,12 @@ function montarItemPlaylist(item, index) {
 
 function montarItemHistoricoEncerramento(item, index) {
   const nomeArquivo = obterNomeArquivoPlaylist(item);
+  const nomeCliente = obterNomeClientePlaylist(item);
 
   return `
     <div class="historico-item">
       <span class="historico-item-ordem">${index + 1}.</span>
-      <span class="historico-item-nome">${escapeHtml(nomeArquivo)}</span>
+      <span class="historico-item-nome">${escapeHtml(nomeCliente)} | ${escapeHtml(nomeArquivo)}</span>
       <span class="historico-item-valor">${formatarData(item.data_fim)}</span>
     </div>
   `;
@@ -1090,13 +1114,23 @@ function montarItemHistoricoEncerramento(item, index) {
 
 function montarItemHistoricoStatus(item, index) {
   const textoEvento = obterTextoEventoConexao(item.evento);
-  const classe = item.evento === "conectou" ? "ativo" : item.evento === "desconectou" ? "inativo" : "";
+  const eventoNormalizado = String(item.evento || "").toLowerCase();
+  const classe =
+    eventoNormalizado === "conectou" || eventoNormalizado === "ativo"
+      ? "ativo"
+      : eventoNormalizado === "desconectou" || eventoNormalizado === "inativo"
+        ? "inativo"
+        : "";
+
+  const data = formatarDataHora(item.data_hora || item.created_at);
 
   return `
     <div class="historico-item">
       <span class="historico-item-ordem">${index + 1}.</span>
-      <span class="historico-item-nome historico-status ${classe}">${textoEvento}</span>
-      <span class="historico-item-valor">${formatarDataHora(item.data_hora || item.created_at)}</span>
+      <span class="historico-item-nome historico-status ${classe}">
+        ${textoEvento} desde ${data}
+      </span>
+      <span class="historico-item-valor">${data}</span>
     </div>
   `;
 }
@@ -1143,6 +1177,7 @@ function renderizarPlaylistDados(lista, historicoConexao) {
   }
 
   ativarDrag(ativos);
+  ativarRenomearItens();
   ativarExclusaoItens();
 }
 
@@ -1150,7 +1185,7 @@ async function buscarPlaylistRemota(codigo) {
   const [{ data: playlistData, error: playlistError }, { data: historicoData, error: historicoError }] = await Promise.all([
     supabaseClient
       .from(TABELA)
-      .select("id,nome,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem")
+      .select("id,nome,nome_cliente,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem")
       .eq("codigo", codigo)
       .order("ordem", { ascending: true }),
 
@@ -1210,6 +1245,45 @@ async function carregarPlaylist() {
   } finally {
     carregandoPlaylist = false;
   }
+}
+
+function ativarRenomearItens() {
+  document.querySelectorAll(".btn-renomear-item").forEach((btn) => {
+    btn.onclick = async (event) => {
+      event.stopPropagation();
+
+      const id = btn.dataset.id;
+      const nomeAtual = btn.dataset.nome || "";
+
+      if (!id) return;
+
+      const novoNome = window.prompt("Digite o novo nome do arquivo:", nomeAtual);
+
+      if (novoNome === null) return;
+
+      const nomeFinal = novoNome.trim();
+
+      if (!nomeFinal) {
+        setStatus("Digite um nome válido", "erro");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from(TABELA)
+        .update({ titulo_arquivo: nomeFinal })
+        .eq("id", id);
+
+      if (error) {
+        console.error(error);
+        setStatus("Erro ao renomear arquivo", "erro");
+        return;
+      }
+
+      limparCachePlaylist(codigoSelecionado);
+      setStatus("Arquivo renomeado", "ok");
+      carregarPlaylist();
+    };
+  });
 }
 
 async function ativarExclusaoItens() {
