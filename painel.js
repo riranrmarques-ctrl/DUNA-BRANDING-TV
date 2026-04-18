@@ -6,8 +6,10 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v1";
-const CACHE_PONTOS_TTL = 2 * 60 * 1000;
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v2";
+const CACHE_PONTOS_TTL = 15 * 60 * 1000;
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v1_";
+const CACHE_PLAYLIST_TTL = 60 * 1000;
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -28,6 +30,7 @@ const btnVoltar = document.getElementById("btnVoltar");
 const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 const btnEditarInfo = document.getElementById("btnEditarInfo");
 const btnToggleDisponibilidade = document.getElementById("btnToggleDisponibilidade");
+const btnNovoPonto = document.getElementById("btnNovoPonto");
 
 const modalEditar = document.getElementById("modalEditar");
 const editNome = document.getElementById("editNome");
@@ -45,6 +48,8 @@ let arquivoImagemEdicao = null;
 let statusAnteriorMap = {};
 let painelIniciado = false;
 let botoesCardsAtivados = false;
+let carregandoPontos = false;
+let carregandoPlaylist = false;
 
 let posicaoImagemAtual = { x: 50, y: 50 };
 let arrastandoPreview = false;
@@ -53,7 +58,6 @@ function setStatus(texto, tipo = "normal") {
   if (!statusEl) return;
 
   statusEl.textContent = texto;
-
   statusEl.classList.remove("ok", "erro", "normal");
   statusEl.classList.add(tipo);
 
@@ -211,6 +215,48 @@ function salvarCachePontos(pontos) {
   }
 }
 
+function obterChaveCachePlaylist(codigo) {
+  return `${CACHE_PLAYLIST_PREFIX}${codigo}`;
+}
+
+function lerCachePlaylist(codigo) {
+  try {
+    const bruto = sessionStorage.getItem(obterChaveCachePlaylist(codigo));
+    if (!bruto) return null;
+
+    const cache = JSON.parse(bruto);
+    const criadoEm = Number(cache.criadoEm || 0);
+
+    return {
+      playlist: Array.isArray(cache.playlist) ? cache.playlist : [],
+      historico: Array.isArray(cache.historico) ? cache.historico : [],
+      fresco: Date.now() - criadoEm < CACHE_PLAYLIST_TTL
+    };
+  } catch {
+    return null;
+  }
+}
+
+function salvarCachePlaylist(codigo, playlist, historico) {
+  try {
+    sessionStorage.setItem(obterChaveCachePlaylist(codigo), JSON.stringify({
+      criadoEm: Date.now(),
+      playlist,
+      historico
+    }));
+  } catch {
+    return;
+  }
+}
+
+function limparCachePlaylist(codigo) {
+  try {
+    sessionStorage.removeItem(obterChaveCachePlaylist(codigo));
+  } catch {
+    return;
+  }
+}
+
 function atualizarCachePonto(codigo, alteracoes) {
   if (!codigo || !pontosMap[codigo]) return;
 
@@ -236,7 +282,7 @@ async function uploadImagemPonto(file, codigo) {
   const { error: uploadError } = await supabaseClient.storage
     .from(BUCKET)
     .upload(nomeArquivo, file, {
-      cacheControl: "3600",
+      cacheControl: "86400",
       upsert: true
     });
 
@@ -355,7 +401,8 @@ if (senhaInput) {
 async function buscarPontosRemoto() {
   const { data, error } = await supabaseClient
     .from(TABELA_PONTOS)
-    .select("*");
+    .select("codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel")
+    .order("codigo", { ascending: true });
 
   if (error) {
     throw error;
@@ -370,8 +417,9 @@ function renderizarCardsPontos(lista, opcoes = {}) {
   pontosMap = {};
 
   lista.forEach((ponto) => {
-    if (ponto?.codigo) {
-      pontosMap[ponto.codigo] = ponto;
+    const codigo = String(ponto?.codigo || "").trim();
+    if (codigo) {
+      pontosMap[codigo] = ponto;
     }
   });
 
@@ -384,6 +432,7 @@ function renderizarCardsPontos(lista, opcoes = {}) {
     const statusElCard = card.querySelector(".card-status");
     const bolinhaEl = card.querySelector(".status-bolinha");
     const imagemEl = card.querySelector(".card-imagem");
+    const codigoEl = card.querySelector(".card-codigo");
 
     const statusInfo = calcularStatusInfo(ponto);
     const statusAtual = statusInfo.ativo ? "ativo" : "inativo";
@@ -401,6 +450,11 @@ function renderizarCardsPontos(lista, opcoes = {}) {
 
     if (cidadeEl) {
       cidadeEl.innerHTML = obterCidadeComNomeEmNegrito(ponto.cidade);
+    }
+
+    if (codigoEl) {
+      codigoEl.textContent = codigo;
+      codigoEl.title = "Clique para copiar";
     }
 
     if (statusElCard) {
@@ -456,6 +510,30 @@ function ativarBotoesCards() {
       }
     };
   });
+
+  document.querySelectorAll(".card-codigo").forEach((codigoEl) => {
+    codigoEl.onclick = async (event) => {
+      event.stopPropagation();
+
+      const card = codigoEl.closest(".card-ponto");
+      const codigo = String(card?.dataset.codigo || codigoEl.textContent || "").trim();
+
+      if (!codigo) return;
+
+      try {
+        await navigator.clipboard.writeText(codigo);
+        setStatus("Código copiado", "ok");
+      } catch {
+        setStatus("Erro ao copiar código", "erro");
+      }
+    };
+  });
+
+  if (btnNovoPonto) {
+    btnNovoPonto.onclick = () => {
+      setStatus("Novo ponto ainda sem função", "normal");
+    };
+  }
 }
 
 function abrirPonto(codigo) {
@@ -467,6 +545,7 @@ function abrirPonto(codigo) {
 
   if (codigoAtual) {
     codigoAtual.textContent = codigoSelecionado;
+    codigoAtual.title = "Clique para copiar";
   }
 
   if (tituloPasta) {
@@ -543,13 +622,27 @@ function fecharModalEdicao() {
 
 if (btnVoltar) {
   btnVoltar.onclick = () => {
-    if (listaPontos) listaPontos.style.display = "grid";
+    if (listaPontos) listaPontos.style.display = "block";
     if (pontoDetalhe) pontoDetalhe.style.display = "none";
+    codigoSelecionado = null;
   };
 }
 
 if (btnCopiarCodigo) {
   btnCopiarCodigo.onclick = async () => {
+    if (!codigoSelecionado) return;
+
+    try {
+      await navigator.clipboard.writeText(codigoSelecionado);
+      setStatus("Código copiado", "ok");
+    } catch {
+      setStatus("Erro ao copiar código", "erro");
+    }
+  };
+}
+
+if (codigoAtual) {
+  codigoAtual.onclick = async () => {
     if (!codigoSelecionado) return;
 
     try {
@@ -732,7 +825,7 @@ function montarItemPlaylist(item, index) {
         </div>
 
         <div class="playlist-item-acoes-laterais">
-          <button class="playlist-acao btn-excluir-item" type="button" data-id="${item.id}" title="Excluir">🗑</button>
+          <button class="playlist-acao btn-excluir-item" type="button" data-id="${item.id}" title="Excluir">×</button>
         </div>
       </div>
     </div>
@@ -777,40 +870,7 @@ function obterContainerHistoricoStatus() {
   );
 }
 
-async function carregarPlaylist() {
-  if (!codigoSelecionado) return;
-
-  setStatus("Carregando playlist...", "normal");
-
-  const [{ data: playlistData, error: playlistError }, { data: historicoData, error: historicoError }] = await Promise.all([
-    supabaseClient
-      .from(TABELA)
-      .select("*")
-      .eq("codigo", codigoSelecionado)
-      .order("ordem", { ascending: true }),
-
-    supabaseClient
-      .from(TABELA_HISTORICO_CONEXAO)
-      .select("*")
-      .eq("codigo", codigoSelecionado)
-      .order("data_hora", { ascending: false })
-      .limit(30)
-  ]);
-
-  if (playlistError) {
-    console.error(playlistError);
-    setStatus("Erro ao carregar playlist", "erro");
-    return;
-  }
-
-  if (historicoError) {
-    console.error(historicoError);
-    setStatus("Erro ao carregar histórico", "erro");
-    return;
-  }
-
-  const lista = playlistData || [];
-  const historicoConexao = historicoData || [];
+function renderizarPlaylistDados(lista, historicoConexao) {
   const ativos = lista.filter((item) => !itemEstaInativo(item));
   const inativos = lista.filter((item) => itemEstaInativo(item));
 
@@ -838,7 +898,72 @@ async function carregarPlaylist() {
 
   ativarDrag(ativos);
   ativarExclusaoItens();
-  setStatus("Painel Ativo", "ok");
+}
+
+async function buscarPlaylistRemota(codigo) {
+  const [{ data: playlistData, error: playlistError }, { data: historicoData, error: historicoError }] = await Promise.all([
+    supabaseClient
+      .from(TABELA)
+      .select("id,nome,created_at,data_fim,ordem")
+      .eq("codigo", codigo)
+      .order("ordem", { ascending: true }),
+
+    supabaseClient
+      .from(TABELA_HISTORICO_CONEXAO)
+      .select("evento,data_hora,created_at")
+      .eq("codigo", codigo)
+      .order("data_hora", { ascending: false })
+      .limit(30)
+  ]);
+
+  if (playlistError) throw playlistError;
+  if (historicoError) throw historicoError;
+
+  return {
+    playlist: playlistData || [],
+    historico: historicoData || []
+  };
+}
+
+async function carregarPlaylist() {
+  if (!codigoSelecionado || carregandoPlaylist) return;
+
+  const codigo = codigoSelecionado;
+  const cache = lerCachePlaylist(codigo);
+
+  if (cache) {
+    renderizarPlaylistDados(cache.playlist, cache.historico);
+    setStatus(cache.fresco ? "Painel Ativo" : "Atualizando playlist...", cache.fresco ? "ok" : "normal");
+
+    if (cache.fresco) {
+      return;
+    }
+  } else {
+    setStatus("Carregando playlist...", "normal");
+  }
+
+  carregandoPlaylist = true;
+
+  try {
+    const dados = await buscarPlaylistRemota(codigo);
+
+    if (codigoSelecionado !== codigo) return;
+
+    salvarCachePlaylist(codigo, dados.playlist, dados.historico);
+    renderizarPlaylistDados(dados.playlist, dados.historico);
+    setStatus("Painel Ativo", "ok");
+  } catch (error) {
+    console.error(error);
+
+    if (cache) {
+      setStatus("Painel Ativo", "ok");
+      return;
+    }
+
+    setStatus("Erro ao carregar playlist", "erro");
+  } finally {
+    carregandoPlaylist = false;
+  }
 }
 
 async function ativarExclusaoItens() {
@@ -863,6 +988,7 @@ async function ativarExclusaoItens() {
         return;
       }
 
+      limparCachePlaylist(codigoSelecionado);
       setStatus("Item excluído", "ok");
       carregarPlaylist();
     };
@@ -934,6 +1060,8 @@ function ativarDrag(lista) {
         }
       }
 
+      limparCachePlaylist(codigoSelecionado);
+
       setTimeout(() => {
         item.classList.remove("drop-animating");
       }, 220);
@@ -941,6 +1069,24 @@ function ativarDrag(lista) {
       carregarPlaylist();
     });
   });
+}
+
+async function carregarPontosRemoto() {
+  if (carregandoPontos) return;
+  carregandoPontos = true;
+
+  try {
+    const pontos = await buscarPontosRemoto();
+
+    salvarCachePontos(pontos);
+    renderizarCardsPontos(pontos, { registrarHistorico: false });
+    setStatus("Painel Ativo", "ok");
+  } catch (error) {
+    console.error(error);
+    setStatus("Erro ao carregar pontos", "erro");
+  } finally {
+    carregandoPontos = false;
+  }
 }
 
 async function iniciarPainel() {
@@ -959,26 +1105,13 @@ async function iniciarPainel() {
     if (cache.fresco) {
       return;
     }
-  } else {
-    setStatus("Carregando pontos...", "normal");
+
+    carregarPontosRemoto();
+    return;
   }
 
-  try {
-    const pontos = await buscarPontosRemoto();
-
-    salvarCachePontos(pontos);
-    renderizarCardsPontos(pontos, { registrarHistorico: false });
-    setStatus("Painel Ativo", "ok");
-  } catch (error) {
-    console.error(error);
-
-    if (cache?.pontos?.length) {
-      setStatus("Painel Ativo", "ok");
-      return;
-    }
-
-    setStatus("Erro ao carregar pontos", "erro");
-  }
+  setStatus("Carregando pontos...", "normal");
+  await carregarPontosRemoto();
 }
 
 if (sessionStorage.getItem("painelLiberado") === "1") {
