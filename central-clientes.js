@@ -27,13 +27,16 @@ const CODIGOS_FIXOS = [
 const CACHE_CLIENTES_KEY = "central_clientes_cache_v2";
 const CACHE_CLIENTES_TTL = 3 * 60 * 1000;
 const ORDEM_PERSONALIZADA_KEY = "central_clientes_ordem_personalizada_v1";
+const FILTRO_CLIENTES_KEY = "central_clientes_filtro_v1";
 
 let supabaseClient = null;
 let clientesCarregados = [];
 let carregandoClientes = false;
 let timerBusca = null;
+let timerMensagem = null;
+let timerLimparMensagem = null;
 let dragCodigo = null;
-let filtroAtual = "status";
+let filtroAtual = localStorage.getItem(FILTRO_CLIENTES_KEY) || "status";
 
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
@@ -56,8 +59,31 @@ function verificarAcesso() {
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
-  mensagem.textContent = texto;
+
+  if (timerMensagem) {
+    clearTimeout(timerMensagem);
+    timerMensagem = null;
+  }
+
+  if (timerLimparMensagem) {
+    clearTimeout(timerLimparMensagem);
+    timerLimparMensagem = null;
+  }
+
+  mensagem.classList.remove("saindo");
+  mensagem.textContent = texto || "";
   mensagem.style.color = cor;
+
+  if (!texto) return;
+
+  timerMensagem = setTimeout(() => {
+    mensagem.classList.add("saindo");
+
+    timerLimparMensagem = setTimeout(() => {
+      mensagem.textContent = "";
+      mensagem.classList.remove("saindo");
+    }, 300);
+  }, 5000);
 }
 
 function escaparHtml(texto) {
@@ -109,14 +135,17 @@ function salvarCacheClientes(clientes) {
 function lerOrdemPersonalizada() {
   try {
     const lista = JSON.parse(localStorage.getItem(ORDEM_PERSONALIZADA_KEY) || "[]");
-    return Array.isArray(lista) ? lista : [];
+    return Array.isArray(lista) ? lista.map(normalizarCodigo) : [];
   } catch {
     return [];
   }
 }
 
 function salvarOrdemPersonalizada(lista) {
-  localStorage.setItem(ORDEM_PERSONALIZADA_KEY, JSON.stringify(lista));
+  localStorage.setItem(
+    ORDEM_PERSONALIZADA_KEY,
+    JSON.stringify((lista || []).map(normalizarCodigo).filter(Boolean))
+  );
 }
 
 async function copiarCodigoCliente(codigo) {
@@ -183,6 +212,16 @@ function ordenarClientes(lista) {
 
   if (filtroAtual === "nome") {
     return copia.sort((a, b) => obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR"));
+  }
+
+  if (filtroAtual === "data") {
+    return copia.sort((a, b) => {
+      const dataA = new Date(a.data_postagem || 0).getTime();
+      const dataB = new Date(b.data_postagem || 0).getTime();
+
+      if (dataA !== dataB) return dataB - dataA;
+      return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
+    });
   }
 
   return copia.sort((a, b) => {
@@ -344,6 +383,11 @@ function renderizarClientes() {
 
 function aplicarClientes(clientes, mensagemTexto = "Carregado.") {
   clientesCarregados = clientes || [];
+
+  if (!lerOrdemPersonalizada().length) {
+    salvarOrdemPersonalizada(clientesCarregados.map((cliente) => cliente.codigo));
+  }
+
   renderizarClientes();
   mostrarMensagem(mensagemTexto, "#7CFC9A");
 }
@@ -540,6 +584,7 @@ function iniciarPagina() {
   botoesFiltro.forEach((botao) => {
     botao.addEventListener("click", () => {
       filtroAtual = botao.dataset.filtro || "status";
+      localStorage.setItem(FILTRO_CLIENTES_KEY, filtroAtual);
       renderizarClientes();
     });
   });
