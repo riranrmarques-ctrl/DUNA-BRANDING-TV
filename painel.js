@@ -74,7 +74,34 @@ function escapeHtml(texto) {
 }
 
 function obterImagemPonto(ponto) {
-  return ponto?.imagem_url || "https://placehold.co/600x320/png";
+  return ponto?.imagem_url || ponto?.imagem || ponto?.foto_url || "https://placehold.co/600x320/png";
+}
+
+function obterCodigoPonto(ponto) {
+  return String(
+    ponto?.codigo ||
+    ponto?.codigo_ponto ||
+    ponto?.codigo_visual ||
+    ponto?.id_ponto ||
+    ponto?.id ||
+    ""
+  ).trim();
+}
+
+function obterNomePonto(ponto, codigo) {
+  return ponto?.nome || ponto?.nome_painel || ponto?.titulo || ponto?.ambiente || codigo || "Carregando...";
+}
+
+function obterCidadePonto(ponto) {
+  return ponto?.cidade || ponto?.municipio || ponto?.localidade || "";
+}
+
+function obterEnderecoPonto(ponto) {
+  return ponto?.endereco || ponto?.endereço || ponto?.local || "";
+}
+
+function obterUltimoPingPonto(ponto) {
+  return ponto?.ultimo_ping || ponto?.last_ping || ponto?.updated_at || ponto?.data_ping || null;
 }
 
 function obterCidadeComNomeEmNegrito(cidade) {
@@ -87,7 +114,9 @@ function pontoEstaDisponivel(ponto) {
 }
 
 function calcularStatusInfo(ponto) {
-  if (!ponto?.ultimo_ping) {
+  const ultimoPing = obterUltimoPingPonto(ponto);
+
+  if (!ultimoPing) {
     return {
       texto: "Inativo",
       detalhe: "sem histórico",
@@ -96,7 +125,7 @@ function calcularStatusInfo(ponto) {
     };
   }
 
-  const dataPing = new Date(ponto.ultimo_ping);
+  const dataPing = new Date(ultimoPing);
 
   if (Number.isNaN(dataPing.getTime())) {
     return {
@@ -394,38 +423,40 @@ if (senhaInput) {
 }
 
 async function buscarPontosRemoto() {
-  const respostaCompleta = await supabaseClient
-    .from(TABELA_PONTOS)
-    .select("codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel")
-    .order("codigo", { ascending: true });
+  const consultas = [
+    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel",
+    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping",
+    "codigo,nome,cidade,endereco,imagem_url",
+    "codigo,nome,cidade,endereco",
+    "*"
+  ];
 
-  if (!respostaCompleta.error) {
-    return respostaCompleta.data || [];
+  let ultimoErro = null;
+
+  for (const colunas of consultas) {
+    const { data, error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .select(colunas)
+      .order("codigo", { ascending: true });
+
+    if (!error) {
+      return (data || []).map((ponto) => ({
+        ...ponto,
+        codigo: obterCodigoPonto(ponto),
+        nome: obterNomePonto(ponto, obterCodigoPonto(ponto)),
+        cidade: obterCidadePonto(ponto),
+        endereco: obterEnderecoPonto(ponto),
+        imagem_url: obterImagemPonto(ponto),
+        ultimo_ping: obterUltimoPingPonto(ponto),
+        disponivel: ponto.disponivel !== false
+      }));
+    }
+
+    ultimoErro = error;
+    console.warn(`Falha ao buscar pontos com colunas: ${colunas}`, error);
   }
 
-  const mensagemErro = String(respostaCompleta.error.message || "").toLowerCase();
-  const erroColunaDisponivel =
-    mensagemErro.includes("disponivel") ||
-    mensagemErro.includes("column") ||
-    mensagemErro.includes("schema cache");
-
-  if (!erroColunaDisponivel) {
-    throw respostaCompleta.error;
-  }
-
-  const { data, error } = await supabaseClient
-    .from(TABELA_PONTOS)
-    .select("codigo,nome,cidade,endereco,imagem_url,ultimo_ping")
-    .order("codigo", { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
-  return (data || []).map((ponto) => ({
-    ...ponto,
-    disponivel: true
-  }));
+  throw ultimoErro;
 }
 
 function renderizarCardsPontos(lista, opcoes = {}) {
@@ -434,7 +465,7 @@ function renderizarCardsPontos(lista, opcoes = {}) {
   pontosMap = {};
 
   lista.forEach((ponto) => {
-    const codigo = String(ponto?.codigo || "").trim();
+    const codigo = obterCodigoPonto(ponto);
     if (codigo) {
       pontosMap[codigo] = ponto;
     }
@@ -451,6 +482,9 @@ function renderizarCardsPontos(lista, opcoes = {}) {
     const imagemEl = card.querySelector(".card-imagem");
     const codigoEl = card.querySelector(".card-codigo");
 
+    const nome = obterNomePonto(ponto, codigo);
+    const cidade = obterCidadePonto(ponto);
+    const imagem = obterImagemPonto(ponto);
     const statusInfo = calcularStatusInfo(ponto);
     const statusAtual = statusInfo.ativo ? "ativo" : "inativo";
     const statusAnterior = statusAnteriorMap[codigo];
@@ -462,11 +496,11 @@ function renderizarCardsPontos(lista, opcoes = {}) {
     statusAnteriorMap[codigo] = statusAtual;
 
     if (nomeEl) {
-      nomeEl.innerHTML = `<strong>${escapeHtml(ponto.nome || codigo)}</strong>`;
+      nomeEl.innerHTML = `<strong>${escapeHtml(nome)}</strong>`;
     }
 
     if (cidadeEl) {
-      cidadeEl.innerHTML = obterCidadeComNomeEmNegrito(ponto.cidade);
+      cidadeEl.innerHTML = obterCidadeComNomeEmNegrito(cidade);
     }
 
     if (codigoEl) {
@@ -486,16 +520,14 @@ function renderizarCardsPontos(lista, opcoes = {}) {
     }
 
     if (imagemEl) {
-      const novaImagem = obterImagemPonto(ponto);
-
       imagemEl.loading = "lazy";
       imagemEl.decoding = "async";
 
-      if (imagemEl.src !== novaImagem) {
-        imagemEl.src = novaImagem;
+      if (imagemEl.src !== imagem) {
+        imagemEl.src = imagem;
       }
 
-      imagemEl.alt = ponto.nome || codigo;
+      imagemEl.alt = nome;
       aplicarPosicaoImagem(imagemEl, lerPosicaoImagem(codigo));
     }
   });
@@ -556,6 +588,9 @@ function ativarBotoesCards() {
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo || "").trim();
   const ponto = pontosMap[codigoSelecionado] || {};
+  const nome = obterNomePonto(ponto, codigoSelecionado);
+  const cidade = obterCidadePonto(ponto);
+  const endereco = obterEnderecoPonto(ponto);
 
   if (listaPontos) listaPontos.style.display = "none";
   if (pontoDetalhe) pontoDetalhe.style.display = "block";
@@ -566,7 +601,7 @@ function abrirPonto(codigo) {
   }
 
   if (tituloPasta) {
-    tituloPasta.innerHTML = `<strong>${escapeHtml(ponto.nome || codigoSelecionado)}</strong>`;
+    tituloPasta.innerHTML = `<strong>${escapeHtml(nome)}</strong>`;
   }
 
   const cidadePonto = document.getElementById("cidadePonto");
@@ -581,11 +616,11 @@ function abrirPonto(codigo) {
   atualizarVisualDisponibilidade(disponivel);
 
   if (cidadePonto) {
-    cidadePonto.innerHTML = obterCidadeComNomeEmNegrito(ponto.cidade);
+    cidadePonto.innerHTML = obterCidadeComNomeEmNegrito(cidade);
   }
 
   if (enderecoPonto) {
-    enderecoPonto.textContent = ponto.endereco || "Endereço não definido";
+    enderecoPonto.textContent = endereco || "Endereço não definido";
   }
 
   if (statusPonto) {
@@ -599,7 +634,7 @@ function abrirPonto(codigo) {
     imagemPonto.loading = "lazy";
     imagemPonto.decoding = "async";
     imagemPonto.src = obterImagemPonto(ponto);
-    imagemPonto.alt = ponto.nome || codigoSelecionado;
+    imagemPonto.alt = nome;
     aplicarPosicaoImagem(imagemPonto, posicaoSalva);
   }
 
@@ -612,9 +647,9 @@ function abrirModalEdicao() {
   const ponto = pontosMap[codigoSelecionado] || {};
   posicaoImagemAtual = lerPosicaoImagem(codigoSelecionado);
 
-  if (editNome) editNome.value = ponto.nome || "";
-  if (editCidade) editCidade.value = ponto.cidade || "";
-  if (editEndereco) editEndereco.value = ponto.endereco || "";
+  if (editNome) editNome.value = obterNomePonto(ponto, codigoSelecionado) || "";
+  if (editCidade) editCidade.value = obterCidadePonto(ponto) || "";
+  if (editEndereco) editEndereco.value = obterEnderecoPonto(ponto) || "";
 
   if (previewImagem) {
     previewImagem.src = obterImagemPonto(ponto);
