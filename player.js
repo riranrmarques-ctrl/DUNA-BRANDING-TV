@@ -1,8 +1,9 @@
-const SUPABASE_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
-const SUPABASE_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
-
-const TABELA = "playlists_novo";
+const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const BUCKET = "pontos";
+const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
+const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const DURACAO_IMAGEM = 20000;
 const DURACAO_SITE = 10000;
