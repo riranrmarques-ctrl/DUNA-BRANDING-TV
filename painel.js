@@ -27,6 +27,7 @@ const tituloPasta = document.getElementById("tituloPasta");
 const btnVoltar = document.getElementById("btnVoltar");
 const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
 const btnEditarInfo = document.getElementById("btnEditarInfo");
+const btnToggleDisponibilidade = document.getElementById("btnToggleDisponibilidade");
 
 const modalEditar = document.getElementById("modalEditar");
 const editNome = document.getElementById("editNome");
@@ -80,6 +81,10 @@ function obterCidadeFormatada(cidade) {
 function obterCidadeComNomeEmNegrito(cidade) {
   const nome = String(cidade || "").trim();
   return nome ? `Cidade de <strong>${escapeHtml(nome)}</strong>` : "Cidade não definida";
+}
+
+function pontoEstaDisponivel(ponto) {
+  return ponto?.disponivel !== false;
 }
 
 function calcularStatusInfo(ponto) {
@@ -206,6 +211,17 @@ function salvarCachePontos(pontos) {
   }
 }
 
+function atualizarCachePonto(codigo, alteracoes) {
+  if (!codigo || !pontosMap[codigo]) return;
+
+  pontosMap[codigo] = {
+    ...pontosMap[codigo],
+    ...alteracoes
+  };
+
+  salvarCachePontos(Object.values(pontosMap));
+}
+
 function ativarLazyImages() {
   document.querySelectorAll(".card-imagem").forEach((imagem) => {
     imagem.loading = "lazy";
@@ -264,6 +280,50 @@ function lerPosicaoImagem(codigo) {
 function aplicarPosicaoImagem(el, posicao) {
   if (!el || !posicao) return;
   el.style.objectPosition = `${posicao.x}% ${posicao.y}%`;
+}
+
+function atualizarVisualDisponibilidade(disponivel) {
+  if (!btnToggleDisponibilidade) return;
+
+  const texto = btnToggleDisponibilidade.querySelector(".toggle-texto");
+
+  btnToggleDisponibilidade.classList.toggle("ativo", disponivel);
+  btnToggleDisponibilidade.setAttribute("aria-pressed", disponivel ? "true" : "false");
+
+  if (texto) {
+    texto.textContent = disponivel ? "Disponível" : "Indisponível";
+  }
+}
+
+async function alternarDisponibilidadePonto() {
+  if (!codigoSelecionado) return;
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const disponivelAtual = pontoEstaDisponivel(ponto);
+  const novoStatus = !disponivelAtual;
+
+  atualizarVisualDisponibilidade(novoStatus);
+  atualizarCachePonto(codigoSelecionado, { disponivel: novoStatus });
+
+  try {
+    setStatus(novoStatus ? "Marcando como disponível..." : "Marcando como indisponível...", "normal");
+
+    const { error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .update({ disponivel: novoStatus })
+      .eq("codigo", codigoSelecionado);
+
+    if (error) throw error;
+
+    setStatus(novoStatus ? "Ponto disponível" : "Ponto indisponível", "ok");
+  } catch (error) {
+    console.error("Erro ao atualizar disponibilidade:", error);
+
+    atualizarVisualDisponibilidade(disponivelAtual);
+    atualizarCachePonto(codigoSelecionado, { disponivel: disponivelAtual });
+
+    setStatus("Erro ao atualizar disponibilidade", "erro");
+  }
 }
 
 function validarLogin() {
@@ -420,6 +480,9 @@ function abrirPonto(codigo) {
 
   const statusInfo = calcularStatusInfo(ponto);
   const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
+  const disponivel = pontoEstaDisponivel(ponto);
+
+  atualizarVisualDisponibilidade(disponivel);
 
   if (cidadePonto) {
     cidadePonto.innerHTML = obterCidadeComNomeEmNegrito(ponto.cidade);
@@ -501,6 +564,12 @@ if (btnCopiarCodigo) {
 if (btnEditarInfo) {
   btnEditarInfo.onclick = () => {
     abrirModalEdicao();
+  };
+}
+
+if (btnToggleDisponibilidade) {
+  btnToggleDisponibilidade.onclick = () => {
+    alternarDisponibilidadePonto();
   };
 }
 
