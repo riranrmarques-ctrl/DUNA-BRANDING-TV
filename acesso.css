@@ -226,10 +226,10 @@ input {
 #tituloBoasVindas {
   position: relative;
   z-index: 1;
-  max-width: 920px;
-  font-size: clamp(2.4rem, 5.4vw, 4.8rem);
-  line-height: 1.02;
-  letter-spacing: -0.06em;
+  max-width: 980px;
+  font-size: clamp(2rem, 4.8vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   font-weight: 600;
   margin: 0;
   color: #f8fbff;
@@ -241,18 +241,20 @@ input {
 }
 
 .hero-linha:first-child {
-  font-size: 0.42em;
-  line-height: 1.1;
+  font-size: 0.38em;
+  line-height: 1.18;
   font-weight: 500;
   color: #d9e1f2;
-  margin-bottom: 0.3em;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.34em;
 }
 
 .hero-linha.nome {
-  font-size: 0.9em;
-  line-height: 1.02;
+  font-size: 0.78em;
+  line-height: 1.08;
   font-weight: 700;
   color: #ffffff;
+  letter-spacing: 0.012em;
 }
 
 .cliente-shell .boas-vindas {
