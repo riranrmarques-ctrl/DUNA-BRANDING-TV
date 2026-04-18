@@ -190,7 +190,6 @@ function ordenarClientes(lista) {
     const ativoB = b.status_real === "Ativo" ? 0 : 1;
 
     if (ativoA !== ativoB) return ativoA - ativoB;
-    if (amareloA !== amareloB) return amareloA - amareloB;
     return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
   });
 }
