@@ -24,6 +24,8 @@ const CODIGOS_FIXOS = [
   "E9N2"
 ];
 
+const CACHE_CLIENTES_KEY = "central_clientes_cache_v2";
+const CACHE_CLIENTES_TTL = 3 * 60 * 1000;
 const ORDEM_PERSONALIZADA_KEY = "central_clientes_ordem_personalizada_v1";
 
 let supabaseClient = null;
@@ -54,7 +56,6 @@ function verificarAcesso() {
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
-
   mensagem.textContent = texto;
   mensagem.style.color = cor;
 }
@@ -78,6 +79,31 @@ function obterDataHojeISO() {
 
 function normalizarCodigo(codigo) {
   return String(codigo || "").trim().toUpperCase();
+}
+
+function lerCacheClientes() {
+  try {
+    const cache = JSON.parse(sessionStorage.getItem(CACHE_CLIENTES_KEY) || "null");
+    if (!cache || !Array.isArray(cache.clientes)) return null;
+
+    return {
+      clientes: cache.clientes,
+      fresco: Date.now() - Number(cache.criadoEm || 0) < CACHE_CLIENTES_TTL
+    };
+  } catch {
+    return null;
+  }
+}
+
+function salvarCacheClientes(clientes) {
+  try {
+    sessionStorage.setItem(CACHE_CLIENTES_KEY, JSON.stringify({
+      criadoEm: Date.now(),
+      clientes
+    }));
+  } catch {
+    return;
+  }
 }
 
 function lerOrdemPersonalizada() {
@@ -106,36 +132,6 @@ async function copiarCodigoCliente(codigo) {
   }
 }
 
-function obterChavesPonto(ponto) {
-  return [
-    ponto.codigo,
-    ponto.codigo_visual,
-    ponto.codigo_ponto,
-    ponto.id_ponto,
-    ponto.id
-  ]
-    .map((item) => normalizarCodigo(item))
-    .filter(Boolean);
-}
-
-function montarMapaPontos(pontos = []) {
-  const mapa = new Map();
-
-  pontos.forEach((ponto) => {
-    obterChavesPonto(ponto).forEach((chave) => {
-      if (!mapa.has(chave)) {
-        mapa.set(chave, ponto);
-      }
-    });
-  });
-
-  return mapa;
-}
-
-function obterCidadeDoPonto(ponto) {
-  return String(ponto?.cidade || ponto?.municipio || ponto?.localidade || "").trim();
-}
-
 function obterNomeCliente(cliente) {
   return String(cliente.nome_completo || "Novo Cliente").trim();
 }
@@ -161,9 +157,7 @@ function obterListaFiltrada() {
       cliente.email,
       cliente.cpf_cnpj,
       cliente.status_real
-    ]
-      .join(" ")
-      .toLowerCase();
+    ].join(" ").toLowerCase();
 
     return textoBusca.includes(termo);
   });
@@ -189,17 +183,6 @@ function ordenarClientes(lista) {
 
   if (filtroAtual === "nome") {
     return copia.sort((a, b) => obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR"));
-  }
-
-  if (filtroAtual === "cidade") {
-    return copia.sort((a, b) => {
-      const cidadeA = String(a.cidade_ativa || "");
-      const cidadeB = String(b.cidade_ativa || "");
-      const compararCidade = cidadeA.localeCompare(cidadeB, "pt-BR");
-
-      if (compararCidade !== 0) return compararCidade;
-      return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
-    });
   }
 
   return copia.sort((a, b) => {
@@ -265,16 +248,13 @@ function ativarArrasteCards() {
 
     card.addEventListener("dragenter", (event) => {
       event.preventDefault();
-
       if (!dragCodigo || card.dataset.codigo === dragCodigo) return;
-
       limparAlvosDrop();
       card.classList.add("alvo-drop");
     });
 
     card.addEventListener("dragover", (event) => {
       event.preventDefault();
-
       if (!dragCodigo || card.dataset.codigo === dragCodigo) return;
 
       if (!card.classList.contains("alvo-drop")) {
@@ -319,7 +299,6 @@ function renderizarClientes() {
 
   filtrados.forEach((cliente) => {
     const card = document.createElement("div");
-
     const statusReal = cliente.status_real || "Não ativo";
     const ativo = statusReal === "Ativo";
 
@@ -363,8 +342,23 @@ function renderizarClientes() {
   ativarArrasteCards();
 }
 
-async function carregarClientes() {
+function aplicarClientes(clientes, mensagemTexto = "Carregado.") {
+  clientesCarregados = clientes || [];
+  renderizarClientes();
+  mostrarMensagem(mensagemTexto, "#7CFC9A");
+}
+
+async function carregarClientes(opcoes = {}) {
+  const forcarAtualizacao = opcoes.forcarAtualizacao === true;
+
   if (carregandoClientes) return;
+
+  const cache = lerCacheClientes();
+
+  if (!forcarAtualizacao && cache?.clientes?.length) {
+    aplicarClientes(cache.clientes, cache.fresco ? "Carregado." : "Atualizando...");
+    if (cache.fresco) return;
+  }
 
   if (!supabaseClient) {
     if (listaClientes) {
@@ -384,15 +378,13 @@ async function carregarClientes() {
   }
 
   try {
-    mostrarMensagem("Carregando clientes...");
+    mostrarMensagem(cache?.clientes?.length ? "Atualizando..." : "Carregando clientes...");
 
     const hoje = obterDataHojeISO();
 
     const [
       { data: clientes, error: errorClientes },
-      { data: vinculos, error: errorVinculos },
-      { data: playlists, error: errorPlaylists },
-      { data: pontos, error: errorPontos }
+      { data: playlists, error: errorPlaylists }
     ] = await Promise.all([
       supabaseClient
         .from("clientes_app")
@@ -400,87 +392,42 @@ async function carregarClientes() {
         .order("codigo", { ascending: true }),
 
       supabaseClient
-        .from("cliente_pontos")
-        .select("cliente_codigo,ponto_codigo")
-        .order("cliente_codigo", { ascending: true }),
-
-      supabaseClient
         .from("playlists")
-        .select("codigo_cliente,codigo,data_fim")
-        .or(`data_fim.is.null,data_fim.gte.${hoje}`),
-
-      supabaseClient
-        .from("pontos")
-        .select("*")
+        .select("codigo_cliente,data_fim")
+        .or(`data_fim.is.null,data_fim.gte.${hoje}`)
     ]);
 
     if (errorClientes) throw errorClientes;
-    if (errorVinculos) throw errorVinculos;
     if (errorPlaylists) throw errorPlaylists;
-    if (errorPontos) throw errorPontos;
 
-    const mapaPontos = {};
     const mapaAtivos = new Map();
-    const mapaCidadesAtivas = new Map();
-    const pontosMap = montarMapaPontos(pontos || []);
-
-    (vinculos || []).forEach((item) => {
-      const codigo = String(item.cliente_codigo || "").trim();
-      const ponto = String(item.ponto_codigo || "").trim();
-
-      if (!codigo || !ponto) return;
-
-      if (!mapaPontos[codigo]) {
-        mapaPontos[codigo] = [];
-      }
-
-      if (!mapaPontos[codigo].includes(ponto)) {
-        mapaPontos[codigo].push(ponto);
-      }
-    });
 
     (playlists || []).forEach((item) => {
-      const codigoCliente = normalizarCodigo(item.codigo_cliente);
-      const codigoPonto = normalizarCodigo(item.codigo);
-
-      if (!codigoCliente) return;
-
-      mapaAtivos.set(codigoCliente, true);
-
-      const ponto = pontosMap.get(codigoPonto);
-      const cidade = obterCidadeDoPonto(ponto);
-
-      if (cidade) {
-        if (!mapaCidadesAtivas.has(codigoCliente)) {
-          mapaCidadesAtivas.set(codigoCliente, []);
-        }
-
-        const cidades = mapaCidadesAtivas.get(codigoCliente);
-
-        if (!cidades.includes(cidade)) {
-          cidades.push(cidade);
-        }
-      }
+      const codigo = normalizarCodigo(item.codigo_cliente);
+      if (!codigo) return;
+      mapaAtivos.set(codigo, true);
     });
 
-    clientesCarregados = (clientes || []).map((cliente) => {
+    const final = (clientes || []).map((cliente) => {
       const codigoOriginal = String(cliente.codigo || "").trim();
       const codigoNormalizado = normalizarCodigo(codigoOriginal);
       const statusReal = mapaAtivos.has(codigoNormalizado) ? "Ativo" : "Não ativo";
-      const cidadesAtivas = mapaCidadesAtivas.get(codigoNormalizado) || [];
 
       return {
         ...cliente,
-        status_real: statusReal,
-        cidade_ativa: cidadesAtivas.length ? cidadesAtivas.join(", ") : "-",
-        pontos: mapaPontos[codigoOriginal] || []
+        status_real: statusReal
       };
     });
 
-    renderizarClientes();
-    mostrarMensagem("Carregado.", "#7CFC9A");
+    salvarCacheClientes(final);
+    aplicarClientes(final, "Carregado.");
   } catch (error) {
     console.error(error);
+
+    if (cache?.clientes?.length) {
+      aplicarClientes(cache.clientes, "Carregado pelo cache.");
+      return;
+    }
 
     if (listaClientes) {
       listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
@@ -536,8 +483,10 @@ async function criarNovoCliente() {
 
     if (error) throw error;
 
+    sessionStorage.removeItem(CACHE_CLIENTES_KEY);
+
     mostrarMensagem(`Cliente ${codigoLivre} criado com sucesso.`, "#7CFC9A");
-    await carregarClientes();
+    await carregarClientes({ forcarAtualizacao: true });
     abrirCliente(codigoLivre);
   } catch (error) {
     console.error(error);
@@ -578,7 +527,7 @@ function iniciarPagina() {
   }
 
   if (botaoAtualizar) {
-    botaoAtualizar.addEventListener("click", carregarClientes);
+    botaoAtualizar.addEventListener("click", () => carregarClientes({ forcarAtualizacao: true }));
   }
 
   if (buscaCliente) {
