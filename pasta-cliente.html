@@ -40,14 +40,48 @@
       margin-bottom: 24px;
     }
 
+    .titulo-supervisor {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
     .topo h1 {
       font-size: 2rem;
-      margin-bottom: 8px;
+      margin: 0;
     }
 
     .topo p {
       color: #bfc7d5;
       line-height: 1.5;
+    }
+
+    .botao-supervisor {
+      width: fit-content;
+      min-width: 96px;
+      height: 30px;
+      border: 1px solid rgba(245, 158, 11, 0.75);
+      border-radius: 999px;
+      padding: 0 12px;
+      background: rgba(245, 158, 11, 0.16);
+      color: #fbbf24;
+      font-size: 0.72rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .botao-supervisor.ativo {
+      background: #f59e0b;
+      border-color: #f59e0b;
+      color: #111827;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+    }
+
+    .botao-supervisor:hover {
+      transform: translateY(-1px);
     }
 
     .acoes-topo {
@@ -130,8 +164,7 @@
     }
 
     .campo input,
-    .campo textarea,
-    .campo select {
+    .campo textarea {
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
@@ -142,53 +175,9 @@
       font-size: 1rem;
     }
 
-    .campo select {
-      cursor: pointer;
-      appearance: none;
-      background-image:
-        linear-gradient(45deg, transparent 50%, #9fd2ff 50%),
-        linear-gradient(135deg, #9fd2ff 50%, transparent 50%);
-      background-position:
-        calc(100% - 18px) 50%,
-        calc(100% - 12px) 50%;
-      background-size: 6px 6px, 6px 6px;
-      background-repeat: no-repeat;
-    }
-
     .campo input[readonly] {
       opacity: 0.9;
       cursor: not-allowed;
-    }
-
-    .botao-supervisor {
-      width: fit-content;
-      min-width: 112px;
-      height: 34px;
-      border: 1px solid rgba(245, 158, 11, 0.65);
-      border-radius: 999px;
-      padding: 0 14px;
-      background: rgba(245, 158, 11, 0.16);
-      color: #fbbf24;
-      font-size: 0.78rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .botao-supervisor.ativo {
-      background: #f59e0b;
-      border-color: #f59e0b;
-      color: #111827;
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
-    }
-
-    .botao-supervisor:hover {
-      transform: translateY(-1px);
-    }
-
-    .campo-upgrade select {
-      border-color: rgba(124, 252, 154, 0.45);
-      background-color: rgba(34, 197, 94, 0.1);
     }
 
     .linha-dupla {
@@ -321,58 +310,6 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .toggle-contrato {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      min-width: 100px;
-      height: 42px;
-      padding: 0 12px;
-      border: none;
-      border-radius: 999px;
-      color: #fff;
-      font-weight: 800;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .toggle-contrato.ativo {
-      background: #3d9147;
-      padding-right: 46px;
-    }
-
-    .toggle-contrato.desativado {
-      background: #8a3c3c;
-      padding-left: 46px;
-    }
-
-    .toggle-contrato .toggle-bola {
-      position: absolute;
-      top: 6px;
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
-      transition: 0.2s ease;
-    }
-
-    .toggle-contrato.ativo .toggle-bola {
-      right: 6px;
-    }
-
-    .toggle-contrato.desativado .toggle-bola {
-      left: 6px;
-    }
-
-    .toggle-contrato .toggle-texto {
-      font-size: 0.86rem;
-      line-height: 1;
-      white-space: nowrap;
-    }
-
     @media (max-width: 900px) {
       .grid,
       .grid-historicos,
@@ -403,7 +340,12 @@
   <div class="container">
     <div class="topo">
       <div>
-        <h1>Pasta do Cliente</h1>
+        <div class="titulo-supervisor">
+          <h1>Pasta do Cliente</h1>
+          <button id="btnSupervisor" class="botao-supervisor" type="button">Supervisor</button>
+          <input id="tipoAcessoCliente" type="hidden" value="cliente">
+        </div>
+
         <p>Edite os dados do cliente e escolha os pontos de exibição.</p>
       </div>
 
@@ -434,22 +376,6 @@
           <div class="campo">
             <label for="dataPostagem">Data de postagem</label>
             <input type="date" id="dataPostagem">
-          </div>
-        </div>
-
-        <div class="linha-dupla">
-          <div class="campo">
-            <label>Tipo de acesso</label>
-            <button id="btnSupervisor" class="botao-supervisor" type="button">Supervisor</button>
-            <input id="tipoAcessoCliente" type="hidden" value="cliente">
-          </div>
-
-          <div class="campo campo-upgrade">
-            <label for="materialUpgradeAtivo">Material de upgrade</label>
-            <select id="materialUpgradeAtivo">
-              <option value="true">Ativado</option>
-              <option value="false">Desativado</option>
-            </select>
           </div>
         </div>
 
@@ -520,16 +446,9 @@
               "
             ></div>
 
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <button id="btnBaixarContrato" class="botao botao-salvar" type="button">
-                gerar contrato
-              </button>
-
-              <button id="btnToggleContrato" class="toggle-contrato ativo" type="button" aria-pressed="true">
-                <span class="toggle-bola"></span>
-                <span class="toggle-texto">Ativado</span>
-              </button>
-            </div>
+            <button id="btnBaixarContrato" class="botao botao-salvar" type="button">
+              gerar contrato
+            </button>
           </div>
         </div>
 
@@ -563,6 +482,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=600"></script>
+  <script src="pasta-cliente.js?v=610"></script>
 </body>
 </html>
