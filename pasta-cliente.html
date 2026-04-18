@@ -130,7 +130,8 @@
     }
 
     .campo input,
-    .campo textarea {
+    .campo textarea,
+    .campo select {
       width: 100%;
       padding: 12px 14px;
       border-radius: 10px;
@@ -141,9 +142,32 @@
       font-size: 1rem;
     }
 
+    .campo select {
+      cursor: pointer;
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #9fd2ff 50%),
+        linear-gradient(135deg, #9fd2ff 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 50%,
+        calc(100% - 12px) 50%;
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+    }
+
     .campo input[readonly] {
       opacity: 0.9;
       cursor: not-allowed;
+    }
+
+    .campo-supervisor select {
+      border-color: rgba(96, 165, 250, 0.55);
+      background-color: rgba(59, 130, 246, 0.12);
+    }
+
+    .campo-upgrade select {
+      border-color: rgba(124, 252, 154, 0.45);
+      background-color: rgba(34, 197, 94, 0.1);
     }
 
     .linha-dupla {
@@ -393,6 +417,24 @@
         </div>
 
         <div class="linha-dupla">
+          <div class="campo campo-supervisor">
+            <label for="tipoAcessoCliente">Tipo de acesso</label>
+            <select id="tipoAcessoCliente">
+              <option value="cliente">Cliente</option>
+              <option value="supervisor">Supervisor</option>
+            </select>
+          </div>
+
+          <div class="campo campo-upgrade">
+            <label for="materialUpgradeAtivo">Material de upgrade</label>
+            <select id="materialUpgradeAtivo">
+              <option value="true">Ativado</option>
+              <option value="false">Desativado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="linha-dupla">
           <div class="campo">
             <label for="valorContratado">Valor contratado</label>
             <input id="valorContratado" type="text" placeholder="R$ 0,00" inputmode="numeric">
@@ -502,6 +544,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=408"></script>
+  <script src="pasta-cliente.js?v=500"></script>
 </body>
 </html>
