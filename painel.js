@@ -77,11 +77,6 @@ function obterImagemPonto(ponto) {
   return ponto?.imagem_url || "https://placehold.co/600x320/png";
 }
 
-function obterCidadeFormatada(cidade) {
-  const nome = String(cidade || "").trim();
-  return nome ? `Cidade de ${nome}` : "Cidade não definida";
-}
-
 function obterCidadeComNomeEmNegrito(cidade) {
   const nome = String(cidade || "").trim();
   return nome ? `Cidade de <strong>${escapeHtml(nome)}</strong>` : "Cidade não definida";
@@ -399,16 +394,38 @@ if (senhaInput) {
 }
 
 async function buscarPontosRemoto() {
-  const { data, error } = await supabaseClient
+  const respostaCompleta = await supabaseClient
     .from(TABELA_PONTOS)
     .select("codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel")
+    .order("codigo", { ascending: true });
+
+  if (!respostaCompleta.error) {
+    return respostaCompleta.data || [];
+  }
+
+  const mensagemErro = String(respostaCompleta.error.message || "").toLowerCase();
+  const erroColunaDisponivel =
+    mensagemErro.includes("disponivel") ||
+    mensagemErro.includes("column") ||
+    mensagemErro.includes("schema cache");
+
+  if (!erroColunaDisponivel) {
+    throw respostaCompleta.error;
+  }
+
+  const { data, error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .select("codigo,nome,cidade,endereco,imagem_url,ultimo_ping")
     .order("codigo", { ascending: true });
 
   if (error) {
     throw error;
   }
 
-  return data || [];
+  return (data || []).map((ponto) => ({
+    ...ponto,
+    disponivel: true
+  }));
 }
 
 function renderizarCardsPontos(lista, opcoes = {}) {
