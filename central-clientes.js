@@ -107,6 +107,10 @@ function normalizarCodigo(codigo) {
   return String(codigo || "").trim().toUpperCase();
 }
 
+function clienteEhSupervisor(cliente) {
+  return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
+}
+
 function lerCacheClientes() {
   try {
     const cache = JSON.parse(sessionStorage.getItem(CACHE_CLIENTES_KEY) || "null");
@@ -185,7 +189,8 @@ function obterListaFiltrada() {
       cliente.telefone,
       cliente.email,
       cliente.cpf_cnpj,
-      cliente.status_real
+      cliente.status_real,
+      cliente.tipo_acesso
     ].join(" ").toLowerCase();
 
     return textoBusca.includes(termo);
@@ -225,6 +230,11 @@ function ordenarClientes(lista) {
   }
 
   return copia.sort((a, b) => {
+    const supervisorA = clienteEhSupervisor(a) ? 0 : 1;
+    const supervisorB = clienteEhSupervisor(b) ? 0 : 1;
+
+    if (supervisorA !== supervisorB) return supervisorA - supervisorB;
+
     const ativoA = a.status_real === "Ativo" ? 0 : 1;
     const ativoB = b.status_real === "Ativo" ? 0 : 1;
 
@@ -340,33 +350,34 @@ function renderizarClientes() {
     const card = document.createElement("div");
     const statusReal = cliente.status_real || "Não ativo";
     const ativo = statusReal === "Ativo";
+    const supervisor = clienteEhSupervisor(cliente);
 
-    card.className = `cliente-card ${ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""} ${cliente.contrato_ativo === false ? "contrato-off" : ""}`;
+    card.className = `cliente-card ${supervisor ? "supervisor" : ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""} ${!supervisor && cliente.contrato_ativo === false ? "contrato-off" : ""}`;
     card.dataset.codigo = cliente.codigo;
     card.draggable = personalizado;
 
     card.innerHTML = `
-     <div class="cliente-topo">
-       <button
-         class="cliente-codigo"
-         type="button"
-         data-codigo="${escaparHtml(cliente.codigo)}"
-         title="Clique para copiar o código"
-       >${escaparHtml(cliente.codigo)}</button>
+      <div class="cliente-topo">
+        <button
+          class="cliente-codigo"
+          type="button"
+          data-codigo="${escaparHtml(cliente.codigo)}"
+          title="Clique para copiar o código"
+        >${escaparHtml(cliente.codigo)}</button>
 
-       <div class="cliente-selos">
-         ${
-           supervisor
-             ? `<span class="cliente-tipo supervisor">Supervisor</span>`
-             : `<span class="cliente-status ${ativo ? "ativo" : "nao-ativo"}">
-                 ${escaparHtml(statusReal)}
-               </span>`
-         }
-       </div>
-     </div>
+        <div class="cliente-selos">
+          ${
+            supervisor
+              ? `<span class="cliente-tipo supervisor">Supervisor</span>`
+              : `<span class="cliente-status ${ativo ? "ativo" : "nao-ativo"}">
+                  ${escaparHtml(statusReal)}
+                </span>`
+          }
+        </div>
+      </div>
 
-     <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
-     <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
+      <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
+      <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
     `;
 
     card.addEventListener("click", () => abrirCliente(cliente.codigo));
@@ -517,17 +528,17 @@ async function criarNovoCliente() {
 
     mostrarMensagem("Criando novo cliente...");
 
-const payload = {
-  codigo: codigoLivre,
-  nome_completo: "Novo Cliente",
-  telefone: "",
-  email: "",
-  cpf_cnpj: "",
-  status: "Não ativo",
-  vencimento_exibicao: null,
-  tipo_acesso: "cliente",
-  material_upgrade_ativo: true
-};
+    const payload = {
+      codigo: codigoLivre,
+      nome_completo: "Novo Cliente",
+      telefone: "",
+      email: "",
+      cpf_cnpj: "",
+      status: "Não ativo",
+      vencimento_exibicao: null,
+      tipo_acesso: "cliente",
+      material_upgrade_ativo: true
+    };
 
     const { error } = await supabaseClient
       .from("clientes_app")
