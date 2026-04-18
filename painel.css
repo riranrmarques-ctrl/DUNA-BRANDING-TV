@@ -1436,3 +1436,25 @@ body {
 #btnToggleDisponibilidade.ativo .toggle-bolinha {
   background: #ffffff !important;
 }
+
+.card-ponto.card-indisponivel {
+  opacity: 0.58 !important;
+  filter: grayscale(0.75) saturate(0.75) !important;
+  cursor: pointer !important;
+}
+
+.card-ponto.card-indisponivel:hover {
+  opacity: 0.76 !important;
+  filter: grayscale(0.45) saturate(0.9) !important;
+  transform: translateY(-2px) !important;
+}
+
+.card-status.indisponivel {
+  color: #ef4444 !important;
+  font-weight: 900 !important;
+}
+
+.status-bolinha.indisponivel {
+  background: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18) !important;
+}
