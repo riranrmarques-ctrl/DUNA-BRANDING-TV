@@ -1749,3 +1749,115 @@ body {
     width: 96px !important;
   }
 }
+
+.topo-centro h1 {
+  font-size: clamp(2.1rem, 3.6vw, 3.25rem) !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.08em !important;
+  white-space: nowrap;
+}
+
+.topo-centro p {
+  font-size: clamp(1rem, 1.35vw, 1.25rem) !important;
+}
+
+.painel-shell {
+  width: min(100%, 1120px);
+  overflow: visible !important;
+}
+
+.pontos-box {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.card-ponto {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.card-imagem-box {
+  margin: 0 10px !important;
+}
+
+.card-conteudo {
+  padding: 12px 12px 9px !important;
+}
+
+.card-info-linha {
+  gap: 6px !important;
+}
+
+.card-cidade {
+  min-width: 0;
+  font-size: 0.78rem !important;
+  line-height: 1.1 !important;
+}
+
+.card-codigo-area {
+  flex-shrink: 0;
+}
+
+.card-codigo {
+  font-size: 0.72rem !important;
+  padding: 5px 9px !important;
+}
+
+.btn-copiar {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+}
+
+.btn-novo-ponto {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 999;
+  border: none;
+  border-radius: 999px;
+  padding: 15px 22px;
+  background: #f59e0b;
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.btn-novo-ponto:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+@media (max-width: 1000px) {
+  .pontos-box {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .topo-centro h1 {
+    white-space: normal;
+    font-size: 2.1rem !important;
+  }
+
+  .pontos-box {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .btn-novo-ponto {
+    right: 18px;
+    bottom: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  .pontos-box {
+    grid-template-columns: 1fr !important;
+  }
+}
