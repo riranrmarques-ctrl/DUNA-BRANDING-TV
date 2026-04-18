@@ -23,6 +23,7 @@ const inputValorContratado = document.getElementById("valorContratado");
 const inputDataPostagem = document.getElementById("dataPostagem");
 const statusCliente = document.getElementById("statusCliente");
 const tipoAcessoCliente = document.getElementById("tipoAcessoCliente");
+const btnSupervisor = document.getElementById("btnSupervisor");
 const materialUpgradeAtivo = document.getElementById("materialUpgradeAtivo");
 
 const listaPontos = document.getElementById("listaPontos");
@@ -76,8 +77,12 @@ function obterCodigoDaUrl() {
   return String(params.get("codigo") || "").trim().toUpperCase();
 }
 
+function supervisorEstaAtivo() {
+  return tipoAcessoCliente?.value === "supervisor";
+}
+
 function obterTipoAcessoAtual() {
-  return tipoAcessoCliente?.value === "supervisor" ? "supervisor" : "cliente";
+  return supervisorEstaAtivo() ? "supervisor" : "cliente";
 }
 
 function materialUpgradeEstaAtivo() {
@@ -231,13 +236,60 @@ function atualizarToggleContratoVisual() {
   }
 
   if (btnBaixarContrato) {
-    btnBaixarContrato.disabled = !contratoAtivo;
-    btnBaixarContrato.style.opacity = contratoAtivo ? "1" : "0.5";
-    btnBaixarContrato.style.cursor = contratoAtivo ? "pointer" : "not-allowed";
+    btnBaixarContrato.disabled = !contratoAtivo || supervisorEstaAtivo();
+    btnBaixarContrato.style.opacity = btnBaixarContrato.disabled ? "0.45" : "1";
+    btnBaixarContrato.style.cursor = btnBaixarContrato.disabled ? "not-allowed" : "pointer";
   }
 }
 
+function aplicarCampoDesativado(campo, desativado) {
+  if (!campo) return;
+
+  campo.disabled = desativado;
+  campo.style.opacity = desativado ? "0.45" : "1";
+  campo.style.cursor = desativado ? "not-allowed" : "";
+}
+
+function atualizarModoSupervisor() {
+  const ativo = supervisorEstaAtivo();
+
+  if (btnSupervisor) {
+    btnSupervisor.classList.toggle("ativo", ativo);
+    btnSupervisor.textContent = ativo ? "Supervisor ativo" : "Supervisor";
+  }
+
+  const camposBloqueadosNoSupervisor = [
+    inputCodigo,
+    inputTelefone,
+    inputEmail,
+    inputCpfCnpj,
+    inputVencimento,
+    inputValorContratado,
+    inputDataPostagem,
+    arquivoInput,
+    btnUploadCliente,
+    btnBaixarContrato,
+    btnToggleContrato
+  ];
+
+  camposBloqueadosNoSupervisor.forEach((campo) => aplicarCampoDesativado(campo, ativo));
+
+  aplicarCampoDesativado(inputNome, false);
+  aplicarCampoDesativado(materialUpgradeAtivo, false);
+  aplicarCampoDesativado(botaoSalvar, false);
+
+  document.querySelectorAll('input[name="pontos"]').forEach((checkbox) => {
+    checkbox.disabled = false;
+    checkbox.style.cursor = "pointer";
+    checkbox.style.opacity = "1";
+  });
+
+  atualizarToggleContratoVisual();
+}
+
 async function alternarContratoAtivo() {
+  if (supervisorEstaAtivo()) return;
+
   contratoAtivo = !contratoAtivo;
   atualizarToggleContratoVisual();
   ativarBotaoSalvar();
@@ -669,6 +721,11 @@ function gerarContratoClienteParaHistorico() {
     return;
   }
 
+  if (supervisorEstaAtivo()) {
+    mostrarMensagem("Supervisor não gera contrato nesta pasta.", "#ffb86b");
+    return;
+  }
+
   const dados = obterDadosContratoCliente();
   const historico = lerHistoricoContratosGerados();
 
@@ -932,6 +989,8 @@ function renderizarPontosSelecionaveis(selecionados = []) {
       ${montarGrupo("indisponivel", "#ff8f8f", cardsIndisponiveis)}
     </div>
   `;
+
+  atualizarModoSupervisor();
 }
 
 async function atualizarResumo() {
@@ -939,6 +998,8 @@ async function atualizarResumo() {
 }
 
 async function calcularStatusClienteRealPorCodigoCliente() {
+  if (supervisorEstaAtivo()) return "Não ativo";
+
   const { data, error } = await supabaseClient
     .from("playlists")
     .select("data_fim")
@@ -964,8 +1025,15 @@ async function sincronizarStatusCliente() {
 
 function validarCamposCliente() {
   let valido = true;
+  const supervisor = supervisorEstaAtivo();
 
-  [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento].forEach((campo) => {
+  const camposObrigatorios = supervisor
+    ? [inputNome]
+    : [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento];
+
+  [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento].forEach(limparErro);
+
+  camposObrigatorios.forEach((campo) => {
     if (!String(campo?.value || "").trim()) {
       marcarErro(campo);
       valido = false;
@@ -980,7 +1048,7 @@ function validarCamposCliente() {
   }
 
   if (!valido) {
-    mostrarMensagem("Preencha todos os campos obrigatórios.", "#ff6b6b");
+    mostrarMensagem("Preencha os campos obrigatórios.", "#ff6b6b");
     return false;
   }
 
@@ -1285,6 +1353,7 @@ async function carregarCliente() {
     renderizarHistoricoArquivos([]);
     gerarHistoricoContratoVisual();
     gerarContratoCliente();
+    atualizarModoSupervisor();
     desativarBotaoSalvar();
 
     mostrarMensagem(`Cliente ${codigoClienteAtual} não encontrado na tabela clientes_app.`, "#ff6b6b");
@@ -1312,6 +1381,7 @@ async function carregarCliente() {
   await atualizarResumo();
   gerarHistoricoContratoVisual();
   gerarContratoCliente();
+  atualizarModoSupervisor();
   desativarBotaoSalvar();
 
   mostrarMensagem(`Cliente ${codigoClienteAtual} carregado com sucesso.`, "#7CFC9A");
@@ -1370,6 +1440,7 @@ async function salvarCliente() {
     await carregarHistoricoArquivos();
     gerarHistoricoContratoVisual();
     gerarContratoCliente();
+    atualizarModoSupervisor();
 
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
@@ -1382,6 +1453,11 @@ async function salvarCliente() {
 }
 
 async function uploadArquivoCliente() {
+  if (supervisorEstaAtivo()) {
+    mostrarStatusUpload("Supervisor não envia arquivo por aqui.", "#ffb86b");
+    return;
+  }
+
   const file = arquivoInput?.files?.[0];
 
   if (!validarCamposCliente()) return;
@@ -1526,13 +1602,12 @@ if (listaPontos) {
   });
 }
 
-if (inputNome) inputNome.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
-if (inputEmail) inputEmail.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
-if (inputVencimento) inputVencimento.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
-if (inputDataPostagem) inputDataPostagem.addEventListener("change", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (btnSupervisor) {
+  btnSupervisor.addEventListener("click", () => {
+    if (!tipoAcessoCliente) return;
 
-if (tipoAcessoCliente) {
-  tipoAcessoCliente.addEventListener("change", () => {
+    tipoAcessoCliente.value = supervisorEstaAtivo() ? "cliente" : "supervisor";
+    atualizarModoSupervisor();
     ativarBotaoSalvar();
     gerarContratoCliente();
   });
@@ -1543,6 +1618,11 @@ if (materialUpgradeAtivo) {
     ativarBotaoSalvar();
   });
 }
+
+if (inputNome) inputNome.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputEmail) inputEmail.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputVencimento) inputVencimento.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputDataPostagem) inputDataPostagem.addEventListener("change", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
 
 if (inputTelefone) {
   inputTelefone.addEventListener("input", (event) => {
@@ -1599,6 +1679,7 @@ async function iniciar() {
     await carregarCliente();
     gerarContratoCliente();
     atualizarToggleContratoVisual();
+    atualizarModoSupervisor();
   } catch (error) {
     console.error("Erro ao iniciar pasta-cliente:", error);
     mostrarMensagem("Erro ao carregar dados da pasta do cliente.", "#ff6b6b");
