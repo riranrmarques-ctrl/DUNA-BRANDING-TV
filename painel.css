@@ -1388,3 +1388,51 @@ body {
   color: #ffffff;
   font-weight: 900;
 }
+
+.toggle-ponto,
+#btnToggleDisponibilidade {
+  min-width: 0 !important;
+  width: auto !important;
+  height: 30px !important;
+  padding: 0 8px !important;
+  border: none !important;
+  border-radius: 999px !important;
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.28) !important;
+}
+
+.toggle-ponto.ativo,
+#btnToggleDisponibilidade.ativo {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(22, 163, 74, 0.28) !important;
+}
+
+.toggle-ponto .toggle-texto,
+#btnToggleDisponibilidade .toggle-texto {
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  font-weight: 900 !important;
+}
+
+.toggle-ponto .toggle-bolinha,
+#btnToggleDisponibilidade .toggle-bolinha {
+  width: 20px !important;
+  height: 20px !important;
+  background: #ffffff !important;
+  border-radius: 999px !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22) !important;
+}
+
+.toggle-ponto.ativo .toggle-bolinha,
+#btnToggleDisponibilidade.ativo .toggle-bolinha {
+  background: #ffffff !important;
+}
