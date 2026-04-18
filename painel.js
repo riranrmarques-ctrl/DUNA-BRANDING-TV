@@ -6,9 +6,9 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v5";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v6";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v4_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v5_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 
 function limparCachesAntigos() {
@@ -17,12 +17,14 @@ function limparCachesAntigos() {
     sessionStorage.removeItem("painel_pontos_cache_v2");
     sessionStorage.removeItem("painel_pontos_cache_v3");
     sessionStorage.removeItem("painel_pontos_cache_v4");
+    sessionStorage.removeItem("painel_pontos_cache_v5");
 
     Object.keys(sessionStorage).forEach((key) => {
       if (
         key.startsWith("painel_playlist_cache_v1_") ||
         key.startsWith("painel_playlist_cache_v2_") ||
-        key.startsWith("painel_playlist_cache_v3_")
+        key.startsWith("painel_playlist_cache_v3_") ||
+        key.startsWith("painel_playlist_cache_v4_")
       ) {
         sessionStorage.removeItem(key);
       }
@@ -386,20 +388,34 @@ function detectarTipoArquivoPlaylist(file) {
 }
 
 async function obterProximaOrdemPlaylist() {
-  const { data, error } = await supabaseClient
-    .from(TABELA)
-    .select("ordem")
-    .eq("codigo", codigoSelecionado)
-    .order("ordem", { ascending: false })
-    .limit(1);
+  const consultas = [
+    { colunas: "ordem", ordenarPor: "ordem" },
+    { colunas: "created_at", ordenarPor: "created_at" }
+  ];
 
-  if (error) {
-    console.warn("Não foi possível buscar ordem da playlist:", error);
-    return 1;
+  for (const consultaAtual of consultas) {
+    const query = supabaseClient
+      .from(TABELA)
+      .select(consultaAtual.colunas)
+      .eq("codigo", codigoSelecionado)
+      .order(consultaAtual.ordenarPor, { ascending: false })
+      .limit(1);
+
+    const { data, error } = await query;
+
+    if (!error) {
+      if (consultaAtual.colunas === "ordem") {
+        const maiorOrdem = Number(data?.[0]?.ordem || 0);
+        return maiorOrdem + 1;
+      }
+
+      return 1;
+    }
+
+    console.warn(`Não foi possível buscar ordem usando ${consultaAtual.colunas}:`, error);
   }
 
-  const maiorOrdem = Number(data?.[0]?.ordem || 0);
-  return maiorOrdem + 1;
+  return 1;
 }
 
 async function enviarMaterialDiretoPlaylist(file) {
@@ -435,9 +451,8 @@ async function enviarMaterialDiretoPlaylist(file) {
 
     const ordem = await obterProximaOrdemPlaylist();
 
-    const { error: insertError } = await supabaseClient
-      .from(TABELA)
-      .insert({
+    const tentativasInsert = [
+      {
         codigo: codigoSelecionado,
         nome: file.name,
         titulo_arquivo: file.name,
@@ -445,7 +460,37 @@ async function enviarMaterialDiretoPlaylist(file) {
         storage_path: path,
         tipo,
         ordem
-      });
+      },
+      {
+        codigo: codigoSelecionado,
+        nome: file.name,
+        video_url: publicData.publicUrl,
+        storage_path: path,
+        ordem
+      },
+      {
+        codigo: codigoSelecionado,
+        nome: file.name,
+        video_url: publicData.publicUrl,
+        storage_path: path
+      }
+    ];
+
+    let insertError = null;
+
+    for (const payload of tentativasInsert) {
+      const { error } = await supabaseClient
+        .from(TABELA)
+        .insert(payload);
+
+      if (!error) {
+        insertError = null;
+        break;
+      }
+
+      insertError = error;
+      console.warn("Falha ao inserir playlist com payload:", payload, error);
+    }
 
     if (insertError) throw insertError;
 
@@ -774,7 +819,7 @@ function abrirPonto(codigo) {
   }
 
   if (enderecoPonto) {
-    enderecoPonto.textContent = endereco || "Endereço não definido";
+    enderecoPonto.textContent = endereco || "";
   }
 
   if (statusPonto) {
@@ -1045,12 +1090,12 @@ function obterNomeArquivoPlaylist(item) {
 }
 
 function obterNomeClientePlaylist(item) {
-  if (item.nome && String(item.nome).trim()) {
-    return String(item.nome).trim();
-  }
-
   if (item.nome_cliente && String(item.nome_cliente).trim()) {
     return String(item.nome_cliente).trim();
+  }
+
+  if (item.nome && String(item.nome).trim()) {
+    return String(item.nome).trim();
   }
 
   if (item.codigo_cliente && String(item.codigo_cliente).trim()) {
@@ -1181,24 +1226,71 @@ function renderizarPlaylistDados(lista, historicoConexao) {
   ativarExclusaoItens();
 }
 
+/*
+  FUNCAO REVISADA:
+  Corrige o erro 400 da tabela playlists.
+  Ela tenta buscar com todas as colunas novas.
+  Se alguma coluna nao existir, cai para uma consulta mais simples.
+*/
 async function buscarPlaylistRemota(codigo) {
-  const [{ data: playlistData, error: playlistError }, { data: historicoData, error: historicoError }] = await Promise.all([
-    supabaseClient
-      .from(TABELA)
-      .select("id,nome,nome_cliente,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem")
-      .eq("codigo", codigo)
-      .order("ordem", { ascending: true }),
+  const consultasPlaylist = [
+    "id,nome,nome_cliente,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
+    "id,nome,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
+    "id,nome,video_url,storage_path,created_at,data_fim,ordem",
+    "id,nome,video_url,storage_path,created_at"
+  ];
 
-    supabaseClient
-      .from(TABELA_HISTORICO_CONEXAO)
-      .select("evento,data_hora,created_at")
-      .eq("codigo", codigo)
-      .order("data_hora", { ascending: false })
-      .limit(30)
-  ]);
+  let playlistData = [];
+  let playlistError = null;
+
+  for (const colunas of consultasPlaylist) {
+    const query = supabaseClient
+      .from(TABELA)
+      .select(colunas)
+      .eq("codigo", codigo);
+
+    if (colunas.includes("ordem")) {
+      query.order("ordem", { ascending: true });
+    } else {
+      query.order("created_at", { ascending: true });
+    }
+
+    const { data, error } = await query;
+
+    if (!error) {
+      playlistData = data || [];
+      playlistError = null;
+      break;
+    }
+
+    playlistError = error;
+    console.warn(`Falha ao buscar playlist com colunas: ${colunas}`, error);
+  }
 
   if (playlistError) throw playlistError;
-  if (historicoError) throw historicoError;
+
+  let historicoData = [];
+
+  const consultasHistorico = [
+    { ordem: "data_hora", colunas: "evento,data_hora,created_at" },
+    { ordem: "created_at", colunas: "evento,created_at" }
+  ];
+
+  for (const consulta of consultasHistorico) {
+    const { data, error } = await supabaseClient
+      .from(TABELA_HISTORICO_CONEXAO)
+      .select(consulta.colunas)
+      .eq("codigo", codigo)
+      .order(consulta.ordem, { ascending: false })
+      .limit(30);
+
+    if (!error) {
+      historicoData = data || [];
+      break;
+    }
+
+    console.warn(`Erro ao buscar histórico usando ${consulta.ordem}:`, error);
+  }
 
   return {
     playlist: playlistData || [],
@@ -1268,13 +1360,30 @@ function ativarRenomearItens() {
         return;
       }
 
-      const { error } = await supabaseClient
-        .from(TABELA)
-        .update({ titulo_arquivo: nomeFinal })
-        .eq("id", id);
+      const tentativasUpdate = [
+        { titulo_arquivo: nomeFinal },
+        { nome: nomeFinal }
+      ];
 
-      if (error) {
-        console.error(error);
+      let updateError = null;
+
+      for (const payload of tentativasUpdate) {
+        const { error } = await supabaseClient
+          .from(TABELA)
+          .update(payload)
+          .eq("id", id);
+
+        if (!error) {
+          updateError = null;
+          break;
+        }
+
+        updateError = error;
+        console.warn("Falha ao renomear com payload:", payload, error);
+      }
+
+      if (updateError) {
+        console.error(updateError);
         setStatus("Erro ao renomear arquivo", "erro");
         return;
       }
@@ -1367,13 +1476,34 @@ function ativarDrag(lista) {
       novo.splice(target, 0, movido);
 
       for (let i = 0; i < novo.length; i++) {
-        const { error } = await supabaseClient
-          .from(TABELA)
-          .update({ ordem: i })
-          .eq("id", novo[i].id);
+        const payloads = [
+          { ordem: i },
+          {}
+        ];
 
-        if (error) {
-          console.error(error);
+        let updateError = null;
+
+        for (const payload of payloads) {
+          if (!Object.keys(payload).length) {
+            updateError = null;
+            break;
+          }
+
+          const { error } = await supabaseClient
+            .from(TABELA)
+            .update(payload)
+            .eq("id", novo[i].id);
+
+          if (!error) {
+            updateError = null;
+            break;
+          }
+
+          updateError = error;
+        }
+
+        if (updateError) {
+          console.error(updateError);
           setStatus("Erro ao reordenar playlist", "erro");
           item.classList.remove("drop-animating");
           return;
