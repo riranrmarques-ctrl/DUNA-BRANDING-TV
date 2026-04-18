@@ -223,7 +223,7 @@ input {
   position: relative;
   z-index: 1;
   max-width: 980px;
-  font-size: clamp(2.5rem, 6vw, 5.4rem);
+  font-size: clamp(2.2rem, 5vw, 4.8rem);
   line-height: 0.92;
   letter-spacing: -0.06em;
   font-weight: 600;
@@ -232,21 +232,21 @@ input {
   text-shadow: none !important;
 }
 
-.boas-vindas p,
-#subtituloCliente {
-  display: none !important;
-}
-
 .hero-linha {
   display: block;
 }
 
 .hero-linha:first-child {
+  font-size: 0.48em;
+  line-height: 1;
   font-weight: 500;
   color: #d9e1f2;
+  margin-bottom: 0.08em;
 }
 
 .hero-linha.nome {
+  font-size: 1em;
+  line-height: 0.92;
   font-weight: 700;
   color: #ffffff;
 }
