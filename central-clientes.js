@@ -160,8 +160,7 @@ function obterListaFiltrada() {
       cliente.telefone,
       cliente.email,
       cliente.cpf_cnpj,
-      cliente.status_real,
-      cliente.cidade_ativa
+      cliente.status_real
     ]
       .join(" ")
       .toLowerCase();
@@ -323,7 +322,6 @@ function renderizarClientes() {
 
     const statusReal = cliente.status_real || "Não ativo";
     const ativo = statusReal === "Ativo";
-    const cidadeAtiva = cliente.cidade_ativa || "-";
 
     card.className = `cliente-card ${ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""}`;
     card.dataset.codigo = cliente.codigo;
@@ -345,7 +343,6 @@ function renderizarClientes() {
 
       <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
       <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
-      <p><strong>Cidade ativa:</strong> ${escaparHtml(cidadeAtiva)}</p>
     `;
 
     card.addEventListener("click", () => abrirCliente(cliente.codigo));
@@ -595,10 +592,6 @@ function iniciarPagina() {
     botao.addEventListener("click", () => {
       filtroAtual = botao.dataset.filtro || "status";
       renderizarClientes();
-
-      if (filtroAtual === "personalizado") {
-        mostrarMensagem("Modo personalizado ativo: arraste os cards para organizar.", "#facc15");
-      }
     });
   });
 
