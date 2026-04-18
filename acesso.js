@@ -270,10 +270,17 @@ function detectarTipo(url, tipoOriginal = "") {
 
   if (
     limpa.includes("youtube.com") ||
-    limpa.includes("youtu.be") ||
-    limpa.includes("http")
+    limpa.includes("youtu.be")
   ) {
-    return limpa.match(/\.(mp4|mov|webm)$/) ? "video" : "site";
+    return "site";
+  }
+
+  if (limpa.match(/\.(mp4|mov|webm|m4v)$/)) {
+    return "video";
+  }
+
+  if (limpa.startsWith("http")) {
+    return "site";
   }
 
   return "video";
@@ -485,6 +492,12 @@ function pararRotacaoPreview() {
   }
 }
 
+function avancarPreview() {
+  if (!playlistAtual.length) return;
+  playlistIndexAtual = (playlistIndexAtual + 1) % playlistAtual.length;
+  iniciarRotacaoPreview();
+}
+
 function obterStatusAtualDoPonto() {
   const pontoAtual = pontosContratados.find(
     (ponto) => normalizarCodigo(ponto.codigo) === pontoSelecionado
@@ -512,7 +525,7 @@ function exibirItemPreview(item, pontoInativo) {
   }
 
   if (pontoInativo) {
-    const imagemOffice = normalizarUrl(obterUrlPlaylist(item));
+    const imagemOffice = normalizarUrl(obterUrlPlaylist(item)) || "https://placehold.co/1280x720/png";
     previewMidia.innerHTML = `
       <div class="preview-office">
         <img src="${escapeHtml(imagemOffice)}" alt="${escapeHtml(nomeArquivoAtual || "Exibição offline")}">
@@ -530,20 +543,34 @@ function exibirItemPreview(item, pontoInativo) {
 
   if (!url) {
     previewMidia.innerHTML = `<div class="preview-vazio">Material sem URL disponível.</div>`;
+    rotacaoPreviewTimer = setTimeout(avancarPreview, 4000);
     return;
   }
 
   if (tipo === "imagem") {
     previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(nomeArquivoAtual || "Exibição em tempo real")}">`;
+    rotacaoPreviewTimer = setTimeout(avancarPreview, obterDuracaoItem(item) * 1000);
     return;
   }
 
   if (tipo === "site") {
     previewMidia.innerHTML = `<iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen"></iframe>`;
+    rotacaoPreviewTimer = setTimeout(avancarPreview, obterDuracaoItem(item) * 1000);
     return;
   }
 
-  previewMidia.innerHTML = `<video src="${escapeHtml(url)}" autoplay muted loop playsinline></video>`;
+  previewMidia.innerHTML = `<video id="videoPreviewAtual" src="${escapeHtml(url)}" autoplay muted playsinline></video>`;
+
+  const video = document.getElementById("videoPreviewAtual");
+  if (video) {
+    video.onended = () => {
+      avancarPreview();
+    };
+
+    video.onerror = () => {
+      rotacaoPreviewTimer = setTimeout(avancarPreview, 3000);
+    };
+  }
 }
 
 function iniciarRotacaoPreview() {
@@ -561,21 +588,11 @@ function iniciarRotacaoPreview() {
   exibirItemPreview(itemAtual, pontoInativo);
 
   if (pontoInativo || playlistAtual.length <= 1) return;
-
-  const duracao = obterDuracaoItem(itemAtual) * 1000;
-  rotacaoPreviewTimer = setTimeout(() => {
-    playlistIndexAtual = (playlistIndexAtual + 1) % playlistAtual.length;
-    iniciarRotacaoPreview();
-  }, duracao);
 }
 
 function renderizarPreview(lista) {
-  playlistAtual = filtrarMateriaisDoCliente(lista).filter((item) => !itemEstaInativo(item));
-
-  if (!playlistAtual.length) {
-    playlistAtual = filtrarMateriaisDoCliente(lista);
-  }
-
+  const playlistDoPonto = (lista || []).filter((item) => !itemEstaInativo(item));
+  playlistAtual = playlistDoPonto.length ? playlistDoPonto : (lista || []);
   playlistIndexAtual = 0;
   iniciarRotacaoPreview();
 }
@@ -713,30 +730,22 @@ async function buscarPontos(codigos) {
 }
 
 async function buscarPlaylistPonto(codigo) {
-  const consultas = [
-    { ordenarPor: "ordem" },
-    { ordenarPor: "created_at" },
-    { ordenarPor: "id" }
-  ];
-
+  const tentativas = ["ordem", "created_at", "id"];
   let ultimoErro = null;
 
-  for (const consulta of consultas) {
-    let query = supabaseClient
+  for (const ordenarPor of tentativas) {
+    const { data, error } = await supabaseClient
       .from(TABELA_PLAYLIST)
       .select("*")
-      .eq("codigo", codigo);
-
-    query = query.order(consulta.ordenarPor, { ascending: true });
-
-    const { data, error } = await query;
+      .eq("codigo", codigo)
+      .order(ordenarPor, { ascending: true });
 
     if (!error) {
       return data || [];
     }
 
     ultimoErro = error;
-    console.warn("Falha ao buscar playlist ordenando por:", consulta.ordenarPor, error);
+    console.warn("Falha ao buscar playlist ordenando por:", ordenarPor, error);
   }
 
   throw ultimoErro;
