@@ -322,10 +322,6 @@ function obterNomeArquivo(item) {
   return "Arquivo";
 }
 
-function obterNomeClientePlaylist(item) {
-  return item?.nome_cliente || item?.cliente_nome || item?.cliente || item?.nome || obterNomeCliente(clienteAtual);
-}
-
 function pertenceAoClienteAtual(item) {
   const codigoItem = normalizarCodigo(item?.codigo_cliente || item?.cliente_codigo);
   const codigoAtual = normalizarCodigo(codigoClienteAtual);
@@ -356,10 +352,7 @@ function limparTelaDetalhe() {
   pontoSelecionado = "";
   playlistAtual = [];
   playlistIndexAtual = 0;
-  if (rotacaoPreviewTimer) {
-    clearTimeout(rotacaoPreviewTimer);
-    rotacaoPreviewTimer = null;
-  }
+  pararRotacaoPreview();
 
   if (estadoVazio) estadoVazio.style.display = "flex";
   if (detalhePonto) detalhePonto.style.display = "none";
@@ -376,11 +369,7 @@ function abrirLogin() {
   pontosContratados = [];
   historicosPorPonto = {};
   pontoSelecionado = "";
-
-  if (rotacaoPreviewTimer) {
-    clearTimeout(rotacaoPreviewTimer);
-    rotacaoPreviewTimer = null;
-  }
+  pararRotacaoPreview();
 
   if (areaCliente) areaCliente.style.display = "none";
   if (loginScreen) loginScreen.style.display = "flex";
@@ -484,9 +473,16 @@ function renderizarListaPontos() {
 }
 
 function obterDuracaoItem(item) {
-  const duracao = Number(item?.duracao_segundos || item?.duracao || item?.tempo_exibicao || 12);
-  if (Number.isFinite(duracao) && duracao > 0) return duracao;
+  const valor = Number(item?.duracao_segundos || item?.duracao || item?.tempo_exibicao);
+  if (Number.isFinite(valor) && valor > 0) return valor;
   return 12;
+}
+
+function pararRotacaoPreview() {
+  if (rotacaoPreviewTimer) {
+    clearTimeout(rotacaoPreviewTimer);
+    rotacaoPreviewTimer = null;
+  }
 }
 
 function obterStatusAtualDoPonto() {
@@ -495,13 +491,6 @@ function obterStatusAtualDoPonto() {
   );
   const historicoAtual = historicosPorPonto[pontoSelecionado] || [];
   return pontoAtual ? calcularStatusPonto(pontoAtual, historicoAtual) : null;
-}
-
-function pararRotacaoPreview() {
-  if (rotacaoPreviewTimer) {
-    clearTimeout(rotacaoPreviewTimer);
-    rotacaoPreviewTimer = null;
-  }
 }
 
 function exibirItemPreview(item, pontoInativo) {
@@ -554,9 +543,7 @@ function exibirItemPreview(item, pontoInativo) {
     return;
   }
 
-  previewMidia.innerHTML = `
-    <video src="${escapeHtml(url)}" autoplay muted loop playsinline></video>
-  `;
+  previewMidia.innerHTML = `<video src="${escapeHtml(url)}" autoplay muted loop playsinline></video>`;
 }
 
 function iniciarRotacaoPreview() {
@@ -727,22 +714,9 @@ async function buscarPontos(codigos) {
 
 async function buscarPlaylistPonto(codigo) {
   const consultas = [
-    {
-      colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,nome_exibicao,nome_material,titulo,display_name,title,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,duracao,duracao_segundos,tempo_exibicao,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,titulo_arquivo,nome_arquivo,nome_exibicao,nome_material,titulo,display_name,title,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,duracao,duracao_segundos,tempo_exibicao,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,duracao,duracao_segundos,tempo_exibicao,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,video_url,arquivo_url,url,storage_path,created_at,codigo",
-      ordenarPor: "created_at"
-    }
+    { ordenarPor: "ordem" },
+    { ordenarPor: "created_at" },
+    { ordenarPor: "id" }
   ];
 
   let ultimoErro = null;
@@ -750,7 +724,7 @@ async function buscarPlaylistPonto(codigo) {
   for (const consulta of consultas) {
     let query = supabaseClient
       .from(TABELA_PLAYLIST)
-      .select(consulta.colunas)
+      .select("*")
       .eq("codigo", codigo);
 
     query = query.order(consulta.ordenarPor, { ascending: true });
@@ -762,7 +736,7 @@ async function buscarPlaylistPonto(codigo) {
     }
 
     ultimoErro = error;
-    console.warn("Falha ao buscar playlist com colunas:", consulta.colunas, error);
+    console.warn("Falha ao buscar playlist ordenando por:", consulta.ordenarPor, error);
   }
 
   throw ultimoErro;
