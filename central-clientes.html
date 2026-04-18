@@ -86,10 +86,14 @@
     }
 
     .barra {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 12px;
       margin-bottom: 18px;
     }
 
-    .campo-busca input {
+    .campo-busca input,
+    .campo-filtro select {
       width: 100%;
       padding: 14px 16px;
       border-radius: 12px;
@@ -102,6 +106,10 @@
 
     .campo-busca input::placeholder {
       color: rgba(255, 255, 255, 0.45);
+    }
+
+    .campo-filtro select {
+      cursor: pointer;
     }
 
     .mensagem {
@@ -121,10 +129,33 @@
       background: #171a21;
       border: 1px solid #262b36;
       border-radius: 16px;
-      padding: 18px;
+      padding: 16px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
       transition: 0.2s ease;
       cursor: pointer;
+    }
+
+    .cliente-card.ativo {
+      background: #132218;
+      border-color: #2f7d46;
+    }
+
+    .cliente-card.nao-ativo {
+      background: #261719;
+      border-color: #7c3434;
+    }
+
+    .cliente-card.personalizado {
+      cursor: grab;
+    }
+
+    .cliente-card.personalizado:active {
+      cursor: grabbing;
+    }
+
+    .cliente-card.arrastando {
+      opacity: 0.55;
+      transform: scale(0.98);
     }
 
     .cliente-card:hover {
@@ -132,15 +163,49 @@
       transform: translateY(-2px);
     }
 
+    .cliente-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
     .cliente-codigo {
-      display: inline-block;
-      font-size: 0.82rem;
-      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      padding: 5px 9px;
       border-radius: 999px;
       background: #10131a;
       border: 1px solid #2a3040;
       color: #9fd2ff;
-      margin-bottom: 0;
+      cursor: pointer;
+    }
+
+    .cliente-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .cliente-status.ativo {
+      color: #7CFC9A;
+      background: #1d4f2b;
+      border: 1px solid #3d9147;
+    }
+
+    .cliente-status.nao-ativo {
+      color: #ffb0b0;
+      background: #633030;
+      border: 1px solid #9a4848;
     }
 
     .cliente-card h3 {
@@ -155,30 +220,6 @@
       margin-bottom: 5px;
     }
 
-    .cliente-acoes {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-      flex-wrap: wrap;
-    }
-
-    .cliente-acoes button {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 14px;
-      cursor: pointer;
-      color: #fff;
-      font-size: 0.9rem;
-    }
-
-    .botao-abrir {
-      background: #2d8cff;
-    }
-
-    .botao-excluir {
-      background: #d9534f;
-    }
-
     .vazio {
       background: #171a21;
       border: 1px solid #262b36;
@@ -186,6 +227,12 @@
       padding: 24px;
       color: #c6cedd;
       text-align: center;
+    }
+
+    @media (max-width: 700px) {
+      .barra {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 600px) {
@@ -229,7 +276,16 @@
 
     <div class="barra">
       <div class="campo-busca">
-        <input type="text" id="buscaCliente" placeholder="Buscar por código, nome, empresa ou telefone">
+        <input type="text" id="buscaCliente" placeholder="Buscar por código, nome, cidade ou telefone">
+      </div>
+
+      <div class="campo-filtro">
+        <select id="filtroOrganizacao">
+          <option value="status">Organizar por status</option>
+          <option value="nome">Organizar por nome</option>
+          <option value="cidade">Organizar por cidade</option>
+          <option value="personalizado">Personalizado</option>
+        </select>
       </div>
     </div>
 
@@ -239,6 +295,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="central-clientes.js?v=509"></script>
+  <script src="central-clientes.js?v=510"></script>
 </body>
 </html>
