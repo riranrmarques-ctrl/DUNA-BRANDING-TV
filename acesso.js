@@ -50,11 +50,33 @@ let rotacaoPreviewTimer = null;
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemCliente) return;
 
+  mensagemCliente.classList.remove("saindo");
   mensagemCliente.textContent = texto || "";
   mensagemCliente.classList.remove("ok", "erro");
 
   if (tipo === "ok") mensagemCliente.classList.add("ok");
   if (tipo === "erro") mensagemCliente.classList.add("erro");
+
+  if (mensagemCliente._timer) {
+    clearTimeout(mensagemCliente._timer);
+    mensagemCliente._timer = null;
+  }
+
+  if (mensagemCliente._limparTimer) {
+    clearTimeout(mensagemCliente._limparTimer);
+    mensagemCliente._limparTimer = null;
+  }
+
+  if (texto) {
+    mensagemCliente._timer = setTimeout(() => {
+      mensagemCliente.classList.add("saindo");
+
+      mensagemCliente._limparTimer = setTimeout(() => {
+        mensagemCliente.textContent = "";
+        mensagemCliente.classList.remove("ok", "erro", "saindo");
+      }, 350);
+    }, 5000);
+  }
 }
 
 function setLoginErro(texto) {
@@ -1006,6 +1028,10 @@ if (codigoClienteEl) {
     }
   };
 }
+
+window.addEventListener("scroll", () => {
+  document.body.classList.toggle("rolando", window.scrollY > 24);
+});
 
 window.addEventListener("load", () => {
   const codigoUrl = obterCodigoUrl();
