@@ -574,7 +574,7 @@ input {
 
 .preview-midia {
   width: 100%;
-  aspect-ratio: 16 / 8;
+  aspect-ratio: 16 / 9;
   border-radius: 22px;
   overflow: hidden;
   background: #000;
@@ -590,6 +590,14 @@ input {
   border: none;
   object-fit: cover;
   background: #000;
+}
+
+.preview-midia video::-webkit-media-controls {
+  display: none !important;
+}
+
+.preview-midia video::-webkit-media-controls-enclosure {
+  display: none !important;
 }
 
 .preview-vazio {
@@ -627,10 +635,24 @@ input {
   border-radius: 14px;
   background: rgba(7, 13, 29, 0.74);
   color: #ffffff;
-  font-size: 1rem;
-  font-weight: 700;
   text-align: center;
   backdrop-filter: blur(10px);
+}
+
+.preview-office-legenda span {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.preview-office-legenda small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d8e1fb;
 }
 
 .subsecao {
