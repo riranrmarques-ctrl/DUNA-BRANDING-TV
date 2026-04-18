@@ -86,7 +86,7 @@
     }
 
     .barra {
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .campo-busca input {
@@ -106,35 +106,36 @@
 
     .filtros-organizacao {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 18px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 7px;
+      margin: 8px 0 16px;
     }
 
     .filtro-btn {
-      border: 1px solid #313847;
-      border-radius: 12px;
-      padding: 12px 14px;
-      background: #171a21;
-      color: #c6cedd;
-      font-size: 0.92rem;
-      font-weight: 800;
+      height: 28px;
+      border: 1px solid #2a3040;
+      border-radius: 8px;
+      padding: 0 10px;
+      background: #121722;
+      color: #aeb8cc;
+      font-size: 0.72rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: 0.2s ease;
+      transition: 0.18s ease;
       text-align: center;
     }
 
     .filtro-btn:hover {
-      border-color: #2d8cff;
+      background: #182033;
       color: #ffffff;
-      transform: translateY(-1px);
+      border-color: #3a4358;
     }
 
     .filtro-btn.ativo {
       border-color: #2d8cff;
       background: #2d8cff;
       color: #ffffff;
-      box-shadow: 0 8px 22px rgba(45, 140, 255, 0.28);
+      box-shadow: 0 5px 16px rgba(45, 140, 255, 0.18);
     }
 
     .mensagem {
@@ -174,6 +175,31 @@
     .cliente-card.nao-ativo {
       background: #261719;
       border-color: #7c3434;
+    }
+
+    .cliente-card.contrato-off {
+      background: #241a05;
+      border-color: rgba(245, 158, 11, 0.72);
+      box-shadow:
+        0 0 0 1px rgba(245, 158, 11, 0.18),
+        0 14px 34px rgba(245, 158, 11, 0.08);
+    }
+
+    .cliente-card.contrato-off .cliente-codigo {
+      background: rgba(245, 158, 11, 0.18);
+      border-color: rgba(245, 158, 11, 0.42);
+      color: #fbbf24;
+    }
+
+    .cliente-card.contrato-off h3,
+    .cliente-card.contrato-off p {
+      color: #fff3cf;
+    }
+
+    .cliente-card.contrato-off .cliente-status {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: rgba(245, 158, 11, 0.38);
+      color: #fbbf24;
     }
 
     .cliente-card.personalizado {
@@ -276,7 +302,7 @@
 
     @media (max-width: 800px) {
       .filtros-organizacao {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -328,6 +354,7 @@
     <div class="filtros-organizacao" aria-label="Organização dos clientes">
       <button class="filtro-btn ativo" type="button" data-filtro="status">Status</button>
       <button class="filtro-btn" type="button" data-filtro="nome">Nome</button>
+      <button class="filtro-btn" type="button" data-filtro="data">Data</button>
       <button class="filtro-btn" type="button" data-filtro="personalizado">Personalizado</button>
     </div>
 
@@ -337,6 +364,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="central-clientes.js?v=515"></script>
+  <script src="central-clientes.js?v=516"></script>
 </body>
 </html>
