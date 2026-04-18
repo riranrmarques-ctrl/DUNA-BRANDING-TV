@@ -86,14 +86,10 @@
     }
 
     .barra {
-      display: grid;
-      grid-template-columns: 1fr 220px;
-      gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
 
-    .campo-busca input,
-    .campo-filtro select {
+    .campo-busca input {
       width: 100%;
       padding: 14px 16px;
       border-radius: 12px;
@@ -108,8 +104,37 @@
       color: rgba(255, 255, 255, 0.45);
     }
 
-    .campo-filtro select {
+    .filtros-organizacao {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .filtro-btn {
+      border: 1px solid #313847;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #171a21;
+      color: #c6cedd;
+      font-size: 0.92rem;
+      font-weight: 800;
       cursor: pointer;
+      transition: 0.2s ease;
+      text-align: center;
+    }
+
+    .filtro-btn:hover {
+      border-color: #2d8cff;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .filtro-btn.ativo {
+      border-color: #2d8cff;
+      background: #2d8cff;
+      color: #ffffff;
+      box-shadow: 0 8px 22px rgba(45, 140, 255, 0.28);
     }
 
     .mensagem {
@@ -123,6 +148,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
+      align-items: stretch;
     }
 
     .cliente-card {
@@ -131,8 +157,13 @@
       border-radius: 16px;
       padding: 16px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-      transition: 0.2s ease;
+      transition:
+        transform 0.22s cubic-bezier(.2,.9,.2,1),
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
       cursor: pointer;
+      will-change: transform;
     }
 
     .cliente-card.ativo {
@@ -154,13 +185,27 @@
     }
 
     .cliente-card.arrastando {
-      opacity: 0.55;
-      transform: scale(0.98);
+      opacity: 0.45;
+      transform: scale(0.96) rotate(-1deg);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .cliente-card.alvo-drop {
+      transform: translateY(-8px) scale(1.035);
+      border-color: #f59e0b;
+      box-shadow:
+        0 16px 34px rgba(245, 158, 11, 0.20),
+        0 0 0 2px rgba(245, 158, 11, 0.22);
     }
 
     .cliente-card:hover {
       border-color: #2d8cff;
       transform: translateY(-2px);
+    }
+
+    .cliente-card.arrastando:hover,
+    .cliente-card.alvo-drop:hover {
+      transform: translateY(-8px) scale(1.035);
     }
 
     .cliente-topo {
@@ -229,9 +274,9 @@
       text-align: center;
     }
 
-    @media (max-width: 700px) {
-      .barra {
-        grid-template-columns: 1fr;
+    @media (max-width: 800px) {
+      .filtros-organizacao {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -256,6 +301,10 @@
       .cliente-card {
         padding: 16px;
       }
+
+      .filtros-organizacao {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -278,15 +327,13 @@
       <div class="campo-busca">
         <input type="text" id="buscaCliente" placeholder="Buscar por código, nome, cidade ou telefone">
       </div>
+    </div>
 
-      <div class="campo-filtro">
-        <select id="filtroOrganizacao">
-          <option value="status">Organizar por status</option>
-          <option value="nome">Organizar por nome</option>
-          <option value="cidade">Organizar por cidade</option>
-          <option value="personalizado">Personalizado</option>
-        </select>
-      </div>
+    <div class="filtros-organizacao" aria-label="Organização dos clientes">
+      <button class="filtro-btn ativo" type="button" data-filtro="status">Status</button>
+      <button class="filtro-btn" type="button" data-filtro="nome">Nome</button>
+      <button class="filtro-btn" type="button" data-filtro="cidade">Cidade</button>
+      <button class="filtro-btn" type="button" data-filtro="personalizado">Personalizado</button>
     </div>
 
     <p id="mensagem" class="mensagem">Carregando clientes...</p>
@@ -295,6 +342,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="central-clientes.js?v=515"></script>
+  <script src="central-clientes.js?v=511"></script>
 </body>
 </html>
