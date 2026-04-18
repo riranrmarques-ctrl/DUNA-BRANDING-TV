@@ -715,42 +715,51 @@ function baixarHtmlContrato(html, nomeArquivo) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function gerarContratoClienteParaHistorico() {
+async function gerarContratoClienteParaHistorico() {
   if (!contratoAtivo) {
     mostrarMensagem("Contrato desativado para este cliente.", "#ffb86b");
     return;
   }
 
   if (supervisorEstaAtivo()) {
-    mostrarMensagem("Supervisor não gera contrato nesta pasta.", "#ffb86b");
+    mostrarMensagem("Supervisor não usa envio de contrato.", "#ffb86b");
     return;
   }
 
-  const dados = obterDadosContratoCliente();
-  const historico = lerHistoricoContratosGerados();
+  try {
+    const dados = obterDadosContratoCliente();
+    const historico = lerHistoricoContratosGerados();
 
-  const item = {
-    id: `${Date.now()}`,
-    criado_em: new Date().toISOString(),
-    nome_arquivo: obterNomeArquivoContrato(),
-    dados
-  };
+    const item = {
+      id: `${Date.now()}`,
+      criado_em: new Date().toISOString(),
+      nome_arquivo: obterNomeArquivoContrato(),
+      dados
+    };
 
-  historico.unshift(item);
-  salvarHistoricoContratosGerados(historico);
+    const htmlContrato = montarHtmlContratoCompleto(item.dados);
 
-  gerarHistoricoContratoVisual();
-  mostrarMensagem("Contrato gerado e enviado para o histórico.", "#7CFC9A");
+    historico.unshift(item);
+    salvarHistoricoContratosGerados(historico);
+
+    const { error } = await supabaseClient
+      .from("clientes_app")
+      .update({
+        contrato_html: htmlContrato,
+        contrato_nome_arquivo: item.nome_arquivo,
+        contrato_enviado_em: item.criado_em
+      })
+      .eq("codigo", codigoClienteAtual);
+
+    if (error) throw error;
+
+    gerarHistoricoContratoVisual();
+    mostrarMensagem("Contrato enviado para o histórico e para o acesso do cliente.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao enviar contrato para o cliente.", "#ff6b6b");
+  }
 }
-
-function baixarContratoDoHistorico(id) {
-  const historico = lerHistoricoContratosGerados();
-  const item = historico.find((contrato) => contrato.id === id);
-
-  if (!item) {
-    mostrarMensagem("Contrato não encontrado no histórico.", "#ff6b6b");
-    return;
-  }
 
   const html = montarHtmlContratoCompleto(item.dados);
   baixarHtmlContrato(html, item.nome_arquivo || "contrato.html");
