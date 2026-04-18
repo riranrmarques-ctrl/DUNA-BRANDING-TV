@@ -9,7 +9,14 @@ const TABELA_HISTORICO = "historico_conexao";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const loginScreen = document.getElementById("loginScreen");
+const areaCliente = document.getElementById("areaCliente");
+const codigoLogin = document.getElementById("codigoLogin");
+const btnEntrarCliente = document.getElementById("btnEntrarCliente");
+const loginErro = document.getElementById("loginErro");
+
 const btnAtualizar = document.getElementById("btnAtualizar");
+const btnSair = document.getElementById("btnSair");
 const tituloBoasVindas = document.getElementById("tituloBoasVindas");
 const subtituloCliente = document.getElementById("subtituloCliente");
 const contratoBadge = document.getElementById("contratoBadge");
@@ -43,6 +50,10 @@ function setMensagem(texto, tipo = "normal") {
 
   if (tipo === "ok") mensagemCliente.classList.add("ok");
   if (tipo === "erro") mensagemCliente.classList.add("erro");
+}
+
+function setLoginErro(texto) {
+  if (loginErro) loginErro.textContent = texto || "";
 }
 
 function escapeHtml(texto) {
@@ -98,6 +109,7 @@ function contratoEstaDisponivel(cliente) {
   if (!cliente) return false;
   if (cliente.contrato_ativo === false) return false;
   if (cliente.status === "Não ativo") return false;
+  if (cliente.status === "Nao ativo") return false;
   if (cliente.status === "Inativo") return false;
   return true;
 }
@@ -291,6 +303,38 @@ function obterNomeClientePlaylist(item) {
   return item?.nome_cliente || item?.cliente_nome || item?.cliente || item?.nome || obterNomeCliente(clienteAtual);
 }
 
+function limparTelaDetalhe() {
+  pontoSelecionado = "";
+
+  if (estadoVazio) estadoVazio.style.display = "flex";
+  if (detalhePonto) detalhePonto.style.display = "none";
+}
+
+function abrirAreaCliente() {
+  if (loginScreen) loginScreen.style.display = "none";
+  if (areaCliente) areaCliente.style.display = "block";
+}
+
+function abrirLogin() {
+  codigoClienteAtual = "";
+  clienteAtual = null;
+  pontosContratados = [];
+  historicosPorPonto = {};
+  pontoSelecionado = "";
+
+  if (areaCliente) areaCliente.style.display = "none";
+  if (loginScreen) loginScreen.style.display = "flex";
+
+  if (codigoLogin) {
+    codigoLogin.value = "";
+    setTimeout(() => codigoLogin.focus(), 100);
+  }
+
+  setLoginErro("");
+  setMensagem("");
+  limparTelaDetalhe();
+}
+
 function renderizarContrato() {
   if (!clienteAtual) return;
 
@@ -305,7 +349,7 @@ function renderizarContrato() {
   }
 
   if (subtituloCliente) {
-    subtituloCliente.textContent = "Aqui estão suas pastas contratadas, preview dos materiais, status dos pontos e histórico de reprodução.";
+    subtituloCliente.textContent = "Acompanhe seus pontos contratados, materiais em exibição, preview em tempo real e histórico de status.";
   }
 
   if (codigoClienteEl) {
@@ -685,14 +729,16 @@ async function abrirPonto(codigo) {
   }
 }
 
-async function carregarAreaCliente() {
-  codigoClienteAtual = obterCodigoUrl();
+async function carregarAreaCliente(codigo) {
+  codigoClienteAtual = normalizarCodigo(codigo);
 
   if (!codigoClienteAtual) {
-    setMensagem("Código do cliente não informado. Use cliente.html?codigo=CODIGO", "erro");
+    setLoginErro("Digite o código do cliente.");
     return;
   }
 
+  setLoginErro("");
+  abrirAreaCliente();
   setMensagem("Carregando área do cliente...");
 
   if (codigoClienteEl) {
@@ -703,7 +749,8 @@ async function carregarAreaCliente() {
     clienteAtual = await buscarCliente(codigoClienteAtual);
 
     if (!clienteAtual) {
-      setMensagem("Cliente não encontrado para este código.", "erro");
+      abrirLogin();
+      setLoginErro("Cliente não encontrado para este código.");
       return;
     }
 
@@ -734,9 +781,38 @@ async function carregarAreaCliente() {
   }
 }
 
+function entrarComCodigoDigitado() {
+  const codigo = normalizarCodigo(codigoLogin?.value);
+
+  if (!codigo) {
+    setLoginErro("Digite o código do cliente.");
+    return;
+  }
+
+  carregarAreaCliente(codigo);
+}
+
+if (btnEntrarCliente) {
+  btnEntrarCliente.onclick = entrarComCodigoDigitado;
+}
+
+if (codigoLogin) {
+  codigoLogin.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      entrarComCodigoDigitado();
+    }
+  });
+}
+
 if (btnAtualizar) {
   btnAtualizar.onclick = () => {
-    carregarAreaCliente();
+    carregarAreaCliente(codigoClienteAtual);
+  };
+}
+
+if (btnSair) {
+  btnSair.onclick = () => {
+    abrirLogin();
   };
 }
 
@@ -753,4 +829,12 @@ if (codigoClienteEl) {
   };
 }
 
-window.addEventListener("load", carregarAreaCliente);
+window.addEventListener("load", () => {
+  const codigoUrl = obterCodigoUrl();
+
+  if (codigoUrl && codigoLogin) {
+    codigoLogin.value = codigoUrl;
+  }
+
+  abrirLogin();
+});
