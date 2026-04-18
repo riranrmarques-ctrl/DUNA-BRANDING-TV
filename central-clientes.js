@@ -190,6 +190,7 @@ function ordenarClientes(lista) {
     const ativoB = b.status_real === "Ativo" ? 0 : 1;
 
     if (ativoA !== ativoB) return ativoA - ativoB;
+    if (amareloA !== amareloB) return amareloA - amareloB;
     return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
   });
 }
@@ -302,7 +303,7 @@ function renderizarClientes() {
     const statusReal = cliente.status_real || "Não ativo";
     const ativo = statusReal === "Ativo";
 
-    card.className = `cliente-card ${ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""}`;
+    card.className = `cliente-card ${ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""} ${cliente.contrato_ativo === false ? "contrato-off" : ""}`;
     card.dataset.codigo = cliente.codigo;
     card.draggable = personalizado;
 
@@ -388,7 +389,7 @@ async function carregarClientes(opcoes = {}) {
     ] = await Promise.all([
       supabaseClient
         .from("clientes_app")
-        .select("codigo,nome_completo,telefone,email,cpf_cnpj,status")
+        .select("codigo,nome_completo,telefone,email,cpf_cnpj,status,contrato_ativo,data_postagem")
         .order("codigo", { ascending: true }),
 
       supabaseClient
