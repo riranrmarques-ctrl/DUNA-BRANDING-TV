@@ -3,7 +3,7 @@ const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 
 const TABELA_CLIENTES = "clientes_app";
 const TABELA_CLIENTE_PONTOS = "cliente_pontos";
-const TABELA_PONTOS = "pontos"; 
+const TABELA_PONTOS = "pontos";
 const TABELA_PLAYLIST = "playlists";
 const TABELA_HISTORICO = "historico_conexao";
 
@@ -344,17 +344,18 @@ function renderizarContrato() {
   const vencimento = clienteAtual.vencimento_exibicao || clienteAtual.vencimento || clienteAtual.data_fim;
   const valor = clienteAtual.valor_contratado || clienteAtual.valor || "";
 
-if (tituloBoasVindas) {
-  tituloBoasVindas.innerHTML = `
-    <span class="hero-linha">Seja bem-vindo(a),</span>
-    <span class="hero-linha nome">${escapeHtml(nome)}</span>
-  `;
-}
+  if (tituloBoasVindas) {
+    tituloBoasVindas.innerHTML = `
+      <span class="hero-linha">Seja bem-vindo(a),</span>
+      <span class="hero-linha nome">${escapeHtml(nome)}</span>
+    `;
+  }
 
-if (subtituloCliente) {
-  subtituloCliente.textContent = "";
-  subtituloCliente.style.display = "none";
-}
+  if (subtituloCliente) {
+    subtituloCliente.textContent = "";
+    subtituloCliente.innerHTML = "";
+    subtituloCliente.style.display = "none";
+  }
 
   if (codigoClienteEl) {
     codigoClienteEl.textContent = codigoClienteAtual;
@@ -836,9 +837,19 @@ if (codigoClienteEl) {
 window.addEventListener("load", () => {
   const codigoUrl = obterCodigoUrl();
 
+  abrirLogin();
+
+  if (tituloBoasVindas) {
+    tituloBoasVindas.innerHTML = `<span class="hero-linha">Seja bem-vindo(a)</span>`;
+  }
+
+  if (subtituloCliente) {
+    subtituloCliente.textContent = "";
+    subtituloCliente.innerHTML = "";
+    subtituloCliente.style.display = "none";
+  }
+
   if (codigoUrl && codigoLogin) {
     codigoLogin.value = codigoUrl;
   }
-
-  abrirLogin();
 });
