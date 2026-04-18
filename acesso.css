@@ -918,3 +918,166 @@ input {
     grid-template-columns: 1fr;
   }
 }
+
+body {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+}
+
+.topo-cliente {
+  align-items: center;
+}
+
+.topo-esquerda {
+  gap: 18px;
+}
+
+.topo-label {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: #d7deef;
+}
+
+.topo-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.topo-mensagem {
+  min-height: auto;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.topo-mensagem:empty {
+  display: none;
+}
+
+.contador-pontos {
+  display: none !important;
+}
+
+.secao-topo h2,
+.subsecao h3,
+.contrato-card h2,
+.login-card h1 {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.secao-topo h2 {
+  font-size: 1.15rem;
+}
+
+.detalhe-ponto {
+  padding: 26px 34px 30px;
+}
+
+.detalhe-cabecalho {
+  margin-bottom: 18px;
+}
+
+.detalhe-cabecalho h2 {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-size: clamp(2.25rem, 3.45vw, 3.25rem);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  margin-bottom: 8px;
+}
+
+.detalhe-cabecalho p {
+  font-size: clamp(0.94rem, 1.16vw, 1.04rem);
+  line-height: 1.35;
+  font-weight: 500;
+  color: #aab5cf;
+}
+
+.preview-box {
+  margin-top: 6px;
+}
+
+.preview-topo {
+  margin-bottom: 12px;
+}
+
+.preview-topo h3,
+#tituloPreview {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 500;
+}
+
+.preview-nome {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 600;
+}
+
+.ponto-card h3 {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 700;
+}
+
+.ponto-card p,
+.linha-material span,
+.historico-item span,
+.contrato-card p {
+  font-weight: 500;
+}
+
+.linha-material strong {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 650;
+}
+
+.linha-material-head {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 700;
+}
+
+.historico-evento {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 500 !important;
+}
+
+.status-mini {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 700;
+}
+
+.status-grande strong {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  border-radius: 8px;
+  font-weight: 750;
+}
+
+.status-grande small {
+  font-family: "Manrope", "Avenir Next", "Segoe UI", Arial, sans-serif;
+  font-weight: 400;
+}
+
+@media (max-width: 680px) {
+  .topo-acoes {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .topo-label {
+    font-size: 0.9rem;
+    letter-spacing: 0.22em;
+  }
+
+  .detalhe-cabecalho h2 {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+  }
+
+  .detalhe-cabecalho p {
+    font-size: 0.94rem;
+  }
+}
