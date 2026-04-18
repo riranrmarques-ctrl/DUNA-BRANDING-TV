@@ -268,10 +268,7 @@ function detectarTipo(url, tipoOriginal = "") {
 
   if (limpa.endsWith(".txt")) return "site";
 
-  if (
-    limpa.includes("youtube.com") ||
-    limpa.includes("youtu.be")
-  ) {
+  if (limpa.includes("youtube.com") || limpa.includes("youtu.be")) {
     return "site";
   }
 
@@ -279,9 +276,7 @@ function detectarTipo(url, tipoOriginal = "") {
     return "video";
   }
 
-  if (limpa.startsWith("http")) {
-    return "site";
-  }
+  if (limpa.startsWith("http")) return "site";
 
   return "video";
 }
@@ -327,6 +322,12 @@ function obterNomeArquivo(item) {
   }
 
   return "Arquivo";
+}
+
+function obterOrdemPlaylist(item, fallback = 0) {
+  const ordem = Number(item?.ordem);
+  if (Number.isFinite(ordem) && ordem > 0) return ordem;
+  return fallback + 1;
 }
 
 function pertenceAoClienteAtual(item) {
@@ -530,8 +531,7 @@ function exibirItemPreview(item, pontoInativo) {
       <div class="preview-office">
         <img src="${escapeHtml(imagemOffice)}" alt="${escapeHtml(nomeArquivoAtual || "Exibição offline")}">
         <div class="preview-office-legenda">
-          <span>Você está assistindo off.</span>
-          <small>Nunca pare a exibição.</small>
+          <span>Você está assistindo a playlist da TV offline.</span>
         </div>
       </div>
     `;
@@ -609,13 +609,14 @@ function renderizarMateriais(lista) {
 
   listaMateriais.innerHTML = materiaisCliente.map((item, index) => {
     const arquivo = obterNomeArquivo(item);
+    const ordemPlaylist = obterOrdemPlaylist(item, index);
 
     return `
       <div class="linha-material">
-        <span>${index + 1}.</span>
+        <span>${ordemPlaylist}.</span>
         <div>
           <strong>${escapeHtml(arquivo)}</strong>
-          <small>Ordem ${index + 1}</small>
+          <small>Sua mídia aparece na posição ${ordemPlaylist} da playlist deste ponto.</small>
         </div>
         <span>${formatarDataHora(item.created_at)}</span>
         <span>${formatarData(item.data_fim)}</span>
