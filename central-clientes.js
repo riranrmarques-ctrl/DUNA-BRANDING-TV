@@ -124,24 +124,28 @@ function renderizarClientes() {
 
   filtrados.forEach((cliente) => {
     const card = document.createElement("div");
-    card.className = "cliente-card";
-
-    const pontosTexto = Array.isArray(cliente.pontos) && cliente.pontos.length
-      ? cliente.pontos.join(", ")
-      : "nenhum";
 
     const statusReal = cliente.status_real || "Não ativo";
     const ativo = statusReal === "Ativo";
-    const corStatus = ativo ? "#7CFC9A" : "#ff6b6b";
+    const corStatus = ativo ? "#7CFC9A" : "#ff8f8f";
     const fundoStatus = ativo ? "rgba(124, 252, 154, 0.12)" : "rgba(255, 107, 107, 0.12)";
     const bordaStatus = ativo ? "rgba(124, 252, 154, 0.28)" : "rgba(255, 107, 107, 0.28)";
+    const bordaCard = ativo ? "rgba(124, 252, 154, 0.35)" : "rgba(255, 107, 107, 0.34)";
+    const brilhoCard = ativo ? "rgba(61, 145, 71, 0.22)" : "rgba(217, 83, 79, 0.2)";
+
+    card.className = "cliente-card";
+
+    card.style.position = "relative";
+    card.style.overflow = "hidden";
+    card.style.borderColor = bordaCard;
+    card.style.background = `linear-gradient(135deg, ${brilhoCard}, rgba(23, 26, 33, 0.96) 46%), #171a21`;
 
     card.innerHTML = `
       <div style="
         display:flex;
         align-items:center;
         justify-content:space-between;
-        gap:10px;
+        gap:12px;
         margin-bottom:12px;
       ">
         <button
@@ -174,7 +178,6 @@ function renderizarClientes() {
 
       <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
       <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
-      <p><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</p>
     `;
 
     card.addEventListener("click", () => abrirCliente(cliente.codigo));
