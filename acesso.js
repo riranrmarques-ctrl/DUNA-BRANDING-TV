@@ -31,6 +31,7 @@ const detalhePonto = document.getElementById("detalhePonto");
 const nomePontoDetalhe = document.getElementById("nomePontoDetalhe");
 const localPontoDetalhe = document.getElementById("localPontoDetalhe");
 const statusPontoDetalhe = document.getElementById("statusPontoDetalhe");
+const tituloPreview = document.getElementById("tituloPreview");
 const previewNome = document.getElementById("previewNome");
 const previewMidia = document.getElementById("previewMidia");
 const listaMateriais = document.getElementById("listaMateriais");
@@ -222,7 +223,7 @@ function calcularStatusPonto(ponto, historico = []) {
   return {
     texto: "Inativo",
     detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`,
-    classe: "inativo"
+      classe: "inativo"
   };
 }
 
@@ -426,22 +427,50 @@ function renderizarListaPontos() {
 function renderizarPreview(lista) {
   const ativos = lista.filter((item) => !itemEstaInativo(item));
   const item = ativos[0] || lista[0] || null;
+  const pontoAtual = pontosContratados.find(
+    (ponto) => normalizarCodigo(ponto.codigo) === pontoSelecionado
+  );
+  const historicoAtual = historicosPorPonto[pontoSelecionado] || [];
+  const statusAtual = pontoAtual ? calcularStatusPonto(pontoAtual, historicoAtual) : null;
+  const pontoInativo = statusAtual?.classe === "inativo" || statusAtual?.classe === "indisponivel";
 
   if (!previewMidia) return;
 
+  if (tituloPreview) {
+    tituloPreview.textContent = pontoInativo ? "Playlist office" : "Exibição da playlist";
+  }
+
   if (!item) {
-    if (previewNome) previewNome.textContent = "";
-    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material ativo para preview neste ponto.</div>`;
+    if (previewNome) {
+      previewNome.textContent = pontoInativo
+        ? "Quer assistir a playlist office?"
+        : "Playlist em exibição";
+    }
+
+    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material disponível para este ponto.</div>`;
+    return;
+  }
+
+  if (previewNome) {
+    previewNome.textContent = pontoInativo
+      ? "Quer assistir a playlist office?"
+      : "Playlist em exibição";
+  }
+
+  if (pontoInativo) {
+    const imagemOffice = normalizarUrl(obterUrlPlaylist(item)) || obterImagemPonto(pontoAtual);
+
+    previewMidia.innerHTML = `
+      <div class="preview-office">
+        <img src="${escapeHtml(imagemOffice)}" alt="Playlist office">
+        <div class="preview-office-legenda">Quer assistir a playlist office?</div>
+      </div>
+    `;
     return;
   }
 
   const url = normalizarUrl(obterUrlPlaylist(item));
   const tipo = detectarTipo(url, item.tipo);
-  const arquivo = obterNomeArquivo(item);
-
-  if (previewNome) {
-    previewNome.textContent = arquivo;
-  }
 
   if (!url) {
     previewMidia.innerHTML = `<div class="preview-vazio">Material sem URL disponível.</div>`;
@@ -449,7 +478,7 @@ function renderizarPreview(lista) {
   }
 
   if (tipo === "imagem") {
-    previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">`;
+    previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="Playlist em exibição">`;
     return;
   }
 
@@ -697,7 +726,7 @@ async function abrirPonto(codigo) {
   renderizarDetalheBase(ponto, historicoAtual);
 
   if (previewMidia) {
-    previewMidia.innerHTML = `<div class="preview-vazio">Carregando preview...</div>`;
+    previewMidia.innerHTML = `<div class="preview-vazio">Carregando exibição...</div>`;
   }
 
   if (listaMateriais) {
@@ -847,6 +876,14 @@ window.addEventListener("load", () => {
     subtituloCliente.textContent = "";
     subtituloCliente.innerHTML = "";
     subtituloCliente.style.display = "none";
+  }
+
+  if (tituloPreview) {
+    tituloPreview.textContent = "Exibição da playlist";
+  }
+
+  if (previewNome) {
+    previewNome.textContent = "";
   }
 
   if (codigoUrl && codigoLogin) {
