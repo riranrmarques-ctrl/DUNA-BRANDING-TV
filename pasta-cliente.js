@@ -86,7 +86,7 @@ function obterTipoAcessoAtual() {
 }
 
 function materialUpgradeEstaAtivo() {
-  return materialUpgradeAtivo?.value !== "false";
+  return true;
 }
 
 function formatarTelefone(valor) {
@@ -1610,12 +1610,6 @@ if (btnSupervisor) {
     atualizarModoSupervisor();
     ativarBotaoSalvar();
     gerarContratoCliente();
-  });
-}
-
-if (materialUpgradeAtivo) {
-  materialUpgradeAtivo.addEventListener("change", () => {
-    ativarBotaoSalvar();
   });
 }
 
