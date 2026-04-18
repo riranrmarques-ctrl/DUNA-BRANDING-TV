@@ -540,7 +540,7 @@ function exibirItemPreview(item, pontoInativo) {
   const nomeArquivoAtual = item ? obterNomeArquivo(item) : "";
 
   if (tituloPreview) {
-    tituloPreview.textContent = pontoInativo ? "Exibição offline" : "Exibição em tempo real";
+    tituloPreview.textContent = pontoInativo ? "Exibição offline |" : "Exibição em tempo real |";
   }
 
   if (previewNome) {
@@ -642,7 +642,7 @@ function renderizarMateriais(lista) {
 
     return `
       <div class="linha-material">
-        <span>${escapeHtml(String(ordemPlaylist))}°</span>
+        <span>${escapeHtml(String(ordemPlaylist))}ª posição</span>
         <div>
           <strong>${escapeHtml(arquivo)}</strong>
         </div>
@@ -661,28 +661,33 @@ function obterTextoEvento(evento) {
   return evento || "Registro";
 }
 
-function obterClasseEvento(evento) {
-  if (eventoEhAtivo(evento)) return "ativo";
-  if (eventoEhInativo(evento)) return "inativo";
-  return "";
-}
-
 function renderizarHistorico(historico) {
   if (!historicoStatusPonto) return;
 
-  if (!historico.length) {
-    historicoStatusPonto.innerHTML = `<div class="vazio">Sem histórico de status para este ponto.</div>`;
+  const limite72Horas = Date.now() - 72 * 60 * 60 * 1000;
+
+  const historico72h = (historico || []).filter((item) => {
+    const dataValor = obterDataHistorico(item);
+    const data = new Date(dataValor);
+
+    if (Number.isNaN(data.getTime())) return false;
+
+    return data.getTime() >= limite72Horas;
+  });
+
+  if (!historico72h.length) {
+    historicoStatusPonto.innerHTML = `<div class="vazio">Sem histórico de status nas últimas 72 horas.</div>`;
     return;
   }
 
-  historicoStatusPonto.innerHTML = historico.map((item, index) => {
+  historicoStatusPonto.innerHTML = historico72h.map((item, index) => {
     const texto = obterTextoEvento(item.evento);
-    const classe = obterClasseEvento(item.evento);
+    const classeMaisRecente = index === 0 ? "mais-recente" : "";
 
     return `
-      <div class="historico-item">
+      <div class="historico-item ${classeMaisRecente}">
         <span>${index + 1}.</span>
-        <span class="historico-evento ${classe}">${escapeHtml(texto)}</span>
+        <span class="historico-evento">${escapeHtml(texto)}</span>
         <span>${formatarDataHora(obterDataHistorico(item))}</span>
       </div>
     `;
@@ -798,7 +803,7 @@ async function buscarHistoricoPonto(codigo) {
       .select(consulta.colunas)
       .eq("codigo", codigo)
       .order(consulta.ordenarPor, { ascending: false })
-      .limit(40);
+      .limit(80);
 
     if (!error) {
       return data || [];
@@ -993,7 +998,7 @@ window.addEventListener("load", () => {
   }
 
   if (tituloPreview) {
-    tituloPreview.textContent = "Exibição em tempo real";
+    tituloPreview.textContent = "Exibição em tempo real |";
   }
 
   if (previewNome) {
