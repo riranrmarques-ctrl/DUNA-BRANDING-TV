@@ -1541,3 +1541,211 @@ body {
 .status-bolinha {
   box-shadow: 0 0 14px currentColor;
 }
+
+body {
+  background:
+    radial-gradient(circle at top center, rgba(52, 91, 180, 0.2), transparent 34%),
+    linear-gradient(180deg, #07122a 0%, #060b18 58%, #05070d 100%);
+}
+
+.topo-fixo.novo-topo {
+  position: relative;
+  display: grid;
+  grid-template-columns: 180px 1fr 180px;
+  align-items: center;
+  max-width: 1120px;
+  margin: 0 auto 28px;
+  padding: 36px 24px 28px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.topo-esquerda {
+  justify-self: start;
+}
+
+.topo-centro {
+  justify-self: center;
+  text-align: center;
+}
+
+.topo-centro h1 {
+  font-size: clamp(2.4rem, 5vw, 4.15rem);
+  line-height: 0.98;
+  letter-spacing: 0.12em;
+  color: #ffffff;
+  text-align: center;
+  text-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+}
+
+.topo-centro p {
+  margin-top: 14px;
+  font-size: clamp(1.05rem, 1.7vw, 1.45rem);
+  color: #d7def7;
+  text-align: center;
+  font-weight: 600;
+}
+
+.topo-direita {
+  justify-self: end;
+}
+
+.logo-topo-img {
+  width: 118px !important;
+  height: auto !important;
+  max-height: none !important;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.22));
+}
+
+.menu-topo-btn {
+  border-radius: 12px;
+  background: rgba(34, 49, 88, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.painel-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.pontos-box {
+  gap: 16px;
+}
+
+.card-ponto {
+  background: #eef1f8 !important;
+  border: 1px solid rgba(214, 220, 234, 0.95) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.24),
+    0 1px 0 rgba(255, 255, 255, 0.75) inset !important;
+  color: #111827 !important;
+  overflow: hidden;
+}
+
+.card-ponto:hover {
+  transform: translateY(-4px);
+  border-color: rgba(91, 114, 255, 0.45) !important;
+  box-shadow:
+    0 22px 46px rgba(0, 0, 0, 0.3),
+    0 0 0 2px rgba(91, 114, 255, 0.12) !important;
+}
+
+.card-status-topo {
+  color: #4b5563 !important;
+}
+
+.card-status {
+  color: #4b5563 !important;
+  font-weight: 800;
+}
+
+.card-status.ativo {
+  color: #15803d !important;
+}
+
+.card-status.inativo {
+  color: #dc2626 !important;
+}
+
+.status-bolinha.ativo {
+  background: #22c55e !important;
+}
+
+.status-bolinha.inativo {
+  background: #ef4444 !important;
+}
+
+.card-imagem-box {
+  margin: 0 12px;
+  border-radius: 10px !important;
+  overflow: hidden;
+  background: #d8deea !important;
+}
+
+.card-imagem {
+  filter: saturate(1.03) contrast(1.02);
+}
+
+.card-conteudo {
+  color: #111827 !important;
+}
+
+.card-nome {
+  color: #111827 !important;
+  font-weight: 900;
+}
+
+.card-nome strong {
+  color: #111827 !important;
+}
+
+.card-cidade {
+  color: #374151 !important;
+  font-weight: 800;
+}
+
+.card-cidade strong {
+  color: #111827 !important;
+}
+
+.card-codigo {
+  background: #dce3f1 !important;
+  border: 1px solid #c7d0e2 !important;
+  color: #334155 !important;
+  font-weight: 900;
+}
+
+.btn-copiar {
+  background: #dce3f1 !important;
+  border: 1px solid #c7d0e2 !important;
+  color: #334155 !important;
+}
+
+.btn-abrir {
+  background: #5667f1 !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(86, 103, 241, 0.28);
+}
+
+.btn-abrir:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.status-topo {
+  background: #3d9147 !important;
+  color: #ffffff !important;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(61, 145, 71, 0.24);
+}
+
+@media (max-width: 800px) {
+  .topo-fixo.novo-topo {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 26px 18px 22px;
+  }
+
+  .topo-esquerda,
+  .topo-centro,
+  .topo-direita {
+    justify-self: center;
+  }
+
+  .topo-centro h1 {
+    font-size: 2.4rem;
+  }
+
+  .logo-topo-img {
+    width: 96px !important;
+  }
+}
