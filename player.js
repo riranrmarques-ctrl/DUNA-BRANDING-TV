@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+
 const BUCKET = "pontos";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
@@ -136,18 +137,25 @@ function itemEstaAtivo(item) {
 async function registrarPing() {
   if (!codigoAtual || !supabaseClient) return;
 
-  const { error } = await supabaseClient
-    .from(TABELA_PONTOS)
-    .update({ ultimo_ping: new Date().toISOString() })
-    .eq("codigo", codigoAtual);
+  try {
+    const { error } = await supabaseClient
+      .from(TABELA_HISTORICO_CONEXAO)
+      .insert({
+        codigo: codigoAtual,
+        evento: "conectou",
+        data_hora: new Date().toISOString()
+      });
 
-  if (error) {
-    console.error("Erro ao registrar ping:", error);
+    if (error) {
+      console.warn("Erro ao registrar conexao:", error.message || error);
+    }
+  } catch (error) {
+    console.warn("Erro ao registrar conexao:", error);
   }
 }
 
 async function resolverItem(item) {
-  let url = item.arquivo_url || "";
+  let url = item.video_url || item.arquivo_url || item.url || "";
   let tipo = detectarTipo(url, item.tipo);
 
   if (tipo === "site" && String(url).toLowerCase().split("?")[0].endsWith(".txt")) {
@@ -196,7 +204,7 @@ async function buscarPlaylist({ silencioso = false } = {}) {
     console.error("Erro Supabase:", error);
 
     if (!silencioso) {
-      mostrarMensagem("Erro ao buscar playlist.", error.message || "Verifique a tabela playlists_novo.");
+      mostrarMensagem("Erro ao buscar playlist.", error.message || "Verifique a tabela playlists.");
     }
 
     return false;
@@ -204,7 +212,7 @@ async function buscarPlaylist({ silencioso = false } = {}) {
 
   const lista = (data || [])
     .filter(itemEstaAtivo)
-    .filter(item => item.arquivo_url);
+    .filter(item => item.video_url || item.arquivo_url || item.url);
 
   if (!lista.length) {
     if (!silencioso) {
@@ -392,8 +400,8 @@ function tocarMidia() {
 
 function obterDescricaoClima(code) {
   const mapa = {
-    0: "Céu limpo",
-    1: "Predomínio de sol",
+    0: "Ceu limpo",
+    1: "Predominio de sol",
     2: "Parcialmente nublado",
     3: "Nublado",
     45: "Neblina",
@@ -411,7 +419,7 @@ function obterDescricaoClima(code) {
     95: "Trovoada"
   };
 
-  return mapa[code] || "Tempo instável";
+  return mapa[code] || "Tempo instavel";
 }
 
 function nomeDia(dataStr) {
@@ -437,7 +445,7 @@ async function atualizarClima() {
     const desc = document.getElementById("weatherDesc");
     const lista = document.getElementById("weatherLista");
 
-    if (cidade) cidade.textContent = "Ibicuí";
+    if (cidade) cidade.textContent = "Ibicui";
     if (temp) temp.textContent = `${Math.round(dados.current.temperature_2m)}°`;
     if (desc) desc.textContent = obterDescricaoClima(dados.current.weather_code);
 
