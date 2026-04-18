@@ -71,32 +71,16 @@ function obterDataHojeISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-async function excluirCliente(codigo) {
-  const confirmar = window.confirm(`Deseja excluir o cliente ${codigo}?`);
-  if (!confirmar) return;
+async function copiarCodigoCliente(codigo) {
+  const codigoFinal = String(codigo || "").trim();
+  if (!codigoFinal) return;
 
   try {
-    mostrarMensagem("Excluindo cliente...");
-
-    const { error: errorVinculos } = await supabaseClient
-      .from("cliente_pontos")
-      .delete()
-      .eq("cliente_codigo", codigo);
-
-    if (errorVinculos) throw errorVinculos;
-
-    const { error: errorCliente } = await supabaseClient
-      .from("clientes_app")
-      .delete()
-      .eq("codigo", codigo);
-
-    if (errorCliente) throw errorCliente;
-
-    mostrarMensagem(`Cliente ${codigo} excluído.`, "#7CFC9A");
-    await carregarClientes();
+    await navigator.clipboard.writeText(codigoFinal);
+    mostrarMensagem(`Código ${codigoFinal} copiado.`, "#7CFC9A");
   } catch (error) {
     console.error(error);
-    mostrarMensagem("Erro ao excluir cliente.", "#ff6b6b");
+    mostrarMensagem("Não foi possível copiar o código.", "#ff6b6b");
   }
 }
 
@@ -147,37 +131,60 @@ function renderizarClientes() {
       : "nenhum";
 
     const statusReal = cliente.status_real || "Não ativo";
-    const corStatus = statusReal === "Ativo" ? "#7CFC9A" : "#ff6b6b";
+    const ativo = statusReal === "Ativo";
+    const corStatus = ativo ? "#7CFC9A" : "#ff6b6b";
+    const fundoStatus = ativo ? "rgba(124, 252, 154, 0.12)" : "rgba(255, 107, 107, 0.12)";
+    const bordaStatus = ativo ? "rgba(124, 252, 154, 0.28)" : "rgba(255, 107, 107, 0.28)";
 
     card.innerHTML = `
-      <div class="cliente-codigo">${escaparHtml(cliente.codigo)}</div>
-      <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
-      <p><strong>Status:</strong> <span style="color:${corStatus};font-weight:700;">${escaparHtml(statusReal)}</span></p>
-      <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
-      <p><strong>Email:</strong> ${escaparHtml(cliente.email || "-")}</p>
-      <p><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</p>
-      <div class="cliente-acoes">
-        <button class="botao-abrir" type="button">Abrir</button>
-        <button class="botao-excluir" type="button">Excluir</button>
+      <div style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        margin-bottom:12px;
+      ">
+        <button
+          class="cliente-codigo"
+          type="button"
+          data-codigo="${escaparHtml(cliente.codigo)}"
+          title="Clique para copiar o código"
+          style="
+            cursor:pointer;
+            border:1px solid #2a3040;
+            background:#10131a;
+          "
+        >${escaparHtml(cliente.codigo)}</button>
+
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          min-height:28px;
+          padding:5px 10px;
+          border-radius:999px;
+          border:1px solid ${bordaStatus};
+          background:${fundoStatus};
+          color:${corStatus};
+          font-size:0.78rem;
+          font-weight:800;
+          white-space:nowrap;
+        ">${escaparHtml(statusReal)}</span>
       </div>
+
+      <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
+      <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
+      <p><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</p>
     `;
 
     card.addEventListener("click", () => abrirCliente(cliente.codigo));
 
-    const botaoAbrir = card.querySelector(".botao-abrir");
-    const botaoExcluir = card.querySelector(".botao-excluir");
+    const botaoCodigo = card.querySelector(".cliente-codigo");
 
-    if (botaoAbrir) {
-      botaoAbrir.addEventListener("click", (event) => {
+    if (botaoCodigo) {
+      botaoCodigo.addEventListener("click", (event) => {
         event.stopPropagation();
-        abrirCliente(cliente.codigo);
-      });
-    }
-
-    if (botaoExcluir) {
-      botaoExcluir.addEventListener("click", (event) => {
-        event.stopPropagation();
-        excluirCliente(cliente.codigo);
+        copiarCodigoCliente(cliente.codigo);
       });
     }
 
@@ -258,6 +265,7 @@ async function carregarClientes() {
     (playlists || []).forEach((item) => {
       const codigo = String(item.codigo_cliente || "").trim().toUpperCase();
       if (!codigo) return;
+
       mapaAtivos.set(codigo, true);
     });
 
