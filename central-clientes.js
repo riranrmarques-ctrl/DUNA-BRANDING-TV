@@ -354,19 +354,20 @@ function renderizarClientes() {
           title="Clique para copiar o código"
         >${escaparHtml(cliente.codigo)}</button>
 
-        <span class="cliente-status ${ativo ? "ativo" : "nao-ativo"}">
-          ${escaparHtml(statusReal)}
-        </span>
+        <div class="cliente-selos">
+          <span class="cliente-status ${ativo ? "ativo" : "nao-ativo"}">
+           ${escaparHtml(statusReal)}
+          </span>
 
-        ${cliente.tipo_acesso === "supervisor" ? `
-          <span class="cliente-tipo supervisor">Supervisor</span>
-        ` : ""}
-
+          ${cliente.tipo_acesso === "supervisor" ? `
+            <span class="cliente-tipo supervisor">Supervisor</span>
+          ` : ""}
+        </div>
       </div>
 
-      <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
-      <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
-    `;
+  <h3>${escaparHtml(cliente.nome_completo || "Novo Cliente")}</h3>
+  <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
+`;
 
     card.addEventListener("click", () => abrirCliente(cliente.codigo));
 
