@@ -517,15 +517,17 @@ async function criarNovoCliente() {
 
     mostrarMensagem("Criando novo cliente...");
 
-    const payload = {
-      codigo: codigoLivre,
-      nome_completo: "Novo Cliente",
-      telefone: "",
-      email: "",
-      cpf_cnpj: "",
-      status: "Não ativo",
-      vencimento_exibicao: null
-    };
+const payload = {
+  codigo: codigoLivre,
+  nome_completo: "Novo Cliente",
+  telefone: "",
+  email: "",
+  cpf_cnpj: "",
+  status: "Não ativo",
+  vencimento_exibicao: null,
+  tipo_acesso: "cliente",
+  material_upgrade_ativo: true
+};
 
     const { error } = await supabaseClient
       .from("clientes_app")
