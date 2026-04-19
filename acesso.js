@@ -89,9 +89,7 @@ function escapeHtml(texto) {
   return String(texto || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/>/g, "&gt;");
 }
 
 function normalizarCodigo(codigo) {
@@ -280,21 +278,15 @@ function obterUrlPlaylist(item) {
 function obterNomeArquivo(item) {
   const tituloRenomeado = String(item?.titulo_arquivo || "").trim();
 
-  if (tituloRenomeado) {
-    return tituloRenomeado;
-  }
+  if (tituloRenomeado) return tituloRenomeado;
 
   const nomeArquivo = String(item?.nome_arquivo || "").trim();
 
-  if (nomeArquivo) {
-    return nomeArquivo;
-  }
+  if (nomeArquivo) return nomeArquivo;
 
   const nomeDado = String(item?.nome || "").trim();
 
-  if (nomeDado) {
-    return nomeDado;
-  }
+  if (nomeDado) return nomeDado;
 
   return "Sem nome";
 }
@@ -374,8 +366,6 @@ function renderizarContrato() {
   const supervisor = clienteEhSupervisor(clienteAtual);
   const disponivel = contratoEstaDisponivel(clienteAtual);
   const concluido = contratoEstaConcluido(clienteAtual);
-  const telefone = obterTelefoneCliente(clienteAtual);
-  const vencimento = clienteAtual.vencimento_exibicao || clienteAtual.vencimento || clienteAtual.data_fim;
 
   if (nomeClienteTopo) {
     nomeClienteTopo.textContent = nome;
@@ -418,26 +408,27 @@ function renderizarContrato() {
     contratoBadge.classList.toggle("concluido", concluido);
   }
 
-  const partes = [];
-
-  if (concluido) {
-    partes.push("Seu contrato foi concluído e já está disponível para baixar.");
-  } else if (disponivel) {
-    partes.push("Seu contrato já está pronto para revisão, mas ainda precisa da sua leitura e assinatura. Assine agora para concluir.");
-  } else {
-    partes.push("Seu contrato ainda não está disponível. Caso precise de ajuda, entre em contato com a equipe da Duna.");
-  }
-
-  if (telefone) partes.push(`Contato: ${telefone}.`);
-  if (vencimento) partes.push(`Vencimento: ${formatarData(vencimento)}.`);
-
   if (contratoInfo) {
-    contratoInfo.textContent = partes.join(" ");
+    if (concluido) {
+      contratoInfo.textContent = "Seu contrato foi concluído e está disponível para download.";
+    } else if (disponivel) {
+      contratoInfo.textContent = "Seu contrato está pronto para revisão, mas ainda precisa da sua leitura e assinatura para ser concluído.";
+    } else {
+      contratoInfo.textContent = "Seu contrato ainda não está disponível. Se precisar de ajuda, fale com a equipe da Duna.";
+    }
   }
 
   if (btnAssinarContrato) {
+    if (!disponivel && !concluido) {
+      btnAssinarContrato.style.display = "none";
+      btnAssinarContrato.disabled = true;
+      btnAssinarContrato.onclick = null;
+      return;
+    }
+
+    btnAssinarContrato.style.display = "";
     btnAssinarContrato.textContent = concluido ? "Baixar contrato" : "Assinar contrato";
-    btnAssinarContrato.disabled = !disponivel && !concluido;
+    btnAssinarContrato.disabled = false;
     btnAssinarContrato.onclick = () => {
       window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
     };
@@ -668,9 +659,9 @@ function renderizarDetalheBase(ponto, historico) {
   }
 
   if (statusDesdeDetalhe) {
-    const historicoMaisRecente = historico[0] || null;
-    const dataDesde = obterDataHistorico(historicoMaisRecente) || obterUltimoPingPonto(ponto);
-    statusDesdeDetalhe.textContent = dataDesde ? `desde ${formatarDataHora(dataDesde)}` : "";
+    const ultimoRegistro = historico[0] || null;
+    const dataUltimoRegistro = obterDataHistorico(ultimoRegistro) || obterUltimoPingPonto(ponto);
+    statusDesdeDetalhe.textContent = dataUltimoRegistro ? `último registro: ${formatarDataHora(dataUltimoRegistro)}` : "";
   }
 }
 
@@ -822,10 +813,12 @@ async function abrirPonto(codigo) {
     historicosPorPonto[codigoNormalizado] = historico72h;
 
     const materiaisCliente = filtrarMateriaisDoCliente(playlist);
-    const statusFinal = calcularStatusPonto(ponto, historico72h);
 
     renderizarDetalheBase(ponto, historico72h);
+
+    const statusFinal = calcularStatusPonto(ponto, historico72h);
     renderizarPreview(playlist, 0, statusFinal);
+
     renderizarMateriais(materiaisCliente);
     renderizarHistorico(historico72h);
     renderizarListaPontos();
