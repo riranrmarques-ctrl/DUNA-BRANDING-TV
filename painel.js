@@ -857,8 +857,6 @@ function ativarBotoesCards() {
 }
 
 function abrirPonto(codigo) {
-
-function abrirPonto(codigo) {
   codigoSelecionado = String(codigo || "").trim();
   const ponto = pontosMap[codigoSelecionado] || {};
   const nome = obterNomePonto(ponto, codigoSelecionado);
