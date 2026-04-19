@@ -5,6 +5,7 @@ const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
+const USUARIO_PAINEL = "branding";
 const SENHA_PAINEL = "euamo@helena";
 const ADMIN_TOKEN = "duna-admin-9f3a1b7c-k82m-p41x-8a2q-zz19a0b4e612";
 
@@ -45,8 +46,11 @@ const supabaseClient = window.supabase
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
 
+const loadingOverlay = document.getElementById("loadingOverlay");
+
 const loginBox = document.getElementById("loginBox");
 const conteudoPainel = document.getElementById("conteudoPainel");
+const usuarioInput = document.getElementById("usuarioInput");
 const senhaInput = document.getElementById("senhaInput");
 const btnLogin = document.getElementById("btnLogin");
 const loginErro = document.getElementById("loginErro");
@@ -87,6 +91,31 @@ let carregandoPlaylist = false;
 
 let posicaoImagemAtual = { x: 50, y: 50 };
 let arrastandoPreview = false;
+
+function mostrarLoading() {
+  document.body.classList.add("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.style.display = "flex";
+    requestAnimationFrame(() => {
+      loadingOverlay.classList.add("ativo");
+    });
+  }
+}
+
+function esconderLoading() {
+  document.body.classList.remove("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove("ativo");
+
+    setTimeout(() => {
+      if (!loadingOverlay.classList.contains("ativo")) {
+        loadingOverlay.style.display = "none";
+      }
+    }, 280);
+  }
+}
 
 function setStatus(texto, tipo = "normal") {
   if (!statusEl) return;
@@ -609,20 +638,29 @@ async function alternarDisponibilidadePonto() {
 }
 
 function validarLogin() {
-  if (!senhaInput || senhaInput.value.trim() !== SENHA_PAINEL) {
-    if (loginErro) loginErro.textContent = "Código inválido";
+  const usuario = String(usuarioInput?.value || "").trim().toLowerCase();
+  const senha = String(senhaInput?.value || "").trim();
+
+  if (usuario !== USUARIO_PAINEL || senha !== SENHA_PAINEL) {
+    if (loginErro) loginErro.textContent = "Usuário ou senha inválidos";
     return;
   }
+
+  mostrarLoading();
 
   sessionStorage.setItem("painelLiberado", "1");
   sessionStorage.setItem("painelToken", ADMIN_TOKEN);
 
   if (loginErro) loginErro.textContent = "";
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
 
-  setStatus("Painel Ativo", "ok");
-  iniciarPainel();
+  setTimeout(() => {
+    if (loginBox) loginBox.style.display = "none";
+    if (conteudoPainel) conteudoPainel.style.display = "block";
+
+    setStatus("Painel Ativo", "ok");
+    iniciarPainel();
+    esconderLoading();
+  }, 420);
 }
 
 if (btnLogin) {
@@ -631,6 +669,12 @@ if (btnLogin) {
 
 if (senhaInput) {
   senhaInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") validarLogin();
+  });
+}
+
+if (usuarioInput) {
+  usuarioInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") validarLogin();
   });
 }
@@ -1600,8 +1644,13 @@ async function iniciarPainel() {
 garantirSessaoAdmin();
 
 if (sessionStorage.getItem("painelLiberado") === "1") {
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
-  setStatus("Painel Ativo", "ok");
-  iniciarPainel();
+  mostrarLoading();
+
+  setTimeout(() => {
+    if (loginBox) loginBox.style.display = "none";
+    if (conteudoPainel) conteudoPainel.style.display = "block";
+    setStatus("Painel Ativo", "ok");
+    iniciarPainel();
+    esconderLoading();
+  }, 320);
 }
