@@ -408,16 +408,17 @@ function abrirLogin() {
   if (contratoCard) contratoCard.style.display = "";
 
   if (codigoLogin) {
-    codigoLogin.value = "";
-    setTimeout(() => codigoLogin.focus(), 100);
+    codigoLogin.placeholder = "EX: A1B1";
+    codigoLogin.maxLength = 4;
+
+    codigoLogin.addEventListener("input", () => {
+      codigoLogin.value = codigoLogin.value.toUpperCase().replace(/\s/g, "");
+    });
   }
 
-  setLoginErro("");
-  setMensagem("");
-  limparTelaDetalhe();
-}
+  if (btnEntrarCliente) btnEntrarCliente.onclick = entrarComCodigoDigitado;
 
-function baixarContratoCliente() {
+  function baixarContratoCliente() {
   if (!clienteAtual) return;
 
   const concluido = contratoEstaConcluido(clienteAtual);
