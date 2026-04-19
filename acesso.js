@@ -89,7 +89,9 @@ function escapeHtml(texto) {
   return String(texto || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function normalizarCodigo(codigo) {
@@ -398,30 +400,32 @@ function renderizarContrato() {
   }
 
   if (codigoClienteEl) {
-    codigoClienteEl.textContent = codigoClienteAtual;
+    codigoClienteEl.style.display = "none";
+    codigoClienteEl.textContent = "";
   }
 
   if (supervisor) return;
 
   if (contratoBadge) {
     contratoBadge.textContent = concluido
-      ? "Contrato concluído"
+      ? "Contrato disponível"
       : disponivel
-        ? "Contrato disponível"
+        ? "Contrato pendente"
         : "Contrato indisponível";
 
     contratoBadge.classList.toggle("inativo", !disponivel && !concluido);
+    contratoBadge.classList.toggle("pendente", disponivel && !concluido);
     contratoBadge.classList.toggle("concluido", concluido);
   }
 
   const partes = [];
 
   if (concluido) {
-    partes.push("Contrato assinado e concluído. Você já pode baixar uma cópia.");
+    partes.push("Seu contrato foi concluído e já está disponível para baixar.");
   } else if (disponivel) {
-    partes.push("Assine agora seu contrato. Você tem uma assinatura pendente.");
+    partes.push("Seu contrato já está pronto para revisão, mas ainda precisa da sua leitura e assinatura. Assine agora para concluir.");
   } else {
-    partes.push("Seu contrato ainda não está disponível para assinatura.");
+    partes.push("Seu contrato ainda não está disponível. Caso precise de ajuda, entre em contato com a equipe da Duna.");
   }
 
   if (telefone) partes.push(`Contato: ${telefone}.`);
@@ -818,12 +822,10 @@ async function abrirPonto(codigo) {
     historicosPorPonto[codigoNormalizado] = historico72h;
 
     const materiaisCliente = filtrarMateriaisDoCliente(playlist);
+    const statusFinal = calcularStatusPonto(ponto, historico72h);
 
     renderizarDetalheBase(ponto, historico72h);
-
-    const statusFinal = calcularStatusPonto(ponto, historico72h);
     renderizarPreview(playlist, 0, statusFinal);
-
     renderizarMateriais(materiaisCliente);
     renderizarHistorico(historico72h);
     renderizarListaPontos();
