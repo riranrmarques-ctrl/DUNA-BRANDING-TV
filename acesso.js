@@ -1023,9 +1023,9 @@ window.addEventListener("scroll", () => {
 });
 
 window.addEventListener("load", () => {
-  const params = new URLSearchParams(window.location.search);
-  const codigoUrl = normalizarCodigo(params.get("codigo"));
-  const voltouDaAssinatura = params.get("voltar") === "1";
+  const codigoUrl = obterCodigoUrl();
+
+  abrirLogin();
 
   if (tituloBoasVindas) {
     tituloBoasVindas.classList.add("hero-titulo-classico");
@@ -1041,11 +1041,4 @@ window.addEventListener("load", () => {
   if (codigoUrl && codigoLogin) {
     codigoLogin.value = codigoUrl;
   }
-
-  if (codigoUrl && voltouDaAssinatura) {
-    carregarAreaCliente(codigoUrl);
-    return;
-  }
-
-  abrirLogin();
 });
