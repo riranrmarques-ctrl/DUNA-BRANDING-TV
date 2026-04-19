@@ -74,8 +74,10 @@ function contratoEstaConcluido(cliente) {
 
 function formatarDataHora(valor) {
   if (!valor) return "-";
+
   const data = new Date(valor);
   if (Number.isNaN(data.getTime())) return "-";
+
   return data.toLocaleString("pt-BR");
 }
 
@@ -94,6 +96,9 @@ function atualizarEstadoVisual() {
 
   if (btnBaixarContrato) {
     btnBaixarContrato.disabled = !contratoFinalHtml && !contratoAtualHtml;
+    btnBaixarContrato.textContent = concluido ? "Baixar contrato" : "Baixar contrato";
+    btnBaixarContrato.classList.toggle("concluido", concluido);
+    btnBaixarContrato.classList.toggle("pendente", !concluido);
   }
 
   if (btnConcluirDesenho) btnConcluirDesenho.disabled = concluido;
@@ -102,38 +107,59 @@ function atualizarEstadoVisual() {
 
 function renderizarPreview(html) {
   if (!previewContrato) return;
+
   previewContrato.srcdoc = html || "<p>Contrato indisponível.</p>";
 }
 
-function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }) {
-  const dataConclusao = new Date().toLocaleString("pt-BR");
+function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataConclusao = "" }) {
+  const nome = escapeHtml(obterNomeCliente(clienteAtual));
+  const data = escapeHtml(dataConclusao || new Date().toLocaleString("pt-BR"));
 
   const fotosHtml = fotos.length
     ? fotos.map((foto, index) => `
-        <div style="margin:12px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;">
-          <strong>Foto ${index + 1}</strong>
+        <a href="${foto}" download="comprovante-assinatura-${index + 1}.png" style="display:block;margin:14px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;text-decoration:none;color:#111827;">
+          <strong>Comprovante ${index + 1}</strong>
           <img src="${foto}" alt="Comprovante ${index + 1}" style="display:block;width:100%;max-width:640px;margin-top:10px;border-radius:8px;">
-        </div>
+        </a>
       `).join("")
     : "";
 
   const assinaturaHtml = assinaturaImagem
-    ? `<img src="${assinaturaImagem}" alt="Assinatura digital" style="display:block;width:320px;max-width:100%;height:auto;margin:14px 0 8px;">`
+    ? `
+      <div style="margin:30px 0 18px;">
+        <h3 style="font-size:15px;margin:0 0 12px;color:#111827;">Assinatura eletrônica</h3>
+        <img src="${assinaturaImagem}" alt="Assinatura eletrônica" style="display:block;width:320px;max-width:100%;height:auto;margin:0 0 8px;">
+      </div>
+    `
     : "";
 
-  const blocoConclusao = `
+  const comprovantesHtml = fotos.length
+    ? `
+      <div style="margin:30px 0 18px;">
+        <h3 style="font-size:15px;margin:0 0 12px;color:#111827;">Assinado físico com comprovante em imagem abaixo.</h3>
+        ${fotosHtml}
+      </div>
+    `
+    : "";
+
+  return `
     <section style="page-break-inside:avoid;margin-top:42px;padding-top:22px;border-top:2px solid #111827;">
       <h2 style="font-size:18px;margin:0 0 12px;color:#111827;">Assinatura e conclusão</h2>
       <p style="margin:0 0 8px;line-height:1.6;color:#111827;">
-        Contrato concluído por ${escapeHtml(obterNomeCliente(clienteAtual))} em ${escapeHtml(dataConclusao)}.
+        Contrato concluído por ${nome} em ${data}.
       </p>
       <p style="margin:0 0 14px;line-height:1.6;color:#111827;">
-        Método utilizado: ${metodo === "fotos" ? "impressão e envio de fotos" : "assinatura virtual desenhada"}.
+        Método utilizado: ${metodo === "fotos" ? "assinatura física com comprovante em imagem" : "assinatura eletrônica"}.
       </p>
       ${assinaturaHtml}
-      ${fotosHtml}
+      ${comprovantesHtml}
     </section>
   `;
+}
+
+function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }) {
+  const dataConclusao = new Date().toLocaleString("pt-BR");
+  const blocoConclusao = obterHtmlConclusao({ metodo, assinaturaImagem, fotos, dataConclusao });
 
   if (/<\/body>/i.test(contratoAtualHtml)) {
     return contratoAtualHtml.replace(/<\/body>/i, `${blocoConclusao}</body>`);
@@ -247,6 +273,7 @@ function prepararCanvas() {
 
 function limparCanvas() {
   if (!canvasAssinatura) return;
+
   const contexto = canvasAssinatura.getContext("2d");
   contexto.fillStyle = "#ffffff";
   contexto.fillRect(0, 0, canvasAssinatura.width, canvasAssinatura.height);
@@ -256,6 +283,7 @@ function limparCanvas() {
 function lerArquivoComoDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+
     reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(file);
@@ -299,6 +327,33 @@ async function concluirComFotos() {
   }
 }
 
+function aplicarEstadoCarregado(data) {
+  clienteAtual = data;
+  contratoAtualHtml = data.contrato_html;
+  contratoFinalHtml = data.contrato_assinado_html || data.contrato_html;
+
+  if (nomeCliente) {
+    nomeCliente.textContent = "Seu Contrato";
+  }
+
+  if (codigoCliente) {
+    codigoCliente.textContent = "";
+    codigoCliente.style.display = "none";
+  }
+
+  renderizarPreview(contratoFinalHtml);
+  atualizarEstadoVisual();
+
+  const concluido = contratoEstaConcluido(data);
+
+  setMensagem(
+    concluido
+      ? `Contrato concluído em ${formatarDataHora(data.contrato_assinado_em)}.`
+      : "Contrato pendente de assinatura.",
+    concluido ? "ok" : "normal"
+  );
+}
+
 async function carregarContrato() {
   codigoAtual = obterCodigoUrl();
 
@@ -307,7 +362,10 @@ async function carregarContrato() {
     return;
   }
 
-  if (codigoCliente) codigoCliente.textContent = codigoAtual;
+  if (codigoCliente) {
+    codigoCliente.textContent = "";
+    codigoCliente.style.display = "none";
+  }
 
   if (btnVoltarCliente) {
     btnVoltarCliente.onclick = () => {
@@ -339,23 +397,7 @@ async function carregarContrato() {
       return;
     }
 
-    clienteAtual = data;
-    contratoAtualHtml = data.contrato_html;
-    contratoFinalHtml = data.contrato_assinado_html || data.contrato_html;
-
-    if (nomeCliente) nomeCliente.textContent = obterNomeCliente(data);
-
-    renderizarPreview(contratoFinalHtml);
-    atualizarEstadoVisual();
-
-    const concluido = contratoEstaConcluido(data);
-
-    setMensagem(
-      concluido
-        ? `Contrato concluído em ${formatarDataHora(data.contrato_assinado_em)}.`
-        : "Contrato pendente de assinatura.",
-      concluido ? "ok" : "normal"
-    );
+    aplicarEstadoCarregado(data);
   } catch (error) {
     console.error(error);
     setMensagem("Erro ao carregar contrato.", "erro");
