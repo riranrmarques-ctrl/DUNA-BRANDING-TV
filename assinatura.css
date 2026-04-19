@@ -859,4 +859,24 @@ body #mensagemAssinatura.mensagem {
   display: none !important;
 }
 
+#fotosInput,
+#btnConcluirFotos {
+  display: none !important;
+}
+
+#fotosInput,
+#fotosInput + button,
+#btnConcluirFotos {
+  display: none !important;
+}
+
+.assinatura-card .divisor {
+  display: none !important;
+}
+
+.assinatura-card .bloco:has(#fotosInput) {
+  display: none !important;
+}
+
+
 
