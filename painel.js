@@ -264,8 +264,8 @@ function itemEstaInativo(item) {
 }
 
 function garantirSessaoAdmin() {
-  if (sessionStorage.getItem("painelLiberado") === "1" && !sessionStorage.getItem("painelToken")) {
-    sessionStorage.setItem("painelToken", ADMIN_TOKEN);
+  if (localStorage.getItem("painelLiberado") === "1" && !localStorage.getItem("painelToken")) {
+    localStorage.setItem("painelToken", ADMIN_TOKEN);
   }
 }
 
