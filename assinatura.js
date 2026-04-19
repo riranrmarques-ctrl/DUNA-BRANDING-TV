@@ -5,7 +5,7 @@ const TABELA_CLIENTES = "clientes_app";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const btnVoltarCliente = document.getElementById("btnVoltarCliente");
+const btnVoltarCliente = document.getElementById("btnVoltarCliente"); 
 const btnBaixarContrato = document.getElementById("btnBaixarContrato");
 const mensagemAssinatura = document.getElementById("mensagemAssinatura");
 const statusContrato = document.getElementById("statusContrato");
