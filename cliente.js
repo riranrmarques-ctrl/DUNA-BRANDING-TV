@@ -5,7 +5,7 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const CODIGOS_FIXOS = [
   "H3L1",
-  "E7N4",
+  "E7N4", 
   "H8E2",
   "L3A9",
   "N1H6",
