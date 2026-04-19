@@ -70,7 +70,28 @@ function clienteEhSupervisor(cliente) {
 }
 
 function contratoEstaConcluido(cliente) {
-  return Boolean(cliente?.contrato_assinado_em || cliente?.contrato_assinado_html);
+  if (!cliente) return false;
+
+  const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
+  if (!temAssinatura) return false;
+
+  const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
+  const dataContrato = new Date(
+    cliente.contrato_atualizado_em ||
+    cliente.contrato_enviado_em ||
+    cliente.updated_at ||
+    0
+  );
+
+  if (Number.isNaN(dataAssinatura.getTime())) {
+    return Boolean(cliente.contrato_assinado_html);
+  }
+
+  if (!Number.isNaN(dataContrato.getTime()) && dataContrato > dataAssinatura) {
+    return false;
+  }
+
+  return true;
 }
 
 function formatarDataHora(valor) {
@@ -416,7 +437,11 @@ async function concluirComFotos() {
 function aplicarEstadoCarregado(data) {
   clienteAtual = data;
   contratoAtualHtml = data.contrato_html;
-  contratoFinalHtml = data.contrato_assinado_html || data.contrato_html;
+
+  const concluido = contratoEstaConcluido(data);
+  contratoFinalHtml = concluido
+    ? data.contrato_assinado_html || data.contrato_html
+    : data.contrato_html;
 
   if (nomeCliente) {
     nomeCliente.textContent = "Seu Contrato";
@@ -429,8 +454,6 @@ function aplicarEstadoCarregado(data) {
 
   renderizarPreview(contratoFinalHtml);
   atualizarEstadoVisual();
-
-  const concluido = contratoEstaConcluido(data);
 
   setMensagem(
     concluido
