@@ -945,6 +945,11 @@ async function carregarAreaCliente(codigo) {
 
   mostrarLoading();
 
+  const loadingSeguro = setTimeout(() => {
+    esconderLoading();
+    setMensagem("A conexão demorou mais que o esperado. Tente atualizar a página.", "erro");
+  }, 15000);
+
   setLoginErro("");
   abrirAreaCliente();
   setMensagem("Carregando área do cliente...");
@@ -955,6 +960,7 @@ async function carregarAreaCliente(codigo) {
     clienteAtual = await buscarCliente(codigoClienteAtual);
 
     if (!clienteAtual) {
+      clearTimeout(loadingSeguro);
       esconderLoading();
       abrirLogin();
       setLoginErro("Cliente não encontrado para este código.");
@@ -985,6 +991,7 @@ async function carregarAreaCliente(codigo) {
     console.error("Erro ao carregar área do cliente:", error);
     setMensagem(error.message || "Erro ao carregar área do cliente.", "erro");
   } finally {
+    clearTimeout(loadingSeguro);
     esconderLoading();
   }
 }
