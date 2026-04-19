@@ -6,19 +6,18 @@
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Duna TV | Assinatura do Contrato</title>
-  <link rel="stylesheet" href="assinatura.css?v=1">
+  <title>Duna TV | Área do Contrato</title>
+  <link rel="stylesheet" href="assinatura.css?v=2">
 </head>
 <body>
   <main class="assinatura-shell">
     <header class="assinatura-topo">
-      <div>
+      <div class="assinatura-topo-esquerda">
         <img src="logo.png" class="assinatura-logo" alt="Duna TV">
-        <p>Área de assinatura</p>
-        <h1>Assine seu contrato</h1>
       </div>
 
       <div class="topo-acoes">
+        <span class="topo-contrato-label">ÁREA DO CONTRATO |</span>
         <button id="btnVoltarCliente" class="btn-secundario" type="button">Voltar</button>
         <button id="btnBaixarContrato" class="btn-principal" type="button" disabled>Baixar contrato</button>
       </div>
@@ -29,11 +28,13 @@
     <section class="assinatura-layout">
       <article class="documento-card">
         <div class="card-topo">
-          <div>
+          <div class="contrato-titulo-area">
             <span id="statusContrato" class="status-chip pendente">Pendente</span>
-            <h2 id="nomeCliente">Contrato do cliente</h2>
+            <h2 id="nomeCliente">Seu Contrato</h2>
+            <p class="contrato-subtitulo">Contrato aguardando leitura e assinatura.</p>
           </div>
-          <span id="codigoCliente" class="codigo-chip"></span>
+
+          <span id="codigoCliente" class="codigo-chip" style="display:none;"></span>
         </div>
 
         <iframe id="previewContrato" class="preview-contrato" title="Documento do contrato"></iframe>
@@ -44,6 +45,7 @@
           <h2>1. Assinatura virtual</h2>
           <p>Desenhe sua assinatura no espaço abaixo e conclua o contrato.</p>
           <canvas id="canvasAssinatura" width="720" height="260"></canvas>
+
           <div class="acoes-linha">
             <button id="btnLimparAssinatura" class="btn-secundario" type="button">Limpar</button>
             <button id="btnConcluirDesenho" class="btn-principal" type="button">Concluir com assinatura</button>
@@ -68,6 +70,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assinatura.js?v=1"></script>
+  <script src="assinatura.js?v=2"></script>
 </body>
 </html>
