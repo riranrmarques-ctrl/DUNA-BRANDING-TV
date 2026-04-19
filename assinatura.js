@@ -125,6 +125,17 @@ function atualizarEstadoVisual() {
 
   if (btnConcluirDesenho) btnConcluirDesenho.disabled = concluido;
   if (btnConcluirFotos) btnConcluirFotos.disabled = concluido;
+
+  const assinaturaCard = document.querySelector(".assinatura-card");
+  const blocosAssinatura = document.querySelectorAll(".assinatura-card .bloco, .assinatura-card .divisor");
+
+  blocosAssinatura.forEach((item) => {
+    item.style.display = concluido ? "none" : "";
+  });
+
+  if (assinaturaCard) {
+    assinaturaCard.classList.toggle("contrato-concluido", concluido);
+  }
 }
 
 function renderizarPreview(html) {
