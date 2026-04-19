@@ -543,3 +543,55 @@ body.contrato-assinado::before {
 #mensagemAssinatura:empty {
   display: none !important;
 }
+
+.topo-acoes {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+  gap: 18px !important;
+  min-height: 88px !important;
+  margin-left: auto !important;
+}
+
+.topo-contrato-bloco {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+
+.topo-contrato-label {
+  height: auto !important;
+  display: block !important;
+  color: #f8fbff !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.16em !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  text-transform: uppercase !important;
+}
+
+#mensagemAssinatura {
+  position: static !important;
+  display: block !important;
+  width: auto !important;
+  max-width: 360px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #d9e1f2 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  text-transform: none !important;
+}
+
+#mensagemAssinatura:empty {
+  display: none !important;
+}
+
