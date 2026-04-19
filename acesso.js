@@ -249,14 +249,20 @@ function obterUrlPlaylist(item) {
 }
 
 function obterNomeArquivo(item) {
-  const direto = item?.titulo_arquivo || item?.nome_arquivo;
-  if (direto) return direto;
+  const tituloRenomeado = String(item?.titulo_arquivo || "").trim();
 
-  const storagePath = String(item?.storage_path || "").trim();
-  if (storagePath) {
-    const partes = storagePath.split("/");
-    return decodeURIComponent(partes[partes.length - 1] || storagePath);
+  if (tituloRenomeado) {
+    return tituloRenomeado;
   }
+
+  const nomeArquivo = String(item?.nome_arquivo || "").trim();
+
+  if (nomeArquivo) {
+    return nomeArquivo;
+  }
+
+  return "Material do cliente";
+}
 
   const url = String(obterUrlPlaylist(item) || "").split("?")[0];
   if (url) {
@@ -452,20 +458,19 @@ function renderizarMateriais(lista) {
   if (!listaMateriais) return;
 
   if (!lista.length) {
-    listaMateriais.innerHTML = `<div class="vazio">Nenhum material encontrado neste ponto.</div>`;
+    listaMateriais.innerHTML = `<div class="vazio">Nenhum material deste cliente encontrado neste ponto.</div>`;
     return;
   }
 
   listaMateriais.innerHTML = lista.map((item, index) => {
-    const cliente = obterNomeClientePlaylist(item);
     const arquivo = obterNomeArquivo(item);
+    const ordem = item.ordem || index + 1;
 
     return `
       <div class="linha-material">
-        <span>${index + 1}.</span>
+        <span>${escapeHtml(`${ordem}.`)}</span>
         <div>
-          <strong>${escapeHtml(cliente)}</strong>
-          <small>${escapeHtml(arquivo)}</small>
+          <strong>${escapeHtml(arquivo)}</strong>
         </div>
         <span>${formatarDataHora(item.created_at)}</span>
         <span>${formatarData(item.data_fim)}</span>
@@ -642,18 +647,14 @@ async function abrirPonto(codigo) {
 
     historicosPorPonto[codigoNormalizado] = historico;
 
+    const materiaisCliente = filtrarMateriaisDoCliente(playlist);
+
     renderizarDetalheBase(ponto, historico);
-    renderizarPreview(playlist);
-    renderizarMateriais(playlist);
+    renderizarPreview(materiaisCliente);
+    renderizarMateriais(materiaisCliente);
     renderizarHistorico(historico);
     renderizarListaPontos();
     setMensagem("Área do cliente atualizada.", "ok");
-  } catch (error) {
-    console.error("Erro ao abrir ponto:", error);
-    renderizarPreview([]);
-    renderizarMateriais([]);
-    renderizarHistorico(historicoAtual);
-    setMensagem("Erro ao carregar dados deste ponto.", "erro");
   }
 }
 
