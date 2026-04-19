@@ -44,14 +44,38 @@ let pontosContratados = [];
 let historicosPorPonto = {};
 let pontoSelecionado = "";
 
+let timerMensagem = null;
+let timerLimparMensagem = null;
+
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemCliente) return;
 
+  if (timerMensagem) {
+    clearTimeout(timerMensagem);
+    timerMensagem = null;
+  }
+
+  if (timerLimparMensagem) {
+    clearTimeout(timerLimparMensagem);
+    timerLimparMensagem = null;
+  }
+
   mensagemCliente.textContent = texto || "";
-  mensagemCliente.classList.remove("ok", "erro");
+  mensagemCliente.classList.remove("ok", "erro", "saindo");
 
   if (tipo === "ok") mensagemCliente.classList.add("ok");
   if (tipo === "erro") mensagemCliente.classList.add("erro");
+
+  if (!texto) return;
+
+  timerMensagem = setTimeout(() => {
+    mensagemCliente.classList.add("saindo");
+
+    timerLimparMensagem = setTimeout(() => {
+      mensagemCliente.textContent = "";
+      mensagemCliente.classList.remove("saindo", "ok", "erro");
+    }, 350);
+  }, 4500);
 }
 
 function setLoginErro(texto) {
@@ -264,13 +288,16 @@ function obterNomeArquivo(item) {
   return "Material do cliente";
 }
 
-  const url = String(obterUrlPlaylist(item) || "").split("?")[0];
-  if (url) {
-    const partes = url.split("/");
-    return decodeURIComponent(partes[partes.length - 1] || item?.nome || "Arquivo");
-  }
-
-  return item?.nome || "Arquivo";
+function filtrarMateriaisDoCliente(lista = []) {
+  return (lista || [])
+    .map((item, index) => ({
+      ...item,
+      posicao_playlist: index + 1
+    }))
+    .filter((item) => {
+      const codigoItem = normalizarCodigo(item.codigo_cliente);
+      return codigoItem === codigoClienteAtual;
+    });
 }
 
 function obterNomeClientePlaylist(item) {
@@ -426,7 +453,7 @@ function renderizarPreview(lista) {
 
   if (!item) {
     if (previewNome) previewNome.textContent = "";
-    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material ativo para preview neste ponto.</div>`;
+    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material deste cliente para preview neste ponto.</div>`;
     return;
   }
 
@@ -464,11 +491,11 @@ function renderizarMateriais(lista) {
 
   listaMateriais.innerHTML = lista.map((item, index) => {
     const arquivo = obterNomeArquivo(item);
-    const ordem = item.ordem || index + 1;
+    const posicao = Number(item.posicao_playlist || index + 1);
 
     return `
       <div class="linha-material">
-        <span>${escapeHtml(`${ordem}.`)}</span>
+        <span>${escapeHtml(`${posicao}ª posição`)}</span>
         <div>
           <strong>${escapeHtml(arquivo)}</strong>
         </div>
@@ -530,7 +557,12 @@ function renderizarDetalheBase(ponto, historico) {
 }
 
 async function buscarCliente(codigo) {
-  const { data, error } = await supabaseClient.from(TABELA_CLIENTES).select("*").eq("codigo", codigo).maybeSingle();
+  const { data, error } = await supabaseClient
+    .from(TABELA_CLIENTES)
+    .select("*")
+    .eq("codigo", codigo)
+    .maybeSingle();
+
   if (error) throw error;
   return data;
 }
@@ -549,7 +581,11 @@ async function buscarVinculosCliente(codigo) {
 async function buscarPontos(codigos) {
   if (!codigos.length) return [];
 
-  const { data, error } = await supabaseClient.from(TABELA_PONTOS).select("*").in("codigo", codigos);
+  const { data, error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .select("*")
+    .in("codigo", codigos);
+
   if (error) throw error;
 
   const ordem = new Map(codigos.map((codigo, index) => [codigo, index]));
@@ -565,17 +601,34 @@ async function buscarPontos(codigos) {
 
 async function buscarPlaylistPonto(codigo) {
   const consultas = [
-    { colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,codigo", ordenarPor: "ordem" },
-    { colunas: "id,nome,titulo_arquivo,nome_arquivo,video_url,storage_path,tipo,created_at,data_fim,ordem,codigo", ordenarPor: "ordem" },
-    { colunas: "id,nome,video_url,storage_path,created_at,data_fim,ordem,codigo", ordenarPor: "ordem" },
-    { colunas: "id,nome,video_url,storage_path,created_at,codigo", ordenarPor: "created_at" }
+    {
+      colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,storage_path,tipo,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,codigo",
+      ordenarPor: "created_at"
+    }
   ];
 
   let ultimoErro = null;
 
   for (const consulta of consultas) {
-    let query = supabaseClient.from(TABELA_PLAYLIST).select(consulta.colunas).eq("codigo", codigo);
+    let query = supabaseClient
+      .from(TABELA_PLAYLIST)
+      .select(consulta.colunas)
+      .eq("codigo", codigo);
+
     query = query.order(consulta.ordenarPor, { ascending: true });
+
     const { data, error } = await query;
 
     if (!error) return data || [];
@@ -612,6 +665,7 @@ async function carregarHistoricosIniciais(pontos) {
   const pares = await Promise.all(
     pontos.map(async (ponto) => {
       const codigo = normalizarCodigo(ponto.codigo);
+
       try {
         const historico = await buscarHistoricoPonto(codigo);
         return [codigo, historico];
@@ -655,6 +709,12 @@ async function abrirPonto(codigo) {
     renderizarHistorico(historico);
     renderizarListaPontos();
     setMensagem("Área do cliente atualizada.", "ok");
+  } catch (error) {
+    console.error("Erro ao abrir ponto:", error);
+    renderizarPreview([]);
+    renderizarMateriais([]);
+    renderizarHistorico(historicoAtual);
+    setMensagem("Erro ao carregar dados deste ponto.", "erro");
   }
 }
 
@@ -695,6 +755,7 @@ async function carregarAreaCliente(codigo) {
         estadoVazio.style.display = "flex";
         estadoVazio.textContent = "Este cliente ainda não possui pontos contratados vinculados.";
       }
+
       if (detalhePonto) detalhePonto.style.display = "none";
     }
 
@@ -707,10 +768,12 @@ async function carregarAreaCliente(codigo) {
 
 function entrarComCodigoDigitado() {
   const codigo = normalizarCodigo(codigoLogin?.value);
+
   if (!codigo) {
     setLoginErro("Digite o código do cliente.");
     return;
   }
+
   carregarAreaCliente(codigo);
 }
 
@@ -733,6 +796,7 @@ if (btnSair) {
 if (codigoClienteEl) {
   codigoClienteEl.onclick = async () => {
     if (!codigoClienteAtual) return;
+
     try {
       await navigator.clipboard.writeText(codigoClienteAtual);
       setMensagem("Código copiado.", "ok");
@@ -741,6 +805,10 @@ if (codigoClienteEl) {
     }
   };
 }
+
+window.addEventListener("scroll", () => {
+  document.body.classList.toggle("rolando", window.scrollY > 12);
+});
 
 window.addEventListener("load", () => {
   const codigoUrl = obterCodigoUrl();
