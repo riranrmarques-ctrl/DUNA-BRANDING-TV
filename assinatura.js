@@ -1,11 +1,11 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 
-const TABELA_CLIENTES = "clientes_app"; 
+const TABELA_CLIENTES = "clientes_app";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const btnVoltarCliente = document.getElementById("btnVoltarCliente"); 
+const btnVoltarCliente = document.getElementById("btnVoltarCliente");
 const btnBaixarContrato = document.getElementById("btnBaixarContrato");
 const mensagemAssinatura = document.getElementById("mensagemAssinatura");
 const statusContrato = document.getElementById("statusContrato");
@@ -103,8 +103,24 @@ function formatarDataHora(valor) {
   return data.toLocaleString("pt-BR");
 }
 
+function aplicarTituloVisual(concluido) {
+  document.body.classList.toggle("contrato-pendente", !concluido);
+  document.body.classList.toggle("contrato-assinado", concluido);
+}
+
+function ocultarOpcaoFotos() {
+  const blocoFotos = fotosInput?.closest(".bloco");
+  const divisor = document.querySelector(".assinatura-card .divisor");
+
+  if (blocoFotos) blocoFotos.style.display = "none";
+  if (divisor) divisor.style.display = "none";
+}
+
 function atualizarEstadoVisual() {
   const concluido = contratoEstaConcluido(clienteAtual);
+
+  aplicarTituloVisual(concluido);
+  ocultarOpcaoFotos();
 
   if (statusContrato) {
     statusContrato.textContent = concluido ? "Concluído" : "Pendente";
@@ -124,14 +140,14 @@ function atualizarEstadoVisual() {
   }
 
   if (btnConcluirDesenho) btnConcluirDesenho.disabled = concluido;
-  if (btnConcluirFotos) btnConcluirFotos.disabled = concluido;
+  if (btnConcluirFotos) btnConcluirFotos.disabled = true;
 
   const assinaturaCard = document.querySelector(".assinatura-card");
-  const blocosAssinatura = document.querySelectorAll(".assinatura-card .bloco, .assinatura-card .divisor");
+  const blocoDesenho = canvasAssinatura?.closest(".bloco");
 
-  blocosAssinatura.forEach((item) => {
-    item.style.display = concluido ? "none" : "";
-  });
+  if (blocoDesenho) {
+    blocoDesenho.style.display = concluido ? "none" : "";
+  }
 
   if (assinaturaCard) {
     assinaturaCard.classList.toggle("contrato-concluido", concluido);
@@ -190,65 +206,99 @@ function renderizarPreview(html) {
   `;
 }
 
-function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataConclusao = "" }) {
+function montarInfoAssinatura(dataConclusao) {
+  return `
+    <div style="font-size:11px;line-height:1.35;color:#374151;margin:4px auto 8px;text-align:center;max-width:420px;">
+      Contrato concluído por ${escapeHtml(obterNomeCliente(clienteAtual))} em ${escapeHtml(dataConclusao)}.<br>
+      Método utilizado: assinatura eletrônica.
+    </div>
+  `;
+}
+
+function inserirAssinaturaNoContratante(html, assinaturaImagem, dataConclusao) {
+  if (!assinaturaImagem) return html;
+
+  const assinaturaNoContratante = `
+    <div style="margin:0 auto 8px;text-align:center;max-width:420px;">
+      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:6px;">
+        Assinatura eletrônica
+      </div>
+      <img
+        src="${assinaturaImagem}"
+        alt="Assinatura eletrônica"
+        style="display:block;width:300px;max-width:100%;height:90px;margin:0 auto 4px;object-fit:contain;"
+      >
+      ${montarInfoAssinatura(dataConclusao)}
+    </div>
+  `;
+
+  const assinaturaBoxVaziaRegex = /<div class="assinatura-box">\s*<div class="linha-assinatura">CONTRATANTE<\/div>\s*<\/div>/i;
+  const linhaContratanteRegex = /<div class="linha-assinatura">CONTRATANTE<\/div>/i;
+
+  if (assinaturaBoxVaziaRegex.test(html)) {
+    return html.replace(
+      assinaturaBoxVaziaRegex,
+      `
+        <div class="assinatura-box">
+          ${assinaturaNoContratante}
+          <div class="linha-assinatura">CONTRATANTE</div>
+        </div>
+      `
+    );
+  }
+
+  if (linhaContratanteRegex.test(html)) {
+    return html.replace(
+      linhaContratanteRegex,
+      `${assinaturaNoContratante}<div class="linha-assinatura">CONTRATANTE</div>`
+    );
+  }
+
+  return `${html}
+    <section style="page-break-inside:avoid;margin-top:42px;">
+      <div style="text-align:center;max-width:520px;margin:0 auto;">
+        ${assinaturaNoContratante}
+        <div style="border-top:1.8px solid #111827;margin-top:0;padding-top:8px;font-weight:700;color:#111827;">
+          CONTRATANTE
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function obterHtmlConclusao({ metodo, fotos = [], dataConclusao = "" }) {
   const nome = escapeHtml(obterNomeCliente(clienteAtual));
   const data = escapeHtml(dataConclusao || new Date().toLocaleString("pt-BR"));
 
   const fotosHtml = fotos.length
     ? fotos.map((foto, index) => `
-        <a href="${foto}" download="comprovante-assinatura-${index + 1}.png" style="display:block;margin:14px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;text-decoration:none;color:#111827;">
+        <a
+          href="${foto}"
+          download="comprovante-assinatura-${index + 1}.png"
+          style="display:block;margin:14px 0;padding:10px;border:1px solid #e5e7eb;border-radius:10px;text-decoration:none;color:#111827;"
+        >
           <strong>Comprovante ${index + 1}</strong>
-          <img src="${foto}" alt="Comprovante ${index + 1}" style="display:block;width:100%;max-width:640px;margin-top:10px;border-radius:8px;">
+          <img
+            src="${foto}"
+            alt="Comprovante ${index + 1}"
+            style="display:block;width:100%;max-width:640px;margin-top:10px;border-radius:8px;"
+          >
         </a>
       `).join("")
     : "";
 
-  const assinaturaContratanteHtml = assinaturaImagem
-    ? `
-      <div style="width:48%;min-width:260px;text-align:center;">
-        <img src="${assinaturaImagem}" alt="Assinatura eletrônica do contratante" style="display:block;width:260px;max-width:90%;height:auto;margin:0 auto -4px;">
-        <div style="border-top:1.8px solid #111827;margin-top:0;padding-top:8px;font-weight:700;color:#111827;">
-          CONTRATANTE
-        </div>
-      </div>
-    `
-    : `
-      <div style="width:48%;min-width:260px;text-align:center;">
-        <div style="height:92px;"></div>
-        <div style="border-top:1.8px solid #111827;margin-top:0;padding-top:8px;font-weight:700;color:#111827;">
-          CONTRATANTE
-        </div>
-      </div>
-    `;
-
-  const assinaturaDunaHtml = `
-    <div style="width:48%;min-width:260px;text-align:center;">
-      <div style="height:92px;"></div>
-      <div style="border-top:1.8px solid #111827;margin-top:0;padding-top:8px;font-weight:700;color:#111827;">
-        Duna Publicidade
-      </div>
-    </div>
-  `;
-
-  const blocoAssinaturas = `
-    <section style="page-break-inside:avoid;margin-top:42px;">
-      <div style="display:flex;justify-content:space-between;gap:28px;align-items:flex-end;flex-wrap:wrap;">
-        ${assinaturaContratanteHtml}
-        ${assinaturaDunaHtml}
-      </div>
-    </section>
-  `;
-
   const comprovantesHtml = fotos.length
     ? `
       <div style="margin:30px 0 18px;">
-        <h3 style="font-size:15px;margin:0 0 12px;color:#111827;">Assinado físico com comprovante em imagem abaixo.</h3>
+        <h3 style="font-size:15px;margin:0 0 12px;color:#111827;">
+          Assinado físico com comprovante em imagem abaixo.
+        </h3>
         ${fotosHtml}
       </div>
     `
     : "";
 
-  const blocoConclusao = `
+  return `
     <section style="page-break-inside:avoid;margin-top:42px;padding-top:22px;border-top:2px solid #111827;">
       <h2 style="font-size:18px;margin:0 0 12px;color:#111827;">Assinatura e conclusão</h2>
       <p style="margin:0 0 8px;line-height:1.6;color:#111827;">
@@ -260,8 +310,6 @@ function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataCon
       ${comprovantesHtml}
     </section>
   `;
-
-  return `${blocoAssinaturas}${blocoConclusao}`;
 }
 
 function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }) {
@@ -269,44 +317,11 @@ function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }
   let htmlFinal = contratoAtualHtml;
 
   if (metodo !== "fotos" && assinaturaImagem) {
-    const assinaturaNoContratante = `
-      <div style="margin:0 auto 10px;text-align:center;max-width:420px;">
-        <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:6px;">
-          Assinatura eletrônica
-        </div>
-        <img
-          src="${assinaturaImagem}"
-          alt="Assinatura eletrônica"
-          style="display:block;width:300px;max-width:100%;height:90px;margin:0 auto 4px;object-fit:contain;"
-        >
-        <div style="font-size:11px;line-height:1.35;color:#374151;">
-          Contrato concluído por ${escapeHtml(obterNomeCliente(clienteAtual))} em ${escapeHtml(dataConclusao)}.<br>
-          Método utilizado: assinatura eletrônica.
-        </div>
-      </div>
-    `;
-
-    if (/<div class="assinatura-box">\s*<div class="linha-assinatura">CONTRATANTE<\/div>\s*<\/div>/i.test(htmlFinal)) {
-      htmlFinal = htmlFinal.replace(
-        /<div class="assinatura-box">\s*<div class="linha-assinatura">CONTRATANTE<\/div>\s*<\/div>/i,
-        `
-          <div class="assinatura-box">
-            ${assinaturaNoContratante}
-            <div class="linha-assinatura">CONTRATANTE</div>
-          </div>
-        `
-      );
-    } else if (/<div class="linha-assinatura">CONTRATANTE<\/div>/i.test(htmlFinal)) {
-      htmlFinal = htmlFinal.replace(
-        /<div class="linha-assinatura">CONTRATANTE<\/div>/i,
-        `${assinaturaNoContratante}<div class="linha-assinatura">CONTRATANTE</div>`
-      );
-    }
+    htmlFinal = inserirAssinaturaNoContratante(htmlFinal, assinaturaImagem, dataConclusao);
   }
 
   const blocoConclusao = obterHtmlConclusao({
     metodo,
-    assinaturaImagem: metodo === "fotos" ? "" : "",
     fotos,
     dataConclusao
   });
@@ -317,7 +332,6 @@ function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }
 
   return `${htmlFinal}${blocoConclusao}`;
 }
-
 
 function baixarHtmlContrato() {
   const html = contratoFinalHtml || contratoAtualHtml;
@@ -365,6 +379,7 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
   if (error) throw error;
 
   clienteAtual = data || { ...clienteAtual, ...payload };
+
   renderizarPreview(contratoFinalHtml);
   atualizarEstadoVisual();
   setMensagem("Contrato concluído. Você já pode baixar o documento.", "ok");
@@ -491,12 +506,13 @@ async function concluirComFotos() {
 
 function aplicarEstadoCarregado(data) {
   clienteAtual = data;
-  contratoAtualHtml = data.contrato_html;
+  contratoAtualHtml = data.contrato_html || "";
 
   const concluido = contratoEstaConcluido(data);
+
   contratoFinalHtml = concluido
-    ? data.contrato_assinado_html || data.contrato_html
-    : data.contrato_html;
+    ? data.contrato_assinado_html || data.contrato_html || ""
+    : data.contrato_html || "";
 
   if (nomeCliente) {
     nomeCliente.textContent = "Seu Contrato";
@@ -513,7 +529,7 @@ function aplicarEstadoCarregado(data) {
   setMensagem(
     concluido
       ? `Contrato concluído em ${formatarDataHora(data.contrato_assinado_em)}.`
-      : "Contrato pendente de assinatura.",
+      : "",
     concluido ? "ok" : "normal"
   );
 }
@@ -523,6 +539,7 @@ async function carregarContrato() {
 
   if (!codigoAtual) {
     setMensagem("Código do cliente não encontrado.", "erro");
+    aplicarTituloVisual(true);
     return;
   }
 
@@ -548,16 +565,19 @@ async function carregarContrato() {
 
     if (!data) {
       setMensagem("Cliente não encontrado.", "erro");
+      aplicarTituloVisual(true);
       return;
     }
 
     if (clienteEhSupervisor(data)) {
       setMensagem("Supervisor não possui contrato para assinatura.", "erro");
+      aplicarTituloVisual(true);
       return;
     }
 
     if (!data.contrato_html) {
       setMensagem("Ainda não existe contrato enviado para este cliente.", "erro");
+      aplicarTituloVisual(true);
       return;
     }
 
@@ -565,6 +585,7 @@ async function carregarContrato() {
   } catch (error) {
     console.error(error);
     setMensagem("Erro ao carregar contrato.", "erro");
+    aplicarTituloVisual(true);
   }
 }
 
@@ -573,5 +594,6 @@ if (btnLimparAssinatura) btnLimparAssinatura.onclick = limparCanvas;
 if (btnConcluirDesenho) btnConcluirDesenho.onclick = concluirComDesenho;
 if (btnConcluirFotos) btnConcluirFotos.onclick = concluirComFotos;
 
+ocultarOpcaoFotos();
 prepararCanvas();
 carregarContrato();
