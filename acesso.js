@@ -985,14 +985,18 @@ if (codigoLogin) {
   });
 
   codigoLogin.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") entrarComCodigoDigitado();
+    if (event.key === "Enter") {
+      event.preventDefault();
+      entrarComCodigoDigitado();
+    }
   });
 }
 
 if (btnEntrarCliente) {
-  btnEntrarCliente.onclick = () => {
+  btnEntrarCliente.addEventListener("click", (event) => {
+    event.preventDefault();
     entrarComCodigoDigitado();
-  };
+  });
 }
 
 if (btnAtualizar) {
@@ -1041,9 +1045,9 @@ window.addEventListener("load", () => {
 
     const urlLimpa = `${window.location.pathname}?codigo=${encodeURIComponent(codigoUrl)}`;
     window.history.replaceState({}, "", urlLimpa);
-
     return;
   }
 
   abrirLogin();
 });
+
