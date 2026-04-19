@@ -1018,10 +1018,6 @@ if (codigoClienteEl) {
   };
 }
 
-window.addEventListener("scroll", () => {
-  document.body.classList.toggle("rolando", window.scrollY > 12);
-});
-
 window.addEventListener("load", () => {
   const params = new URLSearchParams(window.location.search);
   const codigoUrl = normalizarCodigo(params.get("codigo"));
@@ -1044,6 +1040,10 @@ window.addEventListener("load", () => {
 
   if (codigoUrl && voltouDaAssinatura) {
     carregarAreaCliente(codigoUrl);
+
+    const urlLimpa = `${window.location.pathname}?codigo=${encodeURIComponent(codigoUrl)}`;
+    window.history.replaceState({}, "", urlLimpa);
+
     return;
   }
 
