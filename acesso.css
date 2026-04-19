@@ -1035,14 +1035,14 @@ body.rolando .boas-vindas {
 }
 
 body.rolando .topo-cliente {
-  min-height: 48px !important;
+  min-height: 38px !important;
   background: rgba(7, 17, 38, 0.74) !important;
   backdrop-filter: blur(18px) !important;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
 }
 
 body.rolando .topo-conteudo {
-  min-height: 48px !important;
+  min-height: 38px !important;
 }
 
 .topo-esquerda {
@@ -1061,7 +1061,7 @@ body.rolando .topo-conteudo {
 }
 
 body.rolando .logo-cliente {
-  width: 178px !important;
+  width: 170px !important;
 }
 
 .nome-cliente-topo {
@@ -1101,21 +1101,21 @@ body.rolando .nome-cliente-topo {
 }
 
 .topo-area-bloco {
+  position: relative !important;
   display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-end !important;
-  justify-content: center !important;
-  gap: 3px !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
   min-width: 0 !important;
 }
 
 .topo-label {
   color: #d9e1f2 !important;
-  font-size: 1rem !important;
+  font-size: 0.94rem !important;
   font-weight: 900 !important;
-  letter-spacing: 0.18em !important;
+  letter-spacing: 0.16em !important;
   white-space: nowrap !important;
   opacity: 0.9 !important;
+  line-height: 1 !important;
   transition: font-size 0.35s ease, opacity 0.35s ease !important;
 }
 
@@ -1124,17 +1124,27 @@ body.rolando .nome-cliente-topo {
 }
 
 body.rolando .topo-label {
-  font-size: 0.86rem !important;
-  opacity: 0.8 !important;
+  font-size: 0.78rem !important;
+  opacity: 0.82 !important;
 }
 
 .topo-mensagem {
-  max-width: 300px !important;
-  min-height: 14px !important;
+  position: absolute !important;
+  top: calc(100% + 5px) !important;
+  right: 0 !important;
+  max-width: 320px !important;
+  min-height: 12px !important;
   margin: 0 !important;
   text-align: right !important;
-  font-size: 0.72rem !important;
+  font-size: 0.68rem !important;
   line-height: 1.1 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+}
+
+body.rolando .topo-mensagem {
+  top: calc(100% + 2px) !important;
+  font-size: 0.62rem !important;
 }
 
 .btn-sair {
@@ -1147,11 +1157,11 @@ body.rolando .topo-label {
 }
 
 body.rolando .btn-sair {
-  height: 34px !important;
-  min-width: 66px !important;
-  border-radius: 12px !important;
-  padding: 0 16px !important;
-  font-size: 0.82rem !important;
+  height: 30px !important;
+  min-width: 60px !important;
+  border-radius: 10px !important;
+  padding: 0 14px !important;
+  font-size: 0.76rem !important;
 }
 
 @media (max-width: 760px) {
@@ -1165,16 +1175,16 @@ body.rolando .btn-sair {
   }
 
   body.rolando .logo-cliente {
-    width: 132px !important;
+    width: 126px !important;
   }
 
   .topo-label {
-    font-size: 0.74rem !important;
-    letter-spacing: 0.1em !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.09em !important;
   }
 
   body.rolando .topo-label {
-    font-size: 0.68rem !important;
+    font-size: 0.62rem !important;
   }
 
   .nome-cliente-topo {
