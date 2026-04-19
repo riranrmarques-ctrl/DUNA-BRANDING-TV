@@ -635,6 +635,31 @@ function montarHtmlContratoCompleto(dadosContrato = null) {
   `;
 }
 
+function contratoEstaConcluido(cliente) {
+  if (!cliente) return false;
+
+  const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
+  if (!temAssinatura) return false;
+
+  const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
+  const dataContrato = new Date(
+    cliente.contrato_atualizado_em ||
+    cliente.contrato_enviado_em ||
+    cliente.updated_at ||
+    0
+  );
+
+  if (Number.isNaN(dataAssinatura.getTime())) {
+    return Boolean(cliente.contrato_assinado_html);
+  }
+
+  if (!Number.isNaN(dataContrato.getTime()) && dataContrato > dataAssinatura) {
+    return false;
+  }
+
+  return true;
+}
+
 function obterChaveHistoricoContratos() {
   return `historico_contratos_cliente_${codigoClienteAtual}`;
 }
@@ -669,6 +694,270 @@ function obterProximoNumeroContrato() {
 
 function obterNomeArquivoContrato() {
   return `branding-${obterProximoNumeroContrato()}.html`;
+}
+
+function baixarHtmlContrato(html, nomeArquivo) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function contratoHistoricoEstaAtual(item) {
+  if (!clienteAtual || !item) return false;
+
+  return String(clienteAtual.contrato_nome_arquivo || "") === String(item.nome_arquivo || "");
+}
+
+function contratoHistoricoEstaConcluido(item) {
+  return contratoHistoricoEstaAtual(item) && contratoEstaConcluido(clienteAtual);
+}
+
+async function gerarContratoClienteParaHistorico() {
+  if (supervisorEstaAtivo()) {
+    mostrarMensagem("Supervisor não usa envio de contrato.", "#ffb86b");
+    return;
+  }
+
+  try {
+    const dados = obterDadosContratoCliente();
+    const historico = lerHistoricoContratosGerados();
+    const agoraIso = new Date().toISOString();
+
+    const item = {
+      id: `${Date.now()}`,
+      criado_em: agoraIso,
+      nome_arquivo: obterNomeArquivoContrato(),
+      status: "pendente",
+      dados
+    };
+
+    const htmlContrato = montarHtmlContratoCompleto(item.dados);
+
+    historico.unshift(item);
+    salvarHistoricoContratosGerados(historico);
+
+    const payloadContrato = {
+      contrato_html: htmlContrato,
+      contrato_nome_arquivo: item.nome_arquivo,
+      contrato_enviado_em: agoraIso,
+      contrato_atualizado_em: agoraIso,
+      contrato_ativo: true,
+      contrato_status: "pendente",
+      contrato_assinado_em: null,
+      contrato_assinado_html: null,
+      contrato_assinatura_imagem: null,
+      contrato_comprovantes: null,
+      contrato_metodo_assinatura: null
+    };
+
+    const { data, error } = await supabaseClient
+      .from("clientes_app")
+      .update(payloadContrato)
+      .eq("codigo", codigoClienteAtual)
+      .select("*")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    clienteAtual = data || { ...(clienteAtual || {}), ...payloadContrato };
+
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+
+    mostrarMensagem("Contrato enviado para assinatura do cliente.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao enviar contrato para o cliente.", "#ff6b6b");
+  }
+}
+
+function baixarContratoDoHistorico(id) {
+  const historico = lerHistoricoContratosGerados();
+  const item = historico.find((contrato) => contrato.id === id);
+
+  if (!item) {
+    mostrarMensagem("Contrato não encontrado no histórico.", "#ff6b6b");
+    return;
+  }
+
+  const concluido = contratoHistoricoEstaConcluido(item);
+  const html = concluido
+    ? clienteAtual.contrato_assinado_html || clienteAtual.contrato_html || montarHtmlContratoCompleto(item.dados)
+    : montarHtmlContratoCompleto(item.dados);
+
+  const nomeBase = item.nome_arquivo || "contrato.html";
+  const nomeArquivo = concluido
+    ? nomeBase.replace(/\.html$/i, "-assinado.html")
+    : nomeBase;
+
+  baixarHtmlContrato(html, nomeArquivo);
+}
+
+async function excluirContratoDoHistorico(id) {
+  const confirmar = window.confirm("Deseja apagar este contrato do histórico?");
+  if (!confirmar) return;
+
+  try {
+    const historicoAtual = lerHistoricoContratosGerados();
+    const itemRemovido = historicoAtual.find((contrato) => contrato.id === id);
+    const novoHistorico = historicoAtual.filter((contrato) => contrato.id !== id);
+
+    salvarHistoricoContratosGerados(novoHistorico);
+
+    const removendoContratoAtual = itemRemovido && contratoHistoricoEstaAtual(itemRemovido);
+
+    if (removendoContratoAtual) {
+      const payloadLimparContrato = {
+        contrato_html: null,
+        contrato_nome_arquivo: null,
+        contrato_enviado_em: null,
+        contrato_atualizado_em: null,
+        contrato_ativo: false,
+        contrato_status: null,
+        contrato_assinado_em: null,
+        contrato_assinado_html: null,
+        contrato_assinatura_imagem: null,
+        contrato_comprovantes: null,
+        contrato_metodo_assinatura: null
+      };
+
+      const { data, error } = await supabaseClient
+        .from("clientes_app")
+        .update(payloadLimparContrato)
+        .eq("codigo", codigoClienteAtual)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+
+      clienteAtual = data || { ...(clienteAtual || {}), ...payloadLimparContrato };
+    }
+
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+
+    mostrarMensagem("Contrato removido do histórico.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao apagar contrato.", "#ff6b6b");
+  }
+}
+
+function gerarHistoricoContratoVisual() {
+  if (!historicoContratos) return;
+
+  const historico = lerHistoricoContratosGerados();
+
+  if (!historico.length) {
+    historicoContratos.innerHTML = `<div class="historico-vazio">Nenhum contrato gerado ainda.</div>`;
+    return;
+  }
+
+  historicoContratos.innerHTML = historico.map((item) => {
+    const data = formatarDataHistorico(item.criado_em);
+    const nome = item.nome_arquivo || "contrato.html";
+    const concluido = contratoHistoricoEstaConcluido(item);
+
+    const textoStatus = concluido ? "Disponível para download" : "Pendente de assinatura";
+    const corStatus = concluido ? "#7CFC9A" : "#f59e0b";
+    const fundoStatus = concluido ? "rgba(124, 252, 154, 0.12)" : "rgba(245, 158, 11, 0.14)";
+    const bordaStatus = concluido ? "rgba(124, 252, 154, 0.45)" : "rgba(245, 158, 11, 0.45)";
+
+    const botoes = concluido
+      ? `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button
+            type="button"
+            class="btn-baixar-contrato-historico"
+            data-id="${escaparHtml(item.id)}"
+            style="
+              border:none;
+              border-radius:8px;
+              background:#22c55e;
+              color:#fff;
+              font-weight:700;
+              cursor:pointer;
+              padding:9px 12px;
+            "
+          >Baixar</button>
+
+          <button
+            type="button"
+            class="btn-excluir-contrato-historico"
+            data-id="${escaparHtml(item.id)}"
+            style="
+              border:none;
+              border-radius:8px;
+              background:#d9534f;
+              color:#fff;
+              font-weight:700;
+              cursor:pointer;
+              padding:9px 12px;
+            "
+          >Deletar</button>
+        </div>
+      `
+      : "";
+
+    return `
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        padding:12px;
+        border:1px solid #2a3040;
+        border-radius:12px;
+        background:#10131a;
+      ">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;color:#ffffff;word-break:break-word;margin-bottom:6px;">
+            ${escaparHtml(nome)}
+          </div>
+
+          <div style="color:#c6cedd;font-size:0.9rem;margin-bottom:8px;">
+            Enviado em: ${escaparHtml(data)}
+          </div>
+
+          <div style="
+            display:inline-flex;
+            align-items:center;
+            width:fit-content;
+            min-height:28px;
+            padding:5px 10px;
+            border-radius:999px;
+            border:1px solid ${bordaStatus};
+            background:${fundoStatus};
+            color:${corStatus};
+            font-size:0.78rem;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:0.04em;
+          ">
+            ${textoStatus}
+          </div>
+        </div>
+
+        ${botoes}
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".btn-baixar-contrato-historico").forEach((botao) => {
+    botao.onclick = () => baixarContratoDoHistorico(botao.dataset.id);
+  });
+
+  document.querySelectorAll(".btn-excluir-contrato-historico").forEach((botao) => {
+    botao.onclick = () => excluirContratoDoHistorico(botao.dataset.id);
+  });
 }
 
 function baixarHtmlContrato(html, nomeArquivo) {
