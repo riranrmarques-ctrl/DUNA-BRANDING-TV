@@ -842,11 +842,18 @@ function ativarBotoesCards() {
   });
 
   if (btnNovoPonto) {
-    btnNovoPonto.onclick = () => {
-      setStatus("Novo ponto ainda sem função", "normal");
+    btnNovoPonto.onclick = (event) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      sessionStorage.setItem("painelLiberado", "1");
+      sessionStorage.setItem("painelToken", ADMIN_TOKEN);
+
+      window.location.assign("central-clientes.html");
     };
   }
-}
 
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo || "").trim();
