@@ -784,3 +784,28 @@ input {
   color: #f59e0b;
 }
 
+.assinatura-topo {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.assinatura-topo > div:first-child {
+  display: flex;
+  align-items: center;
+  min-height: 74px;
+}
+
+.assinatura-logo {
+  display: block;
+  margin: 0;
+  transform: none;
+}
+
+.topo-acoes {
+  display: flex;
+  align-items: center;
+  min-height: 74px;
+}
+
+
