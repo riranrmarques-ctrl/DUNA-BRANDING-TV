@@ -2344,3 +2344,31 @@ body.rolando .btn-sair:focus-visible {
 .login-erro:empty {
   display: none !important;
 }
+
+.login-card {
+  position: relative !important;
+  z-index: 20 !important;
+}
+
+.login-card * {
+  position: relative;
+  z-index: 21;
+}
+
+#codigoLogin,
+#btnEntrarCliente {
+  pointer-events: auto !important;
+}
+
+#btnEntrarCliente {
+  position: relative !important;
+  z-index: 30 !important;
+  cursor: pointer !important;
+}
+
+.login-card::before,
+.login-card::after,
+.login-conteudo::before,
+.login-conteudo::after {
+  pointer-events: none !important;
+}
