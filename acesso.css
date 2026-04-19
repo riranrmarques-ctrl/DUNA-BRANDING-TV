@@ -1638,29 +1638,3 @@ body.rolando .btn-sair:focus-visible {
 .preview-box {
   margin-top: -8px !important;
 }
-
-#nomeCliente {
-  font-size: clamp(2.4rem, 4.2vw, 4.8rem) !important;
-  letter-spacing: 0.08em !important;
-  line-height: 0.95 !important;
-}
-
-.documento-card {
-  padding: 22px 18px 18px !important;
-}
-
-.card-topo {
-  margin-bottom: 14px !important;
-}
-
-.preview-contrato {
-  min-height: 520px !important;
-  background: #ffffff !important;
-  border-radius: 18px !important;
-}
-
-.contrato-subtitulo {
-  margin-top: 8px !important;
-}
-
-
