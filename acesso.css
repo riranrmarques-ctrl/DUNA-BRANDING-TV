@@ -171,6 +171,7 @@ button {
   gap: 22px;
   transition: none;
 }
+
 body.rolando .topo-cliente {
   background: rgba(7, 17, 38, 0.78) !important;
   backdrop-filter: blur(18px) !important;
