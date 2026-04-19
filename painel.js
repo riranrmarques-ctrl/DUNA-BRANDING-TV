@@ -848,8 +848,8 @@ function ativarBotoesCards() {
         event.stopPropagation();
       }
 
-      sessionStorage.setItem("painelLiberado", "1");
-      sessionStorage.setItem("painelToken", ADMIN_TOKEN);
+      localStorage.setItem("painelLiberado", "1");
+      localStorage.setItem("painelToken", ADMIN_TOKEN);
 
       window.location.assign("central-clientes.html");
     };
