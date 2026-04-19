@@ -3,7 +3,7 @@
   padding: 0;
   box-sizing: border-box;
 }
-
+ 
 :root { 
   --bg: #040816;
   --panel: rgba(9, 17, 38, 0.82);
