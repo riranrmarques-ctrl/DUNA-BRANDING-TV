@@ -1337,3 +1337,57 @@ body.rolando .topo-cliente {
   margin-bottom: 14px !important;
 }
 
+.topo-area-bloco,
+body.rolando .topo-area-bloco {
+  position: relative !important;
+}
+
+.topo-mensagem,
+body.rolando .topo-mensagem {
+  position: absolute !important;
+  top: calc(50% + 20px) !important;
+  left: 0 !important;
+  right: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  text-align: left !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  color: #8ef0b2 !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+.detalhe-ponto {
+  padding-top: 8px !important;
+}
+
+.detalhe-cabecalho {
+  min-height: 112px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  align-items: start !important;
+}
+
+.detalhe-cabecalho > div:first-child {
+  align-self: start !important;
+  padding-top: 4px !important;
+  padding-bottom: 0 !important;
+}
+
+.status-area {
+  padding-top: 0 !important;
+  transform: translateY(-2px) !important;
+}
+
+.preview-box {
+  margin-top: 6px !important;
+}
+
+.preview-topo {
+  margin-bottom: 10px !important;
+}
+
