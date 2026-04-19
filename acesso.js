@@ -3,7 +3,7 @@ const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 
 const TABELA_CLIENTES = "clientes_app";
 const TABELA_CLIENTE_PONTOS = "cliente_pontos";
-const TABELA_PONTOS = "pontos";
+const TABELA_PONTOS = "pontos"; 
 const TABELA_PLAYLIST = "playlists";
 const TABELA_HISTORICO = "historico_conexao";
 
