@@ -14,6 +14,7 @@ const areaCliente = document.getElementById("areaCliente");
 const codigoLogin = document.getElementById("codigoLogin");
 const btnEntrarCliente = document.getElementById("btnEntrarCliente");
 const loginErro = document.getElementById("loginErro");
+const loadingOverlay = document.getElementById("loadingOverlay");
 
 const btnAtualizar = document.getElementById("btnAtualizar");
 const btnSair = document.getElementById("btnSair");
@@ -85,6 +86,43 @@ function setMensagem(texto, tipo = "normal") {
 
 function setLoginErro(texto) {
   if (loginErro) loginErro.textContent = texto || "";
+}
+
+function mostrarLoading() {
+  document.body.classList.add("loading-page");
+
+  if (btnEntrarCliente) {
+    btnEntrarCliente.classList.add("carregando");
+    btnEntrarCliente.disabled = true;
+    btnEntrarCliente.textContent = "Entrando...";
+  }
+
+  if (loadingOverlay) {
+    loadingOverlay.style.display = "flex";
+    requestAnimationFrame(() => {
+      loadingOverlay.classList.add("ativo");
+    });
+  }
+}
+
+function esconderLoading() {
+  document.body.classList.remove("loading-page");
+
+  if (btnEntrarCliente) {
+    btnEntrarCliente.classList.remove("carregando");
+    btnEntrarCliente.disabled = false;
+    btnEntrarCliente.textContent = "Entrar";
+  }
+
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove("ativo");
+
+    setTimeout(() => {
+      if (!loadingOverlay.classList.contains("ativo")) {
+        loadingOverlay.style.display = "none";
+      }
+    }, 280);
+  }
 }
 
 function escapeHtml(texto) {
@@ -414,6 +452,7 @@ function abrirLogin() {
 
   setLoginErro("");
   setMensagem("");
+  esconderLoading();
   limparTelaDetalhe();
 }
 
@@ -938,7 +977,7 @@ async function carregarAreaCliente(codigo) {
   }
 
   setLoginErro("");
-  abrirAreaCliente();
+  mostrarLoading();
   setMensagem("Carregando área do cliente...");
 
   if (codigoClienteEl) codigoClienteEl.textContent = codigoClienteAtual;
@@ -960,6 +999,8 @@ async function carregarAreaCliente(codigo) {
     await carregarHistoricosIniciais(pontosContratados);
     renderizarListaPontos();
 
+    abrirAreaCliente();
+
     if (pontosContratados.length) {
       await abrirPonto(pontosContratados[0].codigo);
     } else {
@@ -974,7 +1015,10 @@ async function carregarAreaCliente(codigo) {
     setMensagem("Área do cliente carregada.", "ok");
   } catch (error) {
     console.error("Erro ao carregar área do cliente:", error);
+    abrirLogin();
     setMensagem(error.message || "Erro ao carregar área do cliente.", "erro");
+  } finally {
+    esconderLoading();
   }
 }
 
