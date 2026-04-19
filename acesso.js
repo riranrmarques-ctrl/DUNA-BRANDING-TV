@@ -566,8 +566,13 @@ function renderizarContrato() {
         return;
       }
 
-      window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
+      mostrarLoading();
+
+      setTimeout(() => {
+        window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
+      }, 220);
     };
+
   }
 }
 
