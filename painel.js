@@ -685,10 +685,9 @@ async function buscarPontosRemoto() {
   if (!supabaseClient) throw new Error("Supabase não carregou.");
 
   const consultas = [
-    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel",
-    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping",
-    "codigo,nome,cidade,endereco,imagem_url",
-    "codigo,nome,cidade,endereco",
+    "codigo,nome,cidade,endereco,imagem_url,disponivel",
+    "codigo,nome,cidade,endereço,imagem_url,disponivel",
+    "codigo,nome,cidade,imagem_url,disponivel",
     "*"
   ];
 
