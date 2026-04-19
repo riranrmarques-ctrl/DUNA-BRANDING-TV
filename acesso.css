@@ -1854,3 +1854,75 @@ body.rolando .btn-sair:focus-visible {
 body.loading-page {
   overflow: hidden;
 }
+
+#btnEntrarCliente {
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+#btnEntrarCliente:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+#btnEntrarCliente:active,
+#btnEntrarCliente.carregando {
+  transform: scale(0.985);
+  filter: brightness(0.95);
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 21, 0.42);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.loading-overlay.ativo {
+  display: flex !important;
+  opacity: 1;
+}
+
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+  padding: 28px 34px;
+  border-radius: 26px;
+  background: rgba(11, 18, 38, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.loading-logo {
+  width: 150px;
+  max-width: 70vw;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.loading-texto {
+  margin: 0;
+  color: #f8fbff;
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.92;
+}
+
+body.loading-page {
+  overflow: hidden;
+}
