@@ -748,7 +748,6 @@ async function gerarContratoClienteParaHistorico() {
       contrato_html: htmlContrato,
       contrato_nome_arquivo: item.nome_arquivo,
       contrato_enviado_em: agoraIso,
-      contrato_atualizado_em: agoraIso,
       contrato_ativo: true,
       contrato_status: "pendente",
       contrato_assinado_em: null,
