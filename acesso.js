@@ -950,6 +950,8 @@ async function carregarAreaCliente(codigo) {
 }
 
 function entrarComCodigoDigitado() {
+  console.log("botao clicado");
+
   const codigo = normalizarCodigo(codigoLogin?.value);
 
   if (!codigo) {
@@ -979,6 +981,7 @@ if (codigoLogin) {
 if (btnEntrarCliente) {
   btnEntrarCliente.addEventListener("click", (event) => {
     event.preventDefault();
+    console.log("click no botao entrar");
     entrarComCodigoDigitado();
   });
 }
