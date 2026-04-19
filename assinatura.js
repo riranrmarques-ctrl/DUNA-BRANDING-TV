@@ -12,6 +12,7 @@ const mensagemAssinatura = document.getElementById("mensagemAssinatura");
 const statusContrato = document.getElementById("statusContrato");
 const nomeCliente = document.getElementById("nomeCliente");
 const codigoCliente = document.getElementById("codigoCliente");
+const loadingOverlay = document.getElementById("loadingOverlay");
 const previewContrato = document.getElementById("previewContrato");
 const loadingOverlay = document.getElementById("loadingOverlay");
 const canvasAssinatura = document.getElementById("canvasAssinatura");
