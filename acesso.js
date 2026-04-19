@@ -149,7 +149,30 @@ function contratoEstaDisponivel(cliente) {
 }
 
 function contratoEstaConcluido(cliente) {
-  return Boolean(cliente?.contrato_assinado_em || cliente?.contrato_assinado_html);
+  if (!cliente) return false;
+
+  const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
+
+  if (!temAssinatura) return false;
+
+  const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
+  const dataContrato = new Date(
+    cliente.contrato_enviado_em ||
+    cliente.contrato_atualizado_em ||
+    cliente.contrato_updated_at ||
+    cliente.updated_at ||
+    0
+  );
+
+  if (Number.isNaN(dataAssinatura.getTime())) {
+    return Boolean(cliente.contrato_assinado_html);
+  }
+
+  if (!Number.isNaN(dataContrato.getTime()) && dataContrato > dataAssinatura) {
+    return false;
+  }
+
+  return true;
 }
 
 function obterImagemPonto(ponto) {
@@ -397,7 +420,10 @@ function abrirLogin() {
 function baixarContratoCliente() {
   if (!clienteAtual) return;
 
-  const html = clienteAtual.contrato_assinado_html || clienteAtual.contrato_html;
+  const concluido = contratoEstaConcluido(clienteAtual);
+  const html = concluido
+    ? clienteAtual.contrato_assinado_html || clienteAtual.contrato_html
+    : clienteAtual.contrato_html;
 
   if (!html) {
     setMensagem("Contrato indisponível para download.", "erro");
@@ -405,7 +431,7 @@ function baixarContratoCliente() {
   }
 
   const nomeArquivoBase = clienteAtual.contrato_nome_arquivo || `contrato-${codigoClienteAtual}.html`;
-  const nomeArquivo = contratoEstaConcluido(clienteAtual)
+  const nomeArquivo = concluido
     ? nomeArquivoBase.replace(/\.html$/i, "-assinado.html")
     : nomeArquivoBase;
 
@@ -420,50 +446,6 @@ function baixarContratoCliente() {
   document.body.removeChild(link);
 
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function renderizarHistoricoContrato() {
-  if (!historicoContratoCliente || !clienteAtual) return;
-
-  const disponivel = contratoEstaDisponivel(clienteAtual);
-  const concluido = disponivel && contratoEstaConcluido(clienteAtual);
-  const enviadoEm = clienteAtual.contrato_enviado_em || clienteAtual.contrato_atualizado_em || clienteAtual.updated_at || clienteAtual.created_at;
-  const assinadoEm = clienteAtual.contrato_assinado_em || clienteAtual.updated_at || null;
-
-  if (!disponivel) {
-    historicoContratoCliente.innerHTML = "";
-    return;
-  }
-
-  if (concluido) {
-    historicoContratoCliente.innerHTML = `
-      <div class="historico-contrato-item concluido">
-        <div>
-          <strong>Contrato concluído</strong>
-          <span>Assinado em ${formatarDataHora(assinadoEm)}.</span>
-        </div>
-        <button class="btn-historico-contrato" type="button">Baixar contrato</button>
-      </div>
-    `;
-
-    const botaoBaixar = historicoContratoCliente.querySelector(".btn-historico-contrato");
-
-    if (botaoBaixar) {
-      botaoBaixar.onclick = baixarContratoCliente;
-    }
-
-    return;
-  }
-
-  historicoContratoCliente.innerHTML = `
-    <div class="historico-contrato-item pendente">
-      <div>
-        <strong>Contrato enviado</strong>
-        <span>Enviado em ${formatarDataHora(enviadoEm)}.</span>
-        <small>Pendente de assinatura</small>
-      </div>
-    </div>
-  `;
 }
 
 function renderizarContrato() {
@@ -501,10 +483,7 @@ function renderizarContrato() {
     codigoClienteEl.textContent = "";
   }
 
-  if (supervisor) {
-    if (historicoContratoCliente) historicoContratoCliente.innerHTML = "";
-    return;
-  }
+  if (supervisor) return;
 
   if (contratoBadge) {
     contratoBadge.textContent = concluido
@@ -533,7 +512,6 @@ function renderizarContrato() {
       btnAssinarContrato.style.display = "none";
       btnAssinarContrato.disabled = true;
       btnAssinarContrato.onclick = null;
-      renderizarHistoricoContrato();
       return;
     }
 
@@ -552,8 +530,6 @@ function renderizarContrato() {
       window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
     };
   }
-
-  renderizarHistoricoContrato();
 }
 
 function montarCardPonto(ponto) {
