@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="acesso.css?v=537">
+  <link rel="stylesheet" href="acesso.css?v=600">
 </head>
 <body>
   <section id="loginScreen" class="login-screen">
@@ -34,7 +34,14 @@
         autocomplete="off"
       >
 
-      <button id="btnEntrarCliente" type="button">Entrar</button>
+      <button
+        id="btnEntrarCliente"
+        type="button"
+        onclick="console.log('html click'); alert('clicou html')"
+      >
+        Entrar
+      </button>
+
 
       <p id="loginErro" class="login-erro"></p>
     </div>
@@ -143,6 +150,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=700"></script>
+  <script src="acesso.js?v=701"></script>
 </body>
 </html>
