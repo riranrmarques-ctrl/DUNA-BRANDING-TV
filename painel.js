@@ -665,6 +665,22 @@ function validarLogin() {
   }, 420);
 }
 
+if (btnLogin) {
+  btnLogin.onclick = validarLogin;
+}
+
+if (senhaInput) {
+  senhaInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") validarLogin();
+  });
+}
+
+if (usuarioInput) {
+  usuarioInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") validarLogin();
+  });
+}
+
 async function buscarPontosRemoto() {
   if (!supabaseClient) throw new Error("Supabase não carregou.");
 
@@ -1628,6 +1644,7 @@ async function iniciarPainel() {
 }
 
 garantirSessaoAdmin();
+
 if (sessionStorage.getItem("painelLiberado") === "1") {
   mostrarLoading();
 
@@ -1646,13 +1663,4 @@ if (sessionStorage.getItem("painelLiberado") === "1") {
       esconderLoading();
     }
   })();
-}
-
-  setTimeout(() => {
-    if (loginBox) loginBox.style.display = "none";
-    if (conteudoPainel) conteudoPainel.style.display = "block";
-    setStatus("Painel Ativo", "ok");
-    iniciarPainel();
-    esconderLoading();
-  }, 320);
 }
