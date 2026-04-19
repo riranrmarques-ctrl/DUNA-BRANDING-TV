@@ -46,6 +46,7 @@ let pontosData = {};
 let codigoClienteAtual = "";
 let clausulasContrato = [];
 let contratoAtivo = true;
+let clienteAtual = null;
 
 let dadosDunaContrato = {
   empresa: "Duna Branding",
@@ -1307,10 +1308,13 @@ async function carregarCliente() {
     console.error("Erro ao buscar cliente em clientes_app:", error);
     throw error;
   }
+  
+if (inputCodigo) inputCodigo.value = codigoClienteAtual;
 
-  if (inputCodigo) inputCodigo.value = codigoClienteAtual;
+clienteAtual = data || null;
 
-  if (!data) {
+if (!data) {
+
     if (inputNome) inputNome.value = "";
     if (inputTelefone) inputTelefone.value = "";
     if (inputEmail) inputEmail.value = "";
