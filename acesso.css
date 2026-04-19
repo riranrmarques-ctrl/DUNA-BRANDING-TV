@@ -1430,3 +1430,35 @@ body.rolando .btn-sair:focus-visible {
   border-color: rgba(255, 255, 255, 0.09) !important;
   color: #ffffff !important;
 }
+
+.contrato-card {
+  text-align: center !important;
+}
+
+.contrato-badge {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.contrato-badge.pendente {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #b45309 !important;
+}
+
+.contrato-badge.concluido {
+  background: rgba(34, 197, 94, 0.16) !important;
+  color: #166534 !important;
+}
+
+.contrato-badge.inativo {
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #b91c1c !important;
+}
+
+.codigo-cliente {
+  display: none !important;
+}
+
+.contrato-card p {
+  text-align: center !important;
+}
