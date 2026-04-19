@@ -33,10 +33,12 @@ const detalhePonto = document.getElementById("detalhePonto");
 const nomePontoDetalhe = document.getElementById("nomePontoDetalhe");
 const localPontoDetalhe = document.getElementById("localPontoDetalhe");
 const statusPontoDetalhe = document.getElementById("statusPontoDetalhe");
+const statusDesdeDetalhe = document.getElementById("statusDesdeDetalhe");
 const previewNome = document.getElementById("previewNome");
 const previewMidia = document.getElementById("previewMidia");
 const listaMateriais = document.getElementById("listaMateriais");
 const historicoStatusPonto = document.getElementById("historicoStatusPonto");
+const nomeClienteTopo = document.getElementById("nomeClienteTopo");
 
 let codigoClienteAtual = "";
 let clienteAtual = null;
@@ -358,6 +360,10 @@ function renderizarContrato() {
   const telefone = obterTelefoneCliente(clienteAtual);
   const vencimento = clienteAtual.vencimento_exibicao || clienteAtual.vencimento || clienteAtual.data_fim;
 
+  if (nomeClienteTopo) {
+    nomeClienteTopo.textContent = nome;
+  }
+
   if (contratoCard) {
     contratoCard.style.display = supervisor ? "none" : "";
   }
@@ -465,7 +471,7 @@ function renderizarPreview(lista) {
 
   if (!item) {
     if (previewNome) previewNome.textContent = "";
-    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material deste cliente para preview neste ponto.</div>`;
+    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material para preview neste ponto.</div>`;
     return;
   }
 
@@ -559,13 +565,14 @@ function renderizarDetalheBase(ponto, historico) {
   if (localPontoDetalhe) localPontoDetalhe.textContent = obterLocalizacaoPonto(ponto);
 
   if (statusPontoDetalhe) {
+    statusPontoDetalhe.textContent = status.texto;
+    statusPontoDetalhe.className = `status-grande ${status.classe}`;
+  }
+
+  if (statusDesdeDetalhe) {
     const historicoMaisRecente = historico[0] || null;
     const dataDesde = obterDataHistorico(historicoMaisRecente) || obterUltimoPingPonto(ponto);
-    const textoDesde = dataDesde ? `desde ${formatarDataHora(dataDesde)}` : "";
-
-    statusPontoDetalhe.textContent = status.texto;
-    statusPontoDetalhe.dataset.desde = textoDesde;
-    statusPontoDetalhe.className = `status-grande ${status.classe}`;
+    statusDesdeDetalhe.textContent = dataDesde ? `desde ${formatarDataHora(dataDesde)}` : "";
   }
 }
 
@@ -718,7 +725,7 @@ async function abrirPonto(codigo) {
     const materiaisCliente = filtrarMateriaisDoCliente(playlist);
 
     renderizarDetalheBase(ponto, historico72h);
-    renderizarPreview(materiaisCliente);
+    renderizarPreview(playlist);
     renderizarMateriais(materiaisCliente);
     renderizarHistorico(historico72h);
     renderizarListaPontos();
