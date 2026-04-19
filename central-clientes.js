@@ -171,13 +171,6 @@ async function chamarApi(url, opcoes = {}) {
   return json;
 }
 
-  if (!resposta.ok) {
-    throw new Error(json.error || "Erro na API.");
-  }
-
-  return json;
-}
-
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
 
