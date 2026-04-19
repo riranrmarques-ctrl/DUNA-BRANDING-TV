@@ -1493,3 +1493,124 @@ body {
     flex-direction: column;
   }
 }
+
+.novo-topo {
+  display: grid;
+  grid-template-columns: 220px 1fr 220px;
+  align-items: center;
+  gap: 16px;
+  min-height: 120px;
+  padding: 20px 28px;
+}
+
+.topo-esquerda {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.topo-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.topo-direita {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.logo-topo-img {
+  width: 220px;
+  max-width: 220px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  margin: 0 auto 8px;
+}
+
+.topo-centro h1 {
+  margin-top: 2px;
+}
+
+.menu-topo-wrap {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+}
+
+.menu-topo-btn {
+  min-width: 120px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(5, 8, 21, 0.34) !important;
+  backdrop-filter: blur(22px) !important;
+  -webkit-backdrop-filter: blur(22px) !important;
+  opacity: 0 !important;
+  transition: opacity 0.28s ease !important;
+}
+
+.loading-overlay.ativo {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
+.loading-box {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 22px !important;
+  text-align: center !important;
+  padding: 0 !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.loading-logo {
+  width: 360px !important;
+  max-width: 80vw !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: drop-shadow(0 18px 40px rgba(255, 255, 255, 0.08)) !important;
+}
+
+.loading-texto {
+  margin: 0 !important;
+  color: #f8fbff !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  opacity: 0.96 !important;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.loading-page {
+  overflow: hidden !important;
+}
