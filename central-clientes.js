@@ -539,8 +539,13 @@ async function carregarClientes(opcoes = {}) {
   try {
     mostrarMensagem(cache?.clientes?.length ? "Atualizando..." : "Carregando clientes...");
 
-    const resposta = await chamarApi("/api/admin-clientes");
-    const clientes = Array.isArray(resposta.clientes) ? resposta.clientes : [];
+  const { data, error } = await supabase
+    .from("clientes_app")
+    .select("*");
+
+  if (error) throw error;
+
+  const clientes = data || [];
 
     salvarCacheClientes(clientes);
     aplicarClientes(clientes, "Carregado.");
