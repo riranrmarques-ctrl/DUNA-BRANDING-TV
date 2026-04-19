@@ -1618,3 +1618,24 @@ body.rolando .btn-sair:focus-visible {
   opacity: 0.92 !important;
 }
 
+.detalhe-ponto {
+  padding-top: 10px !important;
+}
+
+.detalhe-cabecalho {
+  padding-top: 8px !important;
+  margin-top: -18px !important;
+}
+
+.detalhe-cabecalho > div:first-child {
+  transform: translateY(-6px) !important;
+}
+
+.status-area {
+  transform: translateY(-8px) !important;
+}
+
+.preview-box {
+  margin-top: -8px !important;
+}
+
