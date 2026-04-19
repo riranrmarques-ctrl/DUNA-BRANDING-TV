@@ -650,9 +650,9 @@ function validarLogin() {
 
   mostrarLoading();
 
-  sessionStorage.setItem("painelLiberado", "1");
-  sessionStorage.setItem("painelToken", ADMIN_TOKEN);
-
+  localStorage.setItem("painelLiberado", "1");
+  localStorage.setItem("painelToken", ADMIN_TOKEN);
+  
   if (loginErro) loginErro.textContent = "";
 
   setTimeout(() => {
