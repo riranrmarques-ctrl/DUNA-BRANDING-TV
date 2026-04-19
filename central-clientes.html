@@ -10,9 +10,8 @@
   <meta http-equiv="Expires" content="0">
 
   <script>
-    if (sessionStorage.getItem("painelLiberado") !== "1006") {
-      window.location.replace("/painel.html");
-    }
+    if (localStorage.getItem("painelLiberado") !== "1") {
+    window.location.replace("/painel.html");
   </script>
 
   <style>
