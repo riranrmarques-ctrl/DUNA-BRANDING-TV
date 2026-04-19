@@ -168,8 +168,6 @@ async function chamarApi(url, opcoes = {}) {
   return json;
 }
 
-  const json = await resposta.json().catch(() => ({}));
-
   if (!resposta.ok) {
     throw new Error(json.error || "Erro na API.");
   }
