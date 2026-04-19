@@ -4,7 +4,7 @@
   box-sizing: border-box;
 }
 
-:root {
+:root { 
   --bg: #040816;
   --panel: rgba(9, 17, 38, 0.82);
   --panel-2: rgba(15, 27, 57, 0.74);
