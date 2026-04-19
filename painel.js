@@ -854,6 +854,9 @@ function ativarBotoesCards() {
       window.location.assign("central-clientes.html");
     };
   }
+}
+
+function abrirPonto(codigo) {
 
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo || "").trim();
