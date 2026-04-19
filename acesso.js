@@ -1023,7 +1023,9 @@ window.addEventListener("scroll", () => {
 });
 
 window.addEventListener("load", () => {
-  const codigoUrl = obterCodigoUrl();
+  const params = new URLSearchParams(window.location.search);
+  const codigoUrl = normalizarCodigo(params.get("codigo"));
+  const voltouDaAssinatura = params.get("voltar") === "1";
 
   if (tituloBoasVindas) {
     tituloBoasVindas.classList.add("hero-titulo-classico");
@@ -1036,11 +1038,11 @@ window.addEventListener("load", () => {
     subtituloCliente.style.display = "none";
   }
 
-  if (codigoUrl) {
-    if (codigoLogin) {
-      codigoLogin.value = codigoUrl;
-    }
+  if (codigoUrl && codigoLogin) {
+    codigoLogin.value = codigoUrl;
+  }
 
+  if (codigoUrl && voltouDaAssinatura) {
     carregarAreaCliente(codigoUrl);
     return;
   }
