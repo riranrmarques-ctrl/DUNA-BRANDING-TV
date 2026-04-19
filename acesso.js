@@ -152,6 +152,7 @@ function contratoEstaConcluido(cliente) {
   if (!cliente) return false;
 
   const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
+
   if (!temAssinatura) return false;
 
   const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
@@ -377,6 +378,7 @@ function iniciarAtualizacaoContratoEmTempoReal() {
       },
       (payload) => {
         const novoCliente = payload.new;
+
         if (!novoCliente) return;
 
         clienteAtual = novoCliente;
@@ -392,9 +394,27 @@ function abrirAreaCliente() {
   if (areaCliente) areaCliente.style.display = "block";
 }
 
-function abrirSemLogin() {
-  if (loginScreen) loginScreen.style.display = "none";
-  if (areaCliente) areaCliente.style.display = "block";
+function abrirLogin() {
+  codigoClienteAtual = "";
+  clienteAtual = null;
+  pontosContratados = [];
+  historicosPorPonto = {};
+  pontoSelecionado = "";
+  limparTimerPreview();
+  pararAtualizacaoContratoEmTempoReal();
+
+  if (areaCliente) areaCliente.style.display = "none";
+  if (loginScreen) loginScreen.style.display = "flex";
+  if (contratoCard) contratoCard.style.display = "";
+
+  if (codigoLogin) {
+    codigoLogin.value = "";
+    setTimeout(() => codigoLogin.focus(), 100);
+  }
+
+  setLoginErro("");
+  setMensagem("");
+  limparTelaDetalhe();
 }
 
 function baixarContratoCliente() {
@@ -786,17 +806,44 @@ async function buscarPontos(codigos) {
 }
 
 async function buscarPlaylistPonto(codigo) {
-  const { data, error } = await supabaseClient
-    .from(TABELA_PLAYLIST)
-    .select("*")
-    .eq("codigo", codigo);
+  const consultas = [
+    {
+      colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,storage_path,tipo,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,codigo",
+      ordenarPor: "created_at"
+    }
+  ];
 
-  if (error) {
-    console.error("Erro ao buscar playlist:", error);
-    return [];
+  let ultimoErro = null;
+
+  for (const consulta of consultas) {
+    let query = supabaseClient
+      .from(TABELA_PLAYLIST)
+      .select(consulta.colunas)
+      .eq("codigo", codigo);
+
+    query = query.order(consulta.ordenarPor, { ascending: true });
+
+    const { data, error } = await query;
+
+    if (!error) return data || [];
+
+    ultimoErro = error;
+    console.warn("Falha ao buscar playlist com colunas:", consulta.colunas, error);
   }
 
-  return data || [];
+  throw ultimoErro;
 }
 
 async function buscarHistoricoPonto(codigo) {
@@ -886,12 +933,13 @@ async function carregarAreaCliente(codigo) {
   codigoClienteAtual = normalizarCodigo(codigo);
 
   if (!codigoClienteAtual) {
-    setMensagem("Código do cliente não encontrado na URL.", "erro");
+    setLoginErro("Digite o código do cliente.");
     return;
   }
 
+  setLoginErro("");
+  abrirAreaCliente();
   setMensagem("Carregando área do cliente...");
-  abrirSemLogin();
 
   if (codigoClienteEl) codigoClienteEl.textContent = codigoClienteAtual;
 
@@ -899,7 +947,8 @@ async function carregarAreaCliente(codigo) {
     clienteAtual = await buscarCliente(codigoClienteAtual);
 
     if (!clienteAtual) {
-      setMensagem("Cliente não encontrado para este código.", "erro");
+      abrirLogin();
+      setLoginErro("Cliente não encontrado para este código.");
       return;
     }
 
@@ -929,14 +978,31 @@ async function carregarAreaCliente(codigo) {
   }
 }
 
+function entrarComCodigoDigitado() {
+  const codigo = normalizarCodigo(codigoLogin?.value);
+
+  if (!codigo) {
+    setLoginErro("Digite o código do cliente.");
+    return;
+  }
+
+  carregarAreaCliente(codigo);
+}
+
+if (btnEntrarCliente) btnEntrarCliente.onclick = entrarComCodigoDigitado;
+
+if (codigoLogin) {
+  codigoLogin.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") entrarComCodigoDigitado();
+  });
+}
+
 if (btnAtualizar) {
   btnAtualizar.onclick = () => carregarAreaCliente(codigoClienteAtual);
 }
 
 if (btnSair) {
-  btnSair.onclick = () => {
-    window.location.href = "/acesso.html";
-  };
+  btnSair.onclick = () => abrirLogin();
 }
 
 if (codigoClienteEl) {
@@ -957,7 +1023,9 @@ window.addEventListener("scroll", () => {
 });
 
 window.addEventListener("load", () => {
-  const codigoUrl = obterCodigoUrl();
+  const params = new URLSearchParams(window.location.search);
+  const codigoUrl = normalizarCodigo(params.get("codigo"));
+  const voltouDaAssinatura = params.get("voltar") === "1";
 
   if (tituloBoasVindas) {
     tituloBoasVindas.classList.add("hero-titulo-classico");
@@ -970,5 +1038,14 @@ window.addEventListener("load", () => {
     subtituloCliente.style.display = "none";
   }
 
-  carregarAreaCliente(codigoUrl);
+  if (codigoUrl && codigoLogin) {
+    codigoLogin.value = codigoUrl;
+  }
+
+  if (codigoUrl && voltouDaAssinatura) {
+    carregarAreaCliente(codigoUrl);
+    return;
+  }
+
+  abrirLogin();
 });
