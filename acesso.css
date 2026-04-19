@@ -1303,3 +1303,37 @@ body.rolando .topo-cliente {
   }
 }
 
+.detalhe-ponto {
+  padding-top: 12px !important;
+}
+
+.detalhe-cabecalho {
+  min-height: 150px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  align-items: start !important;
+}
+
+.detalhe-cabecalho > div:first-child {
+  align-self: start !important;
+  padding-top: 12px !important;
+  padding-bottom: 0 !important;
+}
+
+.detalhe-cabecalho h2 {
+  margin-top: 0 !important;
+}
+
+.status-area {
+  padding-top: 8px !important;
+  transform: none !important;
+}
+
+.preview-box {
+  margin-top: 14px !important;
+}
+
+.preview-topo {
+  margin-bottom: 14px !important;
+}
+
