@@ -754,3 +754,33 @@ input {
   justify-content: center !important;
 }
 
+.assinatura-topo {
+  align-items: center;
+}
+
+.assinatura-topo > div:first-child {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.assinatura-logo {
+  display: block;
+  align-self: flex-start;
+}
+
+.topo-acoes {
+  display: flex;
+  align-items: center;
+}
+
+.mensagem {
+  font-size: 2rem;
+  line-height: 1.18;
+  font-weight: 500;
+}
+
+.mensagem:not(.ok):not(.erro) {
+  color: #f59e0b;
+}
+
