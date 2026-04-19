@@ -135,6 +135,9 @@ function obterAdminToken() {
   return sessionStorage.getItem(ADMIN_TOKEN_KEY) || "";
 }
 
+console.log("LIBERADO:", localStorage.getItem("painelLiberado"));
+console.log("TOKEN:", localStorage.getItem("painelToken"));
+
 function verificarAcesso() {
   const liberado = localStorage.getItem("painelLiberado");
   const token = localStorage.getItem("painelToken");
