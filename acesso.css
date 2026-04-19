@@ -1391,3 +1391,42 @@ body.rolando .topo-mensagem {
   margin-bottom: 10px !important;
 }
 
+.detalhe-cabecalho > div:first-child {
+  text-align: center !important;
+  justify-self: center !important;
+  width: 100% !important;
+}
+
+.detalhe-cabecalho h2 {
+  text-align: center !important;
+}
+
+.detalhe-cabecalho p {
+  width: fit-content !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: center !important;
+  text-decoration: underline !important;
+  text-underline-offset: 6px !important;
+  text-decoration-thickness: 1px !important;
+  cursor: pointer !important;
+}
+
+.btn-sair,
+body.rolando .btn-sair {
+  border-radius: 8px !important;
+  background: #8ecbff !important;
+  border-color: rgba(142, 203, 255, 0.72) !important;
+  color: #061225 !important;
+}
+
+.btn-sair:hover,
+body.rolando .btn-sair:hover,
+.btn-sair:active,
+body.rolando .btn-sair:active,
+.btn-sair:focus-visible,
+body.rolando .btn-sair:focus-visible {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  color: #ffffff !important;
+}
