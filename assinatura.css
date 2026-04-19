@@ -482,3 +482,32 @@ body.contrato-assinado::before {
   display: none !important;
 }
 
+#mensagemAssinatura {
+  position: fixed !important;
+  top: 190px !important;
+  right: 285px !important;
+  left: auto !important;
+  z-index: 80 !important;
+
+  display: block !important;
+  width: 280px !important;
+  max-width: 280px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #d9e1f2 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  text-transform: none !important;
+
+  pointer-events: none !important;
+}
+
+#mensagemAssinatura:empty {
+  display: none !important;
+}
+
