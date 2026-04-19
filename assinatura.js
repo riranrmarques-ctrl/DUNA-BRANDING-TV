@@ -28,13 +28,12 @@ let assinaturaFoiDesenhada = false;
 let contratoFoiLidoAteOFim = false;
 
 function setMensagem(texto, tipo = "normal") {
+  console.log(texto || "", tipo);
+
   if (!mensagemAssinatura) return;
 
-  mensagemAssinatura.textContent = texto || "";
+  mensagemAssinatura.textContent = "";
   mensagemAssinatura.classList.remove("ok", "erro");
-
-  if (tipo === "ok") mensagemAssinatura.classList.add("ok");
-  if (tipo === "erro") mensagemAssinatura.classList.add("erro");
 }
 
 function escapeHtml(texto) {
@@ -134,17 +133,35 @@ function atualizarBotaoConclusaoPorLeitura() {
   btnConcluirDesenho.classList.toggle("leitura-pendente", !contratoFoiLidoAteOFim);
 }
 
-  btnConcluirDesenho.disabled = !contratoFoiLidoAteOFim;
-  btnConcluirDesenho.textContent = contratoFoiLidoAteOFim
-    ? "Concluir com assinatura"
-    : "Leia o contrato até o fim";
+function verificarLeituraContrato() {
+  if (!previewContrato) return;
+
+  const documento = previewContrato.contentDocument;
+  const janela = previewContrato.contentWindow;
+
+  if (!documento || !janela) return;
+
+  const scrollTop = janela.scrollY || documento.documentElement.scrollTop || documento.body.scrollTop || 0;
+  const alturaVisivel = janela.innerHeight || documento.documentElement.clientHeight || 0;
+  const alturaTotal = Math.max(
+    documento.body.scrollHeight || 0,
+    documento.documentElement.scrollHeight || 0
+  );
+
+  if (alturaTotal <= alturaVisivel + 24) {
+    contratoFoiLidoAteOFim = true;
+    atualizarBotaoConclusaoPorLeitura();
+    return;
+  }
+
+  if (scrollTop + alturaVisivel >= alturaTotal - 24) {
+    contratoFoiLidoAteOFim = true;
+    atualizarBotaoConclusaoPorLeitura();
+  }
 }
 
 function configurarLeituraObrigatoria() {
   if (!previewContrato) return;
-
-  contratoFoiLidoAteOFim = false;
-  atualizarBotaoConclusaoPorLeitura();
 
   previewContrato.addEventListener("load", () => {
     contratoFoiLidoAteOFim = false;
@@ -155,22 +172,11 @@ function configurarLeituraObrigatoria() {
 
     if (!documento || !janela) return;
 
-    const verificarScroll = () => {
-      const scrollTop = janela.scrollY || documento.documentElement.scrollTop || documento.body.scrollTop || 0;
-      const alturaVisivel = janela.innerHeight || documento.documentElement.clientHeight || 0;
-      const alturaTotal = Math.max(
-        documento.body.scrollHeight,
-        documento.documentElement.scrollHeight
-      );
+    janela.addEventListener("scroll", verificarLeituraContrato);
+    documento.addEventListener("scroll", verificarLeituraContrato);
 
-      if (scrollTop + alturaVisivel >= alturaTotal - 24) {
-        contratoFoiLidoAteOFim = true;
-        atualizarBotaoConclusaoPorLeitura();
-      }
-    };
-
-    janela.addEventListener("scroll", verificarScroll);
-    setTimeout(verificarScroll, 300);
+    setTimeout(verificarLeituraContrato, 300);
+    setTimeout(verificarLeituraContrato, 900);
   });
 }
 
@@ -197,7 +203,9 @@ function atualizarEstadoVisual() {
     btnBaixarContrato.classList.toggle("pendente", !concluido);
   }
 
-  if (btnConcluirFotos) btnConcluirFotos.disabled = true;
+  if (btnConcluirFotos) {
+    btnConcluirFotos.disabled = true;
+  }
 
   const assinaturaCard = document.querySelector(".assinatura-card");
   const blocoDesenho = canvasAssinatura?.closest(".bloco");
@@ -417,8 +425,6 @@ function baixarHtmlContrato() {
 async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = [] }) {
   contratoFinalHtml = anexarConclusaoAoContrato({ metodo, assinaturaImagem, fotos });
 
-  setMensagem("Salvando contrato concluído...");
-
   const payload = {
     contrato_status: "concluido",
     contrato_assinado_em: new Date().toISOString(),
@@ -441,7 +447,6 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
 
   renderizarPreview(contratoFinalHtml);
   atualizarEstadoVisual();
-  setMensagem("Contrato concluído. Você já pode baixar o documento.", "ok");
 }
 
 function obterPontoCanvas(event) {
@@ -524,25 +529,44 @@ function lerArquivoComoDataUrl(file) {
   });
 }
 
+async function concluirComDesenho() {
+  if (contratoEstaConcluido(clienteAtual)) return;
+
+  if (!contratoFoiLidoAteOFim) {
+    alert("Leia o contrato completo antes de concluir.");
+    return;
+  }
+
+  if (!assinaturaFoiDesenhada) {
+    alert("Desenhe sua assinatura antes de concluir.");
+    return;
+  }
+
+  try {
+    const assinaturaImagem = canvasAssinatura.toDataURL("image/png");
+    await salvarContratoConcluido({ metodo: "desenho", assinaturaImagem });
+  } catch (error) {
+    console.error(error);
+    alert("Erro ao concluir contrato. Verifique se as colunas de assinatura existem no Supabase.");
+  }
+}
+
 async function concluirComFotos() {
   if (contratoEstaConcluido(clienteAtual)) return;
 
   const arquivos = Array.from(fotosInput?.files || []);
 
   if (!arquivos.length) {
-    setMensagem("Envie ao menos uma foto do contrato assinado.", "erro");
+    alert("Envie ao menos uma foto do contrato assinado.");
     return;
   }
 
   try {
-    setMensagem("Processando fotos...");
-
     const fotos = await Promise.all(arquivos.map(lerArquivoComoDataUrl));
-
     await salvarContratoConcluido({ metodo: "fotos", fotos });
   } catch (error) {
     console.error(error);
-    setMensagem("Erro ao concluir com fotos. Tente imagens menores ou verifique o Supabase.", "erro");
+    alert("Erro ao concluir com fotos. Tente imagens menores ou verifique o Supabase.");
   }
 }
 
@@ -567,20 +591,13 @@ function aplicarEstadoCarregado(data) {
 
   renderizarPreview(contratoFinalHtml);
   atualizarEstadoVisual();
-
-  setMensagem(
-    concluido
-      ? `Contrato concluído em ${formatarDataHora(data.contrato_assinado_em)}.`
-      : "Carregando contrato...",
-    concluido ? "ok" : "normal"
-  );
 }
 
 async function carregarContrato() {
   codigoAtual = obterCodigoUrl();
 
   if (!codigoAtual) {
-    setMensagem("Código do cliente não encontrado.", "erro");
+    alert("Código do cliente não encontrado.");
     aplicarTituloVisual(true);
     return;
   }
@@ -606,19 +623,19 @@ async function carregarContrato() {
     if (error) throw error;
 
     if (!data) {
-      setMensagem("Cliente não encontrado.", "erro");
+      alert("Cliente não encontrado.");
       aplicarTituloVisual(true);
       return;
     }
 
     if (clienteEhSupervisor(data)) {
-      setMensagem("Supervisor não possui contrato para assinatura.", "erro");
+      alert("Supervisor não possui contrato para assinatura.");
       aplicarTituloVisual(true);
       return;
     }
 
     if (!data.contrato_html) {
-      setMensagem("Ainda não existe contrato enviado para este cliente.", "erro");
+      alert("Ainda não existe contrato enviado para este cliente.");
       aplicarTituloVisual(true);
       return;
     }
@@ -626,7 +643,7 @@ async function carregarContrato() {
     aplicarEstadoCarregado(data);
   } catch (error) {
     console.error(error);
-    setMensagem("Erro ao carregar contrato.", "erro");
+    alert("Erro ao carregar contrato.");
     aplicarTituloVisual(true);
   }
 }
