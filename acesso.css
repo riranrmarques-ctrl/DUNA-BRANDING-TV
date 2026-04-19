@@ -1009,23 +1009,28 @@ body.rolando .boas-vindas {
 
 .topo-cliente {
   width: 100vw !important;
+  height: 70px !important;
+  min-height: 70px !important;
+  max-height: 70px !important;
   margin-left: calc(50% - 50vw) !important;
   margin-right: calc(50% - 50vw) !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 50 !important;
-  min-height: 82px !important;
   padding: 0 !important;
   margin-bottom: 22px !important;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
+  overflow: visible !important;
 }
 
 .topo-conteudo {
   width: min(100%, 1240px) !important;
-  min-height: 82px !important;
+  height: 70px !important;
+  min-height: 70px !important;
+  max-height: 70px !important;
   margin: 0 auto !important;
   padding: 0 20px !important;
   display: flex !important;
@@ -1035,33 +1040,41 @@ body.rolando .boas-vindas {
 }
 
 body.rolando .topo-cliente {
-  min-height: 38px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
   background: rgba(7, 17, 38, 0.74) !important;
   backdrop-filter: blur(18px) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.16) !important;
+  margin-bottom: 14px !important;
 }
 
 body.rolando .topo-conteudo {
-  min-height: 38px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
 }
 
 .topo-esquerda {
   display: flex !important;
   align-items: center !important;
-  gap: 20px !important;
+  gap: 22px !important;
   min-width: 0 !important;
+  height: 100% !important;
 }
 
 .logo-cliente {
-  width: 210px !important;
+  width: 270px !important;
   height: auto !important;
+  max-height: 58px !important;
   object-fit: contain !important;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22)) !important;
-  transition: width 0.35s ease, filter 0.35s ease !important;
+  transition: width 0.35s ease, max-height 0.35s ease, filter 0.35s ease !important;
 }
 
 body.rolando .logo-cliente {
-  width: 170px !important;
+  width: 230px !important;
+  max-height: 26px !important;
 }
 
 .nome-cliente-topo {
@@ -1098,6 +1111,7 @@ body.rolando .nome-cliente-topo {
   justify-content: flex-end !important;
   gap: 18px !important;
   min-width: 0 !important;
+  height: 100% !important;
 }
 
 .topo-area-bloco {
@@ -1106,6 +1120,7 @@ body.rolando .nome-cliente-topo {
   align-items: center !important;
   justify-content: flex-end !important;
   min-width: 0 !important;
+  height: 100% !important;
 }
 
 .topo-label {
@@ -1124,7 +1139,7 @@ body.rolando .nome-cliente-topo {
 }
 
 body.rolando .topo-label {
-  font-size: 0.78rem !important;
+  font-size: 0.72rem !important;
   opacity: 0.82 !important;
 }
 
@@ -1144,7 +1159,7 @@ body.rolando .topo-label {
 
 body.rolando .topo-mensagem {
   top: calc(100% + 2px) !important;
-  font-size: 0.62rem !important;
+  font-size: 0.6rem !important;
 }
 
 .btn-sair {
@@ -1157,34 +1172,50 @@ body.rolando .topo-mensagem {
 }
 
 body.rolando .btn-sair {
-  height: 30px !important;
-  min-width: 60px !important;
-  border-radius: 10px !important;
-  padding: 0 14px !important;
-  font-size: 0.76rem !important;
+  height: 24px !important;
+  min-width: 52px !important;
+  border-radius: 8px !important;
+  padding: 0 12px !important;
+  font-size: 0.68rem !important;
 }
 
 @media (max-width: 760px) {
+  .topo-cliente,
+  .topo-conteudo {
+    height: 62px !important;
+    min-height: 62px !important;
+    max-height: 62px !important;
+  }
+
+  body.rolando .topo-cliente,
+  body.rolando .topo-conteudo {
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+  }
+
   .topo-conteudo {
     padding: 0 14px !important;
     gap: 12px !important;
   }
 
   .logo-cliente {
-    width: 156px !important;
+    width: 190px !important;
+    max-height: 48px !important;
   }
 
   body.rolando .logo-cliente {
-    width: 126px !important;
+    width: 150px !important;
+    max-height: 24px !important;
   }
 
   .topo-label {
-    font-size: 0.7rem !important;
-    letter-spacing: 0.09em !important;
+    font-size: 0.66rem !important;
+    letter-spacing: 0.08em !important;
   }
 
   body.rolando .topo-label {
-    font-size: 0.62rem !important;
+    font-size: 0.58rem !important;
   }
 
   .nome-cliente-topo {
