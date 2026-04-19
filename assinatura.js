@@ -128,6 +128,11 @@ function atualizarBotaoConclusaoPorLeitura() {
     return;
   }
 
+  btnConcluirDesenho.disabled = false;
+  btnConcluirDesenho.textContent = "Concluir com assinatura";
+  btnConcluirDesenho.classList.toggle("leitura-pendente", !contratoFoiLidoAteOFim);
+}
+
   btnConcluirDesenho.disabled = !contratoFoiLidoAteOFim;
   btnConcluirDesenho.textContent = contratoFoiLidoAteOFim
     ? "Concluir com assinatura"
@@ -516,28 +521,6 @@ function lerArquivoComoDataUrl(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-}
-
-async function concluirComDesenho() {
-  if (contratoEstaConcluido(clienteAtual)) return;
-
-  if (!contratoFoiLidoAteOFim) {
-    setMensagem("Leia o contrato até o fim antes de concluir a assinatura.", "erro");
-    return;
-  }
-
-  if (!assinaturaFoiDesenhada) {
-    setMensagem("Desenhe sua assinatura antes de concluir.", "erro");
-    return;
-  }
-
-  try {
-    const assinaturaImagem = canvasAssinatura.toDataURL("image/png");
-    await salvarContratoConcluido({ metodo: "desenho", assinaturaImagem });
-  } catch (error) {
-    console.error(error);
-    setMensagem("Erro ao concluir contrato. Verifique se as colunas de assinatura existem no Supabase.", "erro");
-  }
 }
 
 async function concluirComFotos() {
