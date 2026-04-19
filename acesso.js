@@ -414,7 +414,7 @@ function renderizarContrato() {
     } else if (disponivel) {
       contratoInfo.textContent = "Seu contrato está pronto para revisão, mas ainda precisa da sua leitura e assinatura para ser concluído.";
     } else {
-      contratoInfo.textContent = "Seu contrato ainda não está disponível. Se precisar de ajuda, fale com a equipe da Duna.";
+      contratoInfo.textContent = "Seu contrato foi concluído e está disponível para download. Baixe agora!";
     }
   }
 
