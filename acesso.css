@@ -1158,3 +1158,148 @@ body.rolando .boas-vindas {
     font-size: 0.78rem;
   }
 }
+
+.topo-cliente {
+  transition:
+    background 0.35s ease,
+    backdrop-filter 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.35s ease !important;
+}
+
+body.rolando .topo-cliente {
+  background: rgba(7, 17, 38, 0.78) !important;
+  backdrop-filter: blur(18px) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22) !important;
+}
+
+.topo-conteudo,
+.logo-cliente,
+.nome-cliente-topo,
+.topo-label,
+.btn-sair {
+  transition:
+    opacity 0.3s ease,
+    transform 0.35s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease !important;
+}
+
+.detalhe-cabecalho {
+  min-height: 255px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 300px !important;
+  align-items: stretch !important;
+  gap: 24px !important;
+  margin-bottom: 12px !important;
+}
+
+.detalhe-cabecalho > div:first-child {
+  align-self: end !important;
+  padding-bottom: 8px !important;
+}
+
+.detalhe-cabecalho h2 {
+  font-size: clamp(2rem, 4.2vw, 4rem) !important;
+  line-height: 0.96 !important;
+  margin: 0 !important;
+}
+
+.detalhe-cabecalho p {
+  margin-top: 14px !important;
+  font-size: 1rem !important;
+}
+
+.status-area {
+  align-self: start !important;
+  justify-self: end !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  gap: 7px !important;
+  transform: none !important;
+  padding-top: 6px !important;
+}
+
+.status-desde {
+  order: 1 !important;
+  width: 100% !important;
+  text-align: right !important;
+  font-size: 0.66rem !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  color: #e5e7eb !important;
+  opacity: 0.9 !important;
+}
+
+.status-grande {
+  order: 2 !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  min-width: 128px !important;
+  border-radius: 8px !important;
+  padding: 8px 20px !important;
+  font-size: 0.72rem !important;
+  text-align: center !important;
+}
+
+.preview-box {
+  margin-top: 58px !important;
+}
+
+.preview-topo {
+  margin-bottom: 22px !important;
+}
+
+.historico-secao {
+  margin-top: 34px !important;
+}
+
+.historico-secao h3 {
+  font-size: 0.86rem !important;
+}
+
+.historico-lista {
+  max-height: 190px !important;
+}
+
+.historico-item {
+  min-height: 36px !important;
+  padding: 8px 11px !important;
+  border-radius: 11px !important;
+}
+
+.historico-evento {
+  font-size: 0.72rem !important;
+}
+
+.historico-item span:last-child {
+  font-size: 0.62rem !important;
+}
+
+@media (max-width: 760px) {
+  .detalhe-cabecalho {
+    min-height: 210px !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .status-area {
+    align-items: flex-start !important;
+    justify-self: start !important;
+  }
+
+  .status-desde {
+    text-align: left !important;
+  }
+
+  .status-grande {
+    margin-left: 0 !important;
+  }
+
+  .preview-box {
+    margin-top: 32px !important;
+  }
+}
+
