@@ -466,3 +466,29 @@ body.contrato-assinado::before {
     font-size: 0.9rem;
   }
 }
+
+.assinatura-shell > .btn-secundario,
+.assinatura-shell > button,
+main > .btn-secundario,
+main > button {
+  display: none !important;
+}
+
+.assinatura-topo {
+  margin-bottom: 34px !important;
+}
+
+.assinatura-layout {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 980px) {
+  .assinatura-topo {
+    margin-bottom: 28px !important;
+  }
+
+  .assinatura-layout {
+    margin-top: 0 !important;
+  }
+}
+
