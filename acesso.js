@@ -152,7 +152,6 @@ function contratoEstaConcluido(cliente) {
   if (!cliente) return false;
 
   const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
-
   if (!temAssinatura) return false;
 
   const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
@@ -819,27 +818,6 @@ async function buscarPlaylistPonto(codigo) {
   return data || [];
 }
 
-  let ultimoErro = null;
-
-  for (const consulta of consultas) {
-    let query = supabaseClient
-      .from(TABELA_PLAYLIST)
-      .select(consulta.colunas)
-      .eq("codigo", codigo);
-
-    query = query.order(consulta.ordenarPor, { ascending: true });
-
-    const { data, error } = await query;
-
-    if (!error) return data || [];
-
-    ultimoErro = error;
-    console.warn("Falha ao buscar playlist com colunas:", consulta.colunas, error);
-  }
-
-  throw ultimoErro;
-}
-
 async function buscarHistoricoPonto(codigo) {
   const consultas = [
     { colunas: "evento,data_hora,created_at", ordenarPor: "data_hora" },
@@ -983,12 +961,23 @@ function entrarComCodigoDigitado() {
   carregarAreaCliente(codigo);
 }
 
-if (btnEntrarCliente) btnEntrarCliente.onclick = entrarComCodigoDigitado;
-
 if (codigoLogin) {
+  codigoLogin.placeholder = "EX: A1B1";
+  codigoLogin.maxLength = 4;
+
+  codigoLogin.addEventListener("input", () => {
+    codigoLogin.value = codigoLogin.value.toUpperCase().replace(/\s/g, "");
+  });
+
   codigoLogin.addEventListener("keydown", (event) => {
     if (event.key === "Enter") entrarComCodigoDigitado();
   });
+}
+
+if (btnEntrarCliente) {
+  btnEntrarCliente.onclick = () => {
+    entrarComCodigoDigitado();
+  };
 }
 
 if (btnAtualizar) {
