@@ -137,11 +137,11 @@ function obterAdminToken() {
 
 function verificarAcesso() {
   const liberado = sessionStorage.getItem("painelLiberado");
-  const token = obterAdminToken();
+  const token = sessionStorage.getItem("painelToken");
 
   if (liberado !== "1" || !token) {
-    window.location.href = "/painel.html";
-    return false;
+    console.warn("Sessão inválida, redirecionando...");
+    return false; //
   }
 
   return true;
@@ -629,6 +629,7 @@ function iniciarPagina() {
   }
 
   if (!verificarAcesso()) {
+    mostrarMensagem("Sessão expirada. Faça login novamente.", "#ff6b6b");
     return;
   }
 
