@@ -171,14 +171,41 @@ function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataCon
       `).join("")
     : "";
 
-  const assinaturaHtml = assinaturaImagem
+  const assinaturaContratanteHtml = assinaturaImagem
     ? `
-      <div style="margin:30px 0 18px;">
-        <h3 style="font-size:15px;margin:0 0 12px;color:#111827;">Assinatura eletrônica</h3>
-        <img src="${assinaturaImagem}" alt="Assinatura eletrônica" style="display:block;width:320px;max-width:100%;height:auto;margin:0 0 8px;">
+      <div style="width:48%;min-width:260px;text-align:center;">
+        <img src="${assinaturaImagem}" alt="Assinatura eletrônica do contratante" style="display:block;width:260px;max-width:90%;height:auto;margin:0 auto -4px;">
+        <div style="border-top:1.8px solid #111827;margin-top:0;padding-top:8px;font-weight:700;color:#111827;">
+          CONTRATANTE
+        </div>
       </div>
     `
-    : "";
+    : `
+      <div style="width:48%;min-width:260px;text-align:center;">
+        <div style="height:92px;"></div>
+        <div style="border-top:1.8px solid #111827;margin-top:0;padding-top:8px;font-weight:700;color:#111827;">
+          CONTRATANTE
+        </div>
+      </div>
+    `;
+
+  const assinaturaDunaHtml = `
+    <div style="width:48%;min-width:260px;text-align:center;">
+      <div style="height:92px;"></div>
+      <div style="border-top:1.8px solid #111827;margin-top:0;padding-top:8px;font-weight:700;color:#111827;">
+        Duna Publicidade
+      </div>
+    </div>
+  `;
+
+  const blocoAssinaturas = `
+    <section style="page-break-inside:avoid;margin-top:42px;">
+      <div style="display:flex;justify-content:space-between;gap:28px;align-items:flex-end;flex-wrap:wrap;">
+        ${assinaturaContratanteHtml}
+        ${assinaturaDunaHtml}
+      </div>
+    </section>
+  `;
 
   const comprovantesHtml = fotos.length
     ? `
@@ -189,7 +216,7 @@ function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataCon
     `
     : "";
 
-  return `
+  const blocoConclusao = `
     <section style="page-break-inside:avoid;margin-top:42px;padding-top:22px;border-top:2px solid #111827;">
       <h2 style="font-size:18px;margin:0 0 12px;color:#111827;">Assinatura e conclusão</h2>
       <p style="margin:0 0 8px;line-height:1.6;color:#111827;">
@@ -198,10 +225,11 @@ function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataCon
       <p style="margin:0 0 14px;line-height:1.6;color:#111827;">
         Método utilizado: ${metodo === "fotos" ? "assinatura física com comprovante em imagem" : "assinatura eletrônica"}.
       </p>
-      ${assinaturaHtml}
       ${comprovantesHtml}
     </section>
   `;
+
+  return `${blocoAssinaturas}${blocoConclusao}`;
 }
 
 function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }) {
