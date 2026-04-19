@@ -181,10 +181,11 @@ button {
     min-height 0.35s ease,
     max-height 0.35s ease;
 }
+
 body.rolando .topo-cliente {
-  height: 64px !important;
-  min-height: 64px !important;
-  max-height: 64px !important;
+  height: 128px !important;
+  min-height: 128px !important;
+  max-height: 128px !important;
   background: rgba(7, 17, 38, 0.78) !important;
   backdrop-filter: blur(18px) !important;
   box-shadow: 0 9px 26px rgba(0, 0, 0, 0.18) !important;
@@ -192,24 +193,39 @@ body.rolando .topo-cliente {
 }
 
 body.rolando .topo-conteudo {
-  height: 64px !important;
-  min-height: 64px !important;
-  max-height: 64px !important;
+  height: 128px !important;
+  min-height: 128px !important;
+  max-height: 128px !important;
+}
+
+body.rolando .topo-esquerda {
+  gap: 12px !important;
 }
 
 body.rolando .logo-cliente {
   width: 285px !important;
-  max-height: 54px !important;
+  max-height: 82px !important;
 }
 
 body.rolando .nome-cliente-topo {
-  font-size: 1.34rem !important;
+  max-width: 620px !important;
+  font-size: 1.42rem !important;
+  font-weight: 500 !important;
   opacity: 1 !important;
   transform: translateY(0) !important;
 }
 
+body.rolando .nome-cliente-topo::before {
+  margin: 0 14px 0 0 !important;
+}
+
+body.rolando .topo-acoes {
+  gap: 12px !important;
+}
+
 body.rolando .topo-label {
   font-size: 0.94rem !important;
+  letter-spacing: 0.13em !important;
   opacity: 0.9 !important;
 }
 
