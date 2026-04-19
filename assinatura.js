@@ -25,6 +25,7 @@ let contratoAtualHtml = "";
 let contratoFinalHtml = "";
 let desenhando = false;
 let assinaturaFoiDesenhada = false;
+let contratoFoiLidoAteOFim = false;
 
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemAssinatura) return;
@@ -116,6 +117,57 @@ function ocultarOpcaoFotos() {
   if (divisor) divisor.style.display = "none";
 }
 
+function atualizarBotaoConclusaoPorLeitura() {
+  const concluido = contratoEstaConcluido(clienteAtual);
+
+  if (!btnConcluirDesenho) return;
+
+  if (concluido) {
+    btnConcluirDesenho.disabled = true;
+    btnConcluirDesenho.textContent = "Concluir com assinatura";
+    return;
+  }
+
+  btnConcluirDesenho.disabled = !contratoFoiLidoAteOFim;
+  btnConcluirDesenho.textContent = contratoFoiLidoAteOFim
+    ? "Concluir com assinatura"
+    : "Leia o contrato até o fim";
+}
+
+function configurarLeituraObrigatoria() {
+  if (!previewContrato) return;
+
+  contratoFoiLidoAteOFim = false;
+  atualizarBotaoConclusaoPorLeitura();
+
+  previewContrato.addEventListener("load", () => {
+    contratoFoiLidoAteOFim = false;
+    atualizarBotaoConclusaoPorLeitura();
+
+    const documento = previewContrato.contentDocument;
+    const janela = previewContrato.contentWindow;
+
+    if (!documento || !janela) return;
+
+    const verificarScroll = () => {
+      const scrollTop = janela.scrollY || documento.documentElement.scrollTop || documento.body.scrollTop || 0;
+      const alturaVisivel = janela.innerHeight || documento.documentElement.clientHeight || 0;
+      const alturaTotal = Math.max(
+        documento.body.scrollHeight,
+        documento.documentElement.scrollHeight
+      );
+
+      if (scrollTop + alturaVisivel >= alturaTotal - 24) {
+        contratoFoiLidoAteOFim = true;
+        atualizarBotaoConclusaoPorLeitura();
+      }
+    };
+
+    janela.addEventListener("scroll", verificarScroll);
+    setTimeout(verificarScroll, 300);
+  });
+}
+
 function atualizarEstadoVisual() {
   const concluido = contratoEstaConcluido(clienteAtual);
 
@@ -139,7 +191,6 @@ function atualizarEstadoVisual() {
     btnBaixarContrato.classList.toggle("pendente", !concluido);
   }
 
-  if (btnConcluirDesenho) btnConcluirDesenho.disabled = concluido;
   if (btnConcluirFotos) btnConcluirFotos.disabled = true;
 
   const assinaturaCard = document.querySelector(".assinatura-card");
@@ -152,6 +203,8 @@ function atualizarEstadoVisual() {
   if (assinaturaCard) {
     assinaturaCard.classList.toggle("contrato-concluido", concluido);
   }
+
+  atualizarBotaoConclusaoPorLeitura();
 }
 
 function renderizarPreview(html) {
@@ -468,6 +521,11 @@ function lerArquivoComoDataUrl(file) {
 async function concluirComDesenho() {
   if (contratoEstaConcluido(clienteAtual)) return;
 
+  if (!contratoFoiLidoAteOFim) {
+    setMensagem("Leia o contrato até o fim antes de concluir a assinatura.", "erro");
+    return;
+  }
+
   if (!assinaturaFoiDesenhada) {
     setMensagem("Desenhe sua assinatura antes de concluir.", "erro");
     return;
@@ -529,7 +587,7 @@ function aplicarEstadoCarregado(data) {
   setMensagem(
     concluido
       ? `Contrato concluído em ${formatarDataHora(data.contrato_assinado_em)}.`
-      : "",
+      : "Carregando contrato...",
     concluido ? "ok" : "normal"
   );
 }
@@ -596,4 +654,5 @@ if (btnConcluirFotos) btnConcluirFotos.onclick = concluirComFotos;
 
 ocultarOpcaoFotos();
 prepararCanvas();
+configurarLeituraObrigatoria();
 carregarContrato();
