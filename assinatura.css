@@ -139,7 +139,7 @@ input {
 
 #mensagemAssinatura {
   position: fixed;
-  top: 188px;
+  top: 168px;
   right: 254px;
   left: auto;
   z-index: 80;
@@ -468,13 +468,6 @@ body.contrato-assinado::before {
     max-width: calc(100vw - 36px);
     font-size: 0.9rem;
   }
-}
-
-.assinatura-shell > .btn-secundario,
-.assinatura-shell > button,
-main > .btn-secundario,
-main > button {
-  display: none !important;
 }
 
 .assinatura-topo {
