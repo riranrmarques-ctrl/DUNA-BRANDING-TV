@@ -15,6 +15,30 @@ const codigoLogin = document.getElementById("codigoLogin");
 const btnEntrarCliente = document.getElementById("btnEntrarCliente");
 const loginErro = document.getElementById("loginErro");
 const loadingOverlay = document.getElementById("loadingOverlay");
+function mostrarLoading() {
+  document.body.classList.add("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.style.display = "flex";
+    requestAnimationFrame(() => {
+      loadingOverlay.classList.add("ativo");
+    });
+  }
+}
+
+function esconderLoading() {
+  document.body.classList.remove("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove("ativo");
+
+    setTimeout(() => {
+      if (!loadingOverlay.classList.contains("ativo")) {
+        loadingOverlay.style.display = "none";
+      }
+    }, 280);
+  }
+}
 
 const btnAtualizar = document.getElementById("btnAtualizar");
 const btnSair = document.getElementById("btnSair");
