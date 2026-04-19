@@ -851,6 +851,136 @@ async function excluirContratoDoHistorico(id) {
   }
 }
 
+function sincronizarContratoAtualNoHistorico() {
+  if (!clienteAtual?.contrato_nome_arquivo || !clienteAtual?.contrato_html) return;
+
+  const historico = lerHistoricoContratosGerados();
+  const existe = historico.some((item) => item.nome_arquivo === clienteAtual.contrato_nome_arquivo);
+
+  if (existe) return;
+
+  historico.unshift({
+    id: String(Date.now()),
+    criado_em: clienteAtual.contrato_enviado_em || clienteAtual.contrato_atualizado_em || new Date().toISOString(),
+    nome_arquivo: clienteAtual.contrato_nome_arquivo,
+    status: contratoEstaConcluido(clienteAtual) ? "concluido" : "pendente",
+    dados: obterDadosContratoCliente()
+  });
+
+  salvarHistoricoContratosGerados(historico);
+}
+
+function gerarHistoricoContratoVisual() {
+  if (!historicoContratos) return;
+
+  sincronizarContratoAtualNoHistorico();
+
+  const historico = lerHistoricoContratosGerados();
+
+  if (!historico.length) {
+    historicoContratos.innerHTML = `<div class="historico-vazio">Nenhum contrato gerado ainda.</div>`;
+    return;
+  }
+
+  historicoContratos.innerHTML = historico.map((item) => {
+    const data = formatarDataHistorico(item.criado_em);
+    const nome = item.nome_arquivo || "contrato.html";
+    const concluido = contratoHistoricoEstaConcluido(item);
+
+    const textoStatus = concluido ? "Concluído - disponível para download" : "Pendente de assinatura";
+    const corStatus = concluido ? "#7CFC9A" : "#f59e0b";
+    const fundoStatus = concluido ? "rgba(124, 252, 154, 0.12)" : "rgba(245, 158, 11, 0.14)";
+    const bordaStatus = concluido ? "rgba(124, 252, 154, 0.45)" : "rgba(245, 158, 11, 0.45)";
+
+    const botoes = concluido
+      ? `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button
+            type="button"
+            class="btn-baixar-contrato-historico"
+            data-id="${escaparHtml(item.id)}"
+            style="
+              border:none;
+              border-radius:8px;
+              background:#22c55e;
+              color:#fff;
+              font-weight:700;
+              cursor:pointer;
+              padding:9px 12px;
+            "
+          >Baixar</button>
+
+          <button
+            type="button"
+            class="btn-excluir-contrato-historico"
+            data-id="${escaparHtml(item.id)}"
+            style="
+              border:none;
+              border-radius:8px;
+              background:#d9534f;
+              color:#fff;
+              font-weight:700;
+              cursor:pointer;
+              padding:9px 12px;
+            "
+          >Deletar</button>
+        </div>
+      `
+      : "";
+
+    return `
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        padding:12px;
+        border:1px solid #2a3040;
+        border-radius:12px;
+        background:#10131a;
+      ">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;color:#ffffff;word-break:break-word;margin-bottom:6px;">
+            ${escaparHtml(nome)}
+          </div>
+
+          <div style="color:#c6cedd;font-size:0.9rem;margin-bottom:8px;">
+            Enviado em: ${escaparHtml(data)}
+          </div>
+
+          <div style="
+            display:inline-flex;
+            align-items:center;
+            width:fit-content;
+            min-height:28px;
+            padding:5px 10px;
+            border-radius:999px;
+            border:1px solid ${bordaStatus};
+            background:${fundoStatus};
+            color:${corStatus};
+            font-size:0.78rem;
+            font-weight:800;
+            text-transform:uppercase;
+            letter-spacing:0.04em;
+          ">
+            ${textoStatus}
+          </div>
+        </div>
+
+        ${botoes}
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".btn-baixar-contrato-historico").forEach((botao) => {
+    botao.onclick = () => baixarContratoDoHistorico(botao.dataset.id);
+  });
+
+  document.querySelectorAll(".btn-excluir-contrato-historico").forEach((botao) => {
+    botao.onclick = () => excluirContratoDoHistorico(botao.dataset.id);
+  });
+}
+
 function obterTituloArquivo(item) {
   if (item.titulo_arquivo && String(item.titulo_arquivo).trim()) {
     return String(item.titulo_arquivo).trim();
