@@ -643,7 +643,6 @@ function contratoEstaConcluido(cliente) {
 
   const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
   const dataContrato = new Date(
-    cliente.contrato_atualizado_em ||
     cliente.contrato_enviado_em ||
     cliente.updated_at ||
     0
