@@ -459,35 +459,7 @@ body.contrato-assinado::before {
   .preview-contrato {
     min-height: 620px;
   }
-
-  #mensagemAssinatura {
-    top: 152px;
-    left: 18px;
-    right: auto;
-    width: calc(100vw - 36px);
-    max-width: calc(100vw - 36px);
-    font-size: 0.9rem;
-  }
-}
-
-.assinatura-topo {
-  margin-bottom: 34px !important;
-}
-
-.assinatura-layout {
-  margin-top: 0 !important;
-}
-
-@media (max-width: 980px) {
-  .assinatura-topo {
-    margin-bottom: 28px !important;
-  }
-
-  .assinatura-layout {
-    margin-top: 0 !important;
-  }
-}
-
+  
 #mensagemAssinatura {
   position: fixed;
   top: 176px;
@@ -512,4 +484,20 @@ body.contrato-assinado::before {
   pointer-events: none;
 }
 
+.assinatura-topo {
+  margin-bottom: 34px !important;
+}
 
+.assinatura-layout {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 980px) {
+  .assinatura-topo {
+    margin-bottom: 28px !important;
+  }
+
+  .assinatura-layout {
+    margin-top: 0 !important;
+  }
+}
