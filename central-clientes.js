@@ -132,7 +132,7 @@ const botoesFiltro = document.querySelectorAll("[data-filtro]");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
 function obterAdminToken() {
-  return sessionStorage.getItem(ADMIN_TOKEN_KEY) || "";
+  return localStorage.getItem(ADMIN_TOKEN_KEY) || "";
 }
 
 console.log("LIBERADO:", localStorage.getItem("painelLiberado"));
