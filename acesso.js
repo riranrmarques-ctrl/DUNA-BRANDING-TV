@@ -1025,8 +1025,6 @@ window.addEventListener("scroll", () => {
 window.addEventListener("load", () => {
   const codigoUrl = obterCodigoUrl();
 
-  abrirLogin();
-
   if (tituloBoasVindas) {
     tituloBoasVindas.classList.add("hero-titulo-classico");
     tituloBoasVindas.innerHTML = `<span class="hero-linha">Seja bem-vindo(a)</span>`;
@@ -1038,7 +1036,14 @@ window.addEventListener("load", () => {
     subtituloCliente.style.display = "none";
   }
 
-  if (codigoUrl && codigoLogin) {
-    codigoLogin.value = codigoUrl;
+  if (codigoUrl) {
+    if (codigoLogin) {
+      codigoLogin.value = codigoUrl;
+    }
+
+    carregarAreaCliente(codigoUrl);
+    return;
   }
+
+  abrirLogin();
 });
