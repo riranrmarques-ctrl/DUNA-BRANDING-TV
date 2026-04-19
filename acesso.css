@@ -1541,3 +1541,43 @@ body.rolando .btn-sair:focus-visible {
   background: rgba(239, 68, 68, 0.12) !important;
   color: #b91c1c !important;
 }
+
+.detalhe-cabecalho {
+  padding-top: 34px !important;
+  padding-bottom: 22px !important;
+}
+
+.detalhe-cabecalho > div:first-child {
+  transform: translateY(18px) !important;
+}
+
+.status-area {
+  transform: translateY(18px) !important;
+}
+
+.btn-assinar-contrato {
+  background: #f59e0b !important;
+  color: #111827 !important;
+}
+
+.contrato-badge.pendente + p + .btn-assinar-contrato,
+.contrato-card:has(.contrato-badge.pendente) .btn-assinar-contrato {
+  background: #f59e0b !important;
+  color: #111827 !important;
+}
+
+.contrato-card:has(.contrato-badge.concluido) .btn-assinar-contrato {
+  background: #22c55e !important;
+  color: #052e16 !important;
+}
+
+.contrato-card:has(.contrato-badge.concluido) .btn-assinar-contrato:hover {
+  background: #16a34a !important;
+  color: #ffffff !important;
+}
+
+.contrato-card:has(.contrato-badge.pendente) .btn-assinar-contrato:hover {
+  background: #d97706 !important;
+  color: #ffffff !important;
+}
+
