@@ -43,8 +43,8 @@ input {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 24px;
-  min-height: 88px;
-  margin-bottom: 118px;
+  min-height: 72px;
+  margin-bottom: 42px;
 }
 
 .assinatura-topo-esquerda,
