@@ -9,6 +9,8 @@ const TABELA_HISTORICO = "historico_conexao";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const loadingOverlay = document.getElementById("loadingOverlay");
+
 const loginScreen = document.getElementById("loginScreen");
 const areaCliente = document.getElementById("areaCliente");
 const codigoLogin = document.getElementById("codigoLogin");
@@ -51,6 +53,18 @@ let timerMensagem = null;
 let timerLimparMensagem = null;
 let timerPreviewPlaylist = null;
 let canalClienteRealtime = null;
+
+function mostrarLoading() {
+  if (!loadingOverlay) return;
+  loadingOverlay.hidden = false;
+  document.body.classList.add("loading-ativo");
+}
+
+function esconderLoading() {
+  if (!loadingOverlay) return;
+  loadingOverlay.hidden = true;
+  document.body.classList.remove("loading-ativo");
+}
 
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemCliente) return;
@@ -132,10 +146,6 @@ function obterNomeCliente(cliente) {
   );
 }
 
-function obterTelefoneCliente(cliente) {
-  return cliente?.telefone || cliente?.celular || cliente?.whatsapp || "";
-}
-
 function clienteEhSupervisor(cliente) {
   return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
 }
@@ -152,14 +162,11 @@ function contratoEstaConcluido(cliente) {
   if (!cliente) return false;
 
   const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
-
   if (!temAssinatura) return false;
 
   const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
   const dataContrato = new Date(
     cliente.contrato_enviado_em ||
-    cliente.contrato_atualizado_em ||
-    cliente.contrato_updated_at ||
     cliente.updated_at ||
     0
   );
@@ -378,7 +385,6 @@ function iniciarAtualizacaoContratoEmTempoReal() {
       },
       (payload) => {
         const novoCliente = payload.new;
-
         if (!novoCliente) return;
 
         clienteAtual = novoCliente;
@@ -408,17 +414,16 @@ function abrirLogin() {
   if (contratoCard) contratoCard.style.display = "";
 
   if (codigoLogin) {
-    codigoLogin.placeholder = "EX: A1B1";
-    codigoLogin.maxLength = 4;
-
-    codigoLogin.addEventListener("input", () => {
-      codigoLogin.value = codigoLogin.value.toUpperCase().replace(/\s/g, "");
-    });
+    codigoLogin.value = "";
+    setTimeout(() => codigoLogin.focus(), 100);
   }
 
-  if (btnEntrarCliente) btnEntrarCliente.onclick = entrarComCodigoDigitado;
+  setLoginErro("");
+  setMensagem("");
+  limparTelaDetalhe();
+}
 
-  function baixarContratoCliente() {
+function baixarContratoCliente() {
   if (!clienteAtual) return;
 
   const concluido = contratoEstaConcluido(clienteAtual);
@@ -938,6 +943,8 @@ async function carregarAreaCliente(codigo) {
     return;
   }
 
+  mostrarLoading();
+
   setLoginErro("");
   abrirAreaCliente();
   setMensagem("Carregando área do cliente...");
@@ -948,6 +955,7 @@ async function carregarAreaCliente(codigo) {
     clienteAtual = await buscarCliente(codigoClienteAtual);
 
     if (!clienteAtual) {
+      esconderLoading();
       abrirLogin();
       setLoginErro("Cliente não encontrado para este código.");
       return;
@@ -976,6 +984,8 @@ async function carregarAreaCliente(codigo) {
   } catch (error) {
     console.error("Erro ao carregar área do cliente:", error);
     setMensagem(error.message || "Erro ao carregar área do cliente.", "erro");
+  } finally {
+    esconderLoading();
   }
 }
 
@@ -990,12 +1000,29 @@ function entrarComCodigoDigitado() {
   carregarAreaCliente(codigo);
 }
 
-if (btnEntrarCliente) btnEntrarCliente.onclick = entrarComCodigoDigitado;
-
 if (codigoLogin) {
+  codigoLogin.placeholder = "EX: A1B1";
+  codigoLogin.maxLength = 4;
+
+  codigoLogin.addEventListener("input", () => {
+    codigoLogin.value = codigoLogin.value.toUpperCase().replace(/\s/g, "");
+  });
+
   codigoLogin.addEventListener("keydown", (event) => {
     if (event.key === "Enter") entrarComCodigoDigitado();
   });
+}
+
+if (btnEntrarCliente) {
+  btnEntrarCliente.onclick = () => {
+    btnEntrarCliente.classList.remove("clicando");
+    void btnEntrarCliente.offsetWidth;
+    btnEntrarCliente.classList.add("clicando");
+
+    setTimeout(() => {
+      entrarComCodigoDigitado();
+    }, 120);
+  };
 }
 
 if (btnAtualizar) {
@@ -1018,6 +1045,10 @@ if (codigoClienteEl) {
     }
   };
 }
+
+window.addEventListener("scroll", () => {
+  document.body.classList.toggle("rolando", window.scrollY > 12);
+});
 
 window.addEventListener("load", () => {
   const params = new URLSearchParams(window.location.search);
