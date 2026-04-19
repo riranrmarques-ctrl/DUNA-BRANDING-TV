@@ -1096,7 +1096,9 @@ window.addEventListener("scroll", () => {
 });
 
 window.addEventListener("load", () => {
-  const codigoUrl = obterCodigoUrl();
+  const params = new URLSearchParams(window.location.search);
+  const codigoUrl = normalizarCodigo(params.get("codigo"));
+  const voltouDaAssinatura = params.get("voltar") === "1";
 
   abrirLogin();
 
@@ -1113,5 +1115,12 @@ window.addEventListener("load", () => {
 
   if (codigoUrl && codigoLogin) {
     codigoLogin.value = codigoUrl;
+  }
+
+  if (codigoUrl && voltouDaAssinatura) {
+    carregarAreaCliente(codigoUrl);
+
+    const urlLimpa = `${window.location.pathname}?codigo=${encodeURIComponent(codigoUrl)}`;
+    window.history.replaceState({}, "", urlLimpa);
   }
 });
