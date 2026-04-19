@@ -893,3 +893,95 @@ body.rolando .topo-label {
     grid-column: 2 / 3;
   }
 }
+
+/* Ajuste do topo de boas-vindas: menor e mais elegante */
+.boas-vindas {
+  min-height: 92px !important;
+  padding: 10px 0 6px !important;
+  margin: 0 0 12px !important;
+}
+
+.boas-vindas::before {
+  height: 120px !important;
+  inset: -44px 0 auto !important;
+}
+
+.boas-vindas h1,
+#tituloBoasVindas {
+  font-size: clamp(1.75rem, 3.8vw, 3.65rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.hero-linha:first-child {
+  font-size: 0.48em !important;
+  line-height: 1.12 !important;
+  font-weight: 600 !important;
+  color: #cbd5e1 !important;
+}
+
+.hero-linha.nome {
+  font-size: 1em !important;
+  line-height: 1.02 !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+}
+
+/* Título "Exibição em tempo real" do lado direito, junto ao nome do arquivo */
+.preview-topo {
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  text-align: right !important;
+}
+
+.preview-topo h3 {
+  margin: 0 !important;
+  color: #e6eeff !important;
+  white-space: nowrap !important;
+}
+
+.preview-nome {
+  max-width: 520px !important;
+  text-align: right !important;
+  color: #aeb8cc !important;
+  font-size: 0.8rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: none !important;
+}
+
+/* Lista de materiais mais limpa, mostrando só material do cliente */
+.linha-material,
+.linha-material-head {
+  grid-template-columns: 150px minmax(0, 1fr) 150px 130px !important;
+}
+
+.linha-material strong {
+  font-size: 0.92rem !important;
+  margin-bottom: 0 !important;
+}
+
+.linha-material small {
+  display: none !important;
+}
+
+@media (max-width: 680px) {
+  .boas-vindas {
+    min-height: 82px !important;
+  }
+
+  .boas-vindas h1,
+  #tituloBoasVindas {
+    font-size: clamp(1.55rem, 8vw, 2.7rem) !important;
+  }
+
+  .preview-topo {
+    align-items: flex-end !important;
+  }
+
+  .preview-nome {
+    max-width: 100% !important;
+  }
+}
+
