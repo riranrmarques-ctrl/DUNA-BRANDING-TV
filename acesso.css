@@ -1659,3 +1659,74 @@ body.rolando .btn-sair:focus-visible {
 .preview-box {
   margin-top: 10px !important;
 }
+
+.historico-contrato-cliente {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.historico-contrato-item {
+  border-radius: 18px;
+  padding: 14px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.historico-contrato-item strong {
+  display: block;
+  color: #101827;
+  font-size: 0.88rem;
+  line-height: 1.15;
+  font-weight: 900;
+}
+
+.historico-contrato-item span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.historico-contrato-item small {
+  display: block;
+  width: fit-content;
+  margin-top: 8px;
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.historico-contrato-item.concluido small {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+}
+
+.btn-historico-contrato {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #22c55e;
+  color: #052e16;
+  font-size: 0.76rem;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn-historico-contrato:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
