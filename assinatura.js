@@ -252,10 +252,9 @@ function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataCon
 
   return `${blocoAssinaturas}${blocoConclusao}`;
 }
+
 function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }) {
   const dataConclusao = new Date().toLocaleString("pt-BR");
-  const blocoConclusao = obterHtmlConclusao({ metodo, assinaturaImagem, fotos, dataConclusao });
-
   let htmlFinal = contratoAtualHtml;
 
   if (metodo !== "fotos" && assinaturaImagem) {
@@ -267,9 +266,9 @@ function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }
         <img
           src="${assinaturaImagem}"
           alt="Assinatura eletrônica"
-          style="display:block;width:320px;max-width:100%;height:auto;margin:0 auto 6px;object-fit:contain;"
+          style="display:block;width:300px;max-width:100%;height:90px;margin:0 auto 4px;object-fit:contain;"
         >
-        <div style="font-size:11px;line-height:1.4;color:#374151;">
+        <div style="font-size:11px;line-height:1.35;color:#374151;">
           Contrato concluído por ${escapeHtml(obterNomeCliente(clienteAtual))} em ${escapeHtml(dataConclusao)}.<br>
           Método utilizado: assinatura eletrônica.
         </div>
@@ -294,12 +293,20 @@ function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }
     }
   }
 
+  const blocoConclusao = obterHtmlConclusao({
+    metodo,
+    assinaturaImagem: metodo === "fotos" ? "" : "",
+    fotos,
+    dataConclusao
+  });
+
   if (/<\/body>/i.test(htmlFinal)) {
     return htmlFinal.replace(/<\/body>/i, `${blocoConclusao}</body>`);
   }
 
   return `${htmlFinal}${blocoConclusao}`;
 }
+
 
 function baixarHtmlContrato() {
   const html = contratoFinalHtml || contratoAtualHtml;
