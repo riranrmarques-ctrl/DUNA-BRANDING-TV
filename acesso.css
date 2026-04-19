@@ -1146,3 +1146,155 @@ body.rolando .topo-label {
     grid-column: 2 / 3 !important;
   }
 }
+
+.boas-vindas {
+  min-height: 118px !important;
+  padding: 22px 0 16px !important;
+  margin: 0 0 68px !important;
+}
+
+.boas-vindas h1,
+#tituloBoasVindas {
+  font-size: clamp(2rem, 4vw, 4rem) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.hero-linha:first-child {
+  font-size: 0.42em !important;
+  line-height: 1 !important;
+  font-weight: 600 !important;
+  color: #cbd5e1 !important;
+  opacity: 0.82 !important;
+}
+
+.hero-linha.nome {
+  font-size: 1em !important;
+  line-height: 1.02 !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+}
+
+.detalhe-cabecalho {
+  margin-top: 0 !important;
+  margin-bottom: 24px !important;
+  padding: 24px 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+.detalhe-cabecalho h2 {
+  font-size: clamp(1.7rem, 3vw, 3.2rem) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+.status-grande {
+  min-width: auto !important;
+  max-width: 250px !important;
+  border-radius: 12px !important;
+  padding: 9px 14px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.06em !important;
+}
+
+.preview-topo {
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+  text-align: right !important;
+}
+
+.preview-topo h3 {
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+.preview-nome {
+  max-width: 520px !important;
+  text-align: right !important;
+  color: #aeb8cc !important;
+  font-size: 0.88rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+}
+
+.historico-lista {
+  max-height: 170px !important;
+  align-items: flex-end !important;
+  padding-right: 0 !important;
+  overflow-y: auto !important;
+}
+
+.historico-item {
+  width: min(100%, 620px) !important;
+  min-height: 42px !important;
+  grid-template-columns: 34px 1fr auto !important;
+  padding: 8px 12px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.022) !important;
+}
+
+.historico-item span,
+.historico-evento.neutro,
+.historico-item.neutro span {
+  color: #e5e7eb !important;
+}
+
+.historico-evento.ativo-primeiro,
+.historico-item.ativo-primeiro .historico-evento {
+  color: #86efac !important;
+}
+
+.historico-vazio-pequeno {
+  width: min(100%, 520px) !important;
+  margin-left: auto !important;
+  padding: 12px 14px !important;
+  font-size: 0.82rem !important;
+}
+
+@media (max-width: 680px) {
+  .boas-vindas {
+    min-height: 94px !important;
+    margin-bottom: 44px !important;
+  }
+
+  .boas-vindas h1,
+  #tituloBoasVindas {
+    font-size: clamp(1.65rem, 8vw, 2.8rem) !important;
+  }
+
+  .detalhe-cabecalho {
+    grid-template-columns: 1fr !important;
+    padding: 18px !important;
+  }
+
+  .status-grande {
+    max-width: none !important;
+    width: fit-content !important;
+  }
+
+  .preview-topo {
+    align-items: flex-end !important;
+    flex-direction: column !important;
+  }
+
+  .preview-nome {
+    max-width: 100% !important;
+  }
+
+  .historico-item {
+    width: 100% !important;
+    grid-template-columns: 28px 1fr !important;
+  }
+
+  .historico-item span:last-child {
+    grid-column: 2 / 3 !important;
+  }
+}
+
