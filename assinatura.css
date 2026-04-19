@@ -454,3 +454,31 @@ body.contrato-assinado::before {
 #btnBaixarContrato {
   display: none !important;
 }
+
+#mensagemAssinatura {
+  position: fixed !important;
+  top: 180px !important;
+  right: 300px !important;
+  left: auto !important;
+  z-index: 80 !important;
+
+  display: block !important;
+  width: auto !important;
+  max-width: 520px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #f8fbff !important;
+  font-size: 1.05rem !important;
+  line-height: 1.2 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  text-align: left !important;
+  pointer-events: none !important;
+}
+
+#mensagemAssinatura:empty {
+  display: none !important;
+}
+
