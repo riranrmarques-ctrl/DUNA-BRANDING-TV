@@ -9,6 +9,8 @@ const TABELA_HISTORICO = "historico_conexao";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const loadingOverlay = document.getElementById("loadingOverlay");
+
 const loginScreen = document.getElementById("loginScreen");
 const areaCliente = document.getElementById("areaCliente");
 const codigoLogin = document.getElementById("codigoLogin");
@@ -51,6 +53,18 @@ let timerMensagem = null;
 let timerLimparMensagem = null;
 let timerPreviewPlaylist = null;
 let canalClienteRealtime = null;
+
+function mostrarLoading() {
+  if (!loadingOverlay) return;
+  loadingOverlay.hidden = false;
+  document.body.classList.add("loading-ativo");
+}
+
+function esconderLoading() {
+  if (!loadingOverlay) return;
+  loadingOverlay.hidden = true;
+  document.body.classList.remove("loading-ativo");
+}
 
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemCliente) return;
@@ -132,10 +146,6 @@ function obterNomeCliente(cliente) {
   );
 }
 
-function obterTelefoneCliente(cliente) {
-  return cliente?.telefone || cliente?.celular || cliente?.whatsapp || "";
-}
-
 function clienteEhSupervisor(cliente) {
   return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
 }
@@ -157,8 +167,6 @@ function contratoEstaConcluido(cliente) {
   const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
   const dataContrato = new Date(
     cliente.contrato_enviado_em ||
-    cliente.contrato_atualizado_em ||
-    cliente.contrato_updated_at ||
     cliente.updated_at ||
     0
   );
@@ -804,17 +812,44 @@ async function buscarPontos(codigos) {
 }
 
 async function buscarPlaylistPonto(codigo) {
-  const { data, error } = await supabaseClient
-    .from(TABELA_PLAYLIST)
-    .select("*")
-    .eq("codigo", codigo);
+  const consultas = [
+    {
+      colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,storage_path,tipo,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,data_fim,ordem,codigo",
+      ordenarPor: "ordem"
+    },
+    {
+      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,codigo",
+      ordenarPor: "created_at"
+    }
+  ];
 
-  if (error) {
-    console.error("Erro ao buscar playlist:", error);
-    return [];
+  let ultimoErro = null;
+
+  for (const consulta of consultas) {
+    let query = supabaseClient
+      .from(TABELA_PLAYLIST)
+      .select(consulta.colunas)
+      .eq("codigo", codigo);
+
+    query = query.order(consulta.ordenarPor, { ascending: true });
+
+    const { data, error } = await query;
+
+    if (!error) return data || [];
+
+    ultimoErro = error;
+    console.warn("Falha ao buscar playlist com colunas:", consulta.colunas, error);
   }
 
-  return data || [];
+  throw ultimoErro;
 }
 
 async function buscarHistoricoPonto(codigo) {
@@ -908,6 +943,8 @@ async function carregarAreaCliente(codigo) {
     return;
   }
 
+  mostrarLoading();
+
   setLoginErro("");
   abrirAreaCliente();
   setMensagem("Carregando área do cliente...");
@@ -918,6 +955,7 @@ async function carregarAreaCliente(codigo) {
     clienteAtual = await buscarCliente(codigoClienteAtual);
 
     if (!clienteAtual) {
+      esconderLoading();
       abrirLogin();
       setLoginErro("Cliente não encontrado para este código.");
       return;
@@ -946,12 +984,12 @@ async function carregarAreaCliente(codigo) {
   } catch (error) {
     console.error("Erro ao carregar área do cliente:", error);
     setMensagem(error.message || "Erro ao carregar área do cliente.", "erro");
+  } finally {
+    esconderLoading();
   }
 }
 
 function entrarComCodigoDigitado() {
-  console.log("botao clicado");
-
   const codigo = normalizarCodigo(codigoLogin?.value);
 
   if (!codigo) {
@@ -971,19 +1009,20 @@ if (codigoLogin) {
   });
 
   codigoLogin.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      entrarComCodigoDigitado();
-    }
+    if (event.key === "Enter") entrarComCodigoDigitado();
   });
 }
 
 if (btnEntrarCliente) {
-  btnEntrarCliente.addEventListener("click", (event) => {
-    event.preventDefault();
-    console.log("click no botao entrar");
-    entrarComCodigoDigitado();
-  });
+  btnEntrarCliente.onclick = () => {
+    btnEntrarCliente.classList.remove("clicando");
+    void btnEntrarCliente.offsetWidth;
+    btnEntrarCliente.classList.add("clicando");
+
+    setTimeout(() => {
+      entrarComCodigoDigitado();
+    }, 120);
+  };
 }
 
 if (btnAtualizar) {
@@ -1006,6 +1045,10 @@ if (codigoClienteEl) {
     }
   };
 }
+
+window.addEventListener("scroll", () => {
+  document.body.classList.toggle("rolando", window.scrollY > 12);
+});
 
 window.addEventListener("load", () => {
   const params = new URLSearchParams(window.location.search);
@@ -1032,6 +1075,7 @@ window.addEventListener("load", () => {
 
     const urlLimpa = `${window.location.pathname}?codigo=${encodeURIComponent(codigoUrl)}`;
     window.history.replaceState({}, "", urlLimpa);
+
     return;
   }
 
