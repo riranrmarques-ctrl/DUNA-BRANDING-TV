@@ -5,27 +5,32 @@ const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
-const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v6";
+const SENHA_PAINEL = "euamo@helena";
+const ADMIN_TOKEN = "duna-admin-9f3a1b7c-k82m-p41x-8a2q-zz19a0b4e612";
+
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v7";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v5_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v6_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 
 function limparCachesAntigos() {
   try {
-    sessionStorage.removeItem("painel_pontos_cache_v1");
-    sessionStorage.removeItem("painel_pontos_cache_v2");
-    sessionStorage.removeItem("painel_pontos_cache_v3");
-    sessionStorage.removeItem("painel_pontos_cache_v4");
-    sessionStorage.removeItem("painel_pontos_cache_v5");
+    const prefixesAntigos = [
+      "painel_pontos_cache_v1",
+      "painel_pontos_cache_v2",
+      "painel_pontos_cache_v3",
+      "painel_pontos_cache_v4",
+      "painel_pontos_cache_v5",
+      "painel_pontos_cache_v6",
+      "painel_playlist_cache_v1_",
+      "painel_playlist_cache_v2_",
+      "painel_playlist_cache_v3_",
+      "painel_playlist_cache_v4_",
+      "painel_playlist_cache_v5_"
+    ];
 
     Object.keys(sessionStorage).forEach((key) => {
-      if (
-        key.startsWith("painel_playlist_cache_v1_") ||
-        key.startsWith("painel_playlist_cache_v2_") ||
-        key.startsWith("painel_playlist_cache_v3_") ||
-        key.startsWith("painel_playlist_cache_v4_")
-      ) {
+      if (prefixesAntigos.some((prefixo) => key.startsWith(prefixo))) {
         sessionStorage.removeItem(key);
       }
     });
@@ -36,7 +41,9 @@ function limparCachesAntigos() {
 
 limparCachesAntigos();
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
 
 const loginBox = document.getElementById("loginBox");
 const conteudoPainel = document.getElementById("conteudoPainel");
@@ -225,7 +232,15 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
+function garantirSessaoAdmin() {
+  if (sessionStorage.getItem("painelLiberado") === "1" && !sessionStorage.getItem("painelToken")) {
+    sessionStorage.setItem("painelToken", ADMIN_TOKEN);
+  }
+}
+
 async function registrarEventoConexao(codigo, statusAtual) {
+  if (!supabaseClient) return;
+
   const evento = statusAtual === "ativo" ? "ativo" : "inativo";
 
   const { error } = await supabaseClient
@@ -341,6 +356,8 @@ function ativarLazyImages() {
 }
 
 async function uploadImagemPonto(file, codigo) {
+  if (!supabaseClient) throw new Error("Supabase indisponível.");
+
   const extensao = (file.name.split(".").pop() || "jpg").toLowerCase();
   const nomeArquivo = `${codigo}/${Date.now()}.${extensao}`;
 
@@ -388,6 +405,8 @@ function detectarTipoArquivoPlaylist(file) {
 }
 
 async function obterProximaOrdemPlaylist() {
+  if (!supabaseClient) return 1;
+
   const consultas = [
     { colunas: "ordem", ordenarPor: "ordem" },
     { colunas: "created_at", ordenarPor: "created_at" }
@@ -426,6 +445,11 @@ async function enviarMaterialDiretoPlaylist(file) {
 
   if (!file) {
     setStatus("Selecione um arquivo", "erro");
+    return;
+  }
+
+  if (!supabaseClient) {
+    setStatus("Supabase não carregou", "erro");
     return;
   }
 
@@ -552,7 +576,7 @@ function atualizarVisualDisponibilidade(disponivel) {
 }
 
 async function alternarDisponibilidadePonto() {
-  if (!codigoSelecionado) return;
+  if (!codigoSelecionado || !supabaseClient) return;
 
   const ponto = pontosMap[codigoSelecionado] || {};
   const disponivelAtual = pontoEstaDisponivel(ponto);
@@ -591,6 +615,7 @@ function validarLogin() {
   }
 
   sessionStorage.setItem("painelLiberado", "1");
+  sessionStorage.setItem("painelToken", ADMIN_TOKEN);
 
   if (loginErro) loginErro.textContent = "";
   if (loginBox) loginBox.style.display = "none";
@@ -611,6 +636,8 @@ if (senhaInput) {
 }
 
 async function buscarPontosRemoto() {
+  if (!supabaseClient) throw new Error("Supabase não carregou.");
+
   const consultas = [
     "codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel",
     "codigo,nome,cidade,endereco,imagem_url,ultimo_ping",
@@ -1006,7 +1033,7 @@ if (previewImagem) {
 
 if (btnSalvarEdicao) {
   btnSalvarEdicao.onclick = async () => {
-    if (!codigoSelecionado) return;
+    if (!codigoSelecionado || !supabaseClient) return;
 
     const ponto = pontosMap[codigoSelecionado] || {};
     const nome = editNome ? editNome.value.trim() : "";
@@ -1226,13 +1253,9 @@ function renderizarPlaylistDados(lista, historicoConexao) {
   ativarExclusaoItens();
 }
 
-/*
-  FUNCAO REVISADA:
-  Corrige o erro 400 da tabela playlists.
-  Ela tenta buscar com todas as colunas novas.
-  Se alguma coluna nao existir, cai para uma consulta mais simples.
-*/
 async function buscarPlaylistRemota(codigo) {
+  if (!supabaseClient) throw new Error("Supabase não carregou.");
+
   const consultasPlaylist = [
     "id,nome,nome_cliente,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
     "id,nome,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
@@ -1347,7 +1370,7 @@ function ativarRenomearItens() {
       const id = btn.dataset.id;
       const nomeAtual = btn.dataset.nome || "";
 
-      if (!id) return;
+      if (!id || !supabaseClient) return;
 
       const novoNome = window.prompt("Digite o novo nome do arquivo:", nomeAtual);
 
@@ -1395,13 +1418,13 @@ function ativarRenomearItens() {
   });
 }
 
-async function ativarExclusaoItens() {
+function ativarExclusaoItens() {
   document.querySelectorAll(".btn-excluir-item").forEach((btn) => {
     btn.onclick = async (event) => {
       event.stopPropagation();
 
       const id = btn.dataset.id;
-      if (!id) return;
+      if (!id || !supabaseClient) return;
 
       const confirmar = window.confirm("Deseja excluir este item da playlist?");
       if (!confirmar) return;
@@ -1467,6 +1490,11 @@ function ativarDrag(lista) {
       const target = Number(item.dataset.index);
 
       if (Number.isNaN(dragIndex) || Number.isNaN(target) || dragIndex === target) {
+        item.classList.remove("drop-animating");
+        return;
+      }
+
+      if (!supabaseClient) {
         item.classList.remove("drop-animating");
         return;
       }
@@ -1546,6 +1574,11 @@ async function iniciarPainel() {
   ativarLazyImages();
   ativarBotoesCards();
 
+  if (!supabaseClient) {
+    setStatus("Supabase não carregou", "erro");
+    return;
+  }
+
   const cache = lerCachePontos();
 
   if (cache?.pontos?.length) {
@@ -1563,6 +1596,8 @@ async function iniciarPainel() {
   setStatus("Carregando pontos...", "normal");
   await carregarPontosRemoto();
 }
+
+garantirSessaoAdmin();
 
 if (sessionStorage.getItem("painelLiberado") === "1") {
   if (loginBox) loginBox.style.display = "none";
