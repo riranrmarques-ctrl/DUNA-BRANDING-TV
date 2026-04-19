@@ -1,7 +1,7 @@
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  box-sizing: border-box; 
 }
   
 :root { 
@@ -1881,4 +1881,466 @@ body.rolando .btn-sair:focus-visible {
     font-size: 0.82rem;
     letter-spacing: 0.12em;
   }
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 18px;
+}
+
+.login-conteudo {
+  width: min(100%, 390px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-logo-fora {
+  width: 215px;
+  max-width: 78%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 0 18px;
+}
+
+.login-card {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 26px 24px 24px;
+  background: linear-gradient(180deg, rgba(17, 28, 56, 0.9), rgba(7, 13, 29, 0.92));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.login-card h1 {
+  margin: 0 0 16px;
+  color: #f8fbff;
+  font-size: 1.55rem;
+  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.login-texto {
+  display: none !important;
+}
+
+.login-instrucao {
+  margin: 0 0 12px;
+  color: #d9e1f2;
+  font-size: 0.88rem;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+#codigoLogin {
+  width: 100%;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 13px;
+  padding: 0 18px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font-size: 0.96rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  outline: none;
+}
+
+#codigoLogin::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+#btnEntrarCliente {
+  width: 100%;
+  height: 48px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 0.93rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.login-erro {
+  min-height: 18px;
+  margin-top: 10px;
+  color: #ffb4b4;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.login-desenvolvido {
+  margin-top: 22px;
+  color: #aeb8d2;
+  font-size: 0.72rem;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-align: center;
+}
+
+.login-desenvolvido span {
+  color: #9eaacd;
+}
+
+.login-desenvolvido strong {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+@media (max-width: 640px) {
+  .login-conteudo {
+    width: min(100%, 360px);
+  }
+
+  .login-logo-fora {
+    width: 185px;
+    margin-bottom: 16px;
+  }
+
+  .login-card {
+    padding: 24px 20px 22px;
+  }
+
+  .login-desenvolvido {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+}
+
+.login-card {
+  padding: 20px 22px 18px !important;
+  border-radius: 22px !important;
+}
+
+.login-card h1 {
+  margin-bottom: 12px !important;
+}
+
+.login-instrucao {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 10px !important;
+  color: #b8c2dc !important;
+  font-size: 0.78rem !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: lowercase !important;
+  white-space: nowrap !important;
+}
+
+#codigoLogin {
+  height: 40px !important;
+  border-radius: 12px !important;
+}
+
+#btnEntrarCliente {
+  height: 44px !important;
+  margin-top: 10px !important;
+  border-radius: 12px !important;
+}
+
+.login-erro {
+  min-height: 12px !important;
+  margin-top: 6px !important;
+}
+
+.login-desenvolvido {
+  margin-top: 16px !important;
+}
+
+.login-card {
+  padding: 16px 20px 14px !important;
+  border-radius: 20px !important;
+}
+
+.login-card h1 {
+  margin: 0 0 8px !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+}
+
+.login-instrucao {
+  margin: 0 0 8px !important;
+  font-size: 0.72rem !important;
+  line-height: 1 !important;
+}
+
+#codigoLogin {
+  height: 36px !important;
+  margin: 0 !important;
+  border-radius: 11px !important;
+  font-size: 0.86rem !important;
+}
+
+#btnEntrarCliente {
+  height: 38px !important;
+  margin-top: 8px !important;
+  border-radius: 11px !important;
+  font-size: 0.86rem !important;
+}
+
+.login-erro {
+  min-height: 0 !important;
+  margin-top: 4px !important;
+  font-size: 0.72rem !important;
+}
+
+.login-erro:empty {
+  display: none !important;
+}
+
+.login-desenvolvido {
+  margin-top: 14px !important;
+}
+
+.login-screen {
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 26px 18px 46px !important;
+}
+
+.login-conteudo {
+  width: min(100%, 430px) !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto !important;
+  justify-items: center !important;
+  align-items: center !important;
+}
+
+.login-logo-fora {
+  width: 225px !important;
+  max-width: 82% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 0 52px !important;
+  filter: drop-shadow(0 16px 32px rgba(255, 255, 255, 0.08));
+}
+
+.login-card {
+  position: relative !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 24px !important;
+  padding: 22px 24px 20px !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(91, 134, 247, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(22, 34, 68, 0.96), rgba(8, 14, 31, 0.96)) !important;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  text-align: center !important;
+}
+
+.login-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.06) 38%, transparent 62%) !important;
+  opacity: 0.75 !important;
+}
+
+.login-card::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 22px !important;
+  right: 22px !important;
+  top: 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34), transparent) !important;
+}
+
+.login-card h1,
+.login-instrucao,
+#codigoLogin,
+#btnEntrarCliente,
+.login-erro {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.login-card h1 {
+  margin: 0 0 10px !important;
+  color: #ffffff !important;
+  font-size: 1.45rem !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.login-instrucao {
+  margin: 0 0 10px !important;
+  color: #b8c2dc !important;
+  font-size: 0.74rem !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: lowercase !important;
+  white-space: nowrap !important;
+}
+
+#codigoLogin {
+  height: 40px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 13px !important;
+  padding: 0 18px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.045)) !important;
+  color: #ffffff !important;
+  font-size: 0.9rem !important;
+  font-weight: 900 !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  outline: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+#codigoLogin:focus {
+  border-color: rgba(91, 134, 247, 0.9) !important;
+  box-shadow:
+    0 0 0 4px rgba(91, 134, 247, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+#btnEntrarCliente {
+  height: 42px !important;
+  margin-top: 10px !important;
+  border: none !important;
+  border-radius: 13px !important;
+  background:
+    linear-gradient(180deg, #ffffff, #dfe7ff) !important;
+  color: #101827 !important;
+  font-size: 0.9rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  box-shadow:
+    0 14px 30px rgba(91, 134, 247, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#btnEntrarCliente:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.03) !important;
+}
+
+.login-erro {
+  min-height: 0 !important;
+  margin-top: 6px !important;
+  font-size: 0.72rem !important;
+}
+
+.login-erro:empty {
+  display: none !important;
+}
+
+.login-desenvolvido {
+  margin-top: 58px !important;
+  color: #9eaacd !important;
+  font-size: 0.68rem !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.18em !important;
+  text-align: center !important;
+  opacity: 0.82 !important;
+}
+
+.login-desenvolvido span {
+  color: #8792ad !important;
+  font-weight: 500 !important;
+}
+
+.login-desenvolvido strong {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+@media (max-width: 640px) {
+  .login-logo-fora {
+    width: 190px !important;
+    margin-bottom: 38px !important;
+  }
+
+  .login-desenvolvido {
+    margin-top: 42px !important;
+    font-size: 0.64rem !important;
+    letter-spacing: 0.13em !important;
+  }
+}
+
+.login-card {
+  width: 100% !important;
+  max-width: 430px !important;
+  min-height: 210px !important;
+  padding: 30px 28px 28px !important;
+  border-radius: 28px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(91, 134, 247, 0.24), transparent 42%),
+    radial-gradient(circle at 90% 120%, rgba(245, 158, 11, 0.08), transparent 38%),
+    linear-gradient(145deg, rgba(22, 34, 68, 0.98), rgba(8, 14, 31, 0.96)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.login-card h1 {
+  margin: 0 !important;
+  font-size: 1.58rem !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+}
+
+.login-instrucao {
+  margin: 0 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  white-space: nowrap !important;
+}
+
+#codigoLogin {
+  height: 46px !important;
+  margin: 2px 0 0 !important;
+  border-radius: 15px !important;
+  font-size: 0.95rem !important;
+}
+
+#btnEntrarCliente {
+  height: 48px !important;
+  margin-top: 0 !important;
+  border-radius: 15px !important;
+  font-size: 0.94rem !important;
+}
+
+.login-erro {
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.login-erro:empty {
+  display: none !important;
 }
