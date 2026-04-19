@@ -370,7 +370,7 @@ function renderizarContrato() {
 
   if (tituloBoasVindas) {
     tituloBoasVindas.classList.add("hero-titulo-classico");
-    tituloBoasVindas.innerHTML = `<span class="hero-linha">Seja bem-vindo(a)</span>`;
+    tituloBoasVindas.innerHTML = `
       <span class="hero-linha">Seja bem-vindo(a),</span>
       <span class="hero-linha nome">${escapeHtml(nome)}</span>
     `;
