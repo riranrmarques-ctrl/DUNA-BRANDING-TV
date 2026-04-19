@@ -1,0 +1,302 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #050815;
+  --panel: rgba(13, 22, 45, 0.86);
+  --line: rgba(255, 255, 255, 0.11);
+  --text: #f8fbff;
+  --muted: #9eaacd;
+  --blue: #4f8cff;
+  --green: #34d399;
+  --yellow: #f59e0b;
+  --red: #fb7185;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(79, 140, 255, 0.22), transparent 32%),
+    radial-gradient(circle at 85% 12%, rgba(245, 158, 11, 0.12), transparent 28%),
+    linear-gradient(180deg, #081126 0%, var(--bg) 62%, #02040a 100%);
+  padding: 28px 18px 50px;
+}
+
+button,
+input {
+  font-family: inherit;
+}
+
+.assinatura-shell {
+  width: min(100%, 1240px);
+  margin: 0 auto;
+}
+
+.assinatura-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.assinatura-logo {
+  width: 116px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 18px;
+}
+
+.assinatura-topo p {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.assinatura-topo h1 {
+  font-size: clamp(2.2rem, 5vw, 4.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.topo-acoes,
+.acoes-linha {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-principal,
+.btn-secundario {
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  padding: 0 18px;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.btn-principal {
+  background: var(--blue);
+}
+
+.btn-secundario {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+}
+
+.btn-principal.cheio {
+  width: 100%;
+}
+
+.btn-principal:disabled,
+.btn-secundario:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mensagem {
+  min-height: 24px;
+  color: #bcd0ff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.mensagem.ok {
+  color: #8ef0b2;
+}
+
+.mensagem.erro {
+  color: #ffb4b4;
+}
+
+.assinatura-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 22px;
+  align-items: start;
+}
+
+.documento-card,
+.assinatura-card {
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(18, 30, 61, 0.86), rgba(7, 13, 29, 0.9));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.documento-card {
+  padding: 18px;
+}
+
+.card-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.card-topo h2 {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+.status-chip,
+.codigo-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-chip.pendente {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.34);
+}
+
+.status-chip.concluido {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.34);
+}
+
+.codigo-chip {
+  color: #dbeafe;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+}
+
+.preview-contrato {
+  width: 100%;
+  min-height: 760px;
+  border: none;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.assinatura-card {
+  padding: 20px;
+  position: sticky;
+  top: 18px;
+}
+
+.bloco h2 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.bloco p {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+#canvasAssinatura {
+  width: 100%;
+  height: 150px;
+  display: block;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  border-radius: 18px;
+  background: #ffffff;
+  cursor: crosshair;
+  touch-action: none;
+  margin-bottom: 12px;
+}
+
+#fotosInput {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.divisor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin: 20px 0;
+}
+
+.divisor::before,
+.divisor::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+}
+
+.estado-concluido {
+  margin-top: 18px;
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(52, 211, 153, 0.12);
+  color: #d1fae5;
+}
+
+.estado-concluido strong,
+.estado-concluido span {
+  display: block;
+}
+
+.estado-concluido span {
+  color: #a7f3d0;
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+@media (max-width: 980px) {
+  .assinatura-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .assinatura-card {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 18px 12px 42px;
+  }
+
+  .assinatura-topo {
+    flex-direction: column;
+  }
+
+  .topo-acoes,
+  .topo-acoes button {
+    width: 100%;
+  }
+
+  .preview-contrato {
+    min-height: 620px;
+  }
+}
