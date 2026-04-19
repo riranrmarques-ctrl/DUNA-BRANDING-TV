@@ -567,6 +567,7 @@ function renderizarDetalheBase(ponto, historico) {
     statusPontoDetalhe.dataset.desde = textoDesde;
     statusPontoDetalhe.className = `status-grande ${status.classe}`;
   }
+}
 
 async function buscarCliente(codigo) {
   const { data, error } = await supabaseClient
