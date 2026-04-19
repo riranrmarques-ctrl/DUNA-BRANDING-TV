@@ -1763,3 +1763,23 @@ body.rolando .btn-sair:focus-visible {
   font-weight: 900;
 }
 
+.login-rodape {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #9aa6c7;
+}
+
+.login-rodape span {
+  color: #8d98b8;
+  margin-right: 6px;
+}
+
+.login-rodape strong {
+  color: #ffffff;
+  font-weight: 900;
+}
+
