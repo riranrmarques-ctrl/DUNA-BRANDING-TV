@@ -12,46 +12,40 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="acesso.css?v=602">
+  <link rel="stylesheet" href="acesso.css?v=536">
 </head>
 <body>
-  <div id="loadingOverlay" class="loading-overlay" hidden>
-    <div class="loading-box">
-      <img src="logo%20DUNA.gif" alt="Carregando" class="loading-gif">
-      <span>carregando...</span>
+  <section id="loginScreen" class="login-screen">
+  <div class="login-conteudo">
+    <img src="logo.png" class="login-logo-fora" alt="Duna Branding">
+
+    <div class="login-card">
+      <h1>Acesso do cliente</h1>
+
+      <p class="login-instrucao">
+        Digite o seu código de 4 dígitos no campo abaixo:
+      </p>
+
+      <input
+        id="codigoLogin"
+        type="text"
+        placeholder="EX: A1B1"
+        maxlength="4"
+        autocomplete="off"
+      >
+
+      <button id="btnEntrarCliente" type="button">Entrar</button>
+
+      <p id="loginErro" class="login-erro"></p>
+    </div>
+
+    <div class="login-desenvolvido">
+      <span>DESENVOLVIDO PELA</span>
+      <strong>DUNA BRANDING</strong>
     </div>
   </div>
+</section>
 
-  <section id="loginScreen" class="login-screen">
-    <div class="login-conteudo">
-      <img src="logo.png" class="login-logo-fora" alt="Duna Branding">
-
-      <div class="login-card">
-        <h1>Acesso exclusivo</h1>
-
-        <p class="login-instrucao">
-          Digite o seu código de 4 dígitos no campo abaixo:
-        </p>
-
-        <input
-          id="codigoLogin"
-          type="text"
-          placeholder="EX: A1B1"
-          maxlength="4"
-          autocomplete="off"
-        >
-
-        <button id="btnEntrarCliente" type="button">Entrar</button>
-
-        <p id="loginErro" class="login-erro"></p>
-      </div>
-
-      <div class="login-desenvolvido">
-        <span>DESENVOLVIDO PELA</span>
-        <strong>DUNA BRANDING</strong>
-      </div>
-    </div>
-  </section>
 
   <main id="areaCliente" class="cliente-shell" style="display:none;">
     <header class="topo-cliente">
@@ -149,6 +143,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=631"></script>
+  <script src="acesso.js?v=626"></script>
 </body>
 </html>
