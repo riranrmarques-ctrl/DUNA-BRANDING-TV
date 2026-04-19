@@ -854,3 +854,9 @@ body #mensagemAssinatura.mensagem {
   }
 }
 
+.assinatura-card .divisor,
+.assinatura-card .bloco:nth-of-type(2) {
+  display: none !important;
+}
+
+
