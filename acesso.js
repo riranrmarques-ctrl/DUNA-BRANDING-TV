@@ -1018,10 +1018,12 @@ if (codigoClienteEl) {
   };
 }
 
+window.addEventListener("scroll", () => {
+  document.body.classList.toggle("rolando", window.scrollY > 12);
+});
+
 window.addEventListener("load", () => {
-  const params = new URLSearchParams(window.location.search);
-  const codigoUrl = normalizarCodigo(params.get("codigo"));
-  const voltouDaAssinatura = params.get("voltar") === "1";
+  const codigoUrl = obterCodigoUrl();
 
   if (tituloBoasVindas) {
     tituloBoasVindas.classList.add("hero-titulo-classico");
@@ -1034,16 +1036,12 @@ window.addEventListener("load", () => {
     subtituloCliente.style.display = "none";
   }
 
-  if (codigoUrl && codigoLogin) {
-    codigoLogin.value = codigoUrl;
-  }
+  if (codigoUrl) {
+    if (codigoLogin) {
+      codigoLogin.value = codigoUrl;
+    }
 
-  if (codigoUrl && voltouDaAssinatura) {
     carregarAreaCliente(codigoUrl);
-
-    const urlLimpa = `${window.location.pathname}?codigo=${encodeURIComponent(codigoUrl)}`;
-    window.history.replaceState({}, "", urlLimpa);
-
     return;
   }
 
