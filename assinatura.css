@@ -878,5 +878,44 @@ body #mensagemAssinatura.mensagem {
   display: none !important;
 }
 
+.assinatura-shell {
+  position: relative;
+}
+
+#mensagemAssinatura.mensagem {
+  position: absolute !important;
+  top: 118px !important;
+  left: 150px !important;
+  z-index: 20 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 3.8rem !important;
+  line-height: 0.95 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: #f59e0b !important;
+
+  max-width: 900px !important;
+  pointer-events: none;
+}
+
+.assinatura-layout {
+  margin-top: 90px !important;
+}
+
+@media (max-width: 900px) {
+  #mensagemAssinatura.mensagem {
+    top: 105px !important;
+    left: 28px !important;
+    font-size: 2.3rem !important;
+    max-width: calc(100vw - 56px) !important;
+  }
+
+  .assinatura-layout {
+    margin-top: 76px !important;
+  }
+}
 
 
