@@ -1660,3 +1660,36 @@ body.rolando .btn-sair:focus-visible {
   margin-top: 10px !important;
 }
 
+.assinatura-topo {
+  align-items: center !important;
+}
+
+.assinatura-topo-esquerda {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.assinatura-logo {
+  display: block !important;
+  align-self: center !important;
+}
+
+.topo-acoes {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.btn-secundario,
+.btn-principal {
+  align-self: center !important;
+}
+
+#nomeCliente {
+  font-size: clamp(1.6rem, 2.8vw, 3.2rem) !important;
+  letter-spacing: 0.08em !important;
+  line-height: 0.98 !important;
+}
+
+.contrato-subtitulo {
+  font-size: clamp(0.78rem
+
