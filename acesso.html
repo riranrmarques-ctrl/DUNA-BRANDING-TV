@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -12,9 +12,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="acesso.css?v=801">
+  <link rel="stylesheet" href="acesso.css?v=531">
 </head>
 <body>
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <img src="logo.png" class="login-logo" alt="Duna TV">
+      <h1>Acesso do cliente</h1>
+      <p>Digite o código do cliente para abrir suas pastas contratadas, materiais e status dos pontos.</p>
+      <input id="codigoLogin" type="text" placeholder="Código do cliente" autocomplete="off">
+      <button id="btnEntrarCliente" type="button">Entrar</button>
+      <div id="loginErro" class="login-erro"></div>
+    </div>
+  </section>
+
   <main id="areaCliente" class="cliente-shell" style="display:none;">
     <header class="topo-cliente">
       <div class="topo-conteudo">
@@ -111,6 +122,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=801"></script>
+  <script src="acesso.js?v=621"></script>
 </body>
 </html>
