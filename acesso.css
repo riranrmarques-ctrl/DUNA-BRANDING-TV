@@ -55,12 +55,13 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
+  transform: translateY(-46px);
 }
 
 .login-logo-fora {
-  width: 150px;
+  width: 210px;
   height: auto;
-  margin: 0 auto 26px;
+  margin: 0 auto 34px;
   display: block;
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.24));
@@ -1741,3 +1742,24 @@ body.rolando .btn-sair:focus-visible {
   background: #16a34a;
   color: #ffffff;
 }V
+
+.login-rodape {
+  margin-top: 34px;
+  text-align: center;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  color: #aeb8d2;
+  text-transform: uppercase;
+}
+
+.login-rodape span {
+  color: #8f9ab8;
+  margin-right: 6px;
+}
+
+.login-rodape strong {
+  color: #ffffff;
+  font-weight: 900;
+}
+
