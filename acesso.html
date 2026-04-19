@@ -1,148 +1,134 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"> 
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
+
   <title>Duna TV | Área do Cliente</title>
- 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="acesso.css?v=600">
+  <link rel="stylesheet" href="acesso.css?v=130">
 </head>
+
 <body>
-  <section id="loginScreen" class="login-screen">
-  <div class="login-conteudo">
-    <img src="logo.png" class="login-logo-fora" alt="Duna Branding">
-
-    <div class="login-card">
-      <h1>Acesso do cliente</h1>
-
-      <p class="login-instrucao">
-        Digite o seu código de 4 dígitos no campo abaixo:
-      </p>
-
-      <input
-        id="codigoLogin"
-        type="text"
-        placeholder="EX: A1B1"
-        maxlength="4"
-        autocomplete="off"
-      >
-
-      <button
-        id="btnEntrarCliente"
-        type="button"
-        onclick="console.log('html click'); alert('clicou html')"
-      >
-        Entrar
-      </button>
-
-
-      <p id="loginErro" class="login-erro"></p>
-    </div>
-
-    <div class="login-desenvolvido">
-      <span>DESENVOLVIDO PELA</span>
-      <strong>DUNA BRANDING</strong>
+  <div id="loadingOverlay" class="loading-overlay" hidden>
+    <div class="loading-box">
+      <img src="logo%20DUNA.gif" alt="Carregando" class="loading-gif">
+      <span>carregando...</span>
     </div>
   </div>
-</section>
 
+  <section id="loginScreen" class="login-screen">
+    <div class="login-conteudo">
+      <img src="logo.png" class="login-logo-fora" alt="Duna Branding">
 
-  <main id="areaCliente" class="cliente-shell" style="display:none;">
+      <div class="login-card">
+        <h1>Acesso do cliente</h1>
+
+        <p class="login-instrucao">
+          digite o seu código de 4 dígitos no campo abaixo:
+        </p>
+
+        <input
+          id="codigoLogin"
+          type="text"
+          placeholder="EX: A1B1"
+          maxlength="4"
+          autocomplete="off"
+        >
+
+        <button id="btnEntrarCliente" type="button">Entrar</button>
+
+        <p id="loginErro" class="login-erro"></p>
+      </div>
+
+      <div class="login-desenvolvido">
+        <span>DESENVOLVIDO PELA</span>
+        <strong>DUNA BRANDING</strong>
+      </div>
+    </div>
+  </section>
+
+  <main id="areaCliente" class="area-cliente" style="display:none;">
     <header class="topo-cliente">
-      <div class="topo-conteudo">
-        <div class="topo-esquerda">
-          <img src="logo.png" class="logo-cliente" alt="Duna TV">
-          <span id="nomeClienteTopo" class="nome-cliente-topo"></span>
-        </div>
+      <div>
+        <p class="eyebrow">Área do cliente</p>
+        <h1 id="tituloBoasVindas">Seja bem-vindo(a)</h1>
+        <p id="subtituloCliente"></p>
+        <span id="codigoCliente" class="codigo-cliente"></span>
+      </div>
 
-        <div class="topo-acoes">
-          <div class="topo-area-bloco">
-            <span class="topo-label">ÁREA DO CLIENTE</span>
-            <p id="mensagemCliente" class="mensagem topo-mensagem"></p>
-          </div>
-
-          <button id="btnSair" class="btn-sair" type="button">Sair</button>
-        </div>
+      <div class="topo-acoes">
+        <button id="btnAtualizar" type="button">Atualizar</button>
+        <button id="btnSair" type="button">Sair</button>
       </div>
     </header>
 
-    <section class="boas-vindas">
-      <h1 id="tituloBoasVindas">Seja bem-vindo(a)</h1>
-      <p id="subtituloCliente"></p>
+    <p id="mensagemCliente" class="mensagem-cliente"></p>
+
+    <section class="contrato-card">
+      <div>
+        <span id="contratoBadge" class="contrato-badge">Contrato</span>
+        <h2>Contrato</h2>
+        <p id="contratoInfo">Carregando informações do contrato...</p>
+      </div>
+
+      <button id="btnAssinarContrato" type="button">Assinar contrato</button>
     </section>
 
-    <section class="cliente-layout">
-      <div class="coluna-esquerda">
-        <aside class="pontos-cliente">
-          <div class="secao-topo">
-            <h2>Seus pontos ativos</h2>
-            <span id="contadorPontos" class="contador-pontos" style="display:none;"></span>
-          </div>
-          <div id="listaPontosCliente" class="lista-pontos"></div>
-        </aside>
+    <section id="historicoContratoCliente" class="historico-contrato-cliente"></section>
 
-        <aside class="contrato-card">
-          <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
-          <h2>Espaço do contrato</h2>
-          <p id="contratoInfo">Carregando informações do contrato...</p>
-          <button id="codigoCliente" class="codigo-cliente" type="button" title="Clique para copiar"></button>
-          <button id="btnAssinarContrato" class="btn-assinar-contrato" type="button">Assinar contrato</button>
-          <div id="historicoContratoCliente" class="historico-contrato-cliente"></div>
-        </aside>
-      </div>
+    <section class="cliente-layout">
+      <aside class="pontos-cliente">
+        <div class="pontos-topo">
+          <div>
+            <p class="eyebrow">Pontos contratados</p>
+            <h2 id="nomeClienteTopo">Cliente</h2>
+          </div>
+
+          <span id="contadorPontos">0 pontos</span>
+        </div>
+
+        <div id="listaPontosCliente" class="lista-pontos-cliente"></div>
+      </aside>
 
       <section class="detalhe-ponto">
         <div id="estadoVazio" class="estado-vazio">
-          Selecione uma pasta de ponto para ver a exibição, materiais contratados e histórico de status.
+          Selecione um ponto para visualizar os detalhes.
         </div>
 
         <div id="detalhePonto" style="display:none;">
-          <div class="detalhe-cabecalho">
+          <div class="detalhe-topo">
             <div>
               <h2 id="nomePontoDetalhe"></h2>
               <p id="localPontoDetalhe"></p>
             </div>
 
-            <div class="status-area">
-              <div id="statusPontoDetalhe" class="status-grande"></div>
-              <div id="statusDesdeDetalhe" class="status-desde"></div>
+            <div>
+              <span id="statusPontoDetalhe" class="status-grande"></span>
+              <p id="statusDesdeDetalhe"></p>
             </div>
           </div>
 
-          <div class="preview-box">
+          <div class="preview-area">
             <div class="preview-topo">
               <h3 id="tituloPreview">Exibição em tempo real |</h3>
-              <div id="previewNome" class="preview-nome"></div>
+              <span id="previewNome"></span>
             </div>
 
             <div id="previewMidia" class="preview-midia"></div>
           </div>
 
-          <div class="subsecao">
-            <h3>Materiais da playlist</h3>
-
-            <div class="tabela-materiais">
-              <div class="linha-material-head">
-                <span>Ordem da playlist</span>
-                <span>Material</span>
-                <span>Postado</span>
-                <span>Encerramento</span>
-              </div>
-
-              <div id="listaMateriais"></div>
-            </div>
+          <div class="materiais-area">
+            <h3>Materiais do cliente</h3>
+            <div id="listaMateriais"></div>
           </div>
 
-          <div class="subsecao historico-secao">
-            <h3>Histórico de status do ponto</h3>
-            <div id="historicoStatusPonto" class="historico-lista"></div>
+          <div class="historico-area">
+            <h3>Histórico do ponto</h3>
+            <div id="historicoStatusPonto"></div>
           </div>
         </div>
       </section>
@@ -150,6 +136,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=701"></script>
+  <script src="acesso.js?v=130"></script>
 </body>
 </html>
