@@ -639,7 +639,7 @@ async function alternarDisponibilidadePonto() {
   }
 }
 
-async function validarLogin() {
+function validarLogin() {
   const usuario = String(usuarioInput?.value || "").trim().toLowerCase();
   const senha = String(senhaInput?.value || "").trim();
 
@@ -654,20 +654,15 @@ async function validarLogin() {
   sessionStorage.setItem("painelToken", ADMIN_TOKEN);
 
   if (loginErro) loginErro.textContent = "";
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
 
-  setStatus("Carregando painel...", "normal");
+  setTimeout(() => {
+    if (loginBox) loginBox.style.display = "none";
+    if (conteudoPainel) conteudoPainel.style.display = "block";
 
-  try {
-    await iniciarPainel();
     setStatus("Painel Ativo", "ok");
-  } catch (error) {
-    console.error(error);
-    setStatus("Erro ao carregar painel", "erro");
-  } finally {
+    iniciarPainel();
     esconderLoading();
-  }
+  }, 420);
 }
 
 async function buscarPontosRemoto() {
