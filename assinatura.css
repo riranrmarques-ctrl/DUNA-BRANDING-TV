@@ -613,4 +613,27 @@ input {
   margin-top: 8px !important;
 }
 
+.documento-card #nomeCliente,
+#nomeCliente {
+  font-size: clamp(1.25rem, 2vw, 2.25rem) !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+.documento-card .contrato-subtitulo,
+.contrato-subtitulo {
+  font-size: clamp(0.72rem, 0.9vw, 0.9rem) !important;
+  line-height: 1.2 !important;
+  margin-top: 4px !important;
+}
+
+.card-topo {
+  margin-bottom: 8px !important;
+}
+
+.documento-card {
+  padding-top: 14px !important;
+}
+
 
