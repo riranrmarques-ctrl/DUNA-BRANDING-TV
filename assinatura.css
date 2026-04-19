@@ -465,3 +465,39 @@ body.contrato-assinado::before {
     min-height: 620px;
   }
 }
+
+.assinatura-card.contrato-concluido {
+  min-height: 300px;
+}
+
+.assinatura-card.contrato-concluido .estado-concluido {
+  gap: 12px;
+  padding: 22px;
+}
+
+.estado-concluido strong {
+  font-size: 1.22rem;
+}
+
+.estado-concluido span {
+  font-size: 0.98rem;
+  line-height: 1.28;
+  max-width: 360px;
+}
+
+.btn-download-concluido {
+  margin-top: 4px;
+  min-width: 220px;
+  min-height: 44px;
+}
+
+.aviso-download-concluido {
+  margin-top: 4px;
+  max-width: 330px;
+  color: #a7f3d0;
+  font-size: 0.78rem;
+  line-height: 1.3;
+  text-align: center;
+  opacity: 0.85;
+}
+
