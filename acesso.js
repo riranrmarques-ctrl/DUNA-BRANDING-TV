@@ -3,8 +3,8 @@ const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 
 const TABELA_CLIENTES = "clientes_app";
 const TABELA_CLIENTE_PONTOS = "cliente_pontos";
-const TABELA_PONTOS = "pontos"; 
-const TABELA_PLAYLIST = "playlists"; 
+const TABELA_PONTOS = "pontos";
+const TABELA_PLAYLIST = "playlists";
 const TABELA_HISTORICO = "historico_conexao";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -24,6 +24,7 @@ const contratoInfo = document.getElementById("contratoInfo");
 const codigoClienteEl = document.getElementById("codigoCliente");
 const contratoCard = document.querySelector(".contrato-card");
 const btnAssinarContrato = document.getElementById("btnAssinarContrato");
+const historicoContratoCliente = document.getElementById("historicoContratoCliente");
 const mensagemCliente = document.getElementById("mensagemCliente");
 const contadorPontos = document.getElementById("contadorPontos");
 const listaPontosCliente = document.getElementById("listaPontosCliente");
@@ -277,15 +278,12 @@ function obterUrlPlaylist(item) {
 
 function obterNomeArquivo(item) {
   const tituloRenomeado = String(item?.titulo_arquivo || "").trim();
-
   if (tituloRenomeado) return tituloRenomeado;
 
   const nomeArquivo = String(item?.nome_arquivo || "").trim();
-
   if (nomeArquivo) return nomeArquivo;
 
   const nomeDado = String(item?.nome || "").trim();
-
   if (nomeDado) return nomeDado;
 
   return "Sem nome";
@@ -359,13 +357,85 @@ function abrirLogin() {
   limparTelaDetalhe();
 }
 
+function baixarContratoCliente() {
+  if (!clienteAtual) return;
+
+  const html = clienteAtual.contrato_assinado_html || clienteAtual.contrato_html;
+
+  if (!html) {
+    setMensagem("Contrato indisponível para download.", "erro");
+    return;
+  }
+
+  const nomeArquivoBase = clienteAtual.contrato_nome_arquivo || `contrato-${codigoClienteAtual}.html`;
+  const nomeArquivo = contratoEstaConcluido(clienteAtual)
+    ? nomeArquivoBase.replace(/\.html$/i, "-assinado.html")
+    : nomeArquivoBase;
+
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderizarHistoricoContrato() {
+  if (!historicoContratoCliente || !clienteAtual) return;
+
+  const disponivel = contratoEstaDisponivel(clienteAtual);
+  const concluido = disponivel && contratoEstaConcluido(clienteAtual);
+  const enviadoEm = clienteAtual.contrato_enviado_em || clienteAtual.contrato_atualizado_em || clienteAtual.updated_at || clienteAtual.created_at;
+  const assinadoEm = clienteAtual.contrato_assinado_em || clienteAtual.updated_at || null;
+
+  if (!disponivel) {
+    historicoContratoCliente.innerHTML = "";
+    return;
+  }
+
+  if (concluido) {
+    historicoContratoCliente.innerHTML = `
+      <div class="historico-contrato-item concluido">
+        <div>
+          <strong>Contrato concluído</strong>
+          <span>Assinado em ${formatarDataHora(assinadoEm)}.</span>
+        </div>
+        <button class="btn-historico-contrato" type="button">Baixar contrato</button>
+      </div>
+    `;
+
+    const botaoBaixar = historicoContratoCliente.querySelector(".btn-historico-contrato");
+
+    if (botaoBaixar) {
+      botaoBaixar.onclick = baixarContratoCliente;
+    }
+
+    return;
+  }
+
+  historicoContratoCliente.innerHTML = `
+    <div class="historico-contrato-item pendente">
+      <div>
+        <strong>Contrato enviado</strong>
+        <span>Enviado em ${formatarDataHora(enviadoEm)}.</span>
+        <small>Pendente de assinatura</small>
+      </div>
+    </div>
+  `;
+}
+
 function renderizarContrato() {
   if (!clienteAtual) return;
 
   const nome = obterNomeCliente(clienteAtual);
   const supervisor = clienteEhSupervisor(clienteAtual);
   const disponivel = contratoEstaDisponivel(clienteAtual);
-  const concluido = contratoEstaConcluido(clienteAtual);
+  const concluido = disponivel && contratoEstaConcluido(clienteAtual);
 
   if (nomeClienteTopo) {
     nomeClienteTopo.textContent = nome;
@@ -394,7 +464,10 @@ function renderizarContrato() {
     codigoClienteEl.textContent = "";
   }
 
-  if (supervisor) return;
+  if (supervisor) {
+    if (historicoContratoCliente) historicoContratoCliente.innerHTML = "";
+    return;
+  }
 
   if (contratoBadge) {
     contratoBadge.textContent = concluido
@@ -409,30 +482,41 @@ function renderizarContrato() {
   }
 
   if (contratoInfo) {
-    if (concluido) {
-      contratoInfo.textContent = "Seu contrato foi concluído e está disponível para download.";
-    } else if (disponivel) {
-      contratoInfo.textContent = "Seu contrato está pronto para revisão, mas ainda precisa da sua leitura e assinatura para ser concluído.";
-    } else {
+    if (!disponivel) {
+      contratoInfo.textContent = "Seu contrato ainda não está pronto! Caso necessário, solicite à equipe Duna.";
+    } else if (concluido) {
       contratoInfo.textContent = "Seu contrato foi concluído e está disponível para download. Baixe agora!";
+    } else {
+      contratoInfo.textContent = "Seu contrato está pronto para revisão, mas ainda precisa da sua leitura e assinatura para ser concluído.";
     }
   }
 
   if (btnAssinarContrato) {
-    if (!disponivel && !concluido) {
+    if (!disponivel) {
       btnAssinarContrato.style.display = "none";
       btnAssinarContrato.disabled = true;
       btnAssinarContrato.onclick = null;
+      renderizarHistoricoContrato();
       return;
     }
 
     btnAssinarContrato.style.display = "";
     btnAssinarContrato.textContent = concluido ? "Baixar contrato" : "Assinar contrato";
     btnAssinarContrato.disabled = false;
+    btnAssinarContrato.classList.toggle("concluido", concluido);
+    btnAssinarContrato.classList.toggle("pendente", !concluido);
+
     btnAssinarContrato.onclick = () => {
+      if (concluido) {
+        baixarContratoCliente();
+        return;
+      }
+
       window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
     };
   }
+
+  renderizarHistoricoContrato();
 }
 
 function montarCardPonto(ponto) {
@@ -661,7 +745,7 @@ function renderizarDetalheBase(ponto, historico) {
   if (statusDesdeDetalhe) {
     const ultimoRegistro = historico[0] || null;
     const dataUltimoRegistro = obterDataHistorico(ultimoRegistro) || obterUltimoPingPonto(ponto);
-    statusDesdeDetalhe.textContent = dataUltimoRegistro ? `último registro: ${formatarDataHora(dataUltimoRegistro)}` : "";
+    statusDesdeDetalhe.textContent = dataUltimoRegistro ? `último registro: ${formatarDataHora(dataUltimoRegistro)}` : "ainda sem registro";
   }
 }
 
