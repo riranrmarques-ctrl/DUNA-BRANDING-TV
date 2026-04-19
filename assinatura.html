@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Duna TV | Assinatura do Contrato</title>
+  <link rel="stylesheet" href="assinatura.css?v=1">
+</head>
+<body>
+  <main class="assinatura-shell">
+    <header class="assinatura-topo">
+      <div>
+        <img src="logo.png" class="assinatura-logo" alt="Duna TV">
+        <p>Área de assinatura</p>
+        <h1>Assine seu contrato</h1>
+      </div>
+
+      <div class="topo-acoes">
+        <button id="btnVoltarCliente" class="btn-secundario" type="button">Voltar</button>
+        <button id="btnBaixarContrato" class="btn-principal" type="button" disabled>Baixar contrato</button>
+      </div>
+    </header>
+
+    <p id="mensagemAssinatura" class="mensagem">Carregando contrato...</p>
+
+    <section class="assinatura-layout">
+      <article class="documento-card">
+        <div class="card-topo">
+          <div>
+            <span id="statusContrato" class="status-chip pendente">Pendente</span>
+            <h2 id="nomeCliente">Contrato do cliente</h2>
+          </div>
+          <span id="codigoCliente" class="codigo-chip"></span>
+        </div>
+
+        <iframe id="previewContrato" class="preview-contrato" title="Documento do contrato"></iframe>
+      </article>
+
+      <aside class="assinatura-card">
+        <div class="bloco">
+          <h2>1. Assinatura virtual</h2>
+          <p>Desenhe sua assinatura no espaço abaixo e conclua o contrato.</p>
+          <canvas id="canvasAssinatura" width="720" height="260"></canvas>
+          <div class="acoes-linha">
+            <button id="btnLimparAssinatura" class="btn-secundario" type="button">Limpar</button>
+            <button id="btnConcluirDesenho" class="btn-principal" type="button">Concluir com assinatura</button>
+          </div>
+        </div>
+
+        <div class="divisor"><span>ou</span></div>
+
+        <div class="bloco">
+          <h2>2. Imprimir e depositar fotos</h2>
+          <p>Se preferir, imprima o contrato assinado, envie as fotos e conclua por aqui.</p>
+          <input id="fotosInput" type="file" accept="image/*" multiple>
+          <button id="btnConcluirFotos" class="btn-principal cheio" type="button">Concluir com fotos</button>
+        </div>
+
+        <div id="estadoConcluido" class="estado-concluido" hidden>
+          <strong>Contrato concluído.</strong>
+          <span>Agora você pode baixar o documento assinado.</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assinatura.js?v=1"></script>
+</body>
+</html>
