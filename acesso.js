@@ -559,10 +559,14 @@ function renderizarDetalheBase(ponto, historico) {
   if (localPontoDetalhe) localPontoDetalhe.textContent = obterLocalizacaoPonto(ponto);
 
   if (statusPontoDetalhe) {
-    statusPontoDetalhe.textContent = status.detalhe;
+    const historicoMaisRecente = historico[0] || null;
+    const dataDesde = obterDataHistorico(historicoMaisRecente) || obterUltimoPingPonto(ponto);
+    const textoDesde = dataDesde ? `desde ${formatarDataHora(dataDesde)}` : "";
+
+    statusPontoDetalhe.textContent = status.texto;
+    statusPontoDetalhe.dataset.desde = textoDesde;
     statusPontoDetalhe.className = `status-grande ${status.classe}`;
   }
-}
 
 async function buscarCliente(codigo) {
   const { data, error } = await supabaseClient
