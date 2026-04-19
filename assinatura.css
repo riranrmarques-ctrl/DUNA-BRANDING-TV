@@ -300,3 +300,223 @@ input {
     min-height: 620px;
   }
 }
+
+.topo-assinatura {
+  width: 100%;
+  min-height: 88px;
+  padding: 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.topo-assinatura-esquerda {
+  display: flex;
+  align-items: center;
+}
+
+.logo-assinatura {
+  width: 190px;
+  height: auto;
+  object-fit: contain;
+}
+
+.topo-assinatura-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.topo-assinatura-label {
+  color: #d9e1f2;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  white-space: nowrap;
+}
+
+.btn-voltar-cliente {
+  min-width: 108px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0 22px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-voltar-cliente:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.contrato-hero {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 46px 38px 38px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.contrato-hero-texto {
+  max-width: 880px;
+}
+
+#tituloContrato {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2.6rem, 5vw, 5rem);
+  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#subtituloContrato {
+  margin-top: 10px;
+  color: #f59e0b;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.badge-pendente,
+.contrato-status-pendente,
+.codigo-contrato,
+#codigoContrato,
+#codigoCliente,
+.contrato-codigo {
+  display: none !important;
+}
+
+.area-conclusao-contrato {
+  margin-top: 34px;
+  padding: 34px 0 0;
+  color: #111827;
+}
+
+.linha-assinatura-documento {
+  width: 100%;
+  height: 3px;
+  margin-bottom: 34px;
+  background: #111827;
+}
+
+.area-conclusao-contrato h2 {
+  margin: 0 0 26px;
+  color: #111827;
+  font-size: 1.9rem;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.area-conclusao-contrato p {
+  margin: 0 0 18px;
+  color: #111827;
+  font-size: 1.35rem;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.assinatura-eletronica-box {
+  margin-top: 62px;
+}
+
+.assinatura-eletronica-box h3,
+.assinatura-fisica-box h3 {
+  margin: 0 0 22px;
+  color: #111827;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.assinatura-eletronica-box img {
+  display: block;
+  max-width: 360px;
+  max-height: 160px;
+  object-fit: contain;
+}
+
+.assinatura-fisica-box {
+  margin-top: 42px;
+}
+
+.lista-comprovantes-assinatura {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.comprovante-assinatura {
+  display: block;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: #ffffff;
+  text-decoration: none;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+}
+
+.comprovante-assinatura img {
+  width: 100%;
+  height: 180px;
+  display: block;
+  object-fit: cover;
+}
+
+.comprovante-assinatura span {
+  display: block;
+  padding: 12px 14px;
+  color: #111827;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  .topo-assinatura {
+    min-height: auto;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .logo-assinatura {
+    width: 132px;
+  }
+
+  .topo-assinatura-acoes {
+    gap: 10px;
+  }
+
+  .topo-assinatura-label {
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+  }
+
+  .btn-voltar-cliente {
+    min-width: 84px;
+    height: 42px;
+    padding: 0 14px;
+  }
+
+  .contrato-hero {
+    padding: 32px 24px 28px;
+  }
+
+  #tituloContrato {
+    font-size: clamp(2rem, 12vw, 3.2rem);
+  }
+
+  .area-conclusao-contrato p {
+    font-size: 1.05rem;
+  }
+}
+
