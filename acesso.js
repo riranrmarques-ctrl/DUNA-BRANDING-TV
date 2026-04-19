@@ -807,23 +807,39 @@ async function buscarPontos(codigos) {
 
 async function buscarPlaylistPonto(codigo) {
   const consultas = [
-    {
-      colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,storage_path,tipo,created_at,data_fim,ordem,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,data_fim,ordem,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,codigo",
-      ordenarPor: "created_at"
-    }
+    async () => supabaseClient
+      .from(TABELA_PLAYLIST)
+      .select("*")
+      .eq("codigo", codigo)
+      .order("ordem", { ascending: true }),
+
+    async () => supabaseClient
+      .from(TABELA_PLAYLIST)
+      .select("*")
+      .eq("codigo", codigo)
+      .order("created_at", { ascending: true }),
+
+    async () => supabaseClient
+      .from(TABELA_PLAYLIST)
+      .select("*")
+      .eq("codigo", codigo)
   ];
+
+  let ultimoErro = null;
+
+  for (const consultar of consultas) {
+    const { data, error } = await consultar();
+
+    if (!error) {
+      return data || [];
+    }
+
+    ultimoErro = error;
+    console.warn("Falha ao buscar playlist:", error);
+  }
+
+  throw ultimoErro;
+}
 
   let ultimoErro = null;
 
