@@ -2020,4 +2020,47 @@ body.rolando .btn-sair:focus-visible {
   }
 }
 
+.login-card {
+  padding: 20px 22px 18px !important;
+  border-radius: 22px !important;
+}
+
+.login-card h1 {
+  margin-bottom: 12px !important;
+}
+
+.login-instrucao {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 0 10px !important;
+  color: #b8c2dc !important;
+  font-size: 0.78rem !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-transform: lowercase !important;
+  white-space: nowrap !important;
+}
+
+#codigoLogin {
+  height: 40px !important;
+  border-radius: 12px !important;
+}
+
+#btnEntrarCliente {
+  height: 44px !important;
+  margin-top: 10px !important;
+  border-radius: 12px !important;
+}
+
+.login-erro {
+  min-height: 12px !important;
+  margin-top: 6px !important;
+}
+
+.login-desenvolvido {
+  margin-top: 16px !important;
+}
+
+
 
