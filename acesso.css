@@ -155,14 +155,7 @@ button {
   box-shadow: none;
   backdrop-filter: none;
   overflow: visible;
-  transition:
-    height 0.35s ease,
-    min-height 0.35s ease,
-    max-height 0.35s ease,
-    background 0.35s ease,
-    box-shadow 0.35s ease,
-    backdrop-filter 0.35s ease,
-    margin-bottom 0.35s ease;
+  transition: none;
 }
 
 .topo-conteudo {
@@ -176,20 +169,17 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 22px;
-  transition:
-    height 0.35s ease,
-    min-height 0.35s ease,
-    max-height 0.35s ease;
+  transition: none;
 }
 
 body.rolando .topo-cliente {
   height: 82px;
   min-height: 82px;
   max-height: 82px;
-  background: rgba(7, 17, 38, 0.78);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 9px 26px rgba(0, 0, 0, 0.18);
-  margin-bottom: 14px;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  margin-bottom: 22px;
 }
 
 body.rolando .topo-conteudo {
@@ -199,63 +189,42 @@ body.rolando .topo-conteudo {
   align-items: center;
 }
 
-.topo-esquerda {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  min-width: 0;
-  height: 100%;
-}
-
+.topo-esquerda,
 body.rolando .topo-esquerda {
+  height: 82px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  height: 82px;
+  gap: 0;
+  min-width: 0;
   line-height: 1;
 }
 
-.logo-cliente {
+.logo-cliente,
+body.rolando .logo-cliente {
   width: 390px;
   height: auto;
   max-height: 96px;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
-  transition:
-    width 0.35s ease,
-    max-height 0.35s ease,
-    filter 0.35s ease;
-}
-
-body.rolando .logo-cliente {
-  width: 330px;
-  max-height: 76px;
   display: block;
   object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
   transform: none;
 }
 
 .nome-cliente-topo {
-  max-width: 560px;
+  max-width: 620px;
+  margin-left: -24px;
   color: #ffffff;
-  font-size: 1.16rem;
-  font-weight: 900;
+  font-size: 1.12rem;
+  font-weight: 500;
+  line-height: 1;
   letter-spacing: -0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.32s ease, transform 0.32s ease;
+  transform: none;
+  transition: opacity 0.2s ease;
   pointer-events: none;
-}
-
-.nome-cliente-topo::before {
-  content: "|";
-  display: inline-block;
-  margin: 0 18px 0 2px;
-  color: rgba(217, 225, 242, 0.74);
-  font-weight: 900;
 }
 
 body.rolando .nome-cliente-topo {
@@ -263,8 +232,7 @@ body.rolando .nome-cliente-topo {
   align-items: center;
   height: 82px;
   max-width: 620px;
-  margin-left: -14px;
-  color: #ffffff;
+  margin-left: -24px;
   font-size: 1.12rem;
   font-weight: 500;
   line-height: 1;
@@ -272,6 +240,7 @@ body.rolando .nome-cliente-topo {
   transform: none;
 }
 
+.nome-cliente-topo::before,
 body.rolando .nome-cliente-topo::before {
   content: "|";
   display: inline-flex;
@@ -279,42 +248,35 @@ body.rolando .nome-cliente-topo::before {
   height: 82px;
   margin: 0 8px 0 0;
   color: rgba(217, 225, 242, 0.74);
+  font-weight: 900;
 }
 
-.topo-acoes {
+.topo-acoes,
+body.rolando .topo-acoes {
+  height: 82px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
   min-width: 0;
-  height: 100%;
 }
 
-body.rolando .topo-acoes {
-  display: flex;
-  align-items: center;
-  height: 82px;
-  gap: 8px;
-}
-
-.topo-area-bloco {
+.topo-area-bloco,
+body.rolando .topo-area-bloco {
   position: relative;
+  height: 82px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  height: auto;
   min-height: 0;
   line-height: 1;
 }
 
-body.rolando .topo-area-bloco {
-  display: flex;
-  align-items: center;
+.topo-label,
+body.rolando .topo-label {
   height: 82px;
-}
-
-.topo-label {
-  display: block;
+  display: inline-flex;
+  align-items: center;
   margin: 0;
   color: #d9e1f2;
   font-size: 0.94rem;
@@ -323,20 +285,10 @@ body.rolando .topo-area-bloco {
   white-space: nowrap;
   opacity: 0.9;
   line-height: 1;
-  transition: font-size 0.35s ease, opacity 0.35s ease, letter-spacing 0.35s ease;
 }
 
 .topo-label::after {
   content: " |";
-}
-
-body.rolando .topo-label {
-  display: inline-flex;
-  align-items: center;
-  height: 82px;
-  font-size: 0.94rem;
-  line-height: 1;
-  letter-spacing: 0.16em;
 }
 
 .topo-mensagem {
@@ -358,9 +310,7 @@ body.rolando .topo-label {
   transform: translateY(0);
   transition:
     opacity 0.35s ease,
-    transform 0.35s ease,
-    font-size 0.35s ease,
-    top 0.35s ease;
+    transform 0.35s ease;
 }
 
 body.rolando .topo-mensagem {
@@ -374,7 +324,9 @@ body.rolando .topo-mensagem {
 }
 
 .btn-sair,
-.btn-atualizar {
+.btn-atualizar,
+body.rolando .btn-sair {
+  align-self: center;
   height: 42px;
   min-width: 76px;
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -386,11 +338,6 @@ body.rolando .topo-mensagem {
   font-weight: 900;
   cursor: pointer;
   transition:
-    height 0.35s ease,
-    min-width 0.35s ease,
-    border-radius 0.35s ease,
-    padding 0.35s ease,
-    font-size 0.35s ease,
     background 0.18s ease,
     transform 0.18s ease,
     border-color 0.18s ease;
@@ -402,15 +349,6 @@ body.rolando .topo-mensagem {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.16);
   transform: translateY(-1px);
-}
-
-body.rolando .btn-sair {
-  align-self: center;
-  height: 42px;
-  min-width: 76px;
-  border-radius: 14px;
-  padding: 0 20px;
-  font-size: 0.94rem;
 }
 
 .boas-vindas {
@@ -1061,17 +999,12 @@ body.rolando .boas-vindas {
   }
 
   .topo-cliente,
-  .topo-conteudo {
-    height: 62px;
-    min-height: 62px;
-    max-height: 62px;
-  }
-
+  .topo-conteudo,
   body.rolando .topo-cliente,
   body.rolando .topo-conteudo {
-    height: 88px;
-    min-height: 88px;
-    max-height: 88px;
+    height: 82px;
+    min-height: 82px;
+    max-height: 82px;
   }
 
   .topo-conteudo {
@@ -1079,31 +1012,21 @@ body.rolando .boas-vindas {
     gap: 12px;
   }
 
-  .topo-esquerda {
-    gap: 10px;
-  }
-
+  .topo-esquerda,
   body.rolando .topo-esquerda {
     gap: 4px;
   }
 
-  .logo-cliente {
-    width: 260px;
-    max-height: 62px;
-  }
-
+  .logo-cliente,
   body.rolando .logo-cliente {
     width: 220px;
     max-height: 72px;
   }
 
-  .topo-label {
-    font-size: 0.66rem;
-    letter-spacing: 0.08em;
-  }
-
+  .topo-label,
   body.rolando .topo-label {
     font-size: 0.66rem;
+    letter-spacing: 0.08em;
   }
 
   .nome-cliente-topo {
@@ -1118,13 +1041,7 @@ body.rolando .boas-vindas {
     gap: 8px;
   }
 
-  .btn-sair {
-    height: 38px;
-    min-width: 66px;
-    padding: 0 16px;
-    font-size: 0.82rem;
-  }
-
+  .btn-sair,
   body.rolando .btn-sair {
     height: 34px;
     min-width: 62px;
