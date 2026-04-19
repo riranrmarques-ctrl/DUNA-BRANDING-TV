@@ -183,32 +183,50 @@ button {
 }
 
 body.rolando .topo-cliente {
-  height: 108px;
-  min-height: 108px;
-  max-height: 108px;
-  background: rgba(7, 17, 38, 0.78);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 9px 26px rgba(0, 0, 0, 0.18);
-  margin-bottom: 14px;
+  height: 82px !important;
+  min-height: 82px !important;
+  max-height: 82px !important;
 }
 
 body.rolando .topo-conteudo {
-  height: 108px;
-  min-height: 108px;
-  max-height: 108px;
+  height: 82px !important;
+  min-height: 82px !important;
+  max-height: 82px !important;
 }
 
-.topo-esquerda {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  min-width: 0;
-  height: 100%;
+body.rolando .logo-cliente {
+  width: 390px !important;
+  max-height: 96px !important;
+}
+
+body.rolando .topo-label {
+  font-size: 0.94rem !important;
+  letter-spacing: 0.16em !important;
+}
+
+body.rolando .btn-sair {
+  height: 42px !important;
+  min-width: 76px !important;
+  border-radius: 14px !important;
+  padding: 0 20px !important;
+  font-size: 0.94rem !important;
 }
 
 body.rolando .topo-esquerda {
-  gap: 2px;
-  align-items: center;
+  gap: 0 !important;
+  align-items: center !important;
+}
+
+body.rolando .nome-cliente-topo {
+  font-size: 1.12rem !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  margin-left: -8px !important;
+  transform: translateY(0) !important;
+}
+
+body.rolando .nome-cliente-topo::before {
+  margin: 0 6px 0 0 !important;
 }
 
 .logo-cliente {
