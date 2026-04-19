@@ -7,8 +7,9 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const btnVoltarCliente = document.getElementById("btnVoltarCliente");
 const btnBaixarContrato = document.getElementById("btnBaixarContrato");
+const btnBaixarContratoConcluido = document.getElementById("btnBaixarContratoConcluido");
 const mensagemAssinatura = document.getElementById("mensagemAssinatura");
-const statusContrato = document.getElementById("statusContrato"); 
+const statusContrato = document.getElementById("statusContrato");
 const nomeCliente = document.getElementById("nomeCliente");
 const codigoCliente = document.getElementById("codigoCliente");
 const previewContrato = document.getElementById("previewContrato");
