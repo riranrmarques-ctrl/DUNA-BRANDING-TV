@@ -285,7 +285,13 @@ function obterNomeArquivo(item) {
     return nomeArquivo;
   }
 
-  return "Material do cliente";
+  const nomeDado = String(item?.nome || "").trim();
+
+  if (nomeDado) {
+    return nomeDado;
+  }
+
+  return "Sem nome";
 }
 
 function filtrarMateriaisDoCliente(lista = []) {
@@ -300,8 +306,14 @@ function filtrarMateriaisDoCliente(lista = []) {
     });
 }
 
-function obterNomeClientePlaylist(item) {
-  return item?.nome_cliente || item?.cliente_nome || item?.cliente || item?.nome || obterNomeCliente(clienteAtual);
+function limitarHistorico72Horas(historico = []) {
+  const limite = Date.now() - (72 * 60 * 60 * 1000);
+
+  return (historico || []).filter((item) => {
+    const dataHistorico = new Date(obterDataHistorico(item));
+    if (Number.isNaN(dataHistorico.getTime())) return false;
+    return dataHistorico.getTime() >= limite;
+  });
 }
 
 function limparTelaDetalhe() {
@@ -478,7 +490,7 @@ function renderizarPreview(lista) {
     return;
   }
 
-  previewMidia.innerHTML = `<video src="${escapeHtml(url)}" autoplay muted loop playsinline controls></video>`;
+  previewMidia.innerHTML = `<video src="${escapeHtml(url)}" autoplay muted loop playsinline></video>`;
 }
 
 function renderizarMateriais(lista) {
@@ -514,26 +526,22 @@ function obterTextoEvento(evento) {
   return evento || "Registro";
 }
 
-function obterClasseEvento(evento) {
-  if (eventoEhAtivo(evento)) return "ativo";
-  if (eventoEhInativo(evento)) return "inativo";
-  return "";
-}
-
 function renderizarHistorico(historico) {
   if (!historicoStatusPonto) return;
 
-  if (!historico.length) {
-    historicoStatusPonto.innerHTML = `<div class="vazio">Sem histórico de status para este ponto.</div>`;
+  const historico72h = limitarHistorico72Horas(historico);
+
+  if (!historico72h.length) {
+    historicoStatusPonto.innerHTML = `<div class="vazio historico-vazio-pequeno">Sem histórico nas últimas 72 horas.</div>`;
     return;
   }
 
-  historicoStatusPonto.innerHTML = historico.map((item, index) => {
+  historicoStatusPonto.innerHTML = historico72h.map((item, index) => {
     const texto = obterTextoEvento(item.evento);
-    const classe = obterClasseEvento(item.evento);
+    const classe = index === 0 && eventoEhAtivo(item.evento) ? "ativo-primeiro" : "neutro";
 
     return `
-      <div class="historico-item">
+      <div class="historico-item ${classe}">
         <span>${index + 1}.</span>
         <span class="historico-evento ${classe}">${escapeHtml(texto)}</span>
         <span>${formatarDataHora(obterDataHistorico(item))}</span>
@@ -652,7 +660,7 @@ async function buscarHistoricoPonto(codigo) {
       .select(consulta.colunas)
       .eq("codigo", codigo)
       .order(consulta.ordenarPor, { ascending: false })
-      .limit(40);
+      .limit(120);
 
     if (!error) return data || [];
     console.warn("Falha ao buscar histórico:", error);
@@ -668,7 +676,7 @@ async function carregarHistoricosIniciais(pontos) {
 
       try {
         const historico = await buscarHistoricoPonto(codigo);
-        return [codigo, historico];
+        return [codigo, limitarHistorico72Horas(historico)];
       } catch {
         return [codigo, []];
       }
@@ -699,14 +707,15 @@ async function abrirPonto(codigo) {
       buscarHistoricoPonto(codigoNormalizado)
     ]);
 
-    historicosPorPonto[codigoNormalizado] = historico;
+    const historico72h = limitarHistorico72Horas(historico);
+    historicosPorPonto[codigoNormalizado] = historico72h;
 
     const materiaisCliente = filtrarMateriaisDoCliente(playlist);
 
-    renderizarDetalheBase(ponto, historico);
+    renderizarDetalheBase(ponto, historico72h);
     renderizarPreview(materiaisCliente);
     renderizarMateriais(materiaisCliente);
-    renderizarHistorico(historico);
+    renderizarHistorico(historico72h);
     renderizarListaPontos();
     setMensagem("Área do cliente atualizada.", "ok");
   } catch (error) {
