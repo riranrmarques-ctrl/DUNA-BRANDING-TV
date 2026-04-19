@@ -511,3 +511,35 @@ body.contrato-assinado::before {
   display: none !important;
 }
 
+.topo-acoes {
+  position: relative !important;
+}
+
+#mensagemAssinatura {
+  position: absolute !important;
+  top: 58px !important;
+  left: 0 !important;
+  right: auto !important;
+  z-index: 80 !important;
+
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #d9e1f2 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+  text-transform: none !important;
+
+  pointer-events: none !important;
+}
+
+#mensagemAssinatura:empty {
+  display: none !important;
+}
