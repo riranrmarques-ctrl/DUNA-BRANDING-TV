@@ -104,17 +104,19 @@ function mostrarLoading() {
 }
 
 function esconderLoading() {
-  document.body.classList.remove("loading-page");
+  setTimeout(() => {
+    document.body.classList.remove("loading-page");
 
-  if (loadingOverlay) {
-    loadingOverlay.classList.remove("ativo");
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove("ativo");
 
-    setTimeout(() => {
-      if (!loadingOverlay.classList.contains("ativo")) {
-        loadingOverlay.style.display = "none";
-      }
-    }, 280);
-  }
+      setTimeout(() => {
+        if (!loadingOverlay.classList.contains("ativo")) {
+          loadingOverlay.style.display = "none";
+        }
+      }, 280);
+    }
+  }, 250);
 }
 
 function setStatus(texto, tipo = "normal") {
@@ -637,7 +639,7 @@ async function alternarDisponibilidadePonto() {
   }
 }
 
-function validarLogin() {
+async function validarLogin() {
   const usuario = String(usuarioInput?.value || "").trim().toLowerCase();
   const senha = String(senhaInput?.value || "").trim();
 
@@ -652,31 +654,20 @@ function validarLogin() {
   sessionStorage.setItem("painelToken", ADMIN_TOKEN);
 
   if (loginErro) loginErro.textContent = "";
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
 
-  setTimeout(() => {
-    if (loginBox) loginBox.style.display = "none";
-    if (conteudoPainel) conteudoPainel.style.display = "block";
+  setStatus("Carregando painel...", "normal");
 
+  try {
+    await iniciarPainel();
     setStatus("Painel Ativo", "ok");
-    iniciarPainel();
+  } catch (error) {
+    console.error(error);
+    setStatus("Erro ao carregar painel", "erro");
+  } finally {
     esconderLoading();
-  }, 420);
-}
-
-if (btnLogin) {
-  btnLogin.onclick = validarLogin;
-}
-
-if (senhaInput) {
-  senhaInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") validarLogin();
-  });
-}
-
-if (usuarioInput) {
-  usuarioInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") validarLogin();
-  });
+  }
 }
 
 async function buscarPontosRemoto() {
@@ -1642,9 +1633,25 @@ async function iniciarPainel() {
 }
 
 garantirSessaoAdmin();
-
 if (sessionStorage.getItem("painelLiberado") === "1") {
   mostrarLoading();
+
+  (async () => {
+    try {
+      if (loginBox) loginBox.style.display = "none";
+      if (conteudoPainel) conteudoPainel.style.display = "block";
+
+      setStatus("Carregando painel...", "normal");
+      await iniciarPainel();
+      setStatus("Painel Ativo", "ok");
+    } catch (error) {
+      console.error(error);
+      setStatus("Erro ao carregar painel", "erro");
+    } finally {
+      esconderLoading();
+    }
+  })();
+}
 
   setTimeout(() => {
     if (loginBox) loginBox.style.display = "none";
