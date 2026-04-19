@@ -16,15 +16,40 @@
 </head>
 <body>
   <section id="loginScreen" class="login-screen">
+  <div class="login-conteudo">
+    <img src="logo.png" class="login-logo-fora" alt="Duna Branding">
+
     <div class="login-card">
-      <img src="logo.png" class="login-logo" alt="Duna TV">
       <h1>Acesso do cliente</h1>
-      <p>Digite o código do cliente para abrir suas pastas contratadas, materiais e status dos pontos.</p>
-      <input id="codigoLogin" type="text" placeholder="Código do cliente" autocomplete="off">
+
+      <p class="login-texto">
+        Digite o código do cliente para abrir suas pastas contratadas, materiais e status dos pontos.
+      </p>
+
+      <p class="login-instrucao">
+        Digite o seu código de 4 dígitos no campo abaixo:
+      </p>
+
+      <input
+        id="codigoLogin"
+        type="text"
+        placeholder="EX: A1B1"
+        maxlength="4"
+        autocomplete="off"
+      >
+
       <button id="btnEntrarCliente" type="button">Entrar</button>
-      <div id="loginErro" class="login-erro"></div>
+
+      <p id="loginErro" class="login-erro"></p>
     </div>
-  </section>
+
+    <div class="login-desenvolvido">
+      <span>DESENVOLVIDO PELA</span>
+      <strong>DUNA BRANDING</strong>
+    </div>
+  </div>
+</section>
+
 
   <main id="areaCliente" class="cliente-shell" style="display:none;">
     <header class="topo-cliente">
