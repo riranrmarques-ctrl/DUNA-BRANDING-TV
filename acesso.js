@@ -406,14 +406,27 @@ function abrirLogin() {
   if (loginScreen) loginScreen.style.display = "flex";
   if (contratoCard) contratoCard.style.display = "";
 
-  if (codigoLogin) {
-    codigoLogin.value = "";
-    setTimeout(() => codigoLogin.focus(), 100);
-  }
+if (codigoLogin) {
+  codigoLogin.placeholder = "EX: A1B1";
+  codigoLogin.maxLength = 4;
 
-  setLoginErro("");
-  setMensagem("");
-  limparTelaDetalhe();
+  codigoLogin.addEventListener("input", () => {
+    codigoLogin.value = codigoLogin.value.toUpperCase().replace(/\s/g, "");
+  });
+
+  codigoLogin.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      entrarComCodigoDigitado();
+    }
+  });
+}
+
+if (btnEntrarCliente) {
+  btnEntrarCliente.addEventListener("click", (event) => {
+    event.preventDefault();
+    entrarComCodigoDigitado();
+  });
 }
 
 function baixarContratoCliente() {
@@ -949,8 +962,10 @@ async function carregarAreaCliente(codigo) {
     setMensagem(error.message || "Erro ao carregar área do cliente.", "erro");
   }
 }
-
+  
 function entrarComCodigoDigitado() {
+  console.log("botao clicado");
+
   const codigo = normalizarCodigo(codigoLogin?.value);
 
   if (!codigo) {
