@@ -806,39 +806,17 @@ async function buscarPontos(codigos) {
 }
 
 async function buscarPlaylistPonto(codigo) {
-  const consultas = [
-    async () => supabaseClient
-      .from(TABELA_PLAYLIST)
-      .select("*")
-      .eq("codigo", codigo)
-      .order("ordem", { ascending: true }),
+  const { data, error } = await supabaseClient
+    .from(TABELA_PLAYLIST)
+    .select("*")
+    .eq("codigo", codigo);
 
-    async () => supabaseClient
-      .from(TABELA_PLAYLIST)
-      .select("*")
-      .eq("codigo", codigo)
-      .order("created_at", { ascending: true }),
-
-    async () => supabaseClient
-      .from(TABELA_PLAYLIST)
-      .select("*")
-      .eq("codigo", codigo)
-  ];
-
-  let ultimoErro = null;
-
-  for (const consultar of consultas) {
-    const { data, error } = await consultar();
-
-    if (!error) {
-      return data || [];
-    }
-
-    ultimoErro = error;
-    console.warn("Falha ao buscar playlist:", error);
+  if (error) {
+    console.error("Erro ao buscar playlist:", error);
+    return [];
   }
 
-  throw ultimoErro;
+  return data || [];
 }
 
   let ultimoErro = null;
