@@ -838,3 +838,19 @@ input {
   border-radius: 18px;
 }
 
+body #mensagemAssinatura.mensagem {
+  font-size: 4.8rem !important;
+  line-height: 0.95 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: #f59e0b !important;
+  margin: 28px 0 26px !important;
+  max-width: 100% !important;
+}
+
+@media (max-width: 900px) {
+  body #mensagemAssinatura.mensagem {
+    font-size: 3rem !important;
+  }
+}
+
