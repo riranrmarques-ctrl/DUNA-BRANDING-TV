@@ -136,8 +136,8 @@ function obterAdminToken() {
 }
 
 function verificarAcesso() {
-  const liberado = sessionStorage.getItem("painelLiberado");
-  const token = sessionStorage.getItem("painelToken");
+  const liberado = localStorage.getItem("painelLiberado");
+  const token = localStorage.getItem("painelToken");
 
   if (liberado !== "1" || !token) {
     console.warn("Sessão inválida, redirecionando...");
