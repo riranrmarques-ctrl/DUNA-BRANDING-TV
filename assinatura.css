@@ -501,3 +501,81 @@ body.contrato-assinado::before {
   opacity: 0.85;
 }
 
+.assinatura-card.contrato-concluido {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 260px;
+  border-color: rgba(52, 211, 153, 0.38);
+  background:
+    linear-gradient(180deg, rgba(20, 83, 45, 0.28), rgba(6, 78, 59, 0.18)),
+    var(--panel);
+}
+
+.assinatura-card.contrato-concluido .estado-concluido {
+  width: 100%;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: #d1fae5;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 22px;
+}
+
+.estado-concluido {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: #d1fae5;
+}
+
+.estado-concluido strong {
+  display: block;
+  font-size: 1.22rem;
+  font-weight: 900;
+}
+
+.texto-concluido {
+  max-width: 470px;
+  margin: 0;
+  color: #bbf7d0;
+  font-size: 0.98rem;
+  line-height: 1.38;
+  font-weight: 400;
+}
+
+.texto-concluido strong {
+  display: inline;
+  font-size: inherit;
+  font-weight: 900;
+}
+
+.texto-concluido span {
+  display: inline;
+  color: #a7f3d0;
+  font-size: inherit;
+  font-weight: 400;
+}
+
+.estado-concluido > span,
+.aviso-download-concluido {
+  display: none !important;
+}
+
+.btn-download-concluido {
+  margin-top: 2px;
+  min-width: 220px;
+  min-height: 44px;
+  background: #22c55e !important;
+  color: #ffffff !important;
+}
+
+
