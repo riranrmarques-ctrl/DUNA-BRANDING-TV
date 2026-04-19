@@ -739,11 +739,11 @@ input {
 }
 
 .assinatura-logo {
-  width: 180px !important;
-  max-height: 54px !important;
-  object-fit: contain !important;
-  display: block !important;
-  transform: none !important;
+  width: 245px;
+  max-width: 245px;
+  height: auto;
+  position: relative;
+  top: 8px;
 }
 
 .btn-secundario {
