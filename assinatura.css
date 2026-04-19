@@ -74,6 +74,7 @@ input {
   justify-content: flex-end;
   gap: 18px;
   min-height: 88px;
+  margin-left: auto;
 }
 
 .topo-contrato-label {
@@ -156,19 +157,10 @@ input {
   color: #ffb4b4;
 }
 
-body.contrato-pendente::before {
-  content: "Contrato aguardando leitura e assinatura.";
-  position: fixed;
-  top: 205px;
-  left: 72px;
-  z-index: 50;
-  max-width: 1200px;
-  color: var(--yellow);
-  font-size: 4.2rem;
-  line-height: 0.95;
-  font-weight: 900;
-  letter-spacing: -0.035em;
-  pointer-events: none;
+body.contrato-pendente::before,
+body.contrato-assinado::before {
+  content: "";
+  display: none !important;
 }
 
 body.contrato-assinado::before {
@@ -457,4 +449,8 @@ body.contrato-assinado::before {
     max-width: calc(100vw - 36px);
     font-size: 2rem;
   }
+}
+
+#btnBaixarContrato {
+  display: none !important;
 }
