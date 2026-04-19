@@ -488,3 +488,28 @@ body.contrato-assinado::before {
   }
 }
 
+#mensagemAssinatura {
+  position: fixed;
+  top: 176px;
+  right: 267px;
+  left: auto;
+  z-index: 80;
+
+  display: block;
+  width: 330px;
+  max-width: 330px;
+
+  margin: 0;
+  padding: 0;
+
+  color: #d9e1f2;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+  pointer-events: none;
+}
+
+
