@@ -1638,3 +1638,25 @@ body.rolando .btn-sair:focus-visible {
 .preview-box {
   margin-top: -8px !important;
 }
+
+.detalhe-ponto {
+  padding-top: 22px !important;
+}
+
+.detalhe-cabecalho {
+  margin-top: 4px !important;
+  padding-top: 22px !important;
+}
+
+.detalhe-cabecalho > div:first-child {
+  transform: translateY(10px) !important;
+}
+
+.status-area {
+  transform: translateY(10px) !important;
+}
+
+.preview-box {
+  margin-top: 10px !important;
+}
+
