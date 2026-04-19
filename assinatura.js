@@ -125,6 +125,7 @@ function atualizarBotaoConclusaoPorLeitura() {
   if (concluido) {
     btnConcluirDesenho.disabled = true;
     btnConcluirDesenho.textContent = "Concluir com assinatura";
+    btnConcluirDesenho.classList.remove("leitura-pendente");
     return;
   }
 
