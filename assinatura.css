@@ -441,10 +441,13 @@ body.contrato-assinado::before {
     top: 4px;
   }
 
-  .topo-acoes,
-  .topo-acoes button {
-    width: 100%;
-  }
+.topo-acoes {
+  width: auto;
+}
+
+.topo-acoes button {
+  width: auto;
+}
 
   .topo-contrato-label {
     width: 100%;
