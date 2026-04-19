@@ -252,16 +252,53 @@ function obterHtmlConclusao({ metodo, assinaturaImagem = "", fotos = [], dataCon
 
   return `${blocoAssinaturas}${blocoConclusao}`;
 }
-
 function anexarConclusaoAoContrato({ metodo, assinaturaImagem = "", fotos = [] }) {
   const dataConclusao = new Date().toLocaleString("pt-BR");
   const blocoConclusao = obterHtmlConclusao({ metodo, assinaturaImagem, fotos, dataConclusao });
 
-  if (/<\/body>/i.test(contratoAtualHtml)) {
-    return contratoAtualHtml.replace(/<\/body>/i, `${blocoConclusao}</body>`);
+  let htmlFinal = contratoAtualHtml;
+
+  if (metodo !== "fotos" && assinaturaImagem) {
+    const assinaturaNoContratante = `
+      <div style="margin:0 auto 10px;text-align:center;max-width:420px;">
+        <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:6px;">
+          Assinatura eletrônica
+        </div>
+        <img
+          src="${assinaturaImagem}"
+          alt="Assinatura eletrônica"
+          style="display:block;width:320px;max-width:100%;height:auto;margin:0 auto 6px;object-fit:contain;"
+        >
+        <div style="font-size:11px;line-height:1.4;color:#374151;">
+          Contrato concluído por ${escapeHtml(obterNomeCliente(clienteAtual))} em ${escapeHtml(dataConclusao)}.<br>
+          Método utilizado: assinatura eletrônica.
+        </div>
+      </div>
+    `;
+
+    if (/<div class="assinatura-box">\s*<div class="linha-assinatura">CONTRATANTE<\/div>\s*<\/div>/i.test(htmlFinal)) {
+      htmlFinal = htmlFinal.replace(
+        /<div class="assinatura-box">\s*<div class="linha-assinatura">CONTRATANTE<\/div>\s*<\/div>/i,
+        `
+          <div class="assinatura-box">
+            ${assinaturaNoContratante}
+            <div class="linha-assinatura">CONTRATANTE</div>
+          </div>
+        `
+      );
+    } else if (/<div class="linha-assinatura">CONTRATANTE<\/div>/i.test(htmlFinal)) {
+      htmlFinal = htmlFinal.replace(
+        /<div class="linha-assinatura">CONTRATANTE<\/div>/i,
+        `${assinaturaNoContratante}<div class="linha-assinatura">CONTRATANTE</div>`
+      );
+    }
   }
 
-  return `${contratoAtualHtml}${blocoConclusao}`;
+  if (/<\/body>/i.test(htmlFinal)) {
+    return htmlFinal.replace(/<\/body>/i, `${blocoConclusao}</body>`);
+  }
+
+  return `${htmlFinal}${blocoConclusao}`;
 }
 
 function baixarHtmlContrato() {
