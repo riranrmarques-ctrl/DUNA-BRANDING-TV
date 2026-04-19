@@ -2286,3 +2286,61 @@ body.rolando .btn-sair:focus-visible {
     letter-spacing: 0.13em !important;
   }
 }
+
+.login-card {
+  width: 100% !important;
+  max-width: 430px !important;
+  min-height: 210px !important;
+  padding: 30px 28px 28px !important;
+  border-radius: 28px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(91, 134, 247, 0.24), transparent 42%),
+    radial-gradient(circle at 90% 120%, rgba(245, 158, 11, 0.08), transparent 38%),
+    linear-gradient(145deg, rgba(22, 34, 68, 0.98), rgba(8, 14, 31, 0.96)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.login-card h1 {
+  margin: 0 !important;
+  font-size: 1.58rem !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+}
+
+.login-instrucao {
+  margin: 0 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  white-space: nowrap !important;
+}
+
+#codigoLogin {
+  height: 46px !important;
+  margin: 2px 0 0 !important;
+  border-radius: 15px !important;
+  font-size: 0.95rem !important;
+}
+
+#btnEntrarCliente {
+  height: 48px !important;
+  margin-top: 0 !important;
+  border-radius: 15px !important;
+  font-size: 0.94rem !important;
+}
+
+.login-erro {
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.login-erro:empty {
+  display: none !important;
+}
