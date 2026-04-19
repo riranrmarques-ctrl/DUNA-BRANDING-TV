@@ -1116,3 +1116,45 @@ body.rolando .boas-vindas {
     grid-column: auto;
   }
 }
+
+.preview-midia {
+  position: relative;
+}
+
+.preview-aviso-offline {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 18px;
+  z-index: 3;
+  min-height: 48px;
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 8, 22, 0.72);
+  backdrop-filter: blur(16px);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+}
+
+.preview-midia.offline video,
+.preview-midia.offline img,
+.preview-midia.offline iframe {
+  filter: saturate(0.75) brightness(0.82);
+}
+
+@media (max-width: 760px) {
+  .preview-aviso-offline {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    min-height: 42px;
+    padding: 11px 12px;
+    font-size: 0.78rem;
+  }
+}
