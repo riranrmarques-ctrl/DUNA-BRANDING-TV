@@ -78,7 +78,6 @@ function contratoEstaConcluido(cliente) {
 
   const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
   const dataContrato = new Date(
-    cliente.contrato_atualizado_em ||
     cliente.contrato_enviado_em ||
     cliente.updated_at ||
     0
@@ -610,7 +609,7 @@ async function carregarContrato() {
 
   if (btnVoltarCliente) {
     btnVoltarCliente.onclick = () => {
-      window.location.href = `/acesso.html?codigo=${encodeURIComponent(codigoAtual)}`;
+      window.location.href = `/acesso.html?codigo=${encodeURIComponent(codigoAtual)}&voltar=1`;
     };
   }
 
@@ -650,6 +649,7 @@ async function carregarContrato() {
 }
 
 if (btnBaixarContrato) btnBaixarContrato.onclick = baixarHtmlContrato;
+if (btnBaixarContratoConcluido) btnBaixarContratoConcluido.onclick = baixarHtmlContrato;
 if (btnLimparAssinatura) btnLimparAssinatura.onclick = limparCanvas;
 if (btnConcluirDesenho) btnConcluirDesenho.onclick = concluirComDesenho;
 if (btnConcluirFotos) btnConcluirFotos.onclick = concluirComFotos;
