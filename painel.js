@@ -1652,7 +1652,7 @@ async function iniciarPainel() {
 
 garantirSessaoAdmin();
 
-if (localStorage.getItem("painelLiberado") === "1")
+if (localStorage.getItem("painelLiberado") === "1") {
   mostrarLoading();
 
   (async () => {
