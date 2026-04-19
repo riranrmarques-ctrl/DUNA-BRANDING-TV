@@ -1035,25 +1035,25 @@ body.rolando .boas-vindas {
 }
 
 body.rolando .topo-cliente {
-  min-height: 58px !important;
-  background: rgba(7, 17, 38, 0.78) !important;
+  min-height: 48px !important;
+  background: rgba(7, 17, 38, 0.74) !important;
   backdrop-filter: blur(18px) !important;
-  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.24) !important;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.2) !important;
 }
 
 body.rolando .topo-conteudo {
-  min-height: 58px !important;
+  min-height: 48px !important;
 }
 
 .topo-esquerda {
   display: flex !important;
   align-items: center !important;
-  gap: 18px !important;
+  gap: 20px !important;
   min-width: 0 !important;
 }
 
 .logo-cliente {
-  width: 172px !important;
+  width: 210px !important;
   height: auto !important;
   object-fit: contain !important;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22)) !important;
@@ -1061,13 +1061,13 @@ body.rolando .topo-conteudo {
 }
 
 body.rolando .logo-cliente {
-  width: 142px !important;
+  width: 178px !important;
 }
 
 .nome-cliente-topo {
-  max-width: 520px !important;
+  max-width: 560px !important;
   color: #ffffff !important;
-  font-size: 1.08rem !important;
+  font-size: 1.16rem !important;
   font-weight: 900 !important;
   letter-spacing: -0.02em !important;
   white-space: nowrap !important;
@@ -1077,6 +1077,14 @@ body.rolando .logo-cliente {
   transform: translateY(8px) !important;
   transition: opacity 0.32s ease, transform 0.32s ease !important;
   pointer-events: none !important;
+}
+
+.nome-cliente-topo::before {
+  content: "|";
+  display: inline-block;
+  margin: 0 18px 0 2px;
+  color: rgba(217, 225, 242, 0.74);
+  font-weight: 900;
 }
 
 body.rolando .nome-cliente-topo {
@@ -1092,40 +1100,58 @@ body.rolando .nome-cliente-topo {
   min-width: 0 !important;
 }
 
+.topo-area-bloco {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
 .topo-label {
   color: #d9e1f2 !important;
-  font-size: 1.22rem !important;
+  font-size: 1rem !important;
   font-weight: 900 !important;
-  letter-spacing: 0.28em !important;
+  letter-spacing: 0.18em !important;
   white-space: nowrap !important;
-  opacity: 0.92 !important;
+  opacity: 0.9 !important;
   transition: font-size 0.35s ease, opacity 0.35s ease !important;
 }
 
+.topo-label::after {
+  content: " |";
+}
+
 body.rolando .topo-label {
-  font-size: 1.02rem !important;
-  opacity: 0.82 !important;
-}
-
-.btn-sair {
-  height: 46px !important;
-  min-width: 78px !important;
-  border-radius: 15px !important;
-  padding: 0 21px !important;
-  font-size: 0.96rem !important;
-  font-weight: 900 !important;
-}
-
-body.rolando .btn-sair {
-  height: 40px !important;
-  min-width: 70px !important;
-  border-radius: 13px !important;
-  padding: 0 18px !important;
-  font-size: 0.88rem !important;
+  font-size: 0.86rem !important;
+  opacity: 0.8 !important;
 }
 
 .topo-mensagem {
   max-width: 300px !important;
+  min-height: 14px !important;
+  margin: 0 !important;
+  text-align: right !important;
+  font-size: 0.72rem !important;
+  line-height: 1.1 !important;
+}
+
+.btn-sair {
+  height: 42px !important;
+  min-width: 76px !important;
+  border-radius: 14px !important;
+  padding: 0 20px !important;
+  font-size: 0.94rem !important;
+  font-weight: 900 !important;
+}
+
+body.rolando .btn-sair {
+  height: 34px !important;
+  min-width: 66px !important;
+  border-radius: 12px !important;
+  padding: 0 16px !important;
+  font-size: 0.82rem !important;
 }
 
 @media (max-width: 760px) {
@@ -1135,20 +1161,20 @@ body.rolando .btn-sair {
   }
 
   .logo-cliente {
-    width: 132px !important;
+    width: 156px !important;
   }
 
   body.rolando .logo-cliente {
-    width: 112px !important;
+    width: 132px !important;
   }
 
   .topo-label {
-    font-size: 0.82rem !important;
-    letter-spacing: 0.16em !important;
+    font-size: 0.74rem !important;
+    letter-spacing: 0.1em !important;
   }
 
   body.rolando .topo-label {
-    font-size: 0.76rem !important;
+    font-size: 0.68rem !important;
   }
 
   .nome-cliente-topo {
