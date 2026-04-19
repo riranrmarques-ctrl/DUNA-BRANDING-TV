@@ -697,3 +697,24 @@ input {
 .documento-card {
   padding-top: 12px !important;
 }
+
+.topo-contrato-label {
+  font-weight: 500 !important;
+  letter-spacing: 0.16em !important;
+}
+
+#nomeCliente {
+  display: none !important;
+}
+
+.contrato-subtitulo {
+  font-size: clamp(1.05rem, 1.55vw, 1.55rem) !important;
+  line-height: 1.25 !important;
+  margin-top: 0 !important;
+  color: #f59e0b !important;
+  font-weight: 600 !important;
+}
+
+.card-topo {
+  margin-bottom: 12px !important;
+}
