@@ -622,11 +622,6 @@ function iniciarPagina() {
     });
   }
 
-  if (!verificarAcesso()) {
-    mostrarMensagem("Sessão expirada. Faça login novamente.", "#ff6b6b");
-    return;
-  }
-
   if (botaoNovoCliente) {
     botaoNovoCliente.addEventListener("click", criarNovoCliente);
   }
