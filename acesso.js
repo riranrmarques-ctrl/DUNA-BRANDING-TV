@@ -50,6 +50,7 @@ let pontoSelecionado = "";
 let timerMensagem = null;
 let timerLimparMensagem = null;
 let timerPreviewPlaylist = null;
+let canalClienteRealtime = null;
 
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemCliente) return;
@@ -330,6 +331,41 @@ function limparTelaDetalhe() {
   if (detalhePonto) detalhePonto.style.display = "none";
 }
 
+function pararAtualizacaoContratoEmTempoReal() {
+  if (canalClienteRealtime) {
+    supabaseClient.removeChannel(canalClienteRealtime);
+    canalClienteRealtime = null;
+  }
+}
+
+function iniciarAtualizacaoContratoEmTempoReal() {
+  if (!codigoClienteAtual) return;
+
+  pararAtualizacaoContratoEmTempoReal();
+
+  canalClienteRealtime = supabaseClient
+    .channel(`cliente-contrato-${codigoClienteAtual}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: TABELA_CLIENTES,
+        filter: `codigo=eq.${codigoClienteAtual}`
+      },
+      (payload) => {
+        const novoCliente = payload.new;
+
+        if (!novoCliente) return;
+
+        clienteAtual = novoCliente;
+        renderizarContrato();
+        setMensagem("Contrato atualizado.", "ok");
+      }
+    )
+    .subscribe();
+}
+
 function abrirAreaCliente() {
   if (loginScreen) loginScreen.style.display = "none";
   if (areaCliente) areaCliente.style.display = "block";
@@ -342,6 +378,7 @@ function abrirLogin() {
   historicosPorPonto = {};
   pontoSelecionado = "";
   limparTimerPreview();
+  pararAtualizacaoContratoEmTempoReal();
 
   if (areaCliente) areaCliente.style.display = "none";
   if (loginScreen) loginScreen.style.display = "flex";
@@ -940,6 +977,7 @@ async function carregarAreaCliente(codigo) {
     }
 
     renderizarContrato();
+    iniciarAtualizacaoContratoEmTempoReal();
 
     const codigosPontos = await buscarVinculosCliente(codigoClienteAtual);
     pontosContratados = await buscarPontos(codigosPontos);
