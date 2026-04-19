@@ -2,10 +2,10 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-} 
+}
 
 :root {
-  --bg: #040816; 
+  --bg: #040816;
   --panel: rgba(9, 17, 38, 0.82);
   --panel-2: rgba(15, 27, 57, 0.74);
   --panel-soft: rgba(255, 255, 255, 0.04);
@@ -207,14 +207,14 @@ body.rolando .topo-conteudo {
 }
 
 body.rolando .topo-esquerda {
-  gap: 8px;
+  gap: 2px;
   align-items: center;
 }
 
 .logo-cliente {
-  width: 310px;
+  width: 390px;
   height: auto;
-  max-height: 64px;
+  max-height: 96px;
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
   transition:
@@ -224,8 +224,8 @@ body.rolando .topo-esquerda {
 }
 
 body.rolando .logo-cliente {
-  width: 300px;
-  max-height: 86px;
+  width: 330px;
+  max-height: 92px;
 }
 
 .nome-cliente-topo {
@@ -253,7 +253,7 @@ body.rolando .logo-cliente {
 
 body.rolando .nome-cliente-topo {
   max-width: 620px;
-  font-size: 1.42rem;
+  font-size: 1.18rem;
   font-weight: 500;
   line-height: 1;
   opacity: 1;
@@ -261,14 +261,14 @@ body.rolando .nome-cliente-topo {
 }
 
 body.rolando .nome-cliente-topo::before {
-  margin: 0 10px 0 0;
+  margin: 0 8px 0 0;
 }
 
 .topo-acoes {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 18px;
+  gap: 8px;
   min-width: 0;
   height: 100%;
 }
@@ -434,7 +434,7 @@ body.rolando .boas-vindas {
   position: relative;
   z-index: 1;
   max-width: 980px;
-  font-size: clamp(1.85rem, 3.7vw, 3.75rem);
+  font-size: clamp(1.65rem, 3.15vw, 3.25rem);
   line-height: 1.02;
   letter-spacing: -0.055em;
   font-weight: 700;
@@ -453,18 +453,18 @@ body.rolando .boas-vindas {
 }
 
 .hero-linha:first-child {
-  font-size: 0.48em;
+  font-size: 0.5em;
   line-height: 1.18;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   letter-spacing: 0.015em;
-  word-spacing: 0.14em;
+  word-spacing: 0.1em;
   font-weight: 600;
   color: #cbd5e1;
   opacity: 0.86;
 }
 
 .hero-linha.nome {
-  font-size: 1em;
+  font-size: 0.9em;
   line-height: 1.02;
   letter-spacing: -0.045em;
   font-weight: 850;
@@ -1053,14 +1053,18 @@ body.rolando .boas-vindas {
     gap: 10px;
   }
 
+  body.rolando .topo-esquerda {
+    gap: 4px;
+  }
+
   .logo-cliente {
-    width: 220px;
-    max-height: 54px;
+    width: 260px;
+    max-height: 62px;
   }
 
   body.rolando .logo-cliente {
-    width: 180px;
-    max-height: 58px;
+    width: 220px;
+    max-height: 72px;
   }
 
   .topo-label {
@@ -1081,7 +1085,7 @@ body.rolando .boas-vindas {
   }
 
   .topo-acoes {
-    gap: 10px;
+    gap: 8px;
   }
 
   .btn-sair {
@@ -1106,11 +1110,11 @@ body.rolando .boas-vindas {
 
   .boas-vindas h1,
   #tituloBoasVindas {
-    font-size: clamp(1.55rem, 7.4vw, 2.65rem);
+    font-size: clamp(1.45rem, 7vw, 2.45rem);
   }
 
   .hero-linha:first-child {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
   }
 
   .lista-pontos {
