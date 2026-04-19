@@ -718,3 +718,39 @@ input {
 .card-topo {
   margin-bottom: 12px !important;
 }
+
+.contrato-subtitulo {
+  font-size: clamp(1.15rem, 1.65vw, 1.65rem) !important;
+  line-height: 1.25 !important;
+  margin-top: 6px !important;
+  color: #f59e0b !important;
+  font-weight: 600 !important;
+}
+
+.assinatura-topo {
+  align-items: center !important;
+}
+
+.assinatura-topo-esquerda,
+.topo-acoes {
+  height: 58px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.assinatura-logo {
+  width: 180px !important;
+  max-height: 54px !important;
+  object-fit: contain !important;
+  display: block !important;
+  transform: none !important;
+}
+
+.btn-secundario {
+  height: 48px !important;
+  min-height: 48px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
