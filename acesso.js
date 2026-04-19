@@ -22,6 +22,8 @@ const subtituloCliente = document.getElementById("subtituloCliente");
 const contratoBadge = document.getElementById("contratoBadge");
 const contratoInfo = document.getElementById("contratoInfo");
 const codigoClienteEl = document.getElementById("codigoCliente");
+const contratoCard = document.querySelector(".contrato-card");
+const btnAssinarContrato = document.getElementById("btnAssinarContrato");
 const mensagemCliente = document.getElementById("mensagemCliente");
 const contadorPontos = document.getElementById("contadorPontos");
 const listaPontosCliente = document.getElementById("listaPontosCliente");
@@ -31,7 +33,6 @@ const detalhePonto = document.getElementById("detalhePonto");
 const nomePontoDetalhe = document.getElementById("nomePontoDetalhe");
 const localPontoDetalhe = document.getElementById("localPontoDetalhe");
 const statusPontoDetalhe = document.getElementById("statusPontoDetalhe");
-const tituloPreview = document.getElementById("tituloPreview");
 const previewNome = document.getElementById("previewNome");
 const previewMidia = document.getElementById("previewMidia");
 const listaMateriais = document.getElementById("listaMateriais");
@@ -43,40 +44,14 @@ let pontosContratados = [];
 let historicosPorPonto = {};
 let pontoSelecionado = "";
 
-let playlistAtual = [];
-let playlistIndexAtual = 0;
-let rotacaoPreviewTimer = null;
-
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemCliente) return;
 
-  mensagemCliente.classList.remove("saindo");
   mensagemCliente.textContent = texto || "";
   mensagemCliente.classList.remove("ok", "erro");
 
   if (tipo === "ok") mensagemCliente.classList.add("ok");
   if (tipo === "erro") mensagemCliente.classList.add("erro");
-
-  if (mensagemCliente._timer) {
-    clearTimeout(mensagemCliente._timer);
-    mensagemCliente._timer = null;
-  }
-
-  if (mensagemCliente._limparTimer) {
-    clearTimeout(mensagemCliente._limparTimer);
-    mensagemCliente._limparTimer = null;
-  }
-
-  if (texto) {
-    mensagemCliente._timer = setTimeout(() => {
-      mensagemCliente.classList.add("saindo");
-
-      mensagemCliente._limparTimer = setTimeout(() => {
-        mensagemCliente.textContent = "";
-        mensagemCliente.classList.remove("ok", "erro", "saindo");
-      }, 350);
-    }, 5000);
-  }
 }
 
 function setLoginErro(texto) {
@@ -92,14 +67,6 @@ function escapeHtml(texto) {
 
 function normalizarCodigo(codigo) {
   return String(codigo || "").trim().toUpperCase();
-}
-
-function normalizarTexto(valor) {
-  return String(valor || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
 }
 
 function formatarData(valor) {
@@ -140,13 +107,20 @@ function obterTelefoneCliente(cliente) {
   return cliente?.telefone || cliente?.celular || cliente?.whatsapp || "";
 }
 
+function clienteEhSupervisor(cliente) {
+  return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
+}
+
 function contratoEstaDisponivel(cliente) {
   if (!cliente) return false;
+  if (clienteEhSupervisor(cliente)) return false;
   if (cliente.contrato_ativo === false) return false;
-  if (cliente.status === "Não ativo") return false;
-  if (cliente.status === "Nao ativo") return false;
-  if (cliente.status === "Inativo") return false;
+  if (!cliente.contrato_html) return false;
   return true;
+}
+
+function contratoEstaConcluido(cliente) {
+  return Boolean(cliente?.contrato_assinado_em || cliente?.contrato_assinado_html);
 }
 
 function obterImagemPonto(ponto) {
@@ -197,21 +171,9 @@ function eventoEhInativo(evento) {
   return valor === "inativo" || valor === "desconectou" || valor === "offline";
 }
 
-function obterTextoEvento(evento) {
-  if (eventoEhAtivo(evento)) return "Ativado";
-  if (eventoEhInativo(evento)) return "Inativo";
-  if (evento === "conectou") return "Ativado";
-  if (evento === "desconectou") return "Inativo";
-  return evento || "Registro";
-}
-
 function calcularStatusPonto(ponto, historico = []) {
   if (!pontoEstaDisponivel(ponto)) {
-    return {
-      texto: "Indisponível",
-      detalhe: "desde sem histórico",
-      classe: "indisponivel"
-    };
+    return { texto: "Indisponível", detalhe: "Ponto indisponível", classe: "indisponivel" };
   }
 
   const ultimoEvento = historico[0] || null;
@@ -219,54 +181,29 @@ function calcularStatusPonto(ponto, historico = []) {
   const dataReferencia = ultimoPing || obterDataHistorico(ultimoEvento);
 
   if (!dataReferencia) {
-    return {
-      texto: "Inativo",
-      detalhe: "desde sem histórico",
-      classe: "inativo"
-    };
+    return { texto: "Inativo", detalhe: "Inativo desde sem histórico", classe: "inativo" };
   }
 
   const data = new Date(dataReferencia);
-
   if (Number.isNaN(data.getTime())) {
-    return {
-      texto: "Inativo",
-      detalhe: "desde sem histórico",
-      classe: "inativo"
-    };
+    return { texto: "Inativo", detalhe: "Inativo desde sem histórico", classe: "inativo" };
   }
 
   if (ultimoEvento && eventoEhAtivo(ultimoEvento.evento)) {
-    return {
-      texto: "Ativo",
-      detalhe: `desde ${formatarDataHora(dataReferencia)}`,
-      classe: "ativo"
-    };
+    return { texto: "Ativo", detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`, classe: "ativo" };
   }
 
   if (ultimoEvento && eventoEhInativo(ultimoEvento.evento)) {
-    return {
-      texto: "Inativo",
-      detalhe: `desde ${formatarDataHora(dataReferencia)}`,
-      classe: "inativo"
-    };
+    return { texto: "Inativo", detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`, classe: "inativo" };
   }
 
   const diff = Date.now() - data.getTime();
 
   if (diff < 5 * 60 * 1000) {
-    return {
-      texto: "Ativo",
-      detalhe: `desde ${formatarDataHora(dataReferencia)}`,
-      classe: "ativo"
-    };
+    return { texto: "Ativo", detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`, classe: "ativo" };
   }
 
-  return {
-    texto: "Inativo",
-    detalhe: `desde ${formatarDataHora(dataReferencia)}`,
-    classe: "inativo"
-  };
+  return { texto: "Inativo", detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`, classe: "inativo" };
 }
 
 function itemEstaInativo(item) {
@@ -287,26 +224,15 @@ function detectarTipo(url, tipoOriginal = "") {
   if (tipo === "video") return "video";
   if (tipo === "site" || tipo === "texto" || tipo === "text") return "site";
 
-  if (
-    limpa.endsWith(".jpg") ||
-    limpa.endsWith(".jpeg") ||
-    limpa.endsWith(".png") ||
-    limpa.endsWith(".webp")
-  ) {
+  if (limpa.endsWith(".jpg") || limpa.endsWith(".jpeg") || limpa.endsWith(".png") || limpa.endsWith(".webp")) {
     return "imagem";
   }
 
   if (limpa.endsWith(".txt")) return "site";
 
-  if (limpa.includes("youtube.com") || limpa.includes("youtu.be")) {
-    return "site";
+  if (limpa.includes("youtube.com") || limpa.includes("youtu.be") || limpa.includes("http")) {
+    return limpa.match(/\.(mp4|mov|webm)$/) ? "video" : "site";
   }
-
-  if (limpa.match(/\.(mp4|mov|webm|m4v)$/)) {
-    return "video";
-  }
-
-  if (limpa.startsWith("http")) return "site";
 
   return "video";
 }
@@ -314,7 +240,6 @@ function detectarTipo(url, tipoOriginal = "") {
 function normalizarUrl(url) {
   const texto = String(url || "").trim();
   if (!texto) return "";
-
   if (/^https?:\/\//i.test(texto)) return texto;
   return `https://${texto.replace(/^\/+/, "")}`;
 }
@@ -324,20 +249,8 @@ function obterUrlPlaylist(item) {
 }
 
 function obterNomeArquivo(item) {
-  const candidatos = [
-    item?.titulo_arquivo,
-    item?.nome_arquivo,
-    item?.nome_exibicao,
-    item?.nome_material,
-    item?.titulo,
-    item?.display_name,
-    item?.title,
-    item?.nome
-  ]
-    .map((valor) => String(valor || "").trim())
-    .filter(Boolean);
-
-  if (candidatos.length) return candidatos[0];
+  const direto = item?.titulo_arquivo || item?.nome_arquivo;
+  if (direto) return direto;
 
   const storagePath = String(item?.storage_path || "").trim();
   if (storagePath) {
@@ -348,77 +261,18 @@ function obterNomeArquivo(item) {
   const url = String(obterUrlPlaylist(item) || "").split("?")[0];
   if (url) {
     const partes = url.split("/");
-    return decodeURIComponent(partes[partes.length - 1] || "Arquivo");
+    return decodeURIComponent(partes[partes.length - 1] || item?.nome || "Arquivo");
   }
 
-  return "Arquivo";
+  return item?.nome || "Arquivo";
 }
 
-function obterChaveMaterial(item) {
-  return [
-    item?.id,
-    item?.storage_path,
-    item?.video_url,
-    item?.arquivo_url,
-    item?.url,
-    item?.nome_arquivo,
-    item?.titulo_arquivo,
-    item?.nome
-  ]
-    .map((valor) => String(valor || "").trim())
-    .find(Boolean) || "";
-}
-
-function obterMapaOrdemPlaylist(lista) {
-  const mapa = new Map();
-
-  (lista || []).forEach((item, index) => {
-    const chave = obterChaveMaterial(item);
-    if (!chave) return;
-
-    const ordemBanco = Number(item?.ordem);
-    const ordemReal = Number.isFinite(ordemBanco) && ordemBanco > 0 ? ordemBanco : index + 1;
-
-    if (!mapa.has(chave)) {
-      mapa.set(chave, ordemReal);
-    }
-  });
-
-  return mapa;
-}
-
-function pertenceAoClienteAtual(item) {
-  const codigoItem = normalizarCodigo(item?.codigo_cliente || item?.cliente_codigo);
-  const codigoAtual = normalizarCodigo(codigoClienteAtual);
-
-  if (codigoItem && codigoAtual && codigoItem === codigoAtual) return true;
-
-  const nomeAtual = normalizarTexto(obterNomeCliente(clienteAtual));
-  const nomesItem = [
-    item?.nome_cliente,
-    item?.cliente_nome,
-    item?.cliente,
-    item?.nome
-  ]
-    .map(normalizarTexto)
-    .filter(Boolean);
-
-  if (nomeAtual && nomesItem.includes(nomeAtual)) return true;
-
-  return !codigoItem && !nomesItem.length;
-}
-
-function filtrarMateriaisDoCliente(lista) {
-  const filtrados = (lista || []).filter(pertenceAoClienteAtual);
-  return filtrados.length ? filtrados : lista || [];
+function obterNomeClientePlaylist(item) {
+  return item?.nome_cliente || item?.cliente_nome || item?.cliente || item?.nome || obterNomeCliente(clienteAtual);
 }
 
 function limparTelaDetalhe() {
   pontoSelecionado = "";
-  playlistAtual = [];
-  playlistIndexAtual = 0;
-  pararRotacaoPreview();
-
   if (estadoVazio) estadoVazio.style.display = "flex";
   if (detalhePonto) detalhePonto.style.display = "none";
 }
@@ -434,10 +288,10 @@ function abrirLogin() {
   pontosContratados = [];
   historicosPorPonto = {};
   pontoSelecionado = "";
-  pararRotacaoPreview();
 
   if (areaCliente) areaCliente.style.display = "none";
   if (loginScreen) loginScreen.style.display = "flex";
+  if (contratoCard) contratoCard.style.display = "";
 
   if (codigoLogin) {
     codigoLogin.value = "";
@@ -452,13 +306,19 @@ function abrirLogin() {
 function renderizarContrato() {
   if (!clienteAtual) return;
 
-  const disponivel = contratoEstaDisponivel(clienteAtual);
   const nome = obterNomeCliente(clienteAtual);
+  const supervisor = clienteEhSupervisor(clienteAtual);
+  const disponivel = contratoEstaDisponivel(clienteAtual);
+  const concluido = contratoEstaConcluido(clienteAtual);
   const telefone = obterTelefoneCliente(clienteAtual);
   const vencimento = clienteAtual.vencimento_exibicao || clienteAtual.vencimento || clienteAtual.data_fim;
-  const valor = clienteAtual.valor_contratado || clienteAtual.valor || "";
+
+  if (contratoCard) {
+    contratoCard.style.display = supervisor ? "none" : "";
+  }
 
   if (tituloBoasVindas) {
+    tituloBoasVindas.classList.add("hero-titulo-classico");
     tituloBoasVindas.innerHTML = `
       <span class="hero-linha">Seja bem-vindo(a),</span>
       <span class="hero-linha nome">${escapeHtml(nome)}</span>
@@ -475,25 +335,42 @@ function renderizarContrato() {
     codigoClienteEl.textContent = codigoClienteAtual;
   }
 
+  if (supervisor) return;
+
   if (contratoBadge) {
-    contratoBadge.textContent = disponivel ? "Contrato disponível" : "Contrato indisponível";
-    contratoBadge.classList.toggle("inativo", !disponivel);
+    contratoBadge.textContent = concluido
+      ? "Contrato concluído"
+      : disponivel
+        ? "Contrato disponível"
+        : "Contrato indisponível";
+
+    contratoBadge.classList.toggle("inativo", !disponivel && !concluido);
+    contratoBadge.classList.toggle("concluido", concluido);
   }
 
   const partes = [];
 
-  if (disponivel) {
-    partes.push("Seu contrato está disponível para acompanhamento.");
+  if (concluido) {
+    partes.push("Contrato assinado e concluído. Você já pode baixar uma cópia.");
+  } else if (disponivel) {
+    partes.push("Assine agora seu contrato. Você tem uma assinatura pendente.");
   } else {
-    partes.push("Seu contrato não está marcado como ativo no painel.");
+    partes.push("Seu contrato ainda não está disponível para assinatura.");
   }
 
   if (telefone) partes.push(`Contato: ${telefone}.`);
-  if (valor) partes.push(`Valor contratado: ${valor}.`);
   if (vencimento) partes.push(`Vencimento: ${formatarData(vencimento)}.`);
 
   if (contratoInfo) {
     contratoInfo.textContent = partes.join(" ");
+  }
+
+  if (btnAssinarContrato) {
+    btnAssinarContrato.textContent = concluido ? "Baixar contrato" : "Assinar contrato";
+    btnAssinarContrato.disabled = !disponivel && !concluido;
+    btnAssinarContrato.onclick = () => {
+      window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
+    };
   }
 }
 
@@ -509,36 +386,16 @@ function montarCardPonto(ponto) {
       <div>
         <h3>${escapeHtml(obterNomePonto(ponto))}</h3>
         <p>${escapeHtml(obterLocalizacaoPonto(ponto))}</p>
-        <span class="status-mini ${status.classe}">${escapeHtml(status.texto)} ${escapeHtml(status.detalhe)}</span>
+        <span class="status-mini ${status.classe}">${escapeHtml(status.detalhe)}</span>
       </div>
     </button>
   `;
 }
 
-function ordenarPontosPorStatus(pontos) {
-  return [...pontos]
-    .map((ponto, index) => {
-      const codigo = normalizarCodigo(ponto.codigo);
-      const historico = historicosPorPonto[codigo] || [];
-      const status = calcularStatusPonto(ponto, historico);
-
-      return {
-        ponto,
-        index,
-        prioridade: status.classe === "ativo" ? 0 : 1
-      };
-    })
-    .sort((a, b) => {
-      if (a.prioridade !== b.prioridade) return a.prioridade - b.prioridade;
-      return a.index - b.index;
-    })
-    .map((item) => item.ponto);
-}
-
 function renderizarListaPontos() {
   if (contadorPontos) {
-    contadorPontos.textContent = "";
-    contadorPontos.style.display = "none";
+    const total = pontosContratados.length;
+    contadorPontos.textContent = total === 1 ? "1 ponto" : `${total} pontos`;
   }
 
   if (!listaPontosCliente) return;
@@ -548,154 +405,67 @@ function renderizarListaPontos() {
     return;
   }
 
-  const pontosOrdenados = ordenarPontosPorStatus(pontosContratados);
-  listaPontosCliente.innerHTML = pontosOrdenados.map(montarCardPonto).join("");
+  listaPontosCliente.innerHTML = pontosContratados.map(montarCardPonto).join("");
 
   document.querySelectorAll(".ponto-card").forEach((card) => {
-    card.onclick = () => {
-      abrirPonto(card.dataset.codigo);
-    };
+    card.onclick = () => abrirPonto(card.dataset.codigo);
   });
 }
 
-function obterDuracaoItem(item) {
-  const valor = Number(item?.duracao_segundos || item?.duracao || item?.tempo_exibicao);
-  if (Number.isFinite(valor) && valor > 0) return valor;
-  return 12;
-}
+function renderizarPreview(lista) {
+  const ativos = lista.filter((item) => !itemEstaInativo(item));
+  const item = ativos[0] || lista[0] || null;
 
-function pararRotacaoPreview() {
-  if (rotacaoPreviewTimer) {
-    clearTimeout(rotacaoPreviewTimer);
-    rotacaoPreviewTimer = null;
-  }
-}
-
-function avancarPreview() {
-  if (!playlistAtual.length) return;
-  playlistIndexAtual = (playlistIndexAtual + 1) % playlistAtual.length;
-  iniciarRotacaoPreview();
-}
-
-function obterStatusAtualDoPonto() {
-  const pontoAtual = pontosContratados.find(
-    (ponto) => normalizarCodigo(ponto.codigo) === pontoSelecionado
-  );
-  const historicoAtual = historicosPorPonto[pontoSelecionado] || [];
-  return pontoAtual ? calcularStatusPonto(pontoAtual, historicoAtual) : null;
-}
-
-function exibirItemPreview(item, pontoInativo) {
   if (!previewMidia) return;
 
-  const nomeArquivoAtual = item ? obterNomeArquivo(item) : "";
-
-  if (tituloPreview) {
-    tituloPreview.textContent = pontoInativo ? "Exibição offline |" : "Exibição em tempo real |";
-  }
-
-  if (previewNome) {
-    previewNome.textContent = nomeArquivoAtual;
-  }
-
   if (!item) {
-    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material disponível para este ponto.</div>`;
-    return;
-  }
-
-  if (pontoInativo) {
-    const imagemOffice = normalizarUrl(obterUrlPlaylist(item)) || "https://placehold.co/1280x720/png";
-    previewMidia.innerHTML = `
-      <div class="preview-office">
-        <img src="${escapeHtml(imagemOffice)}" alt="${escapeHtml(nomeArquivoAtual || "Exibição offline")}">
-        <div class="preview-office-legenda">
-          <span>Você está assistindo a playlist da TV offline.</span>
-        </div>
-      </div>
-    `;
+    if (previewNome) previewNome.textContent = "";
+    previewMidia.innerHTML = `<div class="preview-vazio">Nenhum material ativo para preview neste ponto.</div>`;
     return;
   }
 
   const url = normalizarUrl(obterUrlPlaylist(item));
   const tipo = detectarTipo(url, item.tipo);
+  const arquivo = obterNomeArquivo(item);
+
+  if (previewNome) previewNome.textContent = arquivo;
 
   if (!url) {
     previewMidia.innerHTML = `<div class="preview-vazio">Material sem URL disponível.</div>`;
-    rotacaoPreviewTimer = setTimeout(avancarPreview, 4000);
     return;
   }
 
   if (tipo === "imagem") {
-    previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(nomeArquivoAtual || "Exibição em tempo real")}">`;
-    rotacaoPreviewTimer = setTimeout(avancarPreview, obterDuracaoItem(item) * 1000);
+    previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">`;
     return;
   }
 
   if (tipo === "site") {
     previewMidia.innerHTML = `<iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen"></iframe>`;
-    rotacaoPreviewTimer = setTimeout(avancarPreview, obterDuracaoItem(item) * 1000);
     return;
   }
 
-  previewMidia.innerHTML = `<video id="videoPreviewAtual" src="${escapeHtml(url)}" autoplay muted playsinline></video>`;
-
-  const video = document.getElementById("videoPreviewAtual");
-  if (video) {
-    video.onended = () => {
-      avancarPreview();
-    };
-
-    video.onerror = () => {
-      rotacaoPreviewTimer = setTimeout(avancarPreview, 3000);
-    };
-  }
-}
-
-function iniciarRotacaoPreview() {
-  pararRotacaoPreview();
-
-  const statusAtual = obterStatusAtualDoPonto();
-  const pontoInativo = statusAtual?.classe === "inativo" || statusAtual?.classe === "indisponivel";
-
-  if (!playlistAtual.length) {
-    exibirItemPreview(null, pontoInativo);
-    return;
-  }
-
-  const itemAtual = playlistAtual[playlistIndexAtual] || playlistAtual[0];
-  exibirItemPreview(itemAtual, pontoInativo);
-
-  if (pontoInativo || playlistAtual.length <= 1) return;
-}
-
-function renderizarPreview(lista) {
-  const playlistDoPonto = (lista || []).filter((item) => !itemEstaInativo(item));
-  playlistAtual = playlistDoPonto.length ? playlistDoPonto : (lista || []);
-  playlistIndexAtual = 0;
-  iniciarRotacaoPreview();
+  previewMidia.innerHTML = `<video src="${escapeHtml(url)}" autoplay muted loop playsinline controls></video>`;
 }
 
 function renderizarMateriais(lista) {
   if (!listaMateriais) return;
 
-  const materiaisCliente = filtrarMateriaisDoCliente(lista);
-  const mapaOrdem = obterMapaOrdemPlaylist(lista);
-
-  if (!materiaisCliente.length) {
-    listaMateriais.innerHTML = `<div class="vazio">Nenhum material encontrado para este cliente.</div>`;
+  if (!lista.length) {
+    listaMateriais.innerHTML = `<div class="vazio">Nenhum material encontrado neste ponto.</div>`;
     return;
   }
 
-  listaMateriais.innerHTML = materiaisCliente.map((item) => {
+  listaMateriais.innerHTML = lista.map((item, index) => {
+    const cliente = obterNomeClientePlaylist(item);
     const arquivo = obterNomeArquivo(item);
-    const chave = obterChaveMaterial(item);
-    const ordemPlaylist = mapaOrdem.get(chave) || Number(item?.ordem) || "-";
 
     return `
       <div class="linha-material">
-        <span>${escapeHtml(String(ordemPlaylist))}ª posição</span>
+        <span>${index + 1}.</span>
         <div>
-          <strong>${escapeHtml(arquivo)}</strong>
+          <strong>${escapeHtml(cliente)}</strong>
+          <small>${escapeHtml(arquivo)}</small>
         </div>
         <span>${formatarDataHora(item.created_at)}</span>
         <span>${formatarData(item.data_fim)}</span>
@@ -704,34 +474,37 @@ function renderizarMateriais(lista) {
   }).join("");
 }
 
+function obterTextoEvento(evento) {
+  if (eventoEhAtivo(evento)) return "Ativo";
+  if (eventoEhInativo(evento)) return "Inativo";
+  if (evento === "conectou") return "Ativo";
+  if (evento === "desconectou") return "Inativo";
+  return evento || "Registro";
+}
+
+function obterClasseEvento(evento) {
+  if (eventoEhAtivo(evento)) return "ativo";
+  if (eventoEhInativo(evento)) return "inativo";
+  return "";
+}
+
 function renderizarHistorico(historico) {
   if (!historicoStatusPonto) return;
 
-  const limite72Horas = Date.now() - 72 * 60 * 60 * 1000;
-
-  const historico72h = (historico || []).filter((item) => {
-    const dataValor = obterDataHistorico(item);
-    const data = new Date(dataValor);
-
-    if (Number.isNaN(data.getTime())) return false;
-
-    return data.getTime() >= limite72Horas;
-  });
-
-  if (!historico72h.length) {
-    historicoStatusPonto.innerHTML = `<div class="vazio">Sem histórico de status nas últimas 72 horas.</div>`;
+  if (!historico.length) {
+    historicoStatusPonto.innerHTML = `<div class="vazio">Sem histórico de status para este ponto.</div>`;
     return;
   }
 
-  historicoStatusPonto.innerHTML = historico72h.map((item, index) => {
-    const evento = obterTextoEvento(item.evento);
-    const data = formatarDataHora(obterDataHistorico(item));
-    const texto = evento === "Ativado" ? `Ativado desde ${data}` : `Inativo desde ${data}`;
-    const classeMaisRecente = index === 0 ? "mais-recente" : "";
+  historicoStatusPonto.innerHTML = historico.map((item, index) => {
+    const texto = obterTextoEvento(item.evento);
+    const classe = obterClasseEvento(item.evento);
 
     return `
-      <div class="historico-item ${classeMaisRecente}">
-        <span class="historico-evento">${escapeHtml(texto)}</span>
+      <div class="historico-item">
+        <span>${index + 1}.</span>
+        <span class="historico-evento ${classe}">${escapeHtml(texto)}</span>
+        <span>${formatarDataHora(obterDataHistorico(item))}</span>
       </div>
     `;
   }).join("");
@@ -742,31 +515,17 @@ function renderizarDetalheBase(ponto, historico) {
 
   if (estadoVazio) estadoVazio.style.display = "none";
   if (detalhePonto) detalhePonto.style.display = "block";
-
-  if (nomePontoDetalhe) {
-    nomePontoDetalhe.textContent = obterNomePonto(ponto);
-  }
-
-  if (localPontoDetalhe) {
-    localPontoDetalhe.textContent = obterLocalizacaoPonto(ponto);
-  }
+  if (nomePontoDetalhe) nomePontoDetalhe.textContent = obterNomePonto(ponto);
+  if (localPontoDetalhe) localPontoDetalhe.textContent = obterLocalizacaoPonto(ponto);
 
   if (statusPontoDetalhe) {
+    statusPontoDetalhe.textContent = status.detalhe;
     statusPontoDetalhe.className = `status-grande ${status.classe}`;
-    statusPontoDetalhe.innerHTML = `
-      <strong>${escapeHtml(status.texto)}</strong>
-      <small>${escapeHtml(status.detalhe)}</small>
-    `;
   }
 }
 
 async function buscarCliente(codigo) {
-  const { data, error } = await supabaseClient
-    .from(TABELA_CLIENTES)
-    .select("*")
-    .eq("codigo", codigo)
-    .maybeSingle();
-
+  const { data, error } = await supabaseClient.from(TABELA_CLIENTES).select("*").eq("codigo", codigo).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -779,29 +538,19 @@ async function buscarVinculosCliente(codigo) {
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-
-  return (data || [])
-    .map((item) => normalizarCodigo(item.ponto_codigo))
-    .filter(Boolean);
+  return (data || []).map((item) => normalizarCodigo(item.ponto_codigo)).filter(Boolean);
 }
 
 async function buscarPontos(codigos) {
   if (!codigos.length) return [];
 
-  const { data, error } = await supabaseClient
-    .from(TABELA_PONTOS)
-    .select("*")
-    .in("codigo", codigos);
-
+  const { data, error } = await supabaseClient.from(TABELA_PONTOS).select("*").in("codigo", codigos);
   if (error) throw error;
 
   const ordem = new Map(codigos.map((codigo, index) => [codigo, index]));
 
   return (data || [])
-    .map((ponto) => ({
-      ...ponto,
-      codigo: normalizarCodigo(ponto.codigo)
-    }))
+    .map((ponto) => ({ ...ponto, codigo: normalizarCodigo(ponto.codigo) }))
     .sort((a, b) => {
       const posA = ordem.has(a.codigo) ? ordem.get(a.codigo) : 9999;
       const posB = ordem.has(b.codigo) ? ordem.get(b.codigo) : 9999;
@@ -810,22 +559,24 @@ async function buscarPontos(codigos) {
 }
 
 async function buscarPlaylistPonto(codigo) {
-  const tentativas = ["ordem", "created_at", "id"];
+  const consultas = [
+    { colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,codigo", ordenarPor: "ordem" },
+    { colunas: "id,nome,titulo_arquivo,nome_arquivo,video_url,storage_path,tipo,created_at,data_fim,ordem,codigo", ordenarPor: "ordem" },
+    { colunas: "id,nome,video_url,storage_path,created_at,data_fim,ordem,codigo", ordenarPor: "ordem" },
+    { colunas: "id,nome,video_url,storage_path,created_at,codigo", ordenarPor: "created_at" }
+  ];
+
   let ultimoErro = null;
 
-  for (const ordenarPor of tentativas) {
-    const { data, error } = await supabaseClient
-      .from(TABELA_PLAYLIST)
-      .select("*")
-      .eq("codigo", codigo)
-      .order(ordenarPor, { ascending: true });
+  for (const consulta of consultas) {
+    let query = supabaseClient.from(TABELA_PLAYLIST).select(consulta.colunas).eq("codigo", codigo);
+    query = query.order(consulta.ordenarPor, { ascending: true });
+    const { data, error } = await query;
 
-    if (!error) {
-      return data || [];
-    }
+    if (!error) return data || [];
 
     ultimoErro = error;
-    console.warn("Falha ao buscar playlist ordenando por:", ordenarPor, error);
+    console.warn("Falha ao buscar playlist com colunas:", consulta.colunas, error);
   }
 
   throw ultimoErro;
@@ -833,14 +584,8 @@ async function buscarPlaylistPonto(codigo) {
 
 async function buscarHistoricoPonto(codigo) {
   const consultas = [
-    {
-      colunas: "evento,data_hora,created_at",
-      ordenarPor: "data_hora"
-    },
-    {
-      colunas: "evento,created_at",
-      ordenarPor: "created_at"
-    }
+    { colunas: "evento,data_hora,created_at", ordenarPor: "data_hora" },
+    { colunas: "evento,created_at", ordenarPor: "created_at" }
   ];
 
   for (const consulta of consultas) {
@@ -849,12 +594,9 @@ async function buscarHistoricoPonto(codigo) {
       .select(consulta.colunas)
       .eq("codigo", codigo)
       .order(consulta.ordenarPor, { ascending: false })
-      .limit(80);
+      .limit(40);
 
-    if (!error) {
-      return data || [];
-    }
-
+    if (!error) return data || [];
     console.warn("Falha ao buscar histórico:", error);
   }
 
@@ -865,7 +607,6 @@ async function carregarHistoricosIniciais(pontos) {
   const pares = await Promise.all(
     pontos.map(async (ponto) => {
       const codigo = normalizarCodigo(ponto.codigo);
-
       try {
         const historico = await buscarHistoricoPonto(codigo);
         return [codigo, historico];
@@ -881,7 +622,6 @@ async function carregarHistoricosIniciais(pontos) {
 async function abrirPonto(codigo) {
   const codigoNormalizado = normalizarCodigo(codigo);
   const ponto = pontosContratados.find((item) => normalizarCodigo(item.codigo) === codigoNormalizado);
-
   if (!ponto) return;
 
   pontoSelecionado = codigoNormalizado;
@@ -890,17 +630,9 @@ async function abrirPonto(codigo) {
   const historicoAtual = historicosPorPonto[codigoNormalizado] || [];
   renderizarDetalheBase(ponto, historicoAtual);
 
-  if (previewMidia) {
-    previewMidia.innerHTML = `<div class="preview-vazio">Carregando exibição...</div>`;
-  }
-
-  if (listaMateriais) {
-    listaMateriais.innerHTML = `<div class="vazio">Carregando materiais...</div>`;
-  }
-
-  if (historicoStatusPonto) {
-    historicoStatusPonto.innerHTML = `<div class="vazio">Carregando histórico...</div>`;
-  }
+  if (previewMidia) previewMidia.innerHTML = `<div class="preview-vazio">Carregando preview...</div>`;
+  if (listaMateriais) listaMateriais.innerHTML = `<div class="vazio">Carregando materiais...</div>`;
+  if (historicoStatusPonto) historicoStatusPonto.innerHTML = `<div class="vazio">Carregando histórico...</div>`;
 
   try {
     const [playlist, historico] = await Promise.all([
@@ -915,16 +647,12 @@ async function abrirPonto(codigo) {
     renderizarMateriais(playlist);
     renderizarHistorico(historico);
     renderizarListaPontos();
-
     setMensagem("Área do cliente atualizada.", "ok");
   } catch (error) {
     console.error("Erro ao abrir ponto:", error);
-
-    pararRotacaoPreview();
     renderizarPreview([]);
     renderizarMateriais([]);
     renderizarHistorico(historicoAtual);
-
     setMensagem("Erro ao carregar dados deste ponto.", "erro");
   }
 }
@@ -941,9 +669,7 @@ async function carregarAreaCliente(codigo) {
   abrirAreaCliente();
   setMensagem("Carregando área do cliente...");
 
-  if (codigoClienteEl) {
-    codigoClienteEl.textContent = codigoClienteAtual;
-  }
+  if (codigoClienteEl) codigoClienteEl.textContent = codigoClienteAtual;
 
   try {
     clienteAtual = await buscarCliente(codigoClienteAtual);
@@ -958,19 +684,16 @@ async function carregarAreaCliente(codigo) {
 
     const codigosPontos = await buscarVinculosCliente(codigoClienteAtual);
     pontosContratados = await buscarPontos(codigosPontos);
-
     await carregarHistoricosIniciais(pontosContratados);
     renderizarListaPontos();
 
     if (pontosContratados.length) {
-      const primeiroAtivo = ordenarPontosPorStatus(pontosContratados)[0];
-      await abrirPonto(primeiroAtivo.codigo);
+      await abrirPonto(pontosContratados[0].codigo);
     } else {
       if (estadoVazio) {
         estadoVazio.style.display = "flex";
         estadoVazio.textContent = "Este cliente ainda não possui pontos contratados vinculados.";
       }
-
       if (detalhePonto) detalhePonto.style.display = "none";
     }
 
@@ -983,43 +706,32 @@ async function carregarAreaCliente(codigo) {
 
 function entrarComCodigoDigitado() {
   const codigo = normalizarCodigo(codigoLogin?.value);
-
   if (!codigo) {
     setLoginErro("Digite o código do cliente.");
     return;
   }
-
   carregarAreaCliente(codigo);
 }
 
-if (btnEntrarCliente) {
-  btnEntrarCliente.onclick = entrarComCodigoDigitado;
-}
+if (btnEntrarCliente) btnEntrarCliente.onclick = entrarComCodigoDigitado;
 
 if (codigoLogin) {
   codigoLogin.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      entrarComCodigoDigitado();
-    }
+    if (event.key === "Enter") entrarComCodigoDigitado();
   });
 }
 
 if (btnAtualizar) {
-  btnAtualizar.onclick = () => {
-    carregarAreaCliente(codigoClienteAtual);
-  };
+  btnAtualizar.onclick = () => carregarAreaCliente(codigoClienteAtual);
 }
 
 if (btnSair) {
-  btnSair.onclick = () => {
-    abrirLogin();
-  };
+  btnSair.onclick = () => abrirLogin();
 }
 
 if (codigoClienteEl) {
   codigoClienteEl.onclick = async () => {
     if (!codigoClienteAtual) return;
-
     try {
       await navigator.clipboard.writeText(codigoClienteAtual);
       setMensagem("Código copiado.", "ok");
@@ -1029,16 +741,13 @@ if (codigoClienteEl) {
   };
 }
 
-window.addEventListener("scroll", () => {
-  document.body.classList.toggle("rolando", window.scrollY > 24);
-});
-
 window.addEventListener("load", () => {
   const codigoUrl = obterCodigoUrl();
 
   abrirLogin();
 
   if (tituloBoasVindas) {
+    tituloBoasVindas.classList.add("hero-titulo-classico");
     tituloBoasVindas.innerHTML = `<span class="hero-linha">Seja bem-vindo(a)</span>`;
   }
 
@@ -1046,14 +755,6 @@ window.addEventListener("load", () => {
     subtituloCliente.textContent = "";
     subtituloCliente.innerHTML = "";
     subtituloCliente.style.display = "none";
-  }
-
-  if (tituloPreview) {
-    tituloPreview.textContent = "Exibição em tempo real |";
-  }
-
-  if (previewNome) {
-    previewNome.textContent = "";
   }
 
   if (codigoUrl && codigoLogin) {
