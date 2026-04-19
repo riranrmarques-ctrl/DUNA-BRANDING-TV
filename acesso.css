@@ -894,7 +894,6 @@ body.rolando .topo-label {
   }
 }
 
-/* Ajuste do topo de boas-vindas: menor e mais elegante */
 .boas-vindas {
   min-height: 92px !important;
   padding: 10px 0 6px !important;
@@ -927,8 +926,6 @@ body.rolando .topo-label {
   color: #ffffff !important;
 }
 
-/* Título "Exibição em tempo real" do lado direito, junto ao nome do arquivo */
-.preview-topo {
   justify-content: flex-end !important;
   align-items: center !important;
   gap: 10px !important;
@@ -951,7 +948,6 @@ body.rolando .topo-label {
   text-transform: none !important;
 }
 
-/* Lista de materiais mais limpa, mostrando só material do cliente */
 .linha-material,
 .linha-material-head {
   grid-template-columns: 150px minmax(0, 1fr) 150px 130px !important;
@@ -972,7 +968,6 @@ body.rolando .topo-label {
   }
 
   .boas-vindas h1,
-  #tituloBoasVindas {
     font-size: clamp(1.55rem, 8vw, 2.7rem) !important;
   }
 
@@ -983,5 +978,171 @@ body.rolando .topo-label {
   .preview-nome {
     max-width: 100% !important;
   }
+}.boas-vindas {
+  min-height: 118px !important;
+  padding: 18px 0 12px !important;
+  margin: 0 0 42px !important;
 }
 
+.boas-vindas::before {
+  height: 130px !important;
+  inset: -42px 0 auto !important;
+}
+
+.boas-vindas h1,
+  font-size: clamp(2rem, 4.2vw, 4.2rem) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.hero-linha:first-child {
+  font-size: 0.42em !important;
+  line-height: 1 !important;
+  font-weight: 600 !important;
+  color: #cbd5e1 !important;
+  opacity: 0.82 !important;
+}
+
+.hero-linha.nome {
+  font-size: 1em !important;
+  line-height: 1.02 !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+}
+
+.detalhe-cabecalho {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin-top: 42px !important;
+  margin-bottom: 28px !important;
+  padding: 24px 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+}
+
+.detalhe-cabecalho h2 {
+  font-size: clamp(1.7rem, 3vw, 3.2rem) !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+}
+
+.detalhe-cabecalho p {
+  margin-top: 10px !important;
+}
+
+.status-grande {
+  min-width: 280px !important;
+  border-radius: 16px !important;
+  padding: 14px 18px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+.preview-topo {
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+  text-align: right !important;
+}
+
+.preview-topo h3 {
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+.preview-nome {
+  max-width: 520px !important;
+  text-align: right !important;
+  color: #aeb8cc !important;
+  font-size: 0.88rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+}
+
+.linha-material,
+.linha-material-head {
+  grid-template-columns: 150px minmax(0, 1fr) 150px 130px !important;
+}
+
+.linha-material small {
+  display: none !important;
+}
+
+.historico-lista {
+  max-height: 170px !important;
+  align-items: flex-end !important;
+  padding-right: 0 !important;
+  overflow-y: auto !important;
+}
+
+.historico-item {
+  width: min(100%, 720px) !important;
+  min-height: 48px !important;
+  grid-template-columns: 36px 1fr auto !important;
+  padding: 10px 14px !important;
+  border-radius: 14px !important;
+  background: rgba(255, 255, 255, 0.022) !important;
+}
+
+.historico-evento.neutro,
+.historico-item.neutro span {
+  color: #e5e7eb !important;
+}
+
+.historico-evento.ativo-primeiro,
+.historico-item.ativo-primeiro .historico-evento {
+  color: #86efac !important;
+}
+
+.historico-vazio-pequeno {
+  width: min(100%, 520px) !important;
+  margin-left: auto !important;
+  padding: 12px 14px !important;
+  font-size: 0.82rem !important;
+}
+
+@media (max-width: 680px) {
+  .boas-vindas {
+    min-height: 94px !important;
+    margin-bottom: 26px !important;
+  }
+
+  .boas-vindas h1,
+  #tituloBoasVindas {
+    font-size: clamp(1.65rem, 8vw, 2.8rem) !important;
+  }
+
+  .detalhe-cabecalho {
+    grid-template-columns: 1fr !important;
+    margin-top: 28px !important;
+    padding: 18px !important;
+  }
+
+  .status-grande {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .preview-topo {
+    align-items: flex-end !important;
+    flex-direction: column !important;
+  }
+
+  .preview-nome {
+    max-width: 100% !important;
+  }
+
+  .historico-item {
+    width: 100% !important;
+    grid-template-columns: 28px 1fr !important;
+  }
+
+  .historico-item span:last-child {
+    grid-column: 2 / 3 !important;
+  }
+}
