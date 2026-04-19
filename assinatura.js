@@ -14,7 +14,6 @@ const nomeCliente = document.getElementById("nomeCliente");
 const codigoCliente = document.getElementById("codigoCliente");
 const loadingOverlay = document.getElementById("loadingOverlay");
 const previewContrato = document.getElementById("previewContrato");
-const loadingOverlay = document.getElementById("loadingOverlay");
 const canvasAssinatura = document.getElementById("canvasAssinatura");
 const btnLimparAssinatura = document.getElementById("btnLimparAssinatura");
 const btnConcluirDesenho = document.getElementById("btnConcluirDesenho");
@@ -622,8 +621,10 @@ function aplicarEstadoCarregado(data) {
 
 async function carregarContrato() {
   codigoAtual = obterCodigoUrl();
+  mostrarLoading();
 
   if (!codigoAtual) {
+    esconderLoading();
     alert("Código do cliente não encontrado.");
     aplicarTituloVisual(true);
     return;
@@ -636,7 +637,11 @@ async function carregarContrato() {
 
   if (btnVoltarCliente) {
     btnVoltarCliente.onclick = () => {
-      window.location.href = `/acesso.html?codigo=${encodeURIComponent(codigoAtual)}&voltar=1`;
+      mostrarLoading();
+
+      setTimeout(() => {
+        window.location.href = `/acesso.html?codigo=${encodeURIComponent(codigoAtual)}&voltar=1`;
+      }, 220);
     };
   }
 
@@ -672,6 +677,8 @@ async function carregarContrato() {
     console.error(error);
     alert("Erro ao carregar contrato.");
     aplicarTituloVisual(true);
+  } finally {
+    esconderLoading();
   }
 }
 
