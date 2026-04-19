@@ -501,3 +501,18 @@ body.contrato-assinado::before {
     margin-top: 0 !important;
   }
 }
+
+#mensagemAssinatura {
+  display: none !important;
+}
+
+  #btnConcluirDesenho {
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+#btnConcluirDesenho.leitura-pendente {
+  background: #5b86f7 !important;
+  color: #ffffff !important;
+}
+
