@@ -168,6 +168,15 @@ async function chamarApi(url, opcoes = {}) {
   return json;
 }
 
+  const json = await resposta.json().catch(() => ({}));
+
+  if (!resposta.ok) {
+    throw new Error(json.error || "Erro na API.");
+  }
+
+  return json;
+}
+
 function mostrarMensagem(texto, cor = "#9fd2ff") {
   if (!mensagem) return;
 
@@ -539,13 +548,8 @@ async function carregarClientes(opcoes = {}) {
   try {
     mostrarMensagem(cache?.clientes?.length ? "Atualizando..." : "Carregando clientes...");
 
-  const { data, error } = await supabase
-    .from("clientes_app")
-    .select("*");
-
-  if (error) throw error;
-
-  const clientes = data || [];
+    const resposta = await chamarApi("/api/admin-clientes");
+    const clientes = Array.isArray(resposta.clientes) ? resposta.clientes : [];
 
     salvarCacheClientes(clientes);
     aplicarClientes(clientes, "Carregado.");
