@@ -2344,3 +2344,50 @@ body.rolando .btn-sair:focus-visible {
 .login-erro:empty {
   display: none !important;
 }
+
+.login-card::before,
+.login-card::after {
+  pointer-events: none !important;
+}
+
+#btnEntrarCliente {
+  position: relative !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease,
+    box-shadow 0.16s ease !important;
+}
+
+#btnEntrarCliente:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.03) !important;
+}
+
+#btnEntrarCliente:active {
+  transform: translateY(2px) scale(0.985) !important;
+  filter: brightness(0.96) !important;
+  box-shadow:
+    0 6px 16px rgba(91, 134, 247, 0.14),
+    inset 0 2px 5px rgba(0, 0, 0, 0.18) !important;
+}
+
+#btnEntrarCliente.clicando {
+  animation: loginPulse 0.42s ease;
+}
+
+@keyframes loginPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(0.975);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
