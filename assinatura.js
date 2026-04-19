@@ -13,6 +13,7 @@ const statusContrato = document.getElementById("statusContrato");
 const nomeCliente = document.getElementById("nomeCliente");
 const codigoCliente = document.getElementById("codigoCliente");
 const previewContrato = document.getElementById("previewContrato");
+const loadingOverlay = document.getElementById("loadingOverlay");
 const canvasAssinatura = document.getElementById("canvasAssinatura");
 const btnLimparAssinatura = document.getElementById("btnLimparAssinatura");
 const btnConcluirDesenho = document.getElementById("btnConcluirDesenho");
@@ -35,6 +36,31 @@ function setMensagem(texto, tipo = "normal") {
 
   mensagemAssinatura.textContent = "";
   mensagemAssinatura.classList.remove("ok", "erro");
+}
+
+function mostrarLoading() {
+  document.body.classList.add("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.style.display = "flex";
+    requestAnimationFrame(() => {
+      loadingOverlay.classList.add("ativo");
+    });
+  }
+}
+
+function esconderLoading() {
+  document.body.classList.remove("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove("ativo");
+
+    setTimeout(() => {
+      if (!loadingOverlay.classList.contains("ativo")) {
+        loadingOverlay.style.display = "none";
+      }
+    }, 280);
+  }
 }
 
 function escapeHtml(texto) {
