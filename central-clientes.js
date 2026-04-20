@@ -24,7 +24,7 @@ const botoesFiltro = document.querySelectorAll("[data-filtro]");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
 function verificarAcesso() {
-  const liberado = localtorage.getItem("painelLiberado");
+  const liberado = localStorage.getItem("painelLiberado");
 
   if (liberado !== "1") {
     window.location.href = "/painel.html";
