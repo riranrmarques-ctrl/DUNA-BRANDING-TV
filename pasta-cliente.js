@@ -1,6 +1,6 @@
-const liberado = sessionStorage.getItem("painelLiberado");
+const codigo = new URLSearchParams(window.location.search).get("codigo");
 
-if (liberado !== "1") {
+if (!codigo) {
   window.location.replace("/painel.html");
 }
 
