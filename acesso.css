@@ -1138,14 +1138,14 @@ body.loading-page {
   }
 
   .login-card {
-    margin-top:100px;
+    margin-top:50px;
     margin-bottom:0px;
   }
 }
 
   .login-logo-fora {
     width: 170px;
-    margin: 0 auto 20px;
+    margin: 0 auto 0px;
   }
 
   .login-card {
