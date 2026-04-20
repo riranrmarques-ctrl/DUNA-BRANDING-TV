@@ -237,3 +237,23 @@ video::-webkit-media-controls-enclosure {
   letter-spacing: 0.04em;
   color: rgba(255,255,255,0.55);
 }
+
+.painel-wrap {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card {
+  width: 100%;
+}
+
+.assinatura {
+  margin-top: 42px;
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.55);
+}
