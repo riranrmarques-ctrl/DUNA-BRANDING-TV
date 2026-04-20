@@ -1122,13 +1122,13 @@ body.loading-page {
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding: 28px 16px 36px;
+    padding: 34px 16px 80px;
   }
 
   .login-conteudo {
     width: 100%;
-    max-width: 340px;
-    min-height: calc(100vh - 104px);
+    max-width: 420px;
+    min-height: calc(100vh - 116px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1137,81 +1137,77 @@ body.loading-page {
   }
 
   .login-logo-fora {
-    width: 150px;
-    height: auto;
-    margin: 0 auto 22px;
+    width: 170px;
+    margin: 0 auto 26px;
   }
 
   .login-card {
     width: 100%;
-    max-width: 274px;
-    min-height: 340px;
-    padding: 28px 22px 22px;
-    border-radius: 26px;
+    min-height: 410px;
+    border-radius: 30px;
+    padding: 34px 24px 28px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     background: linear-gradient(180deg, rgba(19, 33, 68, 0.96), rgba(8, 14, 31, 0.96));
-    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.28);
-    margin: 0 auto;
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.3);
   }
 
   .login-card h1 {
-    margin-bottom: 12px;
-    font-size: 1.1rem;
-    line-height: 1.08;
-    letter-spacing: -0.04em;
+    font-size: 2.05rem;
+    line-height: 1.02;
+    letter-spacing: -0.05em;
+    margin-bottom: 14px;
     text-align: center;
   }
 
   .login-instrucao {
-    max-width: 210px;
-    margin: 0 auto 18px;
-    font-size: 0.72rem;
-    line-height: 1.4;
+    max-width: 260px;
+    margin: 0 auto 26px;
+    font-size: 0.98rem;
+    line-height: 1.45;
+    color: #b8c4df;
     text-align: center;
-    color: #b7c3de;
   }
 
   .login-card input {
-    width: 100%;
-    height: 52px;
-    margin-bottom: 12px;
-    padding: 0 14px;
-    border-radius: 14px;
-    font-size: 0.92rem;
+    height: 66px;
+    border-radius: 18px;
+    padding: 0 18px;
+    margin-bottom: 14px;
+    font-size: 1.02rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
-    text-align: center;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .login-card input::placeholder {
-    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 0.96rem;
     font-weight: 700;
   }
 
   .login-card button {
-    width: 100%;
-    height: 52px;
-    border-radius: 14px;
-    font-size: 0.92rem;
+    height: 66px;
+    border-radius: 18px;
+    font-size: 1rem;
     font-weight: 900;
   }
 
   .login-erro {
-    min-height: 18px;
-    margin-top: 10px;
-    font-size: 0.74rem;
-    line-height: 1.3;
+    min-height: 22px;
+    margin-top: 14px;
+    font-size: 0.84rem;
+    line-height: 1.35;
     text-align: center;
   }
 
   .login-rodape {
     margin-top: auto;
-    padding-top: 72px;
+    padding-top: 56px;
     text-align: center;
-    font-size: 0.58rem;
-    line-height: 1.5;
+    font-size: 0.68rem;
+    line-height: 1.6;
     letter-spacing: 0.18em;
     color: #8d98b8;
     opacity: 0.9;
@@ -1219,5 +1215,437 @@ body.loading-page {
 
   .login-rodape span {
     margin-right: 4px;
+  }
+
+  .topo-cliente {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-bottom: 18px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+    transition: background 0.25s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease;
+  }
+
+  body.rolando .topo-cliente {
+    background: rgba(7, 17, 38, 0.88);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  }
+
+  .topo-conteudo {
+    width: 100%;
+    min-height: 54px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .topo-esquerda {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .logo-cliente {
+    width: 148px;
+    max-width: 148px;
+    min-width: 148px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    flex-shrink: 0;
+    transition: width 0.25s ease, max-width 0.25s ease, min-width 0.25s ease;
+  }
+
+  body.rolando .logo-cliente {
+    width: 100px;
+    max-width: 100px;
+    min-width: 100px;
+  }
+
+  .nome-cliente-topo {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    width: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.25s ease, transform 0.25s ease, width 0.25s ease;
+  }
+
+  .nome-cliente-topo::before {
+    content: "|";
+    margin-right: 6px;
+    color: rgba(217, 225, 242, 0.72);
+    font-weight: 900;
+  }
+
+  body.rolando .nome-cliente-topo {
+    opacity: 1;
+    width: auto;
+    transform: translateX(0);
+  }
+
+  .topo-acoes {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: fit-content;
+  }
+
+  .topo-area-bloco,
+  .topo-label,
+  .topo-mensagem {
+    display: none;
+  }
+
+  .btn-sair,
+  .btn-atualizar {
+    height: 34px;
+    min-width: 64px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    border-radius: 11px;
+    background: #ffffff;
+    color: #061225;
+    font-size: 0.81rem;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  }
+
+  .btn-sair:hover,
+  .btn-atualizar:hover {
+    background: #ffffff;
+    color: #061225;
+    filter: brightness(0.98);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.16);
+  }
+
+  .btn-sair:active,
+  .btn-atualizar:active {
+    transform: scale(0.96);
+    filter: brightness(0.94);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  .boas-vindas {
+    min-height: auto;
+    padding: 18px 0 0;
+    margin: 0 0 52px;
+  }
+
+  .boas-vindas h1,
+  #tituloBoasVindas {
+    font-size: 1.7rem;
+    line-height: 1.08;
+    text-align: center;
+  }
+
+  .hero-linha:first-child {
+    margin-bottom: 14px;
+  }
+
+  .cliente-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .coluna-esquerda {
+    gap: 12px;
+  }
+
+  .pontos-cliente,
+  .detalhe-ponto,
+  .contrato-card {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 22px;
+    overflow: hidden;
+  }
+
+  .pontos-cliente {
+    order: 1;
+    padding: 16px;
+  }
+
+  .detalhe-ponto {
+    order: 2;
+    min-height: auto;
+    padding: 16px 14px;
+  }
+
+  .contrato-card {
+    order: 3;
+    width: calc(100% - 28px);
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 14px 12px;
+    border-radius: 18px;
+  }
+
+  .contrato-card p {
+    font-size: 0.8rem;
+    line-height: 1.42;
+    margin-bottom: 12px;
+  }
+
+  .contrato-badge {
+    padding: 6px 10px;
+    font-size: 0.64rem;
+    margin-bottom: 10px;
+  }
+
+  .btn-assinar-contrato {
+    min-height: 42px;
+    padding: 11px 12px;
+    margin-top: 10px;
+    font-size: 0.82rem;
+    border-radius: 12px;
+  }
+
+  .historico-contrato-cliente {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .historico-contrato-item {
+    padding: 10px 11px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .historico-contrato-item strong {
+    font-size: 0.8rem;
+  }
+
+  .historico-contrato-item span {
+    font-size: 0.7rem;
+  }
+
+  .historico-contrato-item small {
+    font-size: 0.62rem;
+    padding: 4px 8px;
+    margin-top: 6px;
+  }
+
+  .btn-historico-contrato {
+    font-size: 0.68rem;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  .lista-pontos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ponto-card {
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .ponto-card img {
+    width: 74px;
+    height: 58px;
+  }
+
+  .ponto-card h3 {
+    white-space: normal;
+  }
+
+  .detalhe-cabecalho {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    margin: 0 0 12px;
+    padding: 0;
+  }
+
+  .detalhe-cabecalho > div:first-child {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .detalhe-cabecalho h2 {
+    width: 100%;
+    font-size: 1.28rem;
+    line-height: 1.05;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .detalhe-cabecalho p {
+    width: 100%;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    line-height: 1.15;
+    color: #aeb8cc;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .status-area {
+    width: auto;
+    min-width: 0;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 0;
+  }
+
+  .status-grande {
+    min-width: 84px;
+    padding: 7px 12px;
+    font-size: 0.68rem;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  .status-desde {
+    display: none;
+  }
+
+  .preview-box {
+    margin: 0 0 14px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-topo {
+    order: 2;
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+  .preview-topo h3 {
+    display: none;
+  }
+
+  .preview-nome {
+    display: block;
+    max-width: 100%;
+    text-align: left;
+    font-size: 0.8rem;
+    line-height: 1.15;
+    font-weight: 800;
+    color: #e6eeff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .preview-nome::before {
+    content: "EXIBIÇÃO EM TEMPO REAL | ";
+    color: #ffffff;
+    font-weight: 900;
+  }
+
+  .preview-midia {
+    order: 1;
+    aspect-ratio: 16 / 10;
+    border-radius: 18px;
+  }
+
+  .preview-aviso-offline {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    min-height: 42px;
+    padding: 11px 12px;
+    font-size: 0.78rem;
+  }
+
+  .subsecao {
+    margin-top: 18px;
+  }
+
+  .linha-material-head {
+    display: none;
+  }
+
+  .tabela-materiais {
+    border-radius: 18px;
+  }
+
+  .linha-material {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 14px;
+  }
+
+  .linha-material strong {
+    font-size: 0.96rem;
+    line-height: 1.25;
+  }
+
+  .linha-material span {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .historico-secao {
+    margin-top: 20px;
+  }
+
+  .historico-lista {
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    scrollbar-width: thin;
+  }
+
+  .historico-lista::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .historico-lista::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+  }
+
+  .historico-lista::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .historico-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  .rodape-creditos {
+    margin-top: 18px;
+    padding: 10px 0 0;
+    font-size: 10px;
   }
 }
