@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"> 
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -13,6 +13,71 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="acesso.css?v=1000">
+
+  <style>
+    .cliente-layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .coluna-esquerda {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .pontos-cliente,
+    .contrato-card,
+    .subsecao {
+      border-radius: 24px;
+    }
+
+    .playlist-historico-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+      gap: 20px;
+      align-items: start;
+      margin-top: 20px;
+    }
+
+    .subsecao-playlist,
+    .historico-secao {
+      height: 100%;
+    }
+
+    .rodape-creditos {
+      margin-top: 28px;
+      padding: 18px 0 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .rodape-creditos strong {
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    @media (max-width: 980px) {
+      .cliente-layout,
+      .playlist-historico-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .coluna-esquerda {
+        gap: 16px;
+      }
+
+      .playlist-historico-grid {
+        margin-top: 16px;
+      }
+    }
+  </style>
 </head>
 <body>
   <section id="loginScreen" class="login-screen">
@@ -42,100 +107,106 @@
   </div>
 
   <main class="assinatura-shell">
-     
-  <main id="areaCliente" class="cliente-shell" style="display:none;">
-    <header class="topo-cliente">
-      <div class="topo-conteudo">
-        <div class="topo-esquerda">
-          <img src="logo.png" class="logo-cliente" alt="Duna TV">
-          <span id="nomeClienteTopo" class="nome-cliente-topo"></span>
-        </div>
-
-        <div class="topo-acoes">
-          <div class="topo-area-bloco">
-            <span class="topo-label">ÁREA DO CLIENTE</span>
-            <p id="mensagemCliente" class="mensagem topo-mensagem"></p>
+    <main id="areaCliente" class="cliente-shell" style="display:none;">
+      <header class="topo-cliente">
+        <div class="topo-conteudo">
+          <div class="topo-esquerda">
+            <img src="logo.png" class="logo-cliente" alt="Duna TV">
+            <span id="nomeClienteTopo" class="nome-cliente-topo"></span>
           </div>
 
-          <button id="btnSair" class="btn-sair" type="button">Sair</button>
-        </div>
-      </div>
-    </header>
-
-    <section class="boas-vindas">
-      <h1 id="tituloBoasVindas">Seja bem-vindo(a)</h1>
-      <p id="subtituloCliente"></p>
-    </section>
-
-    <section class="cliente-layout">
-      <div class="coluna-esquerda">
-        <aside class="pontos-cliente">
-          <div class="secao-topo">
-            <h2>Seus pontos ativos</h2>
-            <span id="contadorPontos" class="contador-pontos" style="display:none;"></span>
-          </div>
-          <div id="listaPontosCliente" class="lista-pontos"></div>
-        </aside>
-
-        <aside class="contrato-card">
-          <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
-          <h2>Espaço do contrato</h2>
-          <p id="contratoInfo">Carregando informações do contrato...</p>
-          <button id="codigoCliente" class="codigo-cliente" type="button" title="Clique para copiar"></button>
-          <button id="btnAssinarContrato" class="btn-assinar-contrato" type="button">Assinar contrato</button>
-          <div id="historicoContratoCliente" class="historico-contrato-cliente"></div>
-        </aside>
-      </div>
-
-      <section class="detalhe-ponto">
-        <div id="estadoVazio" class="estado-vazio">
-          Selecione uma pasta de ponto para ver a exibição, materiais contratados e histórico de status.
-        </div>
-
-        <div id="detalhePonto" style="display:none;">
-          <div class="detalhe-cabecalho">
-            <div>
-              <h2 id="nomePontoDetalhe"></h2>
-              <p id="localPontoDetalhe"></p>
+          <div class="topo-acoes">
+            <div class="topo-area-bloco">
+              <span class="topo-label">ÁREA DO CLIENTE</span>
+              <p id="mensagemCliente" class="mensagem topo-mensagem"></p>
             </div>
 
-            <div class="status-area">
-              <div id="statusPontoDetalhe" class="status-grande"></div>
-              <div id="statusDesdeDetalhe" class="status-desde"></div>
+            <button id="btnSair" class="btn-sair" type="button">Sair</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="boas-vindas">
+        <h1 id="tituloBoasVindas">Seja bem-vindo(a)</h1>
+        <p id="subtituloCliente"></p>
+      </section>
+
+      <section class="cliente-layout">
+        <div class="coluna-esquerda">
+          <aside class="pontos-cliente">
+            <div class="secao-topo">
+              <h2>Seus pontos ativos</h2>
+              <span id="contadorPontos" class="contador-pontos" style="display:none;"></span>
             </div>
+            <div id="listaPontosCliente" class="lista-pontos"></div>
+          </aside>
+
+          <aside class="contrato-card">
+            <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
+            <h2>Espaço do contrato</h2>
+            <p id="contratoInfo">Carregando informações do contrato...</p>
+            <button id="codigoCliente" class="codigo-cliente" type="button" title="Clique para copiar"></button>
+            <button id="btnAssinarContrato" class="btn-assinar-contrato" type="button">Assinar contrato</button>
+            <div id="historicoContratoCliente" class="historico-contrato-cliente"></div>
+          </aside>
+        </div>
+
+        <section class="detalhe-ponto">
+          <div id="estadoVazio" class="estado-vazio">
+            Selecione uma pasta de ponto para ver a exibição, materiais contratados e histórico de status.
           </div>
 
-          <div class="preview-box">
-            <div class="preview-topo">
-              <h3 id="tituloPreview">Exibição em tempo real |</h3>
-              <div id="previewNome" class="preview-nome"></div>
-            </div>
-
-            <div id="previewMidia" class="preview-midia"></div>
-          </div>
-
-          <div class="subsecao">
-            <h3>Materiais da playlist</h3>
-
-            <div class="tabela-materiais">
-              <div class="linha-material-head">
-                <span>Ordem da playlist</span>
-                <span>Material</span>
-                <span>Postado</span>
-                <span>Encerramento</span>
+          <div id="detalhePonto" style="display:none;">
+            <div class="detalhe-cabecalho">
+              <div>
+                <h2 id="nomePontoDetalhe"></h2>
+                <p id="localPontoDetalhe"></p>
               </div>
 
-              <div id="listaMateriais"></div>
+              <div class="status-area">
+                <div id="statusPontoDetalhe" class="status-grande"></div>
+                <div id="statusDesdeDetalhe" class="status-desde"></div>
+              </div>
+            </div>
+
+            <div class="preview-box">
+              <div class="preview-topo">
+                <h3 id="tituloPreview">Exibição em tempo real |</h3>
+                <div id="previewNome" class="preview-nome"></div>
+              </div>
+
+              <div id="previewMidia" class="preview-midia"></div>
+            </div>
+
+            <div class="playlist-historico-grid">
+              <div class="subsecao subsecao-playlist">
+                <h3>Materiais da playlist</h3>
+
+                <div class="tabela-materiais">
+                  <div class="linha-material-head">
+                    <span>Ordem da playlist</span>
+                    <span>Material</span>
+                    <span>Postado</span>
+                    <span>Encerramento</span>
+                  </div>
+
+                  <div id="listaMateriais"></div>
+                </div>
+              </div>
+
+              <div class="subsecao historico-secao">
+                <h3>Histórico de status do ponto</h3>
+                <div id="historicoStatusPonto" class="historico-lista"></div>
+              </div>
             </div>
           </div>
-
-          <div class="subsecao historico-secao">
-            <h3>Histórico de status do ponto</h3>
-            <div id="historicoStatusPonto" class="historico-lista"></div>
-          </div>
-        </div>
+        </section>
       </section>
-    </section>
+
+      <footer class="rodape-creditos">
+        desenvolvido pela <strong>duna branding</strong>
+      </footer>
+    </main>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
