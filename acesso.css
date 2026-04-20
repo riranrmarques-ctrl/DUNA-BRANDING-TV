@@ -2961,3 +2961,22 @@ body.loading-page {
   }
 
 }
+
+@media (max-width: 768px) {
+
+  .contrato-card {
+    margin-left: 16px !important;
+    margin-right: 16px !important;
+    margin-top: 34px !important;
+    padding: 14px 14px !important;
+  }
+
+  .pontos-cliente {
+    margin-top: 18px !important;
+  }
+
+  .boas-vindas {
+    margin-bottom: 26px !important;
+  }
+
+}
