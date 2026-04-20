@@ -1123,37 +1123,30 @@ body.loading-page {
   .login-screen {
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    padding: 5px 5px 0px;
-
+    padding: 16px 12px;
   }
 
   .login-conteudo {
     width: 100%;
     max-width: 420px;
-    margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  .login-card {
-    margin-top:150px;
-    margin-bottom:0px;
-  }
-}
-
   .login-logo-fora {
-    width:20 px;
-    margin:100px x 0px;
+    width: 140px;
+    margin: 0 0 18px 0;
   }
 
   .login-card {
     width: 100%;
-    min-height: 410px;
-    border-radius: 30px;
-    padding: 20px 20px 50px;
+    margin: 0;
+    min-height: auto;
+    border-radius: 26px;
+    padding: 24px 18px 28px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -1211,8 +1204,8 @@ body.loading-page {
   }
 
   .login-rodape {
-    margin-top: auto;
-    padding-top: 10px;
+    margin-top: 18px;
+    padding-top: 0;
     text-align: center;
     font-size: 0.68rem;
     line-height: 1.6;
