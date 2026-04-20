@@ -2823,3 +2823,80 @@ body.loading-page {
     border-radius: 18px !important;
   }
 }
+
+@media (max-width: 768px) {
+
+  .preview-topo {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    margin: 0 0 4px !important;
+    padding-right: 2px !important;
+  }
+
+  .preview-topo h3 {
+    display: none !important;
+  }
+
+  .preview-topo::before {
+    content: "AO VIVO |" !important;
+    font-size: 0.56rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    color: rgba(255, 255, 255, 0.35) !important;
+    margin-right: 4px !important;
+    white-space: nowrap !important;
+  }
+
+  .preview-nome {
+    max-width: 48vw !important;
+    font-size: 0.60rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    color: rgba(158, 172, 205, 0.75) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: right !important;
+  }
+
+  .contrato-card {
+    padding: 16px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .contrato-badge {
+    font-size: 0.60rem !important;
+    padding: 6px 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .contrato-card p {
+    font-size: 0.86rem !important;
+    line-height: 1.32 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .btn-assinar-contrato {
+    width: fit-content !important;
+    min-height: 38px !important;
+    padding: 9px 16px !important;
+    font-size: 0.80rem !important;
+    border-radius: 12px !important;
+    margin: 0 auto !important;
+  }
+
+  .rodape-creditos {
+    margin-top: 12px !important;
+    padding: 4px 0 2px !important;
+    font-size: 8px !important;
+    letter-spacing: 0.06em !important;
+    opacity: 0.45 !important;
+  }
+
+  .rodape-creditos strong {
+    font-weight: 700 !important;
+    opacity: 0.7 !important;
+  }
+
+}
