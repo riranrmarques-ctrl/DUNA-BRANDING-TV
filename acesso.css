@@ -1129,22 +1129,29 @@ body.loading-page {
 
 @media (max-width: 768px) {
   .topo-cliente {
-    width: 100%;
-    margin: 0 0 18px;
-    margin-left: 0;
-    margin-right: 0;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-bottom: 18px;
     position: sticky;
     top: 0;
     z-index: 999;
-    background: rgba(7, 17, 38, 0.82);
+    background: transparent;
+    backdrop-filter: none;
+    box-shadow: none;
+    transition: background 0.25s ease, box-shadow 0.25s ease, backdrop-filter 0.25s ease;
+  }
+
+  body.rolando .topo-cliente {
+    background: rgba(7, 17, 38, 0.88);
     backdrop-filter: blur(18px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
   }
 
   .topo-conteudo {
     width: 100%;
-    min-height: 50px;
-    padding: 6px 10px;
+    min-height: 54px;
+    padding: 8px 14px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
@@ -1155,30 +1162,32 @@ body.loading-page {
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     overflow: hidden;
   }
 
   .logo-cliente {
-    width: 132px;
-    max-width: 132px;
-    min-width: 132px;
+    width: 106px;
+    max-width: 106px;
+    min-width: 106px;
     height: auto;
     flex-shrink: 0;
   }
 
   .nome-cliente-topo {
     display: block;
-    opacity: 1;
     min-width: 0;
     max-width: 100%;
-    margin-left: 0;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 700;
     line-height: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    opacity: 0;
+    width: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.22s ease, transform 0.22s ease, width 0.22s ease;
   }
 
   .nome-cliente-topo::before {
@@ -1186,6 +1195,12 @@ body.loading-page {
     margin-right: 6px;
     color: rgba(217, 225, 242, 0.72);
     font-weight: 900;
+  }
+
+  body.rolando .nome-cliente-topo {
+    opacity: 1;
+    width: auto;
+    transform: translateX(0);
   }
 
   .topo-acoes {
@@ -1231,7 +1246,6 @@ body.loading-page {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-}
 
   .coluna-esquerda {
     gap: 14px;
