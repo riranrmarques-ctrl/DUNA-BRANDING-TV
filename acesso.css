@@ -1117,6 +1117,106 @@ body.loading-page {
 }
 
 @media (max-width: 768px) {
+  .login-screen {
+    min-height: calc(100vh - 48px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 34px 16px 80px;
+  }
+
+  .login-conteudo {
+    width: 100%;
+    max-width: 420px;
+    min-height: calc(100vh - 116px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    transform: none;
+  }
+
+  .login-logo-fora {
+    width: 170px;
+    margin: 0 auto 26px;
+  }
+
+  .login-card {
+    width: 100%;
+    min-height: 410px;
+    border-radius: 30px;
+    padding: 34px 24px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background: linear-gradient(180deg, rgba(19, 33, 68, 0.96), rgba(8, 14, 31, 0.96));
+    box-shadow: 0 26px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  .login-card h1 {
+    font-size: 2.05rem;
+    line-height: 1.02;
+    letter-spacing: -0.05em;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .login-instrucao {
+    max-width: 260px;
+    margin: 0 auto 26px;
+    font-size: 0.98rem;
+    line-height: 1.45;
+    color: #b8c4df;
+    text-align: center;
+  }
+
+  .login-card input {
+    height: 66px;
+    border-radius: 18px;
+    padding: 0 18px;
+    margin-bottom: 14px;
+    font-size: 1.02rem;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .login-card input::placeholder {
+    color: rgba(255, 255, 255, 0.42);
+    font-size: 0.96rem;
+    font-weight: 700;
+  }
+
+  .login-card button {
+    height: 66px;
+    border-radius: 18px;
+    font-size: 1rem;
+    font-weight: 900;
+  }
+
+  .login-erro {
+    min-height: 22px;
+    margin-top: 14px;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    text-align: center;
+  }
+
+  .login-rodape {
+    margin-top: auto;
+    padding-top: 56px;
+    text-align: center;
+    font-size: 0.68rem;
+    line-height: 1.6;
+    letter-spacing: 0.18em;
+    color: #8d98b8;
+    opacity: 0.9;
+  }
+
+  .login-rodape span {
+    margin-right: 4px;
+  }
+
   .topo-cliente {
     width: 100vw;
     margin-left: calc(50% - 50vw);
