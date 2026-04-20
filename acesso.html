@@ -30,7 +30,8 @@
 
     .pontos-cliente,
     .contrato-card,
-    .subsecao {
+    .subsecao,
+    .historico-bloco-separado {
       border-radius: 24px;
     }
 
@@ -39,10 +40,10 @@
       margin-top: 20px;
     }
 
-    .historico-secao {
-      width: 100%;
-      height: auto;
-      margin-top: 40px;
+    .historico-bloco-separado {
+      width: min(100%, calc(100% - 368px));
+      margin-left: auto;
+      margin-top: 44px;
     }
 
     .rodape-creditos {
@@ -74,7 +75,9 @@
         margin-top: 16px;
       }
 
-      .historico-secao {
+      .historico-bloco-separado {
+        width: 100%;
+        margin-left: 0;
         margin-top: 24px;
       }
     }
@@ -193,13 +196,13 @@
                 <div id="listaMateriais"></div>
               </div>
             </div>
-
-            <div class="subsecao historico-secao">
-              <h3>Histórico de status do ponto</h3>
-              <div id="historicoStatusPonto" class="historico-lista"></div>
-            </div>
           </div>
         </section>
+      </section>
+
+      <section class="subsecao historico-bloco-separado">
+        <h3>Histórico de status do ponto</h3>
+        <div id="historicoStatusPonto" class="historico-lista"></div>
       </section>
 
       <footer class="rodape-creditos">
