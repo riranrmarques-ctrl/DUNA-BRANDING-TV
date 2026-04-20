@@ -1116,17 +1116,6 @@ body.loading-page {
   font-weight: 800;
 }
 
-@media (max-width: 980px) {
-  .cliente-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .lista-pontos {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 768px) {
   .topo-cliente {
     width: 100vw;
@@ -1150,16 +1139,17 @@ body.loading-page {
 
   .topo-conteudo {
     width: 100%;
-    min-height: 54px;
+    min-height: 56px;
     padding: 8px 14px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 10px;
   }
 
   .topo-esquerda {
     min-width: 0;
+    flex: 1;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1167,11 +1157,20 @@ body.loading-page {
   }
 
   .logo-cliente {
-    width: 106px;
-    max-width: 106px;
-    min-width: 106px;
+    width: 150px;
+    max-width: 150px;
+    min-width: 150px;
     height: auto;
+    display: block;
+    object-fit: contain;
     flex-shrink: 0;
+    transition: width 0.25s ease, max-width 0.25s ease, min-width 0.25s ease;
+  }
+
+  body.rolando .logo-cliente {
+    width: 105px;
+    max-width: 105px;
+    min-width: 105px;
   }
 
   .nome-cliente-topo {
@@ -1186,8 +1185,8 @@ body.loading-page {
     text-overflow: ellipsis;
     opacity: 0;
     width: 0;
-    transform: translateX(-4px);
-    transition: opacity 0.22s ease, transform 0.22s ease, width 0.22s ease;
+    transform: translateX(-6px);
+    transition: opacity 0.25s ease, transform 0.25s ease, width 0.25s ease;
   }
 
   .nome-cliente-topo::before {
@@ -1208,6 +1207,7 @@ body.loading-page {
     align-items: center;
     justify-content: flex-end;
     gap: 6px;
+    flex-shrink: 0;
     min-width: fit-content;
   }
 
