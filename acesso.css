@@ -1125,7 +1125,8 @@ body.loading-page {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 20px 16px;
+    padding: 16px 16px 20px;
+
   }
 
   .login-conteudo {
