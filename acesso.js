@@ -566,7 +566,7 @@ function renderizarContrato() {
     } else if (concluido) {
       contratoInfo.textContent = "Seu contrato foi concluído e está disponível para download. Baixe agora!";
     } else {
-      contratoInfo.textContent = "Seu contrato está pronto para revisão, mas ainda precisa da sua leitura e assinatura para ser concluído.";
+      contratoInfo.textContent = "Seu contrato já está disponível. Para finalizá-lo, é necessário realizar a leitura e concluir a assinatura.";
     }
   }
 
