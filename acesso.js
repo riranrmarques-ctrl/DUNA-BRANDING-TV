@@ -1124,3 +1124,46 @@ window.addEventListener("load", () => {
     window.history.replaceState({}, "", urlLimpa);
   }
 });
+
+function reorganizarMobile() {
+  const contrato = document.querySelector(".contrato-card");
+  const contratoOrigem = document.getElementById("contratoOrigem");
+  const contratoMobileFinal = document.getElementById("contratoMobileFinal");
+
+  const historicoBloco = document.querySelector("#historicoOrigem .historico-secao");
+  const historicoOrigem = document.getElementById("historicoOrigem");
+  const historicoMobileFinal = document.getElementById("historicoMobileFinal");
+
+  if (
+    !contrato ||
+    !contratoOrigem ||
+    !contratoMobileFinal ||
+    !historicoBloco ||
+    !historicoOrigem ||
+    !historicoMobileFinal
+  ) {
+    return;
+  }
+
+  if (window.innerWidth <= 760) {
+    if (contrato.parentElement !== contratoMobileFinal) {
+      contratoMobileFinal.appendChild(contrato);
+    }
+
+    if (historicoBloco.parentElement !== historicoMobileFinal) {
+      historicoMobileFinal.appendChild(historicoBloco);
+    }
+  } else {
+    if (contrato.parentElement !== contratoOrigem) {
+      contratoOrigem.appendChild(contrato);
+    }
+
+    if (historicoBloco.parentElement !== historicoOrigem) {
+      historicoOrigem.appendChild(historicoBloco);
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", reorganizarMobile);
+window.addEventListener("load", reorganizarMobile);
+window.addEventListener("resize", reorganizarMobile);
