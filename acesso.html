@@ -63,6 +63,11 @@
       font-weight: 800;
     }
 
+    .mobile-detalhe-only,
+    .mobile-historico-only {
+      display: none;
+    }
+
     @media (max-width: 980px) {
       .cliente-layout,
       .playlist-historico-grid {
@@ -75,6 +80,45 @@
 
       .playlist-historico-grid {
         margin-top: 16px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .cliente-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .coluna-esquerda {
+        gap: 16px;
+      }
+
+      .mobile-detalhe-only,
+      .mobile-historico-only {
+        display: block;
+      }
+
+      .detalhe-ponto {
+        display: none;
+      }
+
+      .mobile-detalhe-conteudo {
+        display: none;
+      }
+
+      .mobile-detalhe-only .detalhe-cabecalho,
+      .mobile-detalhe-only .preview-box,
+      .mobile-detalhe-only .subsecao,
+      .mobile-historico-only .subsecao {
+        margin: 0;
+      }
+
+      .mobile-detalhe-only,
+      .mobile-historico-only {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
       }
     }
   </style>
@@ -141,6 +185,50 @@
             <div id="listaPontosCliente" class="lista-pontos"></div>
           </aside>
 
+          <div class="mobile-detalhe-only">
+            <div class="estado-vazio mobile-estado-vazio">
+              Selecione uma pasta de ponto para ver a exibição, materiais contratados e histórico de status.
+            </div>
+
+            <div class="mobile-detalhe-conteudo">
+              <div class="detalhe-cabecalho">
+                <div>
+                  <h2 class="mobile-nome-ponto"></h2>
+                  <p class="mobile-local-ponto"></p>
+                </div>
+
+                <div class="status-area">
+                  <div class="mobile-status-ponto status-grande"></div>
+                  <div class="mobile-status-desde status-desde"></div>
+                </div>
+              </div>
+
+              <div class="preview-box">
+                <div class="preview-topo">
+                  <h3 class="mobile-titulo-preview">Exibição em tempo real |</h3>
+                  <div class="mobile-preview-nome preview-nome"></div>
+                </div>
+
+                <div class="mobile-preview-midia preview-midia"></div>
+              </div>
+
+              <div class="subsecao subsecao-playlist">
+                <h3>Materiais da playlist</h3>
+
+                <div class="tabela-materiais">
+                  <div class="linha-material-head">
+                    <span>Ordem da playlist</span>
+                    <span>Material</span>
+                    <span>Postado</span>
+                    <span>Encerramento</span>
+                  </div>
+
+                  <div class="mobile-lista-materiais"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <aside class="contrato-card">
             <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
             <h2>Espaço do contrato</h2>
@@ -149,6 +237,13 @@
             <button id="btnAssinarContrato" class="btn-assinar-contrato" type="button">Assinar contrato</button>
             <div id="historicoContratoCliente" class="historico-contrato-cliente"></div>
           </aside>
+
+          <div class="mobile-historico-only">
+            <div class="subsecao historico-secao">
+              <h3>Histórico de status do ponto</h3>
+              <div class="mobile-historico-lista historico-lista"></div>
+            </div>
+          </div>
         </div>
 
         <section class="detalhe-ponto">
@@ -211,5 +306,64 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="acesso.js?v=1000"></script>
+
+  <script>
+    function sincronizarAreaClienteMobile() {
+      if (window.innerWidth > 768) return;
+
+      var estadoVazio = document.getElementById('estadoVazio');
+      var detalhePonto = document.getElementById('detalhePonto');
+
+      var mobileEstadoVazio = document.querySelector('.mobile-estado-vazio');
+      var mobileDetalheConteudo = document.querySelector('.mobile-detalhe-conteudo');
+
+      if (!estadoVazio || !detalhePonto || !mobileEstadoVazio || !mobileDetalheConteudo) return;
+
+      var detalheVisivel = window.getComputedStyle(detalhePonto).display !== 'none';
+      mobileEstadoVazio.style.display = detalheVisivel ? 'none' : 'block';
+      mobileDetalheConteudo.style.display = detalheVisivel ? 'flex' : 'none';
+      mobileDetalheConteudo.style.flexDirection = 'column';
+      mobileDetalheConteudo.style.gap = '16px';
+
+      var nomePonto = document.getElementById('nomePontoDetalhe');
+      var localPonto = document.getElementById('localPontoDetalhe');
+      var statusPonto = document.getElementById('statusPontoDetalhe');
+      var statusDesde = document.getElementById('statusDesdeDetalhe');
+      var tituloPreview = document.getElementById('tituloPreview');
+      var previewNome = document.getElementById('previewNome');
+      var previewMidia = document.getElementById('previewMidia');
+      var listaMateriais = document.getElementById('listaMateriais');
+      var historicoStatus = document.getElementById('historicoStatusPonto');
+
+      var mobileNomePonto = document.querySelector('.mobile-nome-ponto');
+      var mobileLocalPonto = document.querySelector('.mobile-local-ponto');
+      var mobileStatusPonto = document.querySelector('.mobile-status-ponto');
+      var mobileStatusDesde = document.querySelector('.mobile-status-desde');
+      var mobileTituloPreview = document.querySelector('.mobile-titulo-preview');
+      var mobilePreviewNome = document.querySelector('.mobile-preview-nome');
+      var mobilePreviewMidia = document.querySelector('.mobile-preview-midia');
+      var mobileListaMateriais = document.querySelector('.mobile-lista-materiais');
+      var mobileHistoricoLista = document.querySelector('.mobile-historico-lista');
+
+      if (nomePonto && mobileNomePonto) mobileNomePonto.innerHTML = nomePonto.innerHTML;
+      if (localPonto && mobileLocalPonto) mobileLocalPonto.innerHTML = localPonto.innerHTML;
+
+      if (statusPonto && mobileStatusPonto) {
+        mobileStatusPonto.innerHTML = statusPonto.innerHTML;
+        mobileStatusPonto.className = statusPonto.className;
+      }
+
+      if (statusDesde && mobileStatusDesde) mobileStatusDesde.innerHTML = statusDesde.innerHTML;
+      if (tituloPreview && mobileTituloPreview) mobileTituloPreview.innerHTML = tituloPreview.innerHTML;
+      if (previewNome && mobilePreviewNome) mobilePreviewNome.innerHTML = previewNome.innerHTML;
+      if (previewMidia && mobilePreviewMidia) mobilePreviewMidia.innerHTML = previewMidia.innerHTML;
+      if (listaMateriais && mobileListaMateriais) mobileListaMateriais.innerHTML = listaMateriais.innerHTML;
+      if (historicoStatus && mobileHistoricoLista) mobileHistoricoLista.innerHTML = historicoStatus.innerHTML;
+    }
+
+    window.addEventListener('load', sincronizarAreaClienteMobile);
+    window.addEventListener('resize', sincronizarAreaClienteMobile);
+    setInterval(sincronizarAreaClienteMobile, 700);
+  </script>
 </body>
 </html>
