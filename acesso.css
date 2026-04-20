@@ -2007,39 +2007,40 @@ body.loading-page {
   .contrato-card {
     order: 3 !important;
   }
-
 }
 
-@media (max-width: 760px) {
+  @media (max-width: 760px) {
 
-  /* ===== ORGANIZAÇÃO GERAL ===== */
+  /* ===== ORGANIZAÇÃO MOBILE FINAL ===== */
+
   .cliente-layout {
     display: flex !important;
     flex-direction: column !important;
   }
 
-  /* garante ordem base */
+  /* ordem correta */
   .coluna-esquerda {
     order: 1 !important;
   }
 
   .detalhe-ponto {
     order: 2 !important;
+    margin-bottom: 10px !important;
   }
 
-  /* ===== CONTRATO (vai aparecer via JS no final) ===== */
+  /* contrato no final */
   #contratoMobileFinal {
     order: 3 !important;
     margin-top: 28px !important;
   }
 
-  /* ===== HISTÓRICO (último de tudo) ===== */
+  /* histórico último */
   #historicoMobileFinal {
     order: 4 !important;
     margin-top: 20px !important;
   }
 
-
+  /* ajustes visuais */
   #historicoMobileFinal .historico-secao {
     margin-top: 0 !important;
   }
@@ -2048,8 +2049,6 @@ body.loading-page {
     border-radius: 22px !important;
   }
 
-  .detalhe-ponto {
-    margin-bottom: 10px !important;
-  }
+}
 
 }
