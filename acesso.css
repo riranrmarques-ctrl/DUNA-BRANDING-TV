@@ -4,29 +4,89 @@
   box-sizing: border-box;
 }
 
-:root {
-  --bg: #040816;
-  --panel: rgba(9, 17, 38, 0.82);
-  --line: rgba(255, 255, 255, 0.08);
-  --text: #f8fbff;
-  --muted: #9eaccd;
-  --green: #3ddc84;
-  --red: #ff6b6b;
-}
-
 body {
   font-family: "Manrope", sans-serif;
-  color: var(--text);
-  background: #040816;
+  background: #030712;
+  color: #fff;
+}
+
+/* ===== LOGIN ===== */
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #07132c, #020617);
+}
+
+.login-conteudo {
+  text-align: left;
+  width: 100%;
+  max-width: 420px;
   padding: 20px;
 }
 
-/* ===== LAYOUT ===== */
+.login-logo-fora {
+  width: 220px;
+  margin-bottom: 20px;
+}
+
+.login-card {
+  background: rgba(255,255,255,0.03);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.login-card h1 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.login-instrucao {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-bottom: 12px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-erro {
+  margin-top: 10px;
+  color: #ff6b6b;
+}
+
+.login-rodape {
+  margin-top: 15px;
+  font-size: 0.7rem;
+  color: #888;
+}
+
+/* ===== LAYOUT CLIENTE ===== */
 
 .cliente-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 20px;
+  padding: 20px;
 }
 
 .coluna-esquerda {
@@ -38,15 +98,15 @@ body {
 /* ===== CARDS ===== */
 
 .pontos-cliente,
-.detalhe-ponto,
-.contrato-card {
-  border: 1px solid var(--line);
-  border-radius: 20px;
+.contrato-card,
+.detalhe-ponto {
+  background: rgba(255,255,255,0.03);
+  border-radius: 16px;
   padding: 16px;
-  background: var(--panel);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* ===== LISTA PONTOS ===== */
+/* ===== PONTOS ===== */
 
 .lista-pontos {
   display: flex;
@@ -55,8 +115,7 @@ body {
 }
 
 .ponto-card {
-  display: grid;
-  grid-template-columns: 80px 1fr;
+  display: flex;
   gap: 10px;
   padding: 10px;
   border-radius: 12px;
@@ -65,10 +124,10 @@ body {
 }
 
 .ponto-card img {
-  width: 80px;
-  height: 60px;
+  width: 70px;
+  height: 55px;
+  border-radius: 8px;
   object-fit: cover;
-  border-radius: 10px;
 }
 
 /* ===== DETALHE ===== */
@@ -79,27 +138,11 @@ body {
   margin-bottom: 16px;
 }
 
-.status-grande {
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 0.7rem;
-}
-
-.status-grande.ativo {
-  background: rgba(61,220,132,0.2);
-}
-
-.status-grande.inativo {
-  background: rgba(255,107,107,0.2);
-}
-
-/* ===== PREVIEW ===== */
-
 .preview-midia {
   width: 100%;
   aspect-ratio: 16/9;
   background: #000;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -111,12 +154,6 @@ body {
   gap: 6px;
 }
 
-.historico-item {
-  padding: 8px;
-  border-radius: 10px;
-  background: rgba(255,255,255,0.04);
-}
-
 /* ===== CONTRATO ===== */
 
 .contrato-card {
@@ -126,32 +163,42 @@ body {
 
 .btn-assinar-contrato {
   width: 100%;
-  margin-top: 10px;
   padding: 12px;
-  border: none;
+  margin-top: 10px;
   border-radius: 12px;
-  font-weight: bold;
+  border: none;
   background: #111;
   color: #fff;
+  font-weight: bold;
 }
 
-/* ========================================= */
-/* 📱 MOBILE (AQUI ESTÁ O MAIS IMPORTANTE) */
-/* ========================================= */
+/* ===== LOADING ===== */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-box {
+  text-align: center;
+}
+
+/* ========================= */
+/* 📱 MOBILE */
+/* ========================= */
 
 @media (max-width: 760px) {
 
-  body {
-    padding: 12px;
-  }
-
-  /* layout vira vertical */
   .cliente-layout {
     display: flex;
     flex-direction: column;
   }
 
-  /* ordem correta */
   .coluna-esquerda {
     order: 1;
   }
@@ -168,26 +215,6 @@ body {
   #historicoMobileFinal {
     order: 4;
     margin-top: 20px;
-  }
-
-  /* ajustes mobile */
-
-  .ponto-card {
-    grid-template-columns: 70px 1fr;
-  }
-
-  .ponto-card img {
-    width: 70px;
-    height: 55px;
-  }
-
-  .detalhe-cabecalho {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .status-grande {
-    font-size: 0.65rem;
   }
 
 }
