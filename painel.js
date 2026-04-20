@@ -413,11 +413,13 @@ async function enviarMaterialDiretoPlaylist(file) {
     return;
   }
 
+  let path = "";
+
   try {
     setStatus("Enviando material...", "normal");
 
     const nomeLimpo = limparNomeArquivo(file.name);
-    const path = `playlists/${codigoSelecionado}/${Date.now()}-${nomeLimpo}`;
+    path = `playlists/${codigoSelecionado}/${Date.now()}-${nomeLimpo}`;
     const tipo = detectarTipoArquivoPlaylist(file);
 
     const { error: uploadError } = await supabaseClient.storage
@@ -427,7 +429,11 @@ async function enviarMaterialDiretoPlaylist(file) {
         upsert: false
       });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("ERRO UPLOAD STORAGE:", uploadError);
+      setStatus(`Erro no upload: ${uploadError.message || "falha no storage"}`, "erro");
+      return;
+    }
 
     const { data: publicData } = supabaseClient.storage
       .from(BUCKET)
@@ -435,48 +441,29 @@ async function enviarMaterialDiretoPlaylist(file) {
 
     const ordem = await obterProximaOrdemPlaylist();
 
-    const tentativasInsert = [
-      {
-        codigo: codigoSelecionado,
-        nome: file.name,
-        titulo_arquivo: file.name,
-        video_url: publicData.publicUrl,
-        storage_path: path,
-        tipo,
-        ordem
-      },
-      {
-        codigo: codigoSelecionado,
-        nome: file.name,
-        video_url: publicData.publicUrl,
-        storage_path: path,
-        ordem
-      },
-      {
-        codigo: codigoSelecionado,
-        nome: file.name,
-        video_url: publicData.publicUrl,
-        storage_path: path
-      }
-    ];
+    const payload = {
+      codigo: codigoSelecionado,
+      nome: file.name,
+      titulo_arquivo: file.name,
+      video_url: publicData.publicUrl,
+      storage_path: path,
+      tipo,
+      ordem
+    };
 
-    let insertError = null;
+    const { data, error: insertError } = await supabaseClient
+      .from(TABELA)
+      .insert([payload])
+      .select();
 
-    for (const payload of tentativasInsert) {
-      const { error } = await supabaseClient
-        .from(TABELA)
-        .insert(payload);
-
-      if (!error) {
-        insertError = null;
-        break;
-      }
-
-      insertError = error;
-      console.warn("Falha ao inserir playlist com payload:", payload, error);
+    if (insertError) {
+      console.error("ERRO INSERT PLAYLIST:", insertError);
+      await supabaseClient.storage.from(BUCKET).remove([path]);
+      setStatus(`Erro ao gravar playlist: ${insertError.message || "falha no banco"}`, "erro");
+      return;
     }
 
-    if (insertError) throw insertError;
+    console.log("ITEM INSERIDO:", data);
 
     limparCachePlaylist(codigoSelecionado);
     await carregarPlaylist();
@@ -484,7 +471,12 @@ async function enviarMaterialDiretoPlaylist(file) {
     setStatus("Material enviado para a playlist", "ok");
   } catch (error) {
     console.error("Erro ao enviar material:", error);
-    setStatus("Erro ao enviar material", "erro");
+
+    if (path) {
+      await supabaseClient.storage.from(BUCKET).remove([path]);
+    }
+
+    setStatus(`Erro ao enviar material: ${error.message || "falha desconhecida"}`, "erro");
   }
 }
 
