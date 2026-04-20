@@ -1845,3 +1845,70 @@ body.rolando .btn-sair:focus-visible {
 body.loading-page {
   overflow: hidden !important;
 }
+
+@media (max-width: 768px) {
+  .cliente-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .coluna-esquerda {
+    display: contents;
+  }
+
+  .detalhe-ponto {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-box {
+    order: 2;
+  }
+
+  .contrato-card {
+    order: 3;
+  }
+
+  .historico-secao {
+    order: 4;
+  }
+
+  .pontos-cliente {
+    order: 1;
+  }
+
+  .detalhe-cabecalho {
+    order: 0;
+  }
+
+  .subsecao:not(.historico-secao) {
+    order: 2;
+  }
+
+  .historico-secao {
+    margin-top: 0;
+  }
+
+  .playlist-historico-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .rodape-creditos {
+    margin-top: 24px;
+    padding: 14px 0 8px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .rodape-creditos strong {
+    color: #fff;
+    font-weight: 800;
+  }
+}
