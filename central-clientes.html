@@ -10,8 +10,9 @@
   <meta http-equiv="Expires" content="0">
 
   <script>
-    if (localStorage.getItem("painelLiberado") !== "1") {
-    window.location.replace("/painel.html");
+    if (sessionStorage.getItem("painelLiberado") !== "1") {
+      window.location.replace("/painel.html");
+    }
   </script>
 
   <style>
@@ -399,6 +400,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="central-clientes.js?v=1013"></script>
+  <script src="central-clientes.js?v=1"></script>
 </body>
 </html>
