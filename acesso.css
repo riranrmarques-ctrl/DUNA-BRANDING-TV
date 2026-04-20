@@ -1959,3 +1959,210 @@ body.loading-page {
     font-weight: 800;
   }
 }
+
+@media (max-width: 768px) {
+  .assinatura-shell,
+  .cliente-shell {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 14px 24px;
+    box-sizing: border-box;
+  }
+
+  .topo-cliente {
+    padding: 18px 0 10px;
+  }
+
+  .topo-conteudo {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .topo-esquerda,
+  .topo-acoes {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .logo-cliente {
+    width: 140px;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .topo-label,
+  .topo-mensagem,
+  .nome-cliente-topo {
+    font-size: 12px;
+  }
+
+  .btn-sair {
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .boas-vindas {
+    padding: 18px 0 8px;
+    text-align: center;
+  }
+
+  .boas-vindas h1 {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  .boas-vindas p,
+  #subtituloCliente {
+    font-size: 18px;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+
+  .cliente-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .coluna-esquerda {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .detalhe-ponto {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .pontos-cliente,
+  .contrato-card,
+  .preview-box,
+  .subsecao,
+  .detalhe-cabecalho,
+  .estado-vazio {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .detalhe-cabecalho {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .detalhe-cabecalho h2,
+  #nomePontoDetalhe {
+    font-size: 28px;
+    line-height: 1.05;
+    word-break: break-word;
+  }
+
+  .detalhe-cabecalho p,
+  #localPontoDetalhe {
+    font-size: 16px;
+    line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .status-area {
+    align-items: flex-start;
+  }
+
+  .preview-topo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .preview-topo h3,
+  .preview-nome {
+    font-size: 15px;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+
+  .preview-midia {
+    width: 100%;
+    min-height: 220px;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .preview-midia img,
+  .preview-midia video,
+  .preview-midia iframe {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .playlist-historico-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .tabela-materiais {
+    overflow-x: auto;
+  }
+
+  .linha-material-head,
+  #listaMateriais {
+    min-width: 640px;
+  }
+
+  .codigo-cliente,
+  .btn-assinar-contrato {
+    width: 100%;
+  }
+
+  .rodape-creditos {
+    margin-top: 22px;
+    padding: 10px 0 4px;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 768px) {
+  .cliente-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .coluna-esquerda {
+    display: contents;
+  }
+
+  .pontos-cliente {
+    order: 1;
+  }
+
+  .detalhe-ponto {
+    order: 2;
+  }
+
+  .contrato-card {
+    order: 3;
+  }
+
+  .historico-secao {
+    order: 4;
+  }
+}
+
