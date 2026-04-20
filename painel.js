@@ -5,33 +5,27 @@ const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
-const USUARIO_PAINEL = "branding";
-const SENHA_PAINEL = "euamo@helena";
-const ADMIN_TOKEN = "duna-admin-9f3a1b7c-k82m-p41x-8a2q-zz19a0b4e612";
-
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v7";
+const SENHA_PAINEL = "@Helena26";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v6";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v6_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v5_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 
 function limparCachesAntigos() {
   try {
-    const prefixesAntigos = [
-      "painel_pontos_cache_v1",
-      "painel_pontos_cache_v2",
-      "painel_pontos_cache_v3",
-      "painel_pontos_cache_v4",
-      "painel_pontos_cache_v5",
-      "painel_pontos_cache_v6",
-      "painel_playlist_cache_v1_",
-      "painel_playlist_cache_v2_",
-      "painel_playlist_cache_v3_",
-      "painel_playlist_cache_v4_",
-      "painel_playlist_cache_v5_"
-    ];
+    sessionStorage.removeItem("painel_pontos_cache_v1");
+    sessionStorage.removeItem("painel_pontos_cache_v2");
+    sessionStorage.removeItem("painel_pontos_cache_v3");
+    sessionStorage.removeItem("painel_pontos_cache_v4");
+    sessionStorage.removeItem("painel_pontos_cache_v5");
 
     Object.keys(sessionStorage).forEach((key) => {
-      if (prefixesAntigos.some((prefixo) => key.startsWith(prefixo))) {
+      if (
+        key.startsWith("painel_playlist_cache_v1_") ||
+        key.startsWith("painel_playlist_cache_v2_") ||
+        key.startsWith("painel_playlist_cache_v3_") ||
+        key.startsWith("painel_playlist_cache_v4_")
+      ) {
         sessionStorage.removeItem(key);
       }
     });
@@ -42,15 +36,10 @@ function limparCachesAntigos() {
 
 limparCachesAntigos();
 
-const supabaseClient = window.supabase
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-  : null;
-
-const loadingOverlay = document.getElementById("loadingOverlay");
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const loginBox = document.getElementById("loginBox");
 const conteudoPainel = document.getElementById("conteudoPainel");
-const usuarioInput = document.getElementById("usuarioInput");
 const senhaInput = document.getElementById("senhaInput");
 const btnLogin = document.getElementById("btnLogin");
 const loginErro = document.getElementById("loginErro");
@@ -91,33 +80,6 @@ let carregandoPlaylist = false;
 
 let posicaoImagemAtual = { x: 50, y: 50 };
 let arrastandoPreview = false;
-
-function mostrarLoading() {
-  document.body.classList.add("loading-page");
-
-  if (loadingOverlay) {
-    loadingOverlay.style.display = "flex";
-    requestAnimationFrame(() => {
-      loadingOverlay.classList.add("ativo");
-    });
-  }
-}
-
-function esconderLoading() {
-  setTimeout(() => {
-    document.body.classList.remove("loading-page");
-
-    if (loadingOverlay) {
-      loadingOverlay.classList.remove("ativo");
-
-      setTimeout(() => {
-        if (!loadingOverlay.classList.contains("ativo")) {
-          loadingOverlay.style.display = "none";
-        }
-      }, 280);
-    }
-  }, 250);
-}
 
 function setStatus(texto, tipo = "normal") {
   if (!statusEl) return;
@@ -263,15 +225,7 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
-function garantirSessaoAdmin() {
-  if (localStorage.getItem("painelLiberado") === "1" && !localStorage.getItem("painelToken")) {
-    localStorage.setItem("painelToken", ADMIN_TOKEN);
-  }
-}
-
 async function registrarEventoConexao(codigo, statusAtual) {
-  if (!supabaseClient) return;
-
   const evento = statusAtual === "ativo" ? "ativo" : "inativo";
 
   const { error } = await supabaseClient
@@ -387,8 +341,6 @@ function ativarLazyImages() {
 }
 
 async function uploadImagemPonto(file, codigo) {
-  if (!supabaseClient) throw new Error("Supabase indisponível.");
-
   const extensao = (file.name.split(".").pop() || "jpg").toLowerCase();
   const nomeArquivo = `${codigo}/${Date.now()}.${extensao}`;
 
@@ -436,8 +388,6 @@ function detectarTipoArquivoPlaylist(file) {
 }
 
 async function obterProximaOrdemPlaylist() {
-  if (!supabaseClient) return 1;
-
   const consultas = [
     { colunas: "ordem", ordenarPor: "ordem" },
     { colunas: "created_at", ordenarPor: "created_at" }
@@ -476,11 +426,6 @@ async function enviarMaterialDiretoPlaylist(file) {
 
   if (!file) {
     setStatus("Selecione um arquivo", "erro");
-    return;
-  }
-
-  if (!supabaseClient) {
-    setStatus("Supabase não carregou", "erro");
     return;
   }
 
@@ -607,7 +552,7 @@ function atualizarVisualDisponibilidade(disponivel) {
 }
 
 async function alternarDisponibilidadePonto() {
-  if (!codigoSelecionado || !supabaseClient) return;
+  if (!codigoSelecionado) return;
 
   const ponto = pontosMap[codigoSelecionado] || {};
   const disponivelAtual = pontoEstaDisponivel(ponto);
@@ -640,29 +585,19 @@ async function alternarDisponibilidadePonto() {
 }
 
 function validarLogin() {
-  const usuario = String(usuarioInput?.value || "").trim().toLowerCase();
-  const senha = String(senhaInput?.value || "").trim();
-
-  if (usuario !== USUARIO_PAINEL || senha !== SENHA_PAINEL) {
-    if (loginErro) loginErro.textContent = "Usuário ou senha inválidos";
+  if (!senhaInput || senhaInput.value.trim() !== SENHA_PAINEL) {
+    if (loginErro) loginErro.textContent = "Código inválido";
     return;
   }
 
-  mostrarLoading();
+  sessionStorage.setItem("painelLiberado", "1");
 
-  localStorage.setItem("painelLiberado", "1");
-  localStorage.setItem("painelToken", ADMIN_TOKEN);
-  
   if (loginErro) loginErro.textContent = "";
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
 
-  setTimeout(() => {
-    if (loginBox) loginBox.style.display = "none";
-    if (conteudoPainel) conteudoPainel.style.display = "block";
-
-    setStatus("Painel Ativo", "ok");
-    iniciarPainel();
-    esconderLoading();
-  }, 420);
+  setStatus("Painel Ativo", "ok");
+  iniciarPainel();
 }
 
 if (btnLogin) {
@@ -675,19 +610,12 @@ if (senhaInput) {
   });
 }
 
-if (usuarioInput) {
-  usuarioInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") validarLogin();
-  });
-}
-
 async function buscarPontosRemoto() {
-  if (!supabaseClient) throw new Error("Supabase não carregou.");
-
   const consultas = [
-    "codigo,nome,cidade,endereco,imagem_url,disponivel",
-    "codigo,nome,cidade,endereço,imagem_url,disponivel",
-    "codigo,nome,cidade,imagem_url,disponivel",
+    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel",
+    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping",
+    "codigo,nome,cidade,endereco,imagem_url",
+    "codigo,nome,cidade,endereco",
     "*"
   ];
 
@@ -842,16 +770,8 @@ function ativarBotoesCards() {
   });
 
   if (btnNovoPonto) {
-    btnNovoPonto.onclick = (event) => {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
-      localStorage.setItem("painelLiberado", "1");
-      localStorage.setItem("painelToken", ADMIN_TOKEN);
-
-      window.location.assign("central-clientes.html");
+    btnNovoPonto.onclick = () => {
+      setStatus("Novo ponto ainda sem função", "normal");
     };
   }
 }
@@ -1086,7 +1006,7 @@ if (previewImagem) {
 
 if (btnSalvarEdicao) {
   btnSalvarEdicao.onclick = async () => {
-    if (!codigoSelecionado || !supabaseClient) return;
+    if (!codigoSelecionado) return;
 
     const ponto = pontosMap[codigoSelecionado] || {};
     const nome = editNome ? editNome.value.trim() : "";
@@ -1306,9 +1226,13 @@ function renderizarPlaylistDados(lista, historicoConexao) {
   ativarExclusaoItens();
 }
 
+/*
+  FUNCAO REVISADA:
+  Corrige o erro 400 da tabela playlists.
+  Ela tenta buscar com todas as colunas novas.
+  Se alguma coluna nao existir, cai para uma consulta mais simples.
+*/
 async function buscarPlaylistRemota(codigo) {
-  if (!supabaseClient) throw new Error("Supabase não carregou.");
-
   const consultasPlaylist = [
     "id,nome,nome_cliente,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
     "id,nome,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
@@ -1423,7 +1347,7 @@ function ativarRenomearItens() {
       const id = btn.dataset.id;
       const nomeAtual = btn.dataset.nome || "";
 
-      if (!id || !supabaseClient) return;
+      if (!id) return;
 
       const novoNome = window.prompt("Digite o novo nome do arquivo:", nomeAtual);
 
@@ -1471,13 +1395,13 @@ function ativarRenomearItens() {
   });
 }
 
-function ativarExclusaoItens() {
+async function ativarExclusaoItens() {
   document.querySelectorAll(".btn-excluir-item").forEach((btn) => {
     btn.onclick = async (event) => {
       event.stopPropagation();
 
       const id = btn.dataset.id;
-      if (!id || !supabaseClient) return;
+      if (!id) return;
 
       const confirmar = window.confirm("Deseja excluir este item da playlist?");
       if (!confirmar) return;
@@ -1543,11 +1467,6 @@ function ativarDrag(lista) {
       const target = Number(item.dataset.index);
 
       if (Number.isNaN(dragIndex) || Number.isNaN(target) || dragIndex === target) {
-        item.classList.remove("drop-animating");
-        return;
-      }
-
-      if (!supabaseClient) {
         item.classList.remove("drop-animating");
         return;
       }
@@ -1627,11 +1546,6 @@ async function iniciarPainel() {
   ativarLazyImages();
   ativarBotoesCards();
 
-  if (!supabaseClient) {
-    setStatus("Supabase não carregou", "erro");
-    return;
-  }
-
   const cache = lerCachePontos();
 
   if (cache?.pontos?.length) {
@@ -1650,24 +1564,9 @@ async function iniciarPainel() {
   await carregarPontosRemoto();
 }
 
-garantirSessaoAdmin();
-
-if (localStorage.getItem("painelLiberado") === "1") {
-  mostrarLoading();
-
-  (async () => {
-    try {
-      if (loginBox) loginBox.style.display = "none";
-      if (conteudoPainel) conteudoPainel.style.display = "block";
-
-      setStatus("Carregando painel...", "normal");
-      await iniciarPainel();
-      setStatus("Painel Ativo", "ok");
-    } catch (error) {
-      console.error(error);
-      setStatus("Erro ao carregar painel", "erro");
-    } finally {
-      esconderLoading();
-    }
-  })();
+if (sessionStorage.getItem("painelLiberado") === "1") {
+  if (loginBox) loginBox.style.display = "none";
+  if (conteudoPainel) conteudoPainel.style.display = "block";
+  setStatus("Painel Ativo", "ok");
+  iniciarPainel();
 }
