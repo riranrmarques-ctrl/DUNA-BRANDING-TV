@@ -1121,23 +1121,22 @@ body.loading-page {
 
 @media (max-width: 768px) {
   .login-screen {
-    min-height: calc(100vh - 48px);
+    min-height: 100vh;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    padding: 34px 16px 80px;
+    padding: 20px 16px;
   }
 
   .login-conteudo {
     width: 100%;
     max-width: 420px;
-    min-height: calc(100vh - 116px);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    transform: none;
+    justify-content: center;
   }
+}
 
   .login-logo-fora {
     width: 170px;
