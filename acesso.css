@@ -1929,3 +1929,20 @@ body.loading-page {
   margin-top: 24px;
 }
 
+.playlist-historico-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 20px;
+}
+
+.subsecao-playlist,
+.historico-secao {
+  width: 100%;
+}
+
+.historico-secao {
+  margin-top: 0;
+}
+
