@@ -2900,3 +2900,38 @@ body.loading-page {
   }
 
 }
+
+@media (max-width: 768px) {
+
+  .preview-topo::before {
+    content: "EXIBIÇÃO EM TEMPO REAL |" !important;
+    font-size: 0.56rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    color: rgba(255, 255, 255, 0.32) !important;
+    margin-right: 4px !important;
+    white-space: nowrap !important;
+  }
+
+  .preview-nome {
+    max-width: 50vw !important;
+    font-size: 0.60rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    color: rgba(158, 172, 205, 0.70) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    text-align: right !important;
+  }
+
+  .detalhe-cabecalho p {
+    font-size: 0.82rem !important;
+    line-height: 1.2 !important;
+    margin-top: 4px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+}
