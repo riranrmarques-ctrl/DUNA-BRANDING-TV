@@ -24,7 +24,7 @@ const botoesFiltro = document.querySelectorAll("[data-filtro]");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
 function verificarAcesso() {
-  const liberado = sessionStorage.getItem("painelLiberado");
+  const liberado = localtorage.getItem("painelLiberado");
 
   if (liberado !== "1") {
     window.location.href = "/painel.html";
@@ -90,7 +90,7 @@ function clienteEhSupervisor(cliente) {
 
 function lerCacheClientes() {
   try {
-    const cache = JSON.parse(sessionStorage.getItem(CACHE_CLIENTES_KEY) || "null");
+    const cache = JSON.parse(localStorage.getItem(CACHE_CLIENTES_KEY) || "null");
     if (!cache || !Array.isArray(cache.clientes)) return null;
 
     return {
@@ -104,7 +104,7 @@ function lerCacheClientes() {
 
 function salvarCacheClientes(clientes) {
   try {
-    sessionStorage.setItem(CACHE_CLIENTES_KEY, JSON.stringify({
+    localStorage.setItem(CACHE_CLIENTES_KEY, JSON.stringify({
       criadoEm: Date.now(),
       clientes
     }));
@@ -548,7 +548,7 @@ async function criarNovoCliente() {
 
     if (error) throw error;
 
-    sessionStorage.removeItem(CACHE_CLIENTES_KEY);
+    localStorage.removeItem(CACHE_CLIENTES_KEY);
 
     mostrarMensagem(`Cliente ${codigoLivre} criado com sucesso.`, "#7CFC9A");
     await carregarClientes({ forcarAtualizacao: true });
