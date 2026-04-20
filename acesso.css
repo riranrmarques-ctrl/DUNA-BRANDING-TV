@@ -1962,4 +1962,24 @@ body.loading-page {
     order: 999 !important;
   }
 
+@media (max-width: 760px) {
+
+  .cliente-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* 🔥 ORDEM CORRETA */
+  .coluna-esquerda {
+    order: 1 !important;
+  }
+
+  .detalhe-ponto {
+    order: 2 !important;
+  }
+
+  .contrato-card {
+    order: 999 !important;
+  }
+
 }
