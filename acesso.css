@@ -1941,5 +1941,25 @@ body.loading-page {
     width: 70px !important;
     height: 55px !important;
   }
+}
+
+@media (max-width: 760px) {
+
+  .cliente-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .coluna-esquerda {
+    order: 2 !important;
+  }
+
+  .detalhe-ponto {
+    order: 1 !important;
+  }
+
+  .contrato-card {
+    order: 999 !important;
+  }
 
 }
