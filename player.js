@@ -20,6 +20,10 @@ let playlistAtual = [];
 let indiceAtual = 0;
 let timeoutMidia = null;
 let cacheMidia = new Map();
+let intervaloPing = null;
+let intervaloPlaylist = null;
+let intervaloClima = null;
+let desligamentoRegistrado = false;
 
 function renderizarNoPlayer(html) {
   const playerMain = document.getElementById("playerMain");
@@ -104,7 +108,7 @@ function extrairUrlDoTexto(texto) {
 
   const linhas = conteudo
     .split(/\r?\n/)
-    .map(linha => linha.trim())
+    .map((linha) => linha.trim())
     .filter(Boolean);
 
   for (const linha of linhas) {
@@ -134,7 +138,7 @@ function itemEstaAtivo(item) {
   return fim >= new Date();
 }
 
-async function registrarPing() {
+async function registrarEventoConexao(evento = "ping") {
   if (!codigoAtual || !supabaseClient) return;
 
   try {
@@ -142,16 +146,40 @@ async function registrarPing() {
       .from(TABELA_HISTORICO_CONEXAO)
       .insert({
         codigo: codigoAtual,
-        evento: "conectou",
+        evento,
         data_hora: new Date().toISOString()
       });
 
     if (error) {
-      console.warn("Erro ao registrar conexao:", error.message || error);
+      console.warn(`Erro ao registrar evento ${evento}:`, error.message || error);
     }
   } catch (error) {
-    console.warn("Erro ao registrar conexao:", error);
+    console.warn(`Erro ao registrar evento ${evento}:`, error);
   }
+}
+
+function registrarDesconexaoKeepAlive() {
+  if (!codigoAtual || desligamentoRegistrado) return;
+
+  desligamentoRegistrado = true;
+
+  const payload = JSON.stringify({
+    codigo: codigoAtual,
+    evento: "desconectou",
+    data_hora: new Date().toISOString()
+  });
+
+  fetch(`${SUPABASE_URL}/rest/v1/${TABELA_HISTORICO_CONEXAO}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      Prefer: "return=minimal"
+    },
+    body: payload,
+    keepalive: true
+  }).catch(() => {});
 }
 
 async function resolverItem(item) {
@@ -186,7 +214,7 @@ async function resolverItem(item) {
 }
 
 function assinaturaPlaylist(lista) {
-  return lista.map(item => `${item.id}:${item.url}:${item.tipo}`).join("|");
+  return lista.map((item) => `${item.id}:${item.url}:${item.tipo}`).join("|");
 }
 
 async function buscarPlaylist({ silencioso = false } = {}) {
@@ -212,7 +240,7 @@ async function buscarPlaylist({ silencioso = false } = {}) {
 
   const lista = (data || [])
     .filter(itemEstaAtivo)
-    .filter(item => item.video_url || item.arquivo_url || item.url);
+    .filter((item) => item.video_url || item.arquivo_url || item.url);
 
   if (!lista.length) {
     if (!silencioso) {
@@ -224,7 +252,7 @@ async function buscarPlaylist({ silencioso = false } = {}) {
   }
 
   const novaPlaylist = await Promise.all(lista.map(resolverItem));
-  const limpa = novaPlaylist.filter(item => item.url);
+  const limpa = novaPlaylist.filter((item) => item.url);
 
   if (!limpa.length) {
     if (!silencioso) {
@@ -253,7 +281,7 @@ async function buscarPlaylist({ silencioso = false } = {}) {
 }
 
 function limparCacheObsoleto() {
-  const urlsAtuais = new Set(playlistAtual.map(item => item.url));
+  const urlsAtuais = new Set(playlistAtual.map((item) => item.url));
 
   for (const url of cacheMidia.keys()) {
     if (!urlsAtuais.has(url)) {
@@ -469,6 +497,22 @@ async function atualizarClima() {
   }
 }
 
+function iniciarMonitoramentoConexao() {
+  registrarEventoConexao("conectou");
+  intervaloPing = setInterval(() => {
+    registrarEventoConexao("ping");
+  }, INTERVALO_PING);
+
+  window.addEventListener("beforeunload", registrarDesconexaoKeepAlive);
+  window.addEventListener("pagehide", registrarDesconexaoKeepAlive);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      registrarDesconexaoKeepAlive();
+    }
+  });
+}
+
 async function iniciar() {
   try {
     mostrarMensagem("Iniciando player...");
@@ -485,10 +529,10 @@ async function iniciar() {
 
     codigoAtual = String(codigoAtual).trim().toUpperCase();
 
-    await atualizarClima();
-    setInterval(atualizarClima, 30 * 60 * 1000);
+    iniciarMonitoramentoConexao();
 
-    await registrarPing();
+    await atualizarClima();
+    intervaloClima = setInterval(atualizarClima, 30 * 60 * 1000);
 
     const encontrou = await buscarPlaylist();
 
@@ -497,9 +541,7 @@ async function iniciar() {
       tocarMidia();
     }
 
-    setInterval(registrarPing, INTERVALO_PING);
-
-    setInterval(async () => {
+    intervaloPlaylist = setInterval(async () => {
       const tinhaConteudo = playlistAtual.length > 0;
       const encontrouAtualizacao = await buscarPlaylist({ silencioso: true });
 
