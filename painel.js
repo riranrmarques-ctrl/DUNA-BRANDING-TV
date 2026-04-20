@@ -14,14 +14,14 @@ const LIMITE_STATUS_ATIVO_MS = 60 * 1000;
 
 function limparCachesAntigos() {
   try {
-    sessionStorage.removeItem("painel_pontos_cache_v1");
-    sessionStorage.removeItem("painel_pontos_cache_v2");
-    sessionStorage.removeItem("painel_pontos_cache_v3");
-    sessionStorage.removeItem("painel_pontos_cache_v4");
-    sessionStorage.removeItem("painel_pontos_cache_v5");
-    sessionStorage.removeItem("painel_pontos_cache_v6");
+    localStorage.removeItem("painel_pontos_cache_v1");
+    localStorage.removeItem("painel_pontos_cache_v2");
+    localStorage.removeItem("painel_pontos_cache_v3");
+    localStorage.removeItem("painel_pontos_cache_v4");
+    localStorage.removeItem("painel_pontos_cache_v5");
+    localStorage.removeItem("painel_pontos_cache_v6");
 
-    Object.keys(sessionStorage).forEach((key) => {
+    Object.keys(localStorage).forEach((key) => {
       if (
         key.startsWith("painel_playlist_cache_v1_") ||
         key.startsWith("painel_playlist_cache_v2_") ||
@@ -29,7 +29,7 @@ function limparCachesAntigos() {
         key.startsWith("painel_playlist_cache_v4_") ||
         key.startsWith("painel_playlist_cache_v5_")
       ) {
-        sessionStorage.removeItem(key);
+        localStorage.removeItem(key);
       }
     });
   } catch {
@@ -235,7 +235,7 @@ function obterTextoEventoConexao(evento) {
 
 function lerCachePontos() {
   try {
-    const bruto = sessionStorage.getItem(CACHE_PONTOS_KEY);
+    const bruto = localStorage.getItem(CACHE_PONTOS_KEY);
     if (!bruto) return null;
 
     const cache = JSON.parse(bruto);
@@ -255,7 +255,7 @@ function lerCachePontos() {
 
 function salvarCachePontos(pontos) {
   try {
-    sessionStorage.setItem(CACHE_PONTOS_KEY, JSON.stringify({
+    localStorage.setItem(CACHE_PONTOS_KEY, JSON.stringify({
       criadoEm: Date.now(),
       pontos
     }));
@@ -270,7 +270,7 @@ function obterChaveCachePlaylist(codigo) {
 
 function lerCachePlaylist(codigo) {
   try {
-    const bruto = sessionStorage.getItem(obterChaveCachePlaylist(codigo));
+    const bruto = localStorage.getItem(obterChaveCachePlaylist(codigo));
     if (!bruto) return null;
 
     const cache = JSON.parse(bruto);
@@ -288,7 +288,7 @@ function lerCachePlaylist(codigo) {
 
 function salvarCachePlaylist(codigo, playlist, historico) {
   try {
-    sessionStorage.setItem(obterChaveCachePlaylist(codigo), JSON.stringify({
+    localStorage.setItem(obterChaveCachePlaylist(codigo), JSON.stringify({
       criadoEm: Date.now(),
       playlist,
       historico
@@ -300,7 +300,7 @@ function salvarCachePlaylist(codigo, playlist, historico) {
 
 function limparCachePlaylist(codigo) {
   try {
-    sessionStorage.removeItem(obterChaveCachePlaylist(codigo));
+    localStorage.removeItem(obterChaveCachePlaylist(codigo));
   } catch {
     return;
   }
@@ -566,7 +566,7 @@ function validarLogin() {
     return;
   }
 
-  sessionStorage.setItem("painelLiberado", "1");
+  localStorage.setItem("painelLiberado", "1");
 
   if (loginErro) loginErro.textContent = "";
   if (loginBox) loginBox.style.display = "none";
@@ -1523,7 +1523,7 @@ async function iniciarPainel() {
   await carregarPontosRemoto();
 }
 
-if (sessionStorage.getItem("painelLiberado") === "1") {
+if (localStorage.getItem("painelLiberado") === "1") {
   if (loginBox) loginBox.style.display = "none";
   if (conteudoPainel) conteudoPainel.style.display = "block";
   setStatus("Painel Ativo", "ok");
