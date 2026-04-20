@@ -75,11 +75,28 @@
       color: #fff;
     }
 
-    .botao-voltar { background: #2a2f3a; }
-    .botao-atualizar { background: #f59e0b; color: #111827; font-weight: bold; }
-    .botao-novo { background: #2d8cff; font-weight: bold; }
+    .botao:hover {
+      opacity: 0.92;
+    }
 
-    .barra { margin-bottom: 8px; }
+    .botao-voltar {
+      background: #2a2f3a;
+    }
+
+    .botao-atualizar {
+      background: #f59e0b;
+      color: #111827;
+      font-weight: bold;
+    }
+
+    .botao-novo {
+      background: #2d8cff;
+      font-weight: bold;
+    }
+
+    .barra {
+      margin-bottom: 8px;
+    }
 
     .campo-busca input {
       width: 100%;
@@ -92,6 +109,10 @@
       font-size: 1rem;
     }
 
+    .campo-busca input::placeholder {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
     .filtros-organizacao {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -99,49 +120,51 @@
       margin: 8px 0 16px;
     }
 
-    /* 🔥 AQUI FOI AJUSTADO */
-
     .filtro-btn {
-      height: 32px;
-      border-radius: 10px;
-      padding: 0 12px;
-
-      background: #60a5fa;
-      color: #0b1220;
-
-      font-size: 0.78rem;
+      height: 28px;
+      border: 1px solid #2a3040;
+      border-radius: 8px;
+      padding: 0 10px;
+      background: #121722;
+      color: #aeb8cc;
+      font-size: 0.72rem;
       font-weight: 700;
-
-      border: none;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: 0.18s ease;
       text-align: center;
     }
 
     .filtro-btn:hover {
-      filter: brightness(1.05);
+      background: #182033;
+      color: #ffffff;
+      border-color: #3a4358;
     }
 
     .filtro-btn.ativo {
+      border-color: #2d8cff;
       background: #2d8cff;
       color: #ffffff;
-      box-shadow: 0 6px 18px rgba(45, 140, 255, 0.35);
-      transform: translateY(-1px);
+      box-shadow: 0 5px 16px rgba(45, 140, 255, 0.18);
     }
-
-    /* resto intacto */
 
     .mensagem {
       min-height: 24px;
       color: #9fd2ff;
       font-size: 0.95rem;
       margin-bottom: 14px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .mensagem.saindo {
+      opacity: 0;
+      transform: translateY(-6px);
     }
 
     .lista-clientes {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
+      align-items: stretch;
     }
 
     .cliente-card {
@@ -149,13 +172,203 @@
       border: 2px solid #262b36;
       border-radius: 16px;
       padding: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+      transition:
+        transform 0.22s cubic-bezier(.2,.9,.2,1),
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease,
+        filter 0.2s ease;
       cursor: pointer;
+      will-change: transform;
     }
 
-    .cliente-card.ativo { background: #14532d; }
-    .cliente-card.nao-ativo { background: #4b1f24; }
-    .cliente-card.supervisor { background: #5a3a00; }
+    .cliente-card:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+    }
 
+    .cliente-card.ativo {
+      background: #14532d;
+      border-color: #22c55e;
+      box-shadow: 0 10px 26px rgba(20, 83, 45, 0.28);
+    }
+
+    .cliente-card.nao-ativo {
+      background: #4b1f24;
+      border-color: #d35b6a;
+      box-shadow: 0 10px 26px rgba(75, 31, 36, 0.28);
+    }
+
+    .cliente-card.supervisor {
+      background: #5a3a00;
+      border-color: #f59e0b;
+      box-shadow: 0 10px 26px rgba(245, 158, 11, 0.20);
+    }
+
+    .cliente-card.selecionado,
+    .cliente-card.ativo.selecionado,
+    .cliente-card.nao-ativo.selecionado,
+    .cliente-card.supervisor.selecionado,
+    .cliente-card.alvo-drop {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow:
+        0 18px 38px rgba(0, 0, 0, 0.32),
+        0 0 0 2px rgba(255, 255, 255, 0.08);
+      filter: brightness(1.12);
+    }
+
+    .cliente-card.personalizado {
+      cursor: grab;
+    }
+
+    .cliente-card.personalizado:active {
+      cursor: grabbing;
+    }
+
+    .cliente-card.arrastando {
+      opacity: 0.45;
+      transform: scale(0.96) rotate(-1deg);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .cliente-card.arrastando:hover,
+    .cliente-card.alvo-drop:hover {
+      transform: translateY(-6px) scale(1.02);
+    }
+
+    .cliente-topo {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .cliente-codigo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #10131a;
+      border: 1px solid #2a3040;
+      color: #9fd2ff;
+      cursor: pointer;
+      flex: 0 0 auto;
+    }
+
+    .cliente-selos {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .cliente-status,
+    .cliente-tipo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .cliente-status.ativo {
+      color: #d8ffe3;
+      background: #1f7a3b;
+      border: 1px solid #5dd17c;
+    }
+
+    .cliente-status.nao-ativo {
+      color: #ffe2e5;
+      background: #8e3a46;
+      border: 1px solid #d97786;
+    }
+
+    .cliente-tipo.supervisor {
+      color: #fff2c4;
+      background: #9a6807;
+      border: 1px solid #fbbf24;
+    }
+
+    .cliente-card.supervisor .cliente-codigo {
+      background: rgba(0, 0, 0, 0.22);
+      border-color: rgba(255, 214, 102, 0.45);
+      color: #ffd666;
+    }
+
+    .cliente-card.supervisor h3,
+    .cliente-card.supervisor p {
+      color: #fff6dc;
+    }
+
+    .cliente-card.ativo h3,
+    .cliente-card.ativo p,
+    .cliente-card.nao-ativo h3,
+    .cliente-card.nao-ativo p {
+      color: #f3f4f6;
+    }
+
+    .cliente-card h3 {
+      font-size: 1.08rem;
+      margin-bottom: 4px;
+    }
+
+    .cliente-card p {
+      color: #c6cedd;
+      font-size: 0.93rem;
+      line-height: 1.5;
+      margin-bottom: 5px;
+    }
+
+    .vazio {
+      background: #171a21;
+      border: 1px solid #262b36;
+      border-radius: 16px;
+      padding: 24px;
+      color: #c6cedd;
+      text-align: center;
+    }
+
+    @media (max-width: 800px) {
+      .filtros-organizacao {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 16px;
+      }
+
+      .topo-esquerda h1 {
+        font-size: 2rem;
+      }
+
+      .topo-esquerda p {
+        font-size: 1rem;
+      }
+
+      .acoes-topo {
+        width: 100%;
+      }
+
+      .botao {
+        flex: 1;
+        min-width: 140px;
+      }
+
+      .cliente-card {
+        padding: 16px;
+      }
+    }
   </style>
 </head>
 
@@ -168,9 +381,9 @@
       </div>
 
       <div class="acoes-topo">
-        <button id="botaoVoltarPainel" class="botao botao-voltar">Voltar ao Painel</button>
-        <button id="botaoNovoCliente" class="botao botao-novo">+ Novo cliente</button>
-        <button id="botaoAtualizar" class="botao botao-atualizar">Atualizar</button>
+        <button id="botaoVoltarPainel" class="botao botao-voltar" type="button">Voltar ao Painel</button>
+        <button id="botaoNovoCliente" class="botao botao-novo" type="button">+ Novo cliente</button>
+        <button id="botaoAtualizar" class="botao botao-atualizar" type="button">Atualizar</button>
       </div>
     </div>
 
@@ -180,14 +393,14 @@
       </div>
     </div>
 
-    <div class="filtros-organizacao">
-      <button class="filtro-btn" data-filtro="status">Status</button>
-      <button class="filtro-btn" data-filtro="nome">Nome</button>
-      <button class="filtro-btn" data-filtro="data">Data</button>
-      <button class="filtro-btn" data-filtro="personalizado">Personalizado</button>
+    <div class="filtros-organizacao" aria-label="Organização dos clientes">
+      <button class="filtro-btn" type="button" data-filtro="status">Status</button>
+      <button class="filtro-btn" type="button" data-filtro="nome">Nome</button>
+      <button class="filtro-btn" type="button" data-filtro="data">Data</button>
+      <button class="filtro-btn" type="button" data-filtro="personalizado">Personalizado</button>
     </div>
 
-    <p id="mensagem">Carregando clientes...</p>
+    <p id="mensagem" class="mensagem">Carregando clientes...</p>
 
     <div id="listaClientes" class="lista-clientes"></div>
   </div>
