@@ -2529,3 +2529,41 @@ body.loading-page {
     line-height: 1.4;
   }
 }
+
+@media (max-width: 768px) {
+  .cliente-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .coluna-esquerda {
+    display: contents !important;
+  }
+
+  .pontos-cliente {
+    order: 1 !important;
+  }
+
+  .detalhe-ponto {
+    order: 2 !important;
+  }
+
+  .contrato-card {
+    order: 3 !important;
+  }
+
+  .historico-bloco-separado {
+    order: 4 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .detalhe-ponto,
+  .pontos-cliente,
+  .contrato-card,
+  .historico-bloco-separado {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
