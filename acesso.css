@@ -1983,3 +1983,30 @@ body.loading-page {
   }
 
 }
+
+@media (max-width: 760px) {
+
+  .cliente-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Ordem geral */
+  .coluna-esquerda {
+    order: 1 !important;
+  }
+
+  .detalhe-ponto {
+    order: 2 !important;
+  }
+
+  /* 🔥 SEPARAR pontos do contrato */
+  .pontos-cliente {
+    order: 1 !important;
+  }
+
+  .contrato-card {
+    order: 3 !important;
+  }
+
+}
