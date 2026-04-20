@@ -2000,13 +2000,56 @@ body.loading-page {
     order: 2 !important;
   }
 
-  /* 🔥 SEPARAR pontos do contrato */
   .pontos-cliente {
     order: 1 !important;
   }
 
   .contrato-card {
     order: 3 !important;
+  }
+
+}
+
+@media (max-width: 760px) {
+
+  /* ===== ORGANIZAÇÃO GERAL ===== */
+  .cliente-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* garante ordem base */
+  .coluna-esquerda {
+    order: 1 !important;
+  }
+
+  .detalhe-ponto {
+    order: 2 !important;
+  }
+
+  /* ===== CONTRATO (vai aparecer via JS no final) ===== */
+  #contratoMobileFinal {
+    order: 3 !important;
+    margin-top: 28px !important;
+  }
+
+  /* ===== HISTÓRICO (último de tudo) ===== */
+  #historicoMobileFinal {
+    order: 4 !important;
+    margin-top: 20px !important;
+  }
+
+
+  #historicoMobileFinal .historico-secao {
+    margin-top: 0 !important;
+  }
+
+  #contratoMobileFinal .contrato-card {
+    border-radius: 22px !important;
+  }
+
+  .detalhe-ponto {
+    margin-bottom: 10px !important;
   }
 
 }
