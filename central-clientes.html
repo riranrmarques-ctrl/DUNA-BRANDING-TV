@@ -45,18 +45,16 @@
     }
 
     .topo-esquerda h1 {
-      font-size: clamp(2.45rem, 4.2vw, 3.45rem);
+      font-size: 42px;
       line-height: 1;
-      letter-spacing: -0.045em;
       margin-bottom: 6px;
       font-weight: 800;
     }
 
     .topo-esquerda p {
       color: #bfc7d5;
-      font-size: clamp(1.2rem, 1.9vw, 1.65rem);
+      font-size: 16px;
       line-height: 1.2;
-      margin-top: 0;
     }
 
     .acoes-topo {
@@ -79,24 +77,11 @@
       opacity: 0.92;
     }
 
-    .botao-voltar {
-      background: #2a2f3a;
-    }
+    .botao-voltar { background: #2a2f3a; }
+    .botao-atualizar { background: #f59e0b; color: #111827; font-weight: bold; }
+    .botao-novo { background: #2d8cff; font-weight: bold; }
 
-    .botao-atualizar {
-      background: #f59e0b;
-      color: #111827;
-      font-weight: bold;
-    }
-
-    .botao-novo {
-      background: #2d8cff;
-      font-weight: bold;
-    }
-
-    .barra {
-      margin-bottom: 8px;
-    }
+    .barra { margin-bottom: 8px; }
 
     .campo-busca input {
       width: 100%;
@@ -107,10 +92,6 @@
       color: #fff;
       outline: none;
       font-size: 1rem;
-    }
-
-    .campo-busca input::placeholder {
-      color: rgba(255, 255, 255, 0.45);
     }
 
     .filtros-organizacao {
@@ -124,244 +105,86 @@
       height: 28px;
       border: 1px solid #2a3040;
       border-radius: 8px;
-      padding: 0 10px;
       background: #121722;
       color: #aeb8cc;
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
-      transition: 0.18s ease;
-      text-align: center;
-    }
-
-    .filtro-btn:hover {
-      background: #182033;
-      color: #ffffff;
-      border-color: #3a4358;
-    }
-
-    .filtro-btn.ativo {
-      border-color: #2d8cff;
-      background: #2d8cff;
-      color: #ffffff;
-      box-shadow: 0 5px 16px rgba(45, 140, 255, 0.18);
-    }
-
-    .mensagem {
-      min-height: 24px;
-      color: #9fd2ff;
-      font-size: 0.95rem;
-      margin-bottom: 14px;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .mensagem.saindo {
-      opacity: 0;
-      transform: translateY(-6px);
     }
 
     .lista-clientes {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 16px;
-      align-items: stretch;
     }
 
     .cliente-card {
-      background: #171a21;
-      border: 1px solid #262b36;
       border-radius: 16px;
       padding: 16px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-      transition:
-        transform 0.22s cubic-bezier(.2,.9,.2,1),
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        opacity 0.2s ease;
+      border: 2px solid transparent;
+      transition: all 0.25s ease;
       cursor: pointer;
-      will-change: transform;
     }
 
-    .cliente-card:hover {
-      border-color: #2d8cff;
-      transform: translateY(-2px);
-    }
+    /* STATUS BASE */
 
     .cliente-card.ativo {
-      background: #132218;
-      border-color: #2f7d46;
+      background: #14532d;
+      border-color: #22c55e;
     }
 
     .cliente-card.nao-ativo {
-      background: #261719;
-      border-color: #7c3434;
+      background: #5a1a1a;
+      border-color: #ef4444;
     }
 
     .cliente-card.supervisor {
-      background: #241a05;
-      border-color: rgba(245, 158, 11, 0.72);
-      box-shadow:
-        0 0 0 1px rgba(245, 158, 11, 0.18),
-        0 14px 34px rgba(245, 158, 11, 0.08);
-    }
-
-    .cliente-card.supervisor .cliente-codigo {
-      background: rgba(245, 158, 11, 0.18);
-      border-color: rgba(245, 158, 11, 0.42);
-      color: #fbbf24;
-    }
-
-    .cliente-card.supervisor h3,
-    .cliente-card.supervisor p {
-      color: #fff3cf;
-    }
-
-    .cliente-card.supervisor .cliente-tipo.supervisor {
-      background: rgba(245, 158, 11, 0.22);
-      border: 1px solid rgba(245, 158, 11, 0.38);
-      color: #fbbf24;
-    }
-
-    .cliente-card.personalizado {
-      cursor: grab;
-    }
-
-    .cliente-card.personalizado:active {
-      cursor: grabbing;
-    }
-
-    .cliente-card.arrastando {
-      opacity: 0.45;
-      transform: scale(0.96) rotate(-1deg);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-    }
-
-    .cliente-card.alvo-drop {
-      transform: translateY(-8px) scale(1.035);
+      background: #5a3a00;
       border-color: #f59e0b;
-      box-shadow:
-        0 16px 34px rgba(245, 158, 11, 0.20),
-        0 0 0 2px rgba(245, 158, 11, 0.22);
     }
 
-    .cliente-card.arrastando:hover,
-    .cliente-card.alvo-drop:hover {
-      transform: translateY(-8px) scale(1.035);
+    /* SELECIONADO */
+
+    .cliente-card.selecionado {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      border-color: #ffffff;
+      filter: brightness(1.2);
     }
 
     .cliente-topo {
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
 
     .cliente-codigo {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       font-size: 0.8rem;
       padding: 5px 9px;
       border-radius: 999px;
-      background: #10131a;
-      border: 1px solid #2a3040;
-      color: #9fd2ff;
-      cursor: pointer;
-      flex: 0 0 auto;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
     }
 
-    .cliente-selos {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .cliente-status,
-    .cliente-tipo {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 28px;
+    .cliente-status {
       padding: 5px 10px;
       border-radius: 999px;
       font-size: 0.76rem;
       font-weight: 800;
-      white-space: nowrap;
     }
 
-    .cliente-status.ativo {
-      color: #7CFC9A;
-      background: #1d4f2b;
-      border: 1px solid #3d9147;
-    }
-
-    .cliente-status.nao-ativo {
-      color: #ffb0b0;
-      background: #633030;
-      border: 1px solid #9a4848;
-    }
-
-    .cliente-tipo.supervisor {
-      color: #fbbf24;
-      background: rgba(245, 158, 11, 0.18);
-      border: 1px solid rgba(245, 158, 11, 0.42);
-    }
+    .cliente-status.ativo { background: #22c55e; color: #022c22; }
+    .cliente-status.nao-ativo { background: #ef4444; }
+    .cliente-status.supervisor { background: #f59e0b; color: #000; }
 
     .cliente-card h3 {
-      font-size: 1.08rem;
+      font-size: 1.05rem;
       margin-bottom: 4px;
     }
 
     .cliente-card p {
       color: #c6cedd;
-      font-size: 0.93rem;
-      line-height: 1.5;
-      margin-bottom: 5px;
-    }
-
-    .vazio {
-      background: #171a21;
-      border: 1px solid #262b36;
-      border-radius: 16px;
-      padding: 24px;
-      color: #c6cedd;
-      text-align: center;
-    }
-
-    @media (max-width: 800px) {
-      .filtros-organizacao {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 16px;
-      }
-
-      .topo-esquerda h1 {
-        font-size: 2.05rem;
-      }
-
-      .topo-esquerda p {
-        font-size: 1.08rem;
-      }
-
-      .acoes-topo {
-        width: 100%;
-      }
-
-      .botao {
-        flex: 1;
-        min-width: 140px;
-      }
-
-      .cliente-card {
-        padding: 16px;
-      }
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -375,31 +198,33 @@
       </div>
 
       <div class="acoes-topo">
-        <button id="botaoVoltarPainel" class="botao botao-voltar" type="button">Voltar ao Painel</button>
-        <button id="botaoNovoCliente" class="botao botao-novo" type="button">+ Novo cliente</button>
-        <button id="botaoAtualizar" class="botao botao-atualizar" type="button">Atualizar</button>
+        <button id="botaoVoltarPainel" class="botao botao-voltar">Voltar ao Painel</button>
+        <button id="botaoNovoCliente" class="botao botao-novo">+ Novo cliente</button>
+        <button id="botaoAtualizar" class="botao botao-atualizar">Atualizar</button>
       </div>
     </div>
 
     <div class="barra">
       <div class="campo-busca">
-        <input type="text" id="buscaCliente" placeholder="Buscar por código, nome ou telefone">
+        <input type="text" placeholder="Buscar por código, nome ou telefone">
       </div>
     </div>
-
-    <div class="filtros-organizacao" aria-label="Organização dos clientes">
-      <button class="filtro-btn" type="button" data-filtro="status">Status</button>
-      <button class="filtro-btn" type="button" data-filtro="nome">Nome</button>
-      <button class="filtro-btn" type="button" data-filtro="data">Data</button>
-      <button class="filtro-btn" type="button" data-filtro="personalizado">Personalizado</button>
-    </div>
-
-    <p id="mensagem" class="mensagem">Carregando clientes...</p>
 
     <div id="listaClientes" class="lista-clientes"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="central-clientes.js?v=1"></script>
+  <script>
+    document.addEventListener("click", (e) => {
+      const card = e.target.closest(".cliente-card");
+      if (!card) return;
+
+      document.querySelectorAll(".cliente-card").forEach(c => {
+        c.classList.remove("selecionado");
+      });
+
+      card.classList.add("selecionado");
+    });
+  </script>
+
 </body>
 </html>
