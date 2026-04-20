@@ -2935,3 +2935,29 @@ body.loading-page {
   }
 
 }
+
+@media (max-width: 768px) {
+
+  .contrato-card {
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+    margin-top: 22px !important;
+    padding: 14px 14px !important;
+  }
+
+  .boas-vindas {
+    margin-bottom: 22px !important;
+  }
+
+  .preview-topo::before {
+    content: "EM TEMPO REAL |" !important;
+    font-size: 0.58rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    margin-right: 4px !important;
+    white-space: nowrap !important;
+  }
+
+}
