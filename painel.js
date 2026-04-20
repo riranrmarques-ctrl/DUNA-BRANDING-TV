@@ -6,10 +6,11 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "historico_conexao";
 
 const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v6";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v7";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v5_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v6_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
+const LIMITE_STATUS_ATIVO_MS = 60 * 1000;
 
 function limparCachesAntigos() {
   try {
@@ -18,13 +19,15 @@ function limparCachesAntigos() {
     sessionStorage.removeItem("painel_pontos_cache_v3");
     sessionStorage.removeItem("painel_pontos_cache_v4");
     sessionStorage.removeItem("painel_pontos_cache_v5");
+    sessionStorage.removeItem("painel_pontos_cache_v6");
 
     Object.keys(sessionStorage).forEach((key) => {
       if (
         key.startsWith("painel_playlist_cache_v1_") ||
         key.startsWith("painel_playlist_cache_v2_") ||
         key.startsWith("painel_playlist_cache_v3_") ||
-        key.startsWith("painel_playlist_cache_v4_")
+        key.startsWith("painel_playlist_cache_v4_") ||
+        key.startsWith("painel_playlist_cache_v5_")
       ) {
         sessionStorage.removeItem(key);
       }
@@ -72,7 +75,6 @@ let codigoSelecionado = null;
 let pontosMap = {};
 let dragIndex = null;
 let arquivoImagemEdicao = null;
-let statusAnteriorMap = {};
 let painelIniciado = false;
 let botoesCardsAtivados = false;
 let carregandoPontos = false;
@@ -182,7 +184,7 @@ function calcularStatusInfo(ponto) {
   }
 
   const diff = Date.now() - dataPing.getTime();
-  const ativo = diff < 5 * 60 * 1000;
+  const ativo = diff < LIMITE_STATUS_ATIVO_MS;
   const horario = dataPing.toLocaleString("pt-BR");
 
   return {
@@ -225,27 +227,9 @@ function itemEstaInativo(item) {
   return fim < hoje;
 }
 
-async function registrarEventoConexao(codigo, statusAtual) {
-  const evento = statusAtual === "ativo" ? "ativo" : "inativo";
-
-  const { error } = await supabaseClient
-    .from(TABELA_HISTORICO_CONEXAO)
-    .insert({
-      codigo,
-      evento,
-      data_hora: new Date().toISOString()
-    });
-
-  if (error) {
-    console.error("Erro ao registrar histórico de status:", error);
-  }
-}
-
 function obterTextoEventoConexao(evento) {
-  if (evento === "conectou") return "Ativo";
-  if (evento === "desconectou") return "Inativo";
-  if (evento === "ativo") return "Ativo";
-  if (evento === "inativo") return "Inativo";
+  if (evento === "conectou") return "Conectou";
+  if (evento === "desconectou") return "Desconectou";
   return evento || "Sem status";
 }
 
@@ -571,14 +555,14 @@ async function alternarDisponibilidadePonto() {
 
     if (error) throw error;
 
-    renderizarCardsPontos(Object.values(pontosMap), { registrarHistorico: false });
+    renderizarCardsPontos(Object.values(pontosMap));
     setStatus(novoStatus ? "Ponto disponível" : "Ponto indisponível", "ok");
   } catch (error) {
     console.error("Erro ao atualizar disponibilidade:", error);
 
     atualizarVisualDisponibilidade(disponivelAtual);
     atualizarCachePonto(codigoSelecionado, { disponivel: disponivelAtual });
-    renderizarCardsPontos(Object.values(pontosMap), { registrarHistorico: false });
+    renderizarCardsPontos(Object.values(pontosMap));
 
     setStatus("Erro ao atualizar disponibilidade", "erro");
   }
@@ -647,9 +631,7 @@ async function buscarPontosRemoto() {
   throw ultimoErro;
 }
 
-function renderizarCardsPontos(lista, opcoes = {}) {
-  const registrarHistorico = opcoes.registrarHistorico !== false;
-
+function renderizarCardsPontos(lista) {
   pontosMap = {};
 
   lista.forEach((ponto) => {
@@ -685,16 +667,7 @@ function renderizarCardsPontos(lista, opcoes = {}) {
           classe: "indisponivel"
         };
 
-    const statusAtual = disponivel ? (statusInfo.ativo ? "ativo" : "inativo") : "indisponivel";
-    const statusAnterior = statusAnteriorMap[codigo];
-
     card.classList.toggle("card-indisponivel", !disponivel);
-
-    if (registrarHistorico && statusAnterior && statusAnterior !== statusAtual) {
-      registrarEventoConexao(codigo, statusAtual);
-    }
-
-    statusAnteriorMap[codigo] = statusAtual;
 
     if (nomeEl) {
       nomeEl.innerHTML = `<strong>${escapeHtml(nome)}</strong>`;
@@ -1062,7 +1035,7 @@ if (btnSalvarEdicao) {
 
       fecharModalEdicao();
       abrirPonto(codigoSelecionado);
-      renderizarCardsPontos(Object.values(pontosMap), { registrarHistorico: false });
+      renderizarCardsPontos(Object.values(pontosMap));
       setStatus("Atualizado com sucesso", "ok");
     } catch (error) {
       console.error("Erro geral ao salvar edição:", error);
@@ -1161,9 +1134,9 @@ function montarItemHistoricoStatus(item, index) {
   const textoEvento = obterTextoEventoConexao(item.evento);
   const eventoNormalizado = String(item.evento || "").toLowerCase();
   const classe =
-    eventoNormalizado === "conectou" || eventoNormalizado === "ativo"
+    eventoNormalizado === "conectou"
       ? "ativo"
-      : eventoNormalizado === "desconectou" || eventoNormalizado === "inativo"
+      : eventoNormalizado === "desconectou"
         ? "inativo"
         : "";
 
@@ -1173,7 +1146,7 @@ function montarItemHistoricoStatus(item, index) {
     <div class="historico-item">
       <span class="historico-item-ordem">${index + 1}.</span>
       <span class="historico-item-nome historico-status ${classe}">
-        ${textoEvento} desde ${data}
+        ${textoEvento} em ${data}
       </span>
       <span class="historico-item-valor">${data}</span>
     </div>
@@ -1226,12 +1199,6 @@ function renderizarPlaylistDados(lista, historicoConexao) {
   ativarExclusaoItens();
 }
 
-/*
-  FUNCAO REVISADA:
-  Corrige o erro 400 da tabela playlists.
-  Ela tenta buscar com todas as colunas novas.
-  Se alguma coluna nao existir, cai para uma consulta mais simples.
-*/
 async function buscarPlaylistRemota(codigo) {
   const consultasPlaylist = [
     "id,nome,nome_cliente,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
@@ -1529,7 +1496,7 @@ async function carregarPontosRemoto() {
     const pontos = await buscarPontosRemoto();
 
     salvarCachePontos(pontos);
-    renderizarCardsPontos(pontos, { registrarHistorico: false });
+    renderizarCardsPontos(pontos);
     setStatus("Painel Ativo", "ok");
   } catch (error) {
     console.error(error);
@@ -1549,7 +1516,7 @@ async function iniciarPainel() {
   const cache = lerCachePontos();
 
   if (cache?.pontos?.length) {
-    renderizarCardsPontos(cache.pontos, { registrarHistorico: false });
+    renderizarCardsPontos(cache.pontos);
     setStatus(cache.fresco ? "Painel Ativo" : "Atualizando painel...", cache.fresco ? "ok" : "normal");
 
     if (cache.fresco) {
