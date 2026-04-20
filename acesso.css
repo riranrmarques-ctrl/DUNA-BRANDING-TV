@@ -2175,3 +2175,309 @@ body.loading-page {
     text-align: center;
   }
 }
+
+@media (max-width: 768px) {
+  body {
+    padding: 14px 10px 28px !important;
+    overflow-x: hidden !important;
+  }
+
+  .cliente-shell {
+    width: 100% !important;
+    max-width: 390px !important;
+    margin: 0 auto !important;
+  }
+
+  .topo-cliente,
+  body.rolando .topo-cliente {
+    width: 100% !important;
+    position: relative !important;
+    top: auto !important;
+    margin: 0 0 14px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .topo-conteudo,
+  body.rolando .topo-conteudo {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+
+  .topo-esquerda,
+  .topo-acoes,
+  .topo-area-bloco,
+  body.rolando .topo-esquerda,
+  body.rolando .topo-acoes,
+  body.rolando .topo-area-bloco {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .logo-cliente,
+  body.rolando .logo-cliente {
+    width: 155px !important;
+    max-width: 155px !important;
+    height: auto !important;
+    transform: none !important;
+  }
+
+  .nome-cliente-topo,
+  .topo-mensagem {
+    display: none !important;
+  }
+
+  .topo-label,
+  body.rolando .topo-label {
+    font-size: 0.62rem !important;
+    letter-spacing: 0.06em !important;
+    white-space: nowrap !important;
+  }
+
+  .topo-label::after {
+    margin-left: 8px !important;
+  }
+
+  .btn-sair,
+  body.rolando .btn-sair {
+    height: 36px !important;
+    min-width: 64px !important;
+    padding: 0 12px !important;
+    font-size: 0.78rem !important;
+    border-radius: 10px !important;
+  }
+
+  .boas-vindas {
+    min-height: auto !important;
+    padding: 8px 0 4px !important;
+    margin: 0 0 16px !important;
+  }
+
+  .boas-vindas h1,
+  #tituloBoasVindas {
+    font-size: 1.6rem !important;
+    line-height: 1.05 !important;
+    text-align: center !important;
+  }
+
+  .cliente-layout {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .coluna-esquerda {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  .pontos-cliente,
+  .detalhe-ponto,
+  .contrato-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 22px !important;
+  }
+
+  .pontos-cliente,
+  .detalhe-ponto,
+  .contrato-card {
+    overflow: hidden !important;
+  }
+
+  .detalhe-ponto {
+    min-height: auto !important;
+    padding: 18px 16px !important;
+  }
+
+  .detalhe-cabecalho {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    min-height: auto !important;
+    margin: 0 0 16px !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  .detalhe-cabecalho > div:first-child {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-self: auto !important;
+    align-self: auto !important;
+  }
+
+  .detalhe-cabecalho h2 {
+    width: 100% !important;
+    font-size: 1.7rem !important;
+    line-height: 1.05 !important;
+    margin: 0 !important;
+    text-align: left !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+  }
+
+  .detalhe-cabecalho p {
+    width: 100% !important;
+    margin: 6px 0 0 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.45 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .status-area {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .status-desde {
+    width: 100% !important;
+    min-height: auto !important;
+    font-size: 0.76rem !important;
+    line-height: 1.35 !important;
+    text-align: left !important;
+    white-space: normal !important;
+  }
+
+  .status-grande {
+    min-width: 110px !important;
+    margin: 0 !important;
+    padding: 8px 16px !important;
+    border-radius: 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .preview-box {
+    margin: 0 0 16px !important;
+  }
+
+  .preview-topo {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    gap: 4px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .preview-topo h3,
+  .preview-nome {
+    white-space: normal !important;
+    text-align: left !important;
+    max-width: 100% !important;
+  }
+
+  .preview-midia {
+    aspect-ratio: 16 / 10 !important;
+    border-radius: 18px !important;
+  }
+
+  .subsecao {
+    margin-top: 18px !important;
+  }
+
+  .linha-material-head {
+    display: none !important;
+  }
+
+  .tabela-materiais {
+    border-radius: 18px !important;
+  }
+
+  .linha-material {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 14px !important;
+  }
+
+  .linha-material strong {
+    font-size: 0.96rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .linha-material span {
+    font-size: 0.8rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .historico-secao {
+    margin-top: 20px !important;
+  }
+
+  .historico-lista {
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+  }
+
+  .historico-item {
+    grid-template-columns: 1fr !important;
+    gap: 4px !important;
+    padding: 10px 12px !important;
+  }
+
+  .contrato-card {
+    padding: 18px 16px !important;
+    text-align: center !important;
+  }
+
+  .contrato-card p {
+    text-align: center !important;
+    text-align-last: center !important;
+  }
+
+  .contrato-badge {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .lista-pontos {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .ponto-card {
+    grid-template-columns: 76px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 10px !important;
+  }
+
+  .ponto-card img {
+    width: 76px !important;
+    height: 62px !important;
+  }
+
+  .ponto-card h3 {
+    white-space: normal !important;
+  }
+}
