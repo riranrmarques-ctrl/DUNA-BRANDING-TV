@@ -35,16 +35,21 @@
     }
 
     .playlist-historico-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
-      gap: 20px;
-      align-items: start;
+      display: flex;
+      flex-direction: column;
+      gap: 56px;
+      align-items: stretch;
       margin-top: 20px;
     }
 
-    .subsecao-playlist,
+    .subsecao-playlist {
+      width: 100%;
+    }
+
     .historico-secao {
-      height: 100%;
+      width: 100%;
+      height: auto;
+      margin-top: 24px;
     }
 
     .rodape-creditos {
