@@ -2980,3 +2980,57 @@ body.loading-page {
   }
 
 }
+
+@media (max-width: 768px) {
+
+  .topo-cliente,
+  body.rolando .topo-cliente {
+    height: 58px !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .topo-conteudo,
+  body.rolando .topo-conteudo {
+    height: 58px !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    padding: 0 8px !important;
+    gap: 6px !important;
+  }
+
+  .topo-esquerda {
+    gap: 6px !important;
+  }
+
+  .logo-cliente,
+  body.rolando .logo-cliente {
+    width: 120px !important;
+    max-width: 120px !important;
+    transform: none !important;
+  }
+
+  .nome-cliente-topo,
+  body.rolando .nome-cliente-topo {
+    font-size: 0.75rem !important;
+    max-width: 120px !important;
+  }
+
+  .topo-label {
+    display: none !important;
+  }
+
+  .topo-area-bloco {
+    gap: 4px !important;
+  }
+
+  .btn-sair,
+  body.rolando .btn-sair {
+    height: 38px !important;
+    min-width: 70px !important;
+    padding: 0 14px !important;
+    font-size: 0.82rem !important;
+  }
+
+}
