@@ -1139,8 +1139,8 @@ body.loading-page {
 
   .topo-conteudo {
     width: 100%;
-    min-height: 56px;
-    padding: 8px 14px;
+    min-height: 54px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1157,9 +1157,9 @@ body.loading-page {
   }
 
   .logo-cliente {
-    width: 150px;
-    max-width: 150px;
-    min-width: 150px;
+    width: 148px;
+    max-width: 148px;
+    min-width: 148px;
     height: auto;
     display: block;
     object-fit: contain;
@@ -1168,16 +1168,16 @@ body.loading-page {
   }
 
   body.rolando .logo-cliente {
-    width: 105px;
-    max-width: 105px;
-    min-width: 105px;
+    width: 100px;
+    max-width: 100px;
+    min-width: 100px;
   }
 
   .nome-cliente-topo {
     display: block;
     min-width: 0;
     max-width: 100%;
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     font-weight: 700;
     line-height: 1;
     white-space: nowrap;
@@ -1219,10 +1219,33 @@ body.loading-page {
 
   .btn-sair,
   .btn-atualizar {
-    height: 38px;
-    min-width: 72px;
-    padding: 0 16px;
-    font-size: 0.86rem;
+    height: 34px;
+    min-width: 64px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    border-radius: 11px;
+    background: #ffffff;
+    color: #061225;
+    font-size: 0.81rem;
+    font-weight: 900;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
+  }
+
+  .btn-sair:hover,
+  .btn-atualizar:hover {
+    background: #ffffff;
+    color: #061225;
+    filter: brightness(0.98);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.16);
+  }
+
+  .btn-sair:active,
+  .btn-atualizar:active {
+    transform: scale(0.96);
+    filter: brightness(0.94);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
   }
 
   .boas-vindas {
@@ -1244,11 +1267,11 @@ body.loading-page {
 
   .cliente-layout {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
   .coluna-esquerda {
-    gap: 14px;
+    gap: 12px;
   }
 
   .pontos-cliente,
@@ -1262,34 +1285,90 @@ body.loading-page {
 
   .pontos-cliente {
     order: 1;
+    padding: 16px;
   }
 
   .detalhe-ponto {
     order: 2;
     min-height: auto;
-    padding: 18px 16px;
+    padding: 16px 14px;
   }
 
   .contrato-card {
     order: 3;
-    padding: 18px 16px;
+    width: calc(100% - 28px);
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 14px 12px;
+    border-radius: 18px;
+  }
+
+  .contrato-card p {
+    font-size: 0.8rem;
+    line-height: 1.42;
+    margin-bottom: 12px;
+  }
+
+  .contrato-badge {
+    padding: 6px 10px;
+    font-size: 0.64rem;
+    margin-bottom: 10px;
+  }
+
+  .btn-assinar-contrato {
+    min-height: 42px;
+    padding: 11px 12px;
+    margin-top: 10px;
+    font-size: 0.82rem;
+    border-radius: 12px;
+  }
+
+  .historico-contrato-cliente {
+    margin-top: 12px;
+    gap: 8px;
+  }
+
+  .historico-contrato-item {
+    padding: 10px 11px;
+    border-radius: 14px;
+    gap: 10px;
+  }
+
+  .historico-contrato-item strong {
+    font-size: 0.8rem;
+  }
+
+  .historico-contrato-item span {
+    font-size: 0.7rem;
+  }
+
+  .historico-contrato-item small {
+    font-size: 0.62rem;
+    padding: 4px 8px;
+    margin-top: 6px;
+  }
+
+  .btn-historico-contrato {
+    font-size: 0.68rem;
+    padding: 8px 10px;
+    border-radius: 10px;
   }
 
   .lista-pontos {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .ponto-card {
-    grid-template-columns: 76px minmax(0, 1fr);
-    gap: 12px;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 10px;
     padding: 10px;
   }
 
   .ponto-card img {
-    width: 76px;
-    height: 62px;
+    width: 74px;
+    height: 58px;
   }
 
   .ponto-card h3 {
@@ -1297,82 +1376,99 @@ body.loading-page {
   }
 
   .detalhe-cabecalho {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 10px;
-    margin: 0 0 16px;
+    align-items: center;
+    margin: 0 0 12px;
     padding: 0;
   }
 
   .detalhe-cabecalho > div:first-child {
+    min-width: 0;
     width: 100%;
   }
 
   .detalhe-cabecalho h2 {
     width: 100%;
-    font-size: 1.7rem;
+    font-size: 1.28rem;
     line-height: 1.05;
     text-align: left;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .detalhe-cabecalho p {
     width: 100%;
-    margin-top: 6px;
-    font-size: 0.95rem;
-    line-height: 1.45;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    line-height: 1.15;
+    color: #aeb8cc;
     text-align: left;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    word-break: break-word;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .status-area {
-    width: 100%;
+    width: auto;
     min-width: 0;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .status-desde {
-    width: 100%;
-    font-size: 0.76rem;
-    line-height: 1.35;
-    text-align: left;
-    white-space: normal;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 0;
   }
 
   .status-grande {
-    min-width: 110px;
-    margin: 0;
-    padding: 8px 16px;
+    min-width: 84px;
+    padding: 7px 12px;
+    font-size: 0.68rem;
+    border-radius: 10px;
+    white-space: nowrap;
+  }
+
+  .status-desde {
+    display: none;
   }
 
   .preview-box {
-    margin: 0 0 16px;
+    margin: 0 0 14px;
+    display: flex;
+    flex-direction: column;
   }
 
   .preview-topo {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    gap: 4px;
-    margin-bottom: 12px;
+    order: 2;
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 0;
   }
 
-  .preview-topo h3,
+  .preview-topo h3 {
+    display: none;
+  }
+
   .preview-nome {
+    display: block;
     max-width: 100%;
     text-align: left;
-    white-space: normal;
+    font-size: 0.8rem;
+    line-height: 1.15;
+    font-weight: 800;
+    color: #e6eeff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .preview-nome::before {
+    content: "EXIBIÇÃO EM TEMPO REAL | ";
+    color: #ffffff;
+    font-weight: 900;
   }
 
   .preview-midia {
+    order: 1;
     aspect-ratio: 16 / 10;
     border-radius: 18px;
   }
@@ -1421,9 +1517,24 @@ body.loading-page {
   }
 
   .historico-lista {
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    scrollbar-width: thin;
+  }
+
+  .historico-lista::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .historico-lista::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+  }
+
+  .historico-lista::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   .historico-item {
