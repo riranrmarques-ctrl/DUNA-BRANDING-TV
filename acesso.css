@@ -1912,3 +1912,50 @@ body.loading-page {
     font-weight: 800;
   }
 }
+
+.mobile-play-only,
+.mobile-historico-only,
+.rodape-creditos-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .cliente-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .coluna-esquerda {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mobile-play-only,
+  .mobile-historico-only,
+  .rodape-creditos-mobile {
+    display: block;
+  }
+
+  .detalhe-ponto > #detalhePonto > .preview-box,
+  .detalhe-ponto > #detalhePonto > .historico-secao {
+    display: none;
+  }
+
+  .rodape-creditos-mobile {
+    margin-top: 24px;
+    padding: 10px 0 8px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .rodape-creditos-mobile strong {
+    color: #fff;
+    font-weight: 800;
+  }
+}
