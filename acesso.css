@@ -1913,16 +1913,99 @@ body.loading-page {
   }
 }
 
-.mobile-play-only,
-.mobile-historico-only,
-.rodape-creditos-mobile {
-  display: none;
-}
-
 @media (max-width: 768px) {
-  .cliente-layout {
+  body {
+    padding: 16px 10px 32px;
+  }
+
+  .cliente-shell {
+    width: 100%;
+    max-width: 390px;
+    margin: 0 auto;
+  }
+
+  .topo-cliente,
+  body.rolando .topo-cliente {
+    width: 100%;
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 14px;
+    position: relative;
+    top: auto;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .topo-conteudo,
+  body.rolando .topo-conteudo {
+    width: 100%;
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    margin: 0;
+    padding: 0;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .topo-esquerda,
+  body.rolando .topo-esquerda,
+  .topo-acoes,
+  body.rolando .topo-acoes,
+  .topo-area-bloco,
+  body.rolando .topo-area-bloco {
+    height: auto;
+  }
+
+  .logo-cliente,
+  body.rolando .logo-cliente {
+    width: 170px;
+    max-height: none;
+    transform: none;
+  }
+
+  .nome-cliente-topo,
+  .topo-mensagem {
+    display: none !important;
+  }
+
+  .topo-label,
+  body.rolando .topo-label {
+    height: auto;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+
+  .btn-sair,
+  body.rolando .btn-sair {
+    height: 38px;
+    min-width: 68px;
+    padding: 0 14px;
+    font-size: 0.8rem;
+    border-radius: 10px !important;
+  }
+
+  .boas-vindas {
+    min-height: auto;
+    padding: 10px 0 6px;
+    margin: 0 0 18px;
+  }
+
+  .boas-vindas h1,
+  #tituloBoasVindas {
+    font-size: 1.9rem;
+    line-height: 1.05;
+  }
+
+  .cliente-layout {
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 
@@ -1932,30 +2015,163 @@ body.loading-page {
     gap: 16px;
   }
 
-  .mobile-play-only,
-  .mobile-historico-only,
-  .rodape-creditos-mobile {
-    display: block;
+  .lista-pontos {
+    grid-template-columns: 1fr;
   }
 
-  .detalhe-ponto > #detalhePonto > .preview-box,
-  .detalhe-ponto > #detalhePonto > .historico-secao {
+  .pontos-cliente,
+  .contrato-card,
+  .detalhe-ponto,
+  .subsecao,
+  .historico-secao {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .detalhe-ponto {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .detalhe-cabecalho {
+    min-height: auto !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin: 0 0 14px !important;
+    padding: 0 !important;
+  }
+
+  .detalhe-cabecalho > div:first-child {
+    width: 100% !important;
+    padding: 0 !important;
+    transform: none !important;
+    text-align: left !important;
+    justify-self: start !important;
+    align-self: start !important;
+  }
+
+  .detalhe-cabecalho h2 {
+    font-size: 1.9rem !important;
+    line-height: 1.02 !important;
+    text-align: left !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  .detalhe-cabecalho p {
+    margin-top: 8px !important;
+    font-size: 0.95rem !important;
+    text-align: left !important;
+    text-decoration: none !important;
+  }
+
+  .status-area {
+    width: 100% !important;
+    align-items: flex-start !important;
+    justify-self: start !important;
+    align-self: start !important;
+    padding-top: 0 !important;
+    transform: none !important;
+  }
+
+  .status-desde {
+    width: auto !important;
+    text-align: left !important;
+    white-space: normal !important;
+  }
+
+  .status-grande {
+    margin-left: 0 !important;
+    min-width: 110px !important;
+  }
+
+  .preview-box {
+    margin-top: 0 !important;
+    margin-bottom: 16px !important;
+  }
+
+  .preview-topo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 4px;
+    margin-bottom: 12px !important;
+  }
+
+  .preview-topo h3 {
+    white-space: normal;
+  }
+
+  .preview-nome {
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .preview-midia {
+    aspect-ratio: 16 / 10;
+    border-radius: 18px;
+  }
+
+  .linha-material-head {
     display: none;
   }
 
-  .rodape-creditos-mobile {
-    margin-top: 24px;
-    padding: 10px 0 8px;
-    text-align: center;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.72);
+  .linha-material {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 14px;
   }
 
-  .rodape-creditos-mobile strong {
-    color: #fff;
-    font-weight: 800;
+  .linha-material span:nth-child(3),
+  .linha-material span:nth-child(4) {
+    grid-column: auto;
+  }
+
+  .historico-secao {
+    margin-top: 24px !important;
+  }
+
+  .historico-lista {
+    max-height: none !important;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .historico-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .contrato-card {
+    text-align: center !important;
+    padding: 18px;
+  }
+
+  .contrato-card h2 {
+    display: none !important;
+  }
+
+  .contrato-card p {
+    text-align: center !important;
+    text-align-last: center !important;
+  }
+
+  .contrato-badge {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .codigo-cliente {
+    display: none !important;
+  }
+
+  .rodape-creditos {
+    margin-top: 18px;
+    padding: 10px 0 0;
+    font-size: 10px;
+    text-align: center;
   }
 }
