@@ -1138,8 +1138,8 @@ body.loading-page {
   }
 
   .login-card {
-    margin-top:50%;
-    margin-bottom: auto;
+    margin-top:50px;
+    margin-bottom: 50px;
   }
 }
 
