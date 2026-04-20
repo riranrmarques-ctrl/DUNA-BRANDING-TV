@@ -1,29 +1,6 @@
 const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
 
-const CODIGOS_FIXOS = [
-  "H3L1",
-  "E7N4",
-  "H8E2",
-  "L3A9",
-  "N1H6",
-  "E4L7",
-  "A9H2",
-  "H5N8",
-  "L2E6",
-  "N7A3",
-  "E1H9",
-  "A4L8",
-  "H6A1",
-  "L9N5",
-  "E3A7",
-  "N8H4",
-  "A2E6",
-  "H7L3",
-  "L1H8",
-  "E9N2"
-];
-
 const CACHE_CLIENTES_KEY = "central_clientes_cache_v2";
 const CACHE_CLIENTES_TTL = 3 * 60 * 1000;
 const ORDEM_PERSONALIZADA_KEY = "central_clientes_ordem_personalizada_v1";
@@ -506,19 +483,42 @@ async function carregarClientes(opcoes = {}) {
   }
 }
 
-function obterCodigoLivre() {
-  const usados = new Set(clientesCarregados.map((cliente) => cliente.codigo));
-  return CODIGOS_FIXOS.find((codigo) => !usados.has(codigo)) || null;
+function gerarCodigoAleatorio() {
+  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numeros = "0123456789";
+
+  return (
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)]
+  );
+}
+
+async function obterCodigoUnico() {
+  const usadosLocais = new Set(clientesCarregados.map((cliente) => normalizarCodigo(cliente.codigo)));
+
+  for (let tentativa = 0; tentativa < 50; tentativa++) {
+    const codigo = gerarCodigoAleatorio();
+
+    if (usadosLocais.has(codigo)) {
+      continue;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("clientes_app")
+      .select("codigo")
+      .eq("codigo", codigo)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return codigo;
+  }
+
+  throw new Error("Não foi possível gerar um código único.");
 }
 
 async function criarNovoCliente() {
-  const codigoLivre = obterCodigoLivre();
-
-  if (!codigoLivre) {
-    mostrarMensagem("Todos os códigos fixos já foram usados.", "#ffb86b");
-    return;
-  }
-
   try {
     if (botaoNovoCliente) {
       botaoNovoCliente.disabled = true;
@@ -527,6 +527,8 @@ async function criarNovoCliente() {
     }
 
     mostrarMensagem("Criando novo cliente...");
+
+    const codigoLivre = await obterCodigoUnico();
 
     const payload = {
       codigo: codigoLivre,
