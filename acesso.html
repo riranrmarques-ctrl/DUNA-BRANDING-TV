@@ -1,82 +1,38 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8"> 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>Duna TV | Área do Cliente</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="acesso.css?v=1005">
-</head>
-<body>
-  <section id="loginScreen" class="login-screen">
-    <div class="login-conteudo">
-      <img src="logo.png" class="login-logo-fora" alt="Duna TV">
-
-      <div class="login-card">
-        <h1>Acesso do cliente</h1>
-        <p class="login-instrucao">Digite o seu código de 4 dígitos no campo abaixo.</p>
-        <input id="codigoLogin" type="text" placeholder="Código do cliente" autocomplete="off">
-        <button id="btnEntrarCliente" type="button">Entrar</button>
-        <div id="loginErro" class="login-erro"></div>
+<main id="areaCliente" class="cliente-shell" style="display:none;">
+  <header class="topo-cliente">
+    <div class="topo-conteudo">
+      <div class="topo-esquerda">
+        <img src="logo.png" class="logo-cliente" alt="Duna TV">
+        <span id="nomeClienteTopo" class="nome-cliente-topo"></span>
       </div>
 
-      <div class="login-rodape">
-        <span>DESENVOLVIDO POR</span>
-        <strong>DUNA BRANDING</strong>
+      <div class="topo-acoes">
+        <div class="topo-area-bloco">
+          <span class="topo-label">ÁREA DO CLIENTE</span>
+          <p id="mensagemCliente" class="mensagem topo-mensagem"></p>
+        </div>
+
+        <button id="btnSair" class="btn-sair" type="button">Sair</button>
       </div>
     </div>
+  </header>
+
+  <section class="boas-vindas">
+    <h1 id="tituloBoasVindas">Seja bem-vindo(a)</h1>
+    <p id="subtituloCliente"></p>
   </section>
 
-  <div id="loadingOverlay" class="loading-overlay" style="display:none;">
-    <div class="loading-box">
-      <img src="logo DUNA.gif" class="loading-logo" alt="Duna carregando">
-      <p class="loading-texto">carregando experiências...</p>
-    </div>
-  </div>
-
-  <main class="assinatura-shell">
-     
-  <main id="areaCliente" class="cliente-shell" style="display:none;">
-    <header class="topo-cliente">
-      <div class="topo-conteudo">
-        <div class="topo-esquerda">
-          <img src="logo.png" class="logo-cliente" alt="Duna TV">
-          <span id="nomeClienteTopo" class="nome-cliente-topo"></span>
+  <section class="cliente-layout">
+    <div class="coluna-esquerda">
+      <aside class="pontos-cliente">
+        <div class="secao-topo">
+          <h2>Seus pontos ativos</h2>
+          <span id="contadorPontos" class="contador-pontos" style="display:none;"></span>
         </div>
+        <div id="listaPontosCliente" class="lista-pontos"></div>
+      </aside>
 
-        <div class="topo-acoes">
-          <div class="topo-area-bloco">
-            <span class="topo-label">ÁREA DO CLIENTE</span>
-            <p id="mensagemCliente" class="mensagem topo-mensagem"></p>
-          </div>
-
-          <button id="btnSair" class="btn-sair" type="button">Sair</button>
-        </div>
-      </div>
-    </header>
-
-    <section class="boas-vindas">
-      <h1 id="tituloBoasVindas">Seja bem-vindo(a)</h1>
-      <p id="subtituloCliente"></p>
-    </section>
-
-    <section class="cliente-layout">
-      <div class="coluna-esquerda">
-        <aside class="pontos-cliente">
-          <div class="secao-topo">
-            <h2>Seus pontos ativos</h2>
-            <span id="contadorPontos" class="contador-pontos" style="display:none;"></span>
-          </div>
-          <div id="listaPontosCliente" class="lista-pontos"></div>
-        </aside>
-
+      <div id="contratoOrigem">
         <aside class="contrato-card">
           <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
           <h2>Espaço do contrato</h2>
@@ -86,59 +42,60 @@
           <div id="historicoContratoCliente" class="historico-contrato-cliente"></div>
         </aside>
       </div>
+    </div>
 
-      <section class="detalhe-ponto">
-        <div id="estadoVazio" class="estado-vazio">
-          Selecione uma pasta de ponto para ver a exibição, materiais contratados e histórico de status.
+    <section class="detalhe-ponto">
+      <div id="estadoVazio" class="estado-vazio">
+        Selecione uma pasta de ponto para ver a exibição, materiais contratados e histórico de status.
+      </div>
+
+      <div id="detalhePonto" style="display:none;">
+        <div class="detalhe-cabecalho">
+          <div>
+            <h2 id="nomePontoDetalhe"></h2>
+            <p id="localPontoDetalhe"></p>
+          </div>
+
+          <div class="status-area">
+            <div id="statusPontoDetalhe" class="status-grande"></div>
+            <div id="statusDesdeDetalhe" class="status-desde"></div>
+          </div>
         </div>
 
-        <div id="detalhePonto" style="display:none;">
-          <div class="detalhe-cabecalho">
-            <div>
-              <h2 id="nomePontoDetalhe"></h2>
-              <p id="localPontoDetalhe"></p>
-            </div>
-
-            <div class="status-area">
-              <div id="statusPontoDetalhe" class="status-grande"></div>
-              <div id="statusDesdeDetalhe" class="status-desde"></div>
-            </div>
+        <div class="preview-box">
+          <div class="preview-topo">
+            <h3 id="tituloPreview">Exibição em tempo real |</h3>
+            <div id="previewNome" class="preview-nome"></div>
           </div>
 
-          <div class="preview-box">
-            <div class="preview-topo">
-              <h3 id="tituloPreview">Exibição em tempo real |</h3>
-              <div id="previewNome" class="preview-nome"></div>
+          <div id="previewMidia" class="preview-midia"></div>
+        </div>
+
+        <div class="subsecao">
+          <h3>Materiais da playlist</h3>
+
+          <div class="tabela-materiais">
+            <div class="linha-material-head">
+              <span>Ordem da playlist</span>
+              <span>Material</span>
+              <span>Postado</span>
+              <span>Encerramento</span>
             </div>
 
-            <div id="previewMidia" class="preview-midia"></div>
+            <div id="listaMateriais"></div>
           </div>
+        </div>
 
-          <div class="subsecao">
-            <h3>Materiais da playlist</h3>
-
-            <div class="tabela-materiais">
-              <div class="linha-material-head">
-                <span>Ordem da playlist</span>
-                <span>Material</span>
-                <span>Postado</span>
-                <span>Encerramento</span>
-              </div>
-
-              <div id="listaMateriais"></div>
-            </div>
-          </div>
-
+        <div id="historicoOrigem">
           <div class="subsecao historico-secao">
             <h3>Histórico de status do ponto</h3>
             <div id="historicoStatusPonto" class="historico-lista"></div>
           </div>
         </div>
-      </section>
+      </div>
     </section>
-  </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=1000"></script>
-</body>
-</html>
+    <div id="contratoMobileFinal"></div>
+    <div id="historicoMobileFinal"></div>
+  </section>
+</main>
