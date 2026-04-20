@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="acesso.css?v=1001">
+  <link rel="stylesheet" href="acesso.css?v=1000">
 </head>
 <body>
   <section id="loginScreen" class="login-screen">
@@ -41,6 +41,8 @@
     </div>
   </div>
 
+  <main class="assinatura-shell">
+     
   <main id="areaCliente" class="cliente-shell" style="display:none;">
     <header class="topo-cliente">
       <div class="topo-conteudo">
@@ -75,16 +77,14 @@
           <div id="listaPontosCliente" class="lista-pontos"></div>
         </aside>
 
-        <div id="contratoOrigem">
-          <aside class="contrato-card">
-            <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
-            <h2>Espaço do contrato</h2>
-            <p id="contratoInfo">Carregando informações do contrato...</p>
-            <button id="codigoCliente" class="codigo-cliente" type="button" title="Clique para copiar"></button>
-            <button id="btnAssinarContrato" class="btn-assinar-contrato" type="button">Assinar contrato</button>
-            <div id="historicoContratoCliente" class="historico-contrato-cliente"></div>
-          </aside>
-        </div>
+        <aside class="contrato-card">
+          <div id="contratoBadge" class="contrato-badge">Contrato disponível</div>
+          <h2>Espaço do contrato</h2>
+          <p id="contratoInfo">Carregando informações do contrato...</p>
+          <button id="codigoCliente" class="codigo-cliente" type="button" title="Clique para copiar"></button>
+          <button id="btnAssinarContrato" class="btn-assinar-contrato" type="button">Assinar contrato</button>
+          <div id="historicoContratoCliente" class="historico-contrato-cliente"></div>
+        </aside>
       </div>
 
       <section class="detalhe-ponto">
@@ -129,21 +129,16 @@
             </div>
           </div>
 
-          <div id="historicoOrigem">
-            <div class="subsecao historico-secao">
-              <h3>Histórico de status do ponto</h3>
-              <div id="historicoStatusPonto" class="historico-lista"></div>
-            </div>
+          <div class="subsecao historico-secao">
+            <h3>Histórico de status do ponto</h3>
+            <div id="historicoStatusPonto" class="historico-lista"></div>
           </div>
         </div>
       </section>
-
-      <div id="contratoMobileFinal"></div>
-      <div id="historicoMobileFinal"></div>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=1001"></script>
+  <script src="acesso.js?v=1000"></script>
 </body>
 </html>
