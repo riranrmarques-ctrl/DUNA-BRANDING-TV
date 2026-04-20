@@ -1846,3 +1846,100 @@ body.loading-page {
   overflow: hidden !important;
 }
 
+@media (max-width: 760px) {
+
+  /* ===== TOPO ===== */
+  .topo-conteudo {
+    padding: 0 10px !important;
+  }
+
+  .logo-cliente {
+    width: 150px !important;
+    transform: none !important;
+  }
+
+  .topo-label {
+    font-size: 0.6rem !important;
+  }
+
+  .btn-sair {
+    height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .detalhe-cabecalho {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 10px 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+  }
+
+  .detalhe-cabecalho > div:first-child {
+    width: 100% !important;
+    text-align: left !important;
+    transform: none !important;
+    padding: 0 !important;
+  }
+
+  .detalhe-cabecalho h2 {
+    font-size: 1.4rem !important;
+    line-height: 1.1 !important;
+
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .detalhe-cabecalho p {
+    font-size: 0.85rem !important;
+    text-decoration: none !important;
+    text-align: left !important;
+  }
+
+  /* ===== STATUS ===== */
+  .status-area {
+    width: 100% !important;
+    align-items: flex-start !important;
+    transform: none !important;
+  }
+
+  .status-grande {
+    font-size: 0.7rem !important;
+    padding: 6px 12px !important;
+  }
+
+  .status-desde {
+    font-size: 0.65rem !important;
+  }
+
+  /* ===== PREVIEW ===== */
+  .preview-box {
+    margin-top: 10px !important;
+  }
+
+  .preview-topo {
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  .preview-topo h3 {
+    font-size: 0.9rem !important;
+  }
+
+  .preview-nome {
+    font-size: 0.8rem !important;
+    white-space: normal !important;
+  }
+
+  .ponto-card {
+    grid-template-columns: 70px 1fr !important;
+  }
+
+  .ponto-card img {
+    width: 70px !important;
+    height: 55px !important;
+  }
+
+}
