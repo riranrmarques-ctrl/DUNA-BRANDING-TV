@@ -15,6 +15,30 @@ const codigoLogin = document.getElementById("codigoLogin");
 const btnEntrarCliente = document.getElementById("btnEntrarCliente");
 const loginErro = document.getElementById("loginErro");
 const loadingOverlay = document.getElementById("loadingOverlay");
+function mostrarLoading() {
+  document.body.classList.add("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.style.display = "flex";
+    requestAnimationFrame(() => {
+      loadingOverlay.classList.add("ativo");
+    });
+  }
+}
+
+function esconderLoading() {
+  document.body.classList.remove("loading-page");
+
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove("ativo");
+
+    setTimeout(() => {
+      if (!loadingOverlay.classList.contains("ativo")) {
+        loadingOverlay.style.display = "none";
+      }
+    }, 280);
+  }
+}
 
 const btnAtualizar = document.getElementById("btnAtualizar");
 const btnSair = document.getElementById("btnSair");
@@ -566,8 +590,13 @@ function renderizarContrato() {
         return;
       }
 
-      window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
+      mostrarLoading();
+
+      setTimeout(() => {
+        window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
+      }, 220);
     };
+
   }
 }
 
@@ -1067,7 +1096,9 @@ window.addEventListener("scroll", () => {
 });
 
 window.addEventListener("load", () => {
-  const codigoUrl = obterCodigoUrl();
+  const params = new URLSearchParams(window.location.search);
+  const codigoUrl = normalizarCodigo(params.get("codigo"));
+  const voltouDaAssinatura = params.get("voltar") === "1";
 
   abrirLogin();
 
@@ -1084,5 +1115,12 @@ window.addEventListener("load", () => {
 
   if (codigoUrl && codigoLogin) {
     codigoLogin.value = codigoUrl;
+  }
+
+  if (codigoUrl && voltouDaAssinatura) {
+    carregarAreaCliente(codigoUrl);
+
+    const urlLimpa = `${window.location.pathname}?codigo=${encodeURIComponent(codigoUrl)}`;
+    window.history.replaceState({}, "", urlLimpa);
   }
 });
