@@ -1,3 +1,6 @@
+const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+
 const CODIGOS_FIXOS = [
   "H3L1",
   "E7N4",
@@ -18,103 +21,15 @@ const CODIGOS_FIXOS = [
   "A2E6",
   "H7L3",
   "L1H8",
-  "E9N2",
-
-  "H2E7",
-  "E5L3",
-  "L8A1",
-  "N4H9",
-  "A7E2",
-  "H1L6",
-  "E9A4",
-  "L3N8",
-  "A6H5",
-  "N2E7",
-
-  "R4I8",
-  "I7R2",
-  "R9A5",
-  "A3N1",
-  "N6R7",
-  "R2I9",
-  "I5A4",
-  "A8R3",
-  "N1I6",
-  "R7N2",
-
-  "P3A8",
-  "A1L7",
-  "L5O2",
-  "O9M4",
-  "M6A3",
-  "P7L1",
-  "A4O8",
-  "L2M9",
-  "O5P6",
-  "M1A7",
-
-  "A9L2",
-  "L4F8",
-  "F7A3",
-  "A5F1",
-  "L8A6",
-  "F2L9",
-  "A3L7",
-  "L1F4",
-  "F6A8",
-  "A7F2",
-
-  "H4A6",
-  "E2N9",
-  "L7E3",
-  "N5A8",
-  "A1H7",
-  "H9E4",
-  "E6L2",
-  "L8N1",
-  "N3A5",
-  "A7E9",
-
-  "R5A2",
-  "I3N8",
-  "R7I1",
-  "A4R6",
-  "N9I5",
-  "R2A7",
-  "I8R4",
-  "A6N3",
-  "N1R9",
-  "R8I2",
-
-  "P6O1",
-  "A3M7",
-  "L9A2",
-  "O4P8",
-  "M5L3",
-  "P2A9",
-  "A8L6",
-  "L1O5",
-  "O7M4",
-  "M3P2",
-
-  "A6F9",
-  "L2A8",
-  "F5L1",
-  "A7F4",
-  "L3F2",
-  "F8A6",
-  "A1L9",
-  "L5A7",
-  "F4L3",
-  "A8F2"
+  "E9N2"
 ];
 
 const CACHE_CLIENTES_KEY = "central_clientes_cache_v2";
 const CACHE_CLIENTES_TTL = 3 * 60 * 1000;
 const ORDEM_PERSONALIZADA_KEY = "central_clientes_ordem_personalizada_v1";
 const FILTRO_CLIENTES_KEY = "central_clientes_filtro_v1";
-const ADMIN_TOKEN_KEY = "painelToken";
 
+let supabaseClient = null;
 let clientesCarregados = [];
 let carregandoClientes = false;
 let timerBusca = null;
@@ -131,44 +46,15 @@ const buscaCliente = document.getElementById("buscaCliente");
 const botoesFiltro = document.querySelectorAll("[data-filtro]");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
-function obterAdminToken() {
-  return localStorage.getItem(ADMIN_TOKEN_KEY) || "";
-}
-
-console.log("LIBERADO:", localStorage.getItem("painelLiberado"));
-console.log("TOKEN:", localStorage.getItem("painelToken"));
-
 function verificarAcesso() {
-  const liberado = localStorage.getItem("painelLiberado");
-  const token = localStorage.getItem("painelToken");
+  const liberado = sessionStorage.getItem("painelLiberado");
 
-  if (liberado !== "1" || !token) {
-    console.warn("Sessão inválida, redirecionando...");
-    return false; //
+  if (liberado !== "1") {
+    window.location.href = "/painel.html";
+    return false;
   }
 
   return true;
-}
-
-async function chamarApi(url, opcoes = {}) {
-  const token = obterAdminToken();
-
-  const resposta = await fetch(url, {
-    ...opcoes,
-    headers: {
-      "Content-Type": "application/json",
-      "x-admin-token": token,
-      ...(opcoes.headers || {})
-    }
-  });
-
-  const json = await resposta.json().catch(() => ({}));
-
-  if (!resposta.ok) {
-    throw new Error(json.error || "Erro na API.");
-  }
-
-  return json;
 }
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
@@ -211,6 +97,10 @@ function escaparHtml(texto) {
 
 function abrirCliente(codigo) {
   window.location.href = `/pasta-cliente.html?codigo=${encodeURIComponent(codigo)}`;
+}
+
+function obterDataHojeISO() {
+  return new Date().toISOString().split("T")[0];
 }
 
 function normalizarCodigo(codigo) {
@@ -462,7 +352,7 @@ function renderizarClientes() {
     const ativo = statusReal === "Ativo";
     const supervisor = clienteEhSupervisor(cliente);
 
-    card.className = `cliente-card ${supervisor ? "supervisor" : ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""}`;
+    card.className = `cliente-card ${supervisor ? "supervisor" : ativo ? "ativo" : "nao-ativo"} ${personalizado ? "personalizado" : ""} ${!supervisor && cliente.contrato_ativo === false ? "contrato-off" : ""}`;
     card.dataset.codigo = cliente.codigo;
     card.draggable = personalizado;
 
@@ -531,6 +421,15 @@ async function carregarClientes(opcoes = {}) {
     if (cache.fresco) return;
   }
 
+  if (!supabaseClient) {
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Erro ao conectar com o Supabase.</div>`;
+    }
+
+    mostrarMensagem("Supabase não carregou. Verifique o script CDN no HTML.", "#ff6b6b");
+    return;
+  }
+
   carregandoClientes = true;
 
   if (botaoAtualizar) {
@@ -542,11 +441,47 @@ async function carregarClientes(opcoes = {}) {
   try {
     mostrarMensagem(cache?.clientes?.length ? "Atualizando..." : "Carregando clientes...");
 
-    const resposta = await chamarApi("/api/admin-clientes");
-    const clientes = Array.isArray(resposta.clientes) ? resposta.clientes : [];
+    const hoje = obterDataHojeISO();
 
-    salvarCacheClientes(clientes);
-    aplicarClientes(clientes, "Carregado.");
+    const [
+      { data: clientes, error: errorClientes },
+      { data: playlists, error: errorPlaylists }
+    ] = await Promise.all([
+      supabaseClient
+        .from("clientes_app")
+        .select("codigo,nome_completo,telefone,email,cpf_cnpj,status,contrato_ativo,data_postagem,tipo_acesso,material_upgrade_ativo")
+        .order("codigo", { ascending: true }),
+
+      supabaseClient
+        .from("playlists")
+        .select("codigo_cliente,data_fim")
+        .or(`data_fim.is.null,data_fim.gte.${hoje}`)
+    ]);
+
+    if (errorClientes) throw errorClientes;
+    if (errorPlaylists) throw errorPlaylists;
+
+    const mapaAtivos = new Map();
+
+    (playlists || []).forEach((item) => {
+      const codigo = normalizarCodigo(item.codigo_cliente);
+      if (!codigo) return;
+      mapaAtivos.set(codigo, true);
+    });
+
+    const final = (clientes || []).map((cliente) => {
+      const codigoOriginal = String(cliente.codigo || "").trim();
+      const codigoNormalizado = normalizarCodigo(codigoOriginal);
+      const statusReal = mapaAtivos.has(codigoNormalizado) ? "Ativo" : "Não ativo";
+
+      return {
+        ...cliente,
+        status_real: statusReal
+      };
+    });
+
+    salvarCacheClientes(final);
+    aplicarClientes(final, "Carregado.");
   } catch (error) {
     console.error(error);
 
@@ -559,7 +494,7 @@ async function carregarClientes(opcoes = {}) {
       listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
     }
 
-    mostrarMensagem(error.message || "Erro ao carregar clientes.", "#ff6b6b");
+    mostrarMensagem("Erro ao carregar clientes do Supabase.", "#ff6b6b");
   } finally {
     carregandoClientes = false;
 
@@ -593,10 +528,23 @@ async function criarNovoCliente() {
 
     mostrarMensagem("Criando novo cliente...");
 
-    await chamarApi("/api/admin-clientes", {
-      method: "POST",
-      body: JSON.stringify({ codigo: codigoLivre })
-    });
+    const payload = {
+      codigo: codigoLivre,
+      nome_completo: "Novo Cliente",
+      telefone: "",
+      email: "",
+      cpf_cnpj: "",
+      status: "Não ativo",
+      vencimento_exibicao: null,
+      tipo_acesso: "cliente",
+      material_upgrade_ativo: true
+    };
+
+    const { error } = await supabaseClient
+      .from("clientes_app")
+      .insert(payload);
+
+    if (error) throw error;
 
     sessionStorage.removeItem(CACHE_CLIENTES_KEY);
 
@@ -605,7 +553,7 @@ async function criarNovoCliente() {
     abrirCliente(codigoLivre);
   } catch (error) {
     console.error(error);
-    mostrarMensagem(error.message || "Erro ao criar novo cliente.", "#ff6b6b");
+    mostrarMensagem("Erro ao criar novo cliente.", "#ff6b6b");
   } finally {
     if (botaoNovoCliente) {
       botaoNovoCliente.disabled = false;
@@ -621,6 +569,21 @@ function iniciarPagina() {
       window.location.href = "/painel.html";
     });
   }
+
+  if (!verificarAcesso()) {
+    return;
+  }
+
+  if (!window.supabase) {
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Supabase não carregou.</div>`;
+    }
+
+    mostrarMensagem("Supabase não carregou. Verifique o script no HTML.", "#ff6b6b");
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   if (botaoNovoCliente) {
     botaoNovoCliente.addEventListener("click", criarNovoCliente);
