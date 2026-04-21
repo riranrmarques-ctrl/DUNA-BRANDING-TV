@@ -1,10 +1,10 @@
-const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-const CACHE_CLIENTES_KEY = "central_clientes_cache_v2";
+const CACHE_CLIENTES_KEY = "central_clientes_cache_v3";
 const CACHE_CLIENTES_TTL = 3 * 60 * 1000;
-const ORDEM_PERSONALIZADA_KEY = "central_clientes_ordem_personalizada_v1";
-const FILTRO_CLIENTES_KEY = "central_clientes_filtro_v1";
+const ORDEM_PERSONALIZADA_KEY = "central_clientes_ordem_personalizada_v2";
+const FILTRO_CLIENTES_KEY = "central_clientes_filtro_v2";
 
 let supabaseClient = null;
 let clientesCarregados = [];
@@ -13,7 +13,7 @@ let timerBusca = null;
 let timerMensagem = null;
 let timerLimparMensagem = null;
 let dragCodigo = null;
-let filtroAtual = localStorage.getItem(FILTRO_CLIENTES_KEY) || "status";
+let filtroAtual = sessionStorage.getItem(FILTRO_CLIENTES_KEY) || "status";
 
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
@@ -24,7 +24,7 @@ const botoesFiltro = document.querySelectorAll("[data-filtro]");
 const botaoVoltarPainel = document.getElementById("botaoVoltarPainel");
 
 function verificarAcesso() {
-  const liberado = localStorage.getItem("painelLiberado");
+  const liberado = sessionStorage.getItem("painelLiberado");
 
   if (liberado !== "1") {
     window.location.href = "/painel.html";
@@ -88,9 +88,25 @@ function clienteEhSupervisor(cliente) {
   return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
 }
 
+function normalizarStatusTexto(status) {
+  const valor = String(status || "").trim().toLowerCase();
+
+  if (valor === "ativo") return "Ativo";
+  if (valor === "inativo") return "Não ativo";
+  return status ? String(status).trim() : "Não ativo";
+}
+
+function obterNomeCliente(cliente) {
+  return String(cliente.nome_completo || "Novo Cliente").trim();
+}
+
+function obterTelefoneCliente(cliente) {
+  return String(cliente.telefone || "").trim();
+}
+
 function lerCacheClientes() {
   try {
-    const cache = JSON.parse(localStorage.getItem(CACHE_CLIENTES_KEY) || "null");
+    const cache = JSON.parse(sessionStorage.getItem(CACHE_CLIENTES_KEY) || "null");
     if (!cache || !Array.isArray(cache.clientes)) return null;
 
     return {
@@ -104,7 +120,7 @@ function lerCacheClientes() {
 
 function salvarCacheClientes(clientes) {
   try {
-    localStorage.setItem(CACHE_CLIENTES_KEY, JSON.stringify({
+    sessionStorage.setItem(CACHE_CLIENTES_KEY, JSON.stringify({
       criadoEm: Date.now(),
       clientes
     }));
@@ -115,7 +131,7 @@ function salvarCacheClientes(clientes) {
 
 function lerOrdemPersonalizada() {
   try {
-    const lista = JSON.parse(localStorage.getItem(ORDEM_PERSONALIZADA_KEY) || "[]");
+    const lista = JSON.parse(sessionStorage.getItem(ORDEM_PERSONALIZADA_KEY) || "[]");
     return Array.isArray(lista) ? lista.map(normalizarCodigo) : [];
   } catch {
     return [];
@@ -123,7 +139,7 @@ function lerOrdemPersonalizada() {
 }
 
 function salvarOrdemPersonalizada(lista) {
-  localStorage.setItem(
+  sessionStorage.setItem(
     ORDEM_PERSONALIZADA_KEY,
     JSON.stringify((lista || []).map(normalizarCodigo).filter(Boolean))
   );
@@ -140,10 +156,6 @@ async function copiarCodigoCliente(codigo) {
     console.error(error);
     mostrarMensagem("Não foi possível copiar o código.", "#ff6b6b");
   }
-}
-
-function obterNomeCliente(cliente) {
-  return String(cliente.nome_completo || "Novo Cliente").trim();
 }
 
 function atualizarBotoesFiltro() {
@@ -198,8 +210,8 @@ function ordenarClientes(lista) {
 
   if (filtroAtual === "data") {
     return copia.sort((a, b) => {
-      const dataA = new Date(a.data_postagem || 0).getTime();
-      const dataB = new Date(b.data_postagem || 0).getTime();
+      const dataA = new Date(a.data_postagem || a.created_at || 0).getTime();
+      const dataB = new Date(b.data_postagem || b.created_at || 0).getTime();
 
       if (dataA !== dataB) return dataB - dataA;
       return obterNomeCliente(a).localeCompare(obterNomeCliente(b), "pt-BR");
@@ -386,6 +398,112 @@ function aplicarClientes(clientes, mensagemTexto = "Carregado.") {
   mostrarMensagem(mensagemTexto, "#7CFC9A");
 }
 
+async function buscarClientesRemoto() {
+  const consultasClientes = [
+    "codigo,nome_completo,telefone,email,cpf_cnpj,status,data_postagem,tipo_acesso,created_at",
+    "codigo,nome_completo,telefone,email,cpf_cnpj,status,data_postagem,tipo_acesso,contrato,created_at",
+    "*"
+  ];
+
+  let clientes = null;
+  let errorClientesFinal = null;
+
+  for (const colunas of consultasClientes) {
+    const { data, error } = await supabaseClient
+      .from("dadosclientes")
+      .select(colunas)
+      .order("codigo", { ascending: true });
+
+    if (!error) {
+      clientes = data || [];
+      errorClientesFinal = null;
+      break;
+    }
+
+    errorClientesFinal = error;
+    console.warn(`Falha ao buscar clientes com colunas: ${colunas}`, error);
+  }
+
+  if (errorClientesFinal) {
+    throw errorClientesFinal;
+  }
+
+  const hoje = obterDataHojeISO();
+
+  const consultasPlaylists = [
+    {
+      colunas: "codigo_cliente,data_fim",
+      filtro: `data_fim.is.null,data_fim.gte.${hoje}`
+    },
+    {
+      colunas: "codigo_cliente,fim_exibicao",
+      filtro: `fim_exibicao.is.null,fim_exibicao.gte.${hoje}`
+    },
+    {
+      colunas: "codigo_cliente,data_fim,fim_exibicao",
+      filtro: `data_fim.is.null,data_fim.gte.${hoje},fim_exibicao.is.null,fim_exibicao.gte.${hoje}`
+    },
+    {
+      colunas: "codigo_cliente",
+      filtro: null
+    }
+  ];
+
+  let playlists = [];
+  let encontrouPlaylist = false;
+
+  for (const consulta of consultasPlaylists) {
+    let query = supabaseClient
+      .from("playlists")
+      .select(consulta.colunas);
+
+    if (consulta.filtro) {
+      query = query.or(consulta.filtro);
+    }
+
+    const { data, error } = await query;
+
+    if (!error) {
+      playlists = data || [];
+      encontrouPlaylist = true;
+      break;
+    }
+
+    console.warn(`Falha ao buscar playlists com colunas: ${consulta.colunas}`, error);
+  }
+
+  if (!encontrouPlaylist) {
+    playlists = [];
+  }
+
+  const mapaAtivos = new Map();
+
+  playlists.forEach((item) => {
+    const codigo = normalizarCodigo(item?.codigo_cliente);
+    if (!codigo) return;
+    mapaAtivos.set(codigo, true);
+  });
+
+  return (clientes || []).map((cliente) => {
+    const codigoOriginal = String(cliente.codigo || "").trim();
+    const codigoNormalizado = normalizarCodigo(codigoOriginal);
+    const statusBanco = normalizarStatusTexto(cliente.status);
+    const statusReal = mapaAtivos.has(codigoNormalizado) ? "Ativo" : statusBanco;
+    const contratoAtivo = cliente.contrato_ativo !== undefined
+      ? cliente.contrato_ativo !== false
+      : Boolean(String(cliente.contrato || "").trim());
+
+    return {
+      ...cliente,
+      codigo: codigoOriginal,
+      nome_completo: String(cliente.nome_completo || "Novo Cliente").trim(),
+      telefone: obterTelefoneCliente(cliente),
+      status_real: statusReal,
+      contrato_ativo: contratoAtivo
+    };
+  });
+}
+
 async function carregarClientes(opcoes = {}) {
   const forcarAtualizacao = opcoes.forcarAtualizacao === true;
 
@@ -418,44 +536,7 @@ async function carregarClientes(opcoes = {}) {
   try {
     mostrarMensagem(cache?.clientes?.length ? "Atualizando..." : "Carregando clientes...");
 
-    const hoje = obterDataHojeISO();
-
-    const [
-      { data: clientes, error: errorClientes },
-      { data: playlists, error: errorPlaylists }
-    ] = await Promise.all([
-      supabaseClient
-        .from("clientes_app")
-        .select("codigo,nome_completo,telefone,email,cpf_cnpj,status,contrato_ativo,data_postagem,tipo_acesso,material_upgrade_ativo")
-        .order("codigo", { ascending: true }),
-
-      supabaseClient
-        .from("playlists")
-        .select("codigo_cliente,data_fim")
-        .or(`data_fim.is.null,data_fim.gte.${hoje}`)
-    ]);
-
-    if (errorClientes) throw errorClientes;
-    if (errorPlaylists) throw errorPlaylists;
-
-    const mapaAtivos = new Map();
-
-    (playlists || []).forEach((item) => {
-      const codigo = normalizarCodigo(item.codigo_cliente);
-      if (!codigo) return;
-      mapaAtivos.set(codigo, true);
-    });
-
-    const final = (clientes || []).map((cliente) => {
-      const codigoOriginal = String(cliente.codigo || "").trim();
-      const codigoNormalizado = normalizarCodigo(codigoOriginal);
-      const statusReal = mapaAtivos.has(codigoNormalizado) ? "Ativo" : "Não ativo";
-
-      return {
-        ...cliente,
-        status_real: statusReal
-      };
-    });
+    const final = await buscarClientesRemoto();
 
     salvarCacheClientes(final);
     aplicarClientes(final, "Carregado.");
@@ -506,7 +587,7 @@ async function obterCodigoUnico() {
     }
 
     const { data, error } = await supabaseClient
-      .from("clientes_app")
+      .from("dadosclientes")
       .select("codigo")
       .eq("codigo", codigo)
       .maybeSingle();
@@ -530,25 +611,58 @@ async function criarNovoCliente() {
 
     const codigoLivre = await obterCodigoUnico();
 
-    const payload = {
-      codigo: codigoLivre,
-      nome_completo: "Novo Cliente",
-      telefone: "",
-      email: "",
-      cpf_cnpj: "",
-      status: "Não ativo",
-      vencimento_exibicao: null,
-      tipo_acesso: "cliente",
-      material_upgrade_ativo: true
-    };
+    const tentativasPayload = [
+      {
+        codigo: codigoLivre,
+        nome_completo: "Novo Cliente",
+        telefone: "",
+        email: "",
+        cpf_cnpj: "",
+        status: "inativo",
+        tipo_acesso: "cliente"
+      },
+      {
+        codigo: codigoLivre,
+        nome_completo: "Novo Cliente",
+        telefone: "",
+        email: "",
+        cpf_cnpj: "",
+        status: "inativo",
+        tipo_acesso: "cliente",
+        contrato: ""
+      },
+      {
+        codigo: codigoLivre,
+        nome_completo: "Novo Cliente",
+        telefone: "",
+        email: "",
+        cpf_cnpj: "",
+        status: "inativo",
+        data_postagem: new Date().toISOString(),
+        tipo_acesso: "cliente",
+        contrato: ""
+      }
+    ];
 
-    const { error } = await supabaseClient
-      .from("clientes_app")
-      .insert(payload);
+    let errorFinal = null;
 
-    if (error) throw error;
+    for (const payload of tentativasPayload) {
+      const { error } = await supabaseClient
+        .from("dadosclientes")
+        .insert(payload);
 
-    localStorage.removeItem(CACHE_CLIENTES_KEY);
+      if (!error) {
+        errorFinal = null;
+        break;
+      }
+
+      errorFinal = error;
+      console.warn("Falha ao criar cliente com payload:", payload, error);
+    }
+
+    if (errorFinal) throw errorFinal;
+
+    sessionStorage.removeItem(CACHE_CLIENTES_KEY);
 
     mostrarMensagem(`Cliente ${codigoLivre} criado com sucesso.`, "#7CFC9A");
     await carregarClientes({ forcarAtualizacao: true });
@@ -605,7 +719,7 @@ function iniciarPagina() {
   botoesFiltro.forEach((botao) => {
     botao.addEventListener("click", () => {
       filtroAtual = botao.dataset.filtro || "status";
-      localStorage.setItem(FILTRO_CLIENTES_KEY, filtroAtual);
+      sessionStorage.setItem(FILTRO_CLIENTES_KEY, filtroAtual);
       renderizarClientes();
     });
   });
