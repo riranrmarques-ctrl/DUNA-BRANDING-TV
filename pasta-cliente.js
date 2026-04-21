@@ -6,10 +6,11 @@ if (!codigo) {
 
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+
 const SUPABASE_CONTRATO_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
 const SUPABASE_CONTRATO_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
-const BUCKET = "midias";
 
+const BUCKET = "midias";
 const TABELA_CLIENTES = "dadosclientes";
 const TABELA_VINCULOS = "playercliente";
 const TABELA_PLAYLISTS = "playlists";
@@ -76,8 +77,7 @@ function mostrarStatusUpload(texto, cor = "#9fd2ff") {
 }
 
 function obterCodigoDaUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return String(params.get("codigo") || "").trim().toUpperCase();
+  return String(new URLSearchParams(window.location.search).get("codigo") || "").trim().toUpperCase();
 }
 
 function supervisorEstaAtivo() {
@@ -208,7 +208,6 @@ function desativarBotaoSalvar() {
 
 function aplicarCampoDesativado(campo, desativado) {
   if (!campo) return;
-
   campo.disabled = desativado;
   campo.style.opacity = desativado ? "0.45" : "1";
   campo.style.cursor = desativado ? "not-allowed" : "";
@@ -253,7 +252,7 @@ function atualizarModoSupervisor() {
     btnSupervisor.textContent = ativo ? "Supervisor ativo" : "Supervisor";
   }
 
-  const camposBloqueadosNoSupervisor = [
+  [
     inputCodigo,
     inputTelefone,
     inputEmail,
@@ -264,9 +263,7 @@ function atualizarModoSupervisor() {
     arquivoInput,
     btnUploadCliente,
     btnBaixarContrato
-  ];
-
-  camposBloqueadosNoSupervisor.forEach((campo) => aplicarCampoDesativado(campo, ativo));
+  ].forEach((campo) => aplicarCampoDesativado(campo, ativo));
 
   aplicarCampoDesativado(inputNome, false);
   aplicarCampoDesativado(botaoSalvar, false);
@@ -281,20 +278,19 @@ function atualizarModoSupervisor() {
 }
 
 function obterCodigoPonto(ponto) {
-  return String(
-    ponto?.codigo ||
-    ponto?.codigo_ponto ||
-    ponto?.codigo_visual ||
-    ponto?.id_ponto ||
-    ponto?.id ||
-    ""
-  ).trim();
+  return String(ponto?.codigo || "").trim();
+}
+
+function obterCodigoRealDoPonto(codigoVisual) {
+  const ponto = pontosData[codigoVisual];
+  return String(ponto?.codigo || codigoVisual || "").trim();
 }
 
 async function carregarPontos() {
   const { data, error } = await supabaseClient
     .from(TABELA_PONTOS)
-    .select("*");
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
 
@@ -354,18 +350,6 @@ async function carregarClausulasContrato() {
 
 function obterNomeDoPonto(ponto, codigo) {
   return ponto?.nome || ponto?.nome_painel || ponto?.titulo || ponto?.ambiente || `Ponto ${codigo}`;
-}
-
-function obterCodigoRealDoPonto(codigoVisual) {
-  const ponto = pontosData[codigoVisual];
-
-  return String(
-    ponto?.codigo ||
-    ponto?.codigo_ponto ||
-    ponto?.codigo_visual ||
-    codigoVisual ||
-    ""
-  ).trim();
 }
 
 function obterPontosMarcados() {
@@ -461,7 +445,6 @@ function gerarContratoCliente() {
 
 function montarHtmlContratoCompleto(dadosContrato = null) {
   const dados = dadosContrato || obterDadosContratoCliente();
-  const assinaturaUrl = `${window.location.origin}/assinatura.png`;
 
   const clausulasHtml = clausulasContrato.length
     ? clausulasContrato.map((clausula) => `
@@ -487,110 +470,21 @@ function montarHtmlContratoCompleto(dadosContrato = null) {
       <meta charset="UTF-8">
       <title>Contrato ${escaparHtml(dados.nome)}</title>
       <style>
-        body {
-          font-family: Arial, sans-serif;
-          color: #111827;
-          background: #fff;
-          margin: 0;
-          padding: 32px;
-        }
-
-        .topo {
-          border-bottom: 2px solid #111827;
-          padding-bottom: 12px;
-          margin-bottom: 20px;
-        }
-
-        h1 {
-          font-size: 24px;
-          margin: 0 0 6px 0;
-        }
-
-        .sub {
-          color: #475569;
-          font-size: 14px;
-        }
-
-        .bloco {
-          margin-bottom: 18px;
-        }
-
-        .bloco h2 {
-          font-size: 16px;
-          margin: 0 0 10px 0;
-        }
-
-        .grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-
-        .campo {
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 10px;
-          background: #f8fafc;
-          font-size: 14px;
-        }
-
-        .campo strong {
-          display: block;
-          margin-bottom: 4px;
-        }
-
-        .assinaturas {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(220px, 1fr));
-          gap: 20px;
-          margin-top: 46px;
-          align-items: end;
-        }
-
-        .assinatura-box {
-          text-align: center;
-          min-height: 120px;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-        }
-
-        .assinatura-img {
-          display: block;
-          width: 400px;
-          max-width: 400px;
-          height: 200px;
-          object-fit: contain;
-          object-position: center bottom;
-          margin: 0 auto 20px;
-          pointer-events: none;
-        }
-
-        .linha-assinatura {
-          border-top: 1px solid #111827;
-          padding-top: 8px;
-          font-size: 14px;
-          color: #111827;
-          position: relative;
-          z-index: 2;
-          font-weight: 700;
-        }
-
-        @media print {
-          body {
-            padding: 24px;
-          }
-
-          .assinatura-img {
-            width: 260px;
-            max-width: 260px;
-            height: 80px;
-            margin: 0 auto -12px;
-          }
-        }
+        body { font-family: Arial, sans-serif; color: #111827; background: #fff; margin: 0; padding: 32px; }
+        .topo { border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 20px; }
+        h1 { font-size: 24px; margin: 0 0 6px 0; }
+        .sub { color: #475569; font-size: 14px; }
+        .bloco { margin-bottom: 18px; }
+        .bloco h2 { font-size: 16px; margin: 0 0 10px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .campo { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #f8fafc; font-size: 14px; }
+        .campo strong { display: block; margin-bottom: 4px; }
+        .assinaturas { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 20px; margin-top: 46px; align-items: end; }
+        .assinatura-box { text-align: center; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-end; }
+        .assinatura-img { display: block; width: 300px; max-width: 90%; height: 120px; object-fit: contain; margin: 0 auto -10px; }
+        .linha-assinatura { border-top: 1px solid #111827; padding-top: 8px; font-size: 14px; color: #111827; font-weight: 700; }
       </style>
     </head>
-
     <body>
       <div class="topo">
         <h1>${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato")}</h1>
@@ -631,9 +525,8 @@ function montarHtmlContratoCompleto(dadosContrato = null) {
         <div class="assinatura-box">
           <div class="linha-assinatura">CONTRATANTE</div>
         </div>
-
         <div class="assinatura-box">
-          <img src="${escaparHtml(assinaturaUrl)}" alt="Assinatura Duna Branding" class="assinatura-img">
+          <img src="${escaparHtml(`${window.location.origin}/assinatura.png`)}" alt="Assinatura Duna Branding" class="assinatura-img">
           <div class="linha-assinatura">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
         </div>
       </div>
@@ -663,15 +556,11 @@ function salvarHistoricoContratosGerados(lista) {
 function obterProximoNumeroContrato() {
   const historico = lerHistoricoContratosGerados();
 
-  const maiorNumero = historico.reduce((maior, item) => {
-    const nome = String(item.nome_arquivo || "");
-    const match = nome.match(/^branding-(\d+)\.html$/i);
+  return historico.reduce((maior, item) => {
+    const match = String(item.nome_arquivo || "").match(/^branding-(\d+)\.html$/i);
     const numero = match ? Number(match[1]) : 0;
-
     return Number.isFinite(numero) && numero > maior ? numero : maior;
-  }, 0);
-
-  return maiorNumero + 1;
+  }, 0) + 1;
 }
 
 function obterNomeArquivoContrato() {
@@ -754,10 +643,7 @@ function baixarContratoDoHistorico(id) {
     return;
   }
 
-  const html = clienteAtual?.contrato_texto || montarHtmlContratoCompleto(item.dados);
-  const nomeArquivo = item.nome_arquivo || "contrato.html";
-
-  baixarHtmlContrato(html, nomeArquivo);
+  baixarHtmlContrato(clienteAtual?.contrato_texto || montarHtmlContratoCompleto(item.dados), item.nome_arquivo || "contrato.html");
 }
 
 async function excluirContratoDoHistorico(id) {
@@ -834,84 +720,26 @@ function gerarHistoricoContratoVisual() {
   }
 
   historicoContratos.innerHTML = historico.map((item) => {
-    const data = formatarDataHistorico(item.criado_em);
-    const nome = item.nome_arquivo || "contrato.html";
     const concluido = String(item.status || "").toLowerCase() === "concluido";
-
-    const textoStatus = concluido ? "Concluído" : "Pendente de assinatura";
     const corStatus = concluido ? "#7CFC9A" : "#f59e0b";
-    const fundoStatus = concluido ? "rgba(124, 252, 154, 0.12)" : "rgba(245, 158, 11, 0.14)";
-    const bordaStatus = concluido ? "rgba(124, 252, 154, 0.45)" : "rgba(245, 158, 11, 0.45)";
 
     return `
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:12px;
-        padding:12px;
-        border:1px solid #2a3040;
-        border-radius:12px;
-        background:#10131a;
-      ">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid #2a3040;border-radius:12px;background:#10131a;">
         <div style="flex:1;min-width:0;">
           <div style="font-weight:700;color:#ffffff;word-break:break-word;margin-bottom:6px;">
-            ${escaparHtml(nome)}
+            ${escaparHtml(item.nome_arquivo || "contrato.html")}
           </div>
-
           <div style="color:#c6cedd;font-size:0.9rem;margin-bottom:8px;">
-            Enviado em: ${escaparHtml(data)}
+            Enviado em: ${escaparHtml(formatarDataHistorico(item.criado_em))}
           </div>
-
-          <div style="
-            display:inline-flex;
-            align-items:center;
-            width:fit-content;
-            min-height:28px;
-            padding:5px 10px;
-            border-radius:999px;
-            border:1px solid ${bordaStatus};
-            background:${fundoStatus};
-            color:${corStatus};
-            font-size:0.78rem;
-            font-weight:800;
-            text-transform:uppercase;
-            letter-spacing:0.04em;
-          ">
-            ${textoStatus}
+          <div style="display:inline-flex;width:fit-content;min-height:28px;padding:5px 10px;border-radius:999px;border:1px solid ${corStatus};color:${corStatus};font-size:0.78rem;font-weight:800;text-transform:uppercase;">
+            ${concluido ? "Concluído" : "Pendente de assinatura"}
           </div>
         </div>
 
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button
-            type="button"
-            class="btn-baixar-contrato-historico"
-            data-id="${escaparHtml(item.id)}"
-            style="
-              border:none;
-              border-radius:8px;
-              background:#22c55e;
-              color:#fff;
-              font-weight:700;
-              cursor:pointer;
-              padding:9px 12px;
-            "
-          >Baixar</button>
-
-          <button
-            type="button"
-            class="btn-excluir-contrato-historico"
-            data-id="${escaparHtml(item.id)}"
-            style="
-              border:none;
-              border-radius:8px;
-              background:#d9534f;
-              color:#fff;
-              font-weight:700;
-              cursor:pointer;
-              padding:9px 12px;
-            "
-          >Deletar</button>
+          <button type="button" class="btn-baixar-contrato-historico" data-id="${escaparHtml(item.id)}" style="border:none;border-radius:8px;background:#22c55e;color:#fff;font-weight:700;cursor:pointer;padding:9px 12px;">Baixar</button>
+          <button type="button" class="btn-excluir-contrato-historico" data-id="${escaparHtml(item.id)}" style="border:none;border-radius:8px;background:#d9534f;color:#fff;font-weight:700;cursor:pointer;padding:9px 12px;">Deletar</button>
         </div>
       </div>
     `;
@@ -944,10 +772,7 @@ function obterTituloArquivo(item) {
 }
 
 function criarChaveGrupoHistorico(item) {
-  return String(
-    item.storage_path ||
-    `${item.video_url || ""}|${item.data_inicio || ""}|${item.nome || ""}`
-  ).trim();
+  return String(item.storage_path || `${item.video_url || ""}|${item.data_inicio || ""}|${item.nome || ""}`).trim();
 }
 
 function agruparHistoricoArquivos(itens = []) {
@@ -997,98 +822,26 @@ function renderizarHistoricoArquivos(itens = []) {
   const grupos = agruparHistoricoArquivos(itens);
 
   historicoArquivos.innerHTML = grupos.map((grupo) => {
-    const inicio = formatarDataHistorico(grupo.data_inicio);
-    const fim = grupo.data_fim ? formatarDataHistorico(grupo.data_fim) : "-";
-    const pontosTexto = grupo.pontos.length ? grupo.pontos.join(", ") : "-";
     const idsEncoded = encodeURIComponent(JSON.stringify(grupo.ids));
     const tituloSeguro = escaparHtml(grupo.titulo || "");
+    const pontosTexto = grupo.pontos.length ? grupo.pontos.join(", ") : "-";
 
     return `
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:12px;
-        padding:12px;
-        border:1px solid #2a3040;
-        border-radius:12px;
-        background:#10131a;
-      ">
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:700;margin-bottom:8px;color:#ffffff;word-break:break-word;">
-            ${tituloSeguro}
-          </div>
-
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid #2a3040;border-radius:12px;background:#10131a;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;margin-bottom:8px;color:#ffffff;word-break:break-word;">${tituloSeguro}</div>
           <div style="color:#c6cedd;font-size:0.9rem;line-height:1.55;">
             <div><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</div>
             <div><strong>Tipo:</strong> ${escaparHtml(grupo.tipo)}</div>
-            <div><strong>Inicio:</strong> ${escaparHtml(inicio)}</div>
-            <div><strong>Fim:</strong> ${escaparHtml(fim)}</div>
+            <div><strong>Início:</strong> ${escaparHtml(formatarDataHistorico(grupo.data_inicio))}</div>
+            <div><strong>Fim:</strong> ${escaparHtml(grupo.data_fim ? formatarDataHistorico(grupo.data_fim) : "-")}</div>
           </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:8px;min-width:110px;flex-shrink:0;">
-          <button
-            type="button"
-            class="btn-renomear-historico"
-            data-ids="${idsEncoded}"
-            data-titulo="${tituloSeguro}"
-            style="
-              display:inline-flex;
-              align-items:center;
-              justify-content:center;
-              height:36px;
-              padding:0 12px;
-              border:none;
-              border-radius:8px;
-              background:#f59e0b;
-              color:#fff;
-              font-size:0.82rem;
-              font-weight:700;
-              cursor:pointer;
-            "
-          >Renomear</button>
-
-          <a
-            href="${escaparHtml(grupo.video_url || "#")}"
-            target="_blank"
-            rel="noopener noreferrer"
-            style="
-              display:inline-flex;
-              align-items:center;
-              justify-content:center;
-              height:36px;
-              padding:0 12px;
-              border:none;
-              border-radius:8px;
-              background:#2d8cff;
-              color:#fff;
-              text-decoration:none;
-              font-size:0.82rem;
-              font-weight:700;
-            "
-          >Abrir</a>
-
-          <button
-            type="button"
-            class="btn-deletar-historico"
-            data-ids="${idsEncoded}"
-            data-storage-path="${escaparHtml(grupo.storage_path || "")}"
-            style="
-              display:inline-flex;
-              align-items:center;
-              justify-content:center;
-              height:36px;
-              padding:0 12px;
-              border:none;
-              border-radius:8px;
-              background:#ff5f5f;
-              color:#fff;
-              font-size:0.82rem;
-              font-weight:700;
-              cursor:pointer;
-            "
-          >Excluir</button>
+          <button type="button" class="btn-renomear-historico" data-ids="${idsEncoded}" data-titulo="${tituloSeguro}" style="height:36px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;">Renomear</button>
+          <a href="${escaparHtml(grupo.video_url || "#")}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;height:36px;border-radius:8px;background:#2d8cff;color:#fff;text-decoration:none;font-size:0.82rem;font-weight:700;">Abrir</a>
+          <button type="button" class="btn-deletar-historico" data-ids="${idsEncoded}" data-storage-path="${escaparHtml(grupo.storage_path || "")}" style="height:36px;border:none;border-radius:8px;background:#ff5f5f;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;">Excluir</button>
         </div>
       </div>
     `;
@@ -1122,7 +875,7 @@ function ativarBotoesDeletarHistorico() {
       try {
         ids = JSON.parse(decodeURIComponent(botao.dataset.ids || "[]"));
       } catch (error) {
-        console.error("Erro ao ler ids do historico:", error);
+        console.error("Erro ao ler ids do histórico:", error);
       }
 
       await deletarItemHistorico(ids, botao.dataset.storagePath || "");
@@ -1232,34 +985,19 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 
   codigos
     .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }))
-    .forEach((codigoVisual) => {
-      const ponto = pontosData[codigoVisual];
-      const nome = obterNomeDoPonto(ponto, codigoVisual);
-      const codigoReal = obterCodigoRealDoPonto(codigoVisual);
-      const checked = selecionadosSet.has(codigoVisual) || selecionadosSet.has(codigoReal);
+    .forEach((codigoPonto) => {
+      const ponto = pontosData[codigoPonto];
+      const nome = obterNomeDoPonto(ponto, codigoPonto);
+      const checked = selecionadosSet.has(codigoPonto);
       const disponivel = pontoEstaDisponivel(ponto);
       const disabled = !disponivel;
 
       const card = `
-        <label style="
-          display:flex;
-          align-items:center;
-          gap:10px;
-          padding:10px 12px;
-          border-radius:10px;
-          min-height:52px;
-          cursor:${disabled ? "not-allowed" : "pointer"};
-          border:1px solid ${checked ? "#8ce063" : disabled ? "#ff7b7b" : "#6f8bff"};
-          background:${checked ? "#76d34f" : disabled ? "#e85252" : "#4f6ff0"};
-          color:#fff;
-          opacity:1;
-          overflow:hidden;
-          box-shadow:0 4px 12px rgba(0,0,0,0.16);
-        ">
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;min-height:52px;cursor:${disabled ? "not-allowed" : "pointer"};border:1px solid ${checked ? "#8ce063" : disabled ? "#ff7b7b" : "#6f8bff"};background:${checked ? "#76d34f" : disabled ? "#e85252" : "#4f6ff0"};color:#fff;opacity:1;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.16);">
           <input
             type="checkbox"
             name="pontos"
-            value="${escaparHtml(codigoVisual)}"
+            value="${escaparHtml(codigoPonto)}"
             ${checked ? "checked" : ""}
             ${disabled ? "disabled" : ""}
             style="width:16px;height:16px;flex-shrink:0;accent-color:#ffffff;cursor:${disabled ? "not-allowed" : "pointer"};"
@@ -1305,21 +1043,11 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 }
 
 function extrairCodigoClienteVinculo(item) {
-  return normalizarCodigo(
-    item?.cliente_codigo ||
-    item?.codigo_cliente ||
-    item?.codigo ||
-    ""
-  );
+  return normalizarCodigo(item?.cliente_codigo || item?.codigo_cliente || item?.codigo || "");
 }
 
 function extrairCodigoPontoVinculo(item) {
-  return String(
-    item?.ponto_codigo ||
-    item?.codigo_ponto ||
-    item?.codigo ||
-    ""
-  ).trim();
+  return String(item?.ponto_codigo || item?.codigo_ponto || item?.codigo || "").trim();
 }
 
 async function carregarVinculosCliente() {
@@ -1481,9 +1209,7 @@ async function inserirVinculosCliente(vinculos) {
   const erroTexto = String(error.message || "").toLowerCase();
   const erroColuna = erroTexto.includes("column") || erroTexto.includes("schema cache") || erroTexto.includes("does not exist");
 
-  if (!erroColuna) {
-    throw error;
-  }
+  if (!erroColuna) throw error;
 
   const fallback = vinculos.map((item) => ({
     codigo_cliente: item.cliente_codigo,
@@ -1566,9 +1292,9 @@ async function salvarCliente() {
     const pontosSelecionados = obterPontosMarcados();
 
     if (pontosSelecionados.length) {
-      const vinculos = pontosSelecionados.map((codigoVisual) => ({
+      const vinculos = pontosSelecionados.map((codigoPonto) => ({
         cliente_codigo: codigoClienteAtual,
-        ponto_codigo: obterCodigoRealDoPonto(codigoVisual),
+        ponto_codigo: codigoPonto,
         tipo_vinculo: tipoVinculo
       }));
 
@@ -1595,13 +1321,8 @@ async function salvarCliente() {
 function detectarTipoArquivoPlaylist(file) {
   const nome = String(file?.name || "").toLowerCase();
 
-  if (/\.(jpg|jpeg|png|webp)$/i.test(nome)) {
-    return "imagem";
-  }
-
-  if (nome.endsWith(".txt")) {
-    return "url";
-  }
+  if (/\.(jpg|jpeg|png|webp)$/i.test(nome)) return "imagem";
+  if (nome.endsWith(".txt")) return "url";
 
   return "video";
 }
@@ -1682,8 +1403,8 @@ async function uploadArquivoCliente() {
       videoUrl = publicData.publicUrl;
     }
 
-    const registros = codigosDestino.map((codigoReal, index) => ({
-      codigo: codigoReal,
+    const registros = codigosDestino.map((codigoPonto, index) => ({
+      codigo: codigoPonto,
       codigo_cliente: codigoClienteAtual,
       nome: inputNome.value.trim(),
       titulo_arquivo: file.name,
