@@ -6,7 +6,7 @@
   <title>Pasta do Cliente</title>
 
   <script>
-    if (localStorage.getItem("painelLiberado") !== "1") {
+    if (sessionStorage.getItem("painelLiberado") !== "1") {
       window.location.replace("/painel.html");
     }
   </script>
