@@ -332,7 +332,7 @@ function registrarDesconexaoKeepAlive() {
 }
 
 async function resolverItem(item) {
-  let url = item.video_url || item.arquivo_url || item.url || "";
+  let url = item.video_url || item.url || "";
   let tipo = detectarTipo(url, item.tipo);
 
   if (tipo === "site" && String(url).toLowerCase().split("?")[0].endsWith(".txt")) {
@@ -373,7 +373,7 @@ async function buscarPlaylistRemota({ silencioso = false } = {}) {
 
   const { data, error } = await supabaseClient
     .from(TABELA)
-    .select("id,nome,titulo_arquivo,video_url,arquivo_url,url,storage_path,tipo,data_fim,ordem,codigo,codigo_cliente,created_at")
+    .select("id,nome,titulo_arquivo,video_url,storage_path,tipo,data_fim,ordem,codigo,codigo_cliente,created_at")
     .eq("codigo", codigoAtual)
     .order("ordem", { ascending: true });
 
@@ -389,7 +389,7 @@ async function buscarPlaylistRemota({ silencioso = false } = {}) {
 
   const lista = (data || [])
     .filter(itemEstaAtivo)
-    .filter((item) => item.video_url || item.arquivo_url || item.url);
+    .filter((item) => item.video_url);
 
   if (!lista.length) {
     if (!silencioso) {
