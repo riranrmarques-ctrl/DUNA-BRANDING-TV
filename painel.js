@@ -238,15 +238,6 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
       const eventoRecente = diff < LIMITE_STATUS_ATIVO_MS;
       const horario = formatarDataHora(dataEventoRaw);
 
-      if (evento === "conectou" && eventoRecente) {
-        return {
-          texto: "Ativo",
-          detalhe: `Ativo desde ${horario}`,
-          ativo: true,
-          classe: "ativo"
-        };
-      }
-
       if (evento === "desconectou") {
         return {
           texto: "Inativo",
