@@ -228,6 +228,50 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
 
   const ultimoEvento = Array.isArray(historicoConexao) ? historicoConexao[0] : null;
   const evento = String(ultimoEvento?.evento || "").toLowerCase();
+  const dataEventoRaw = ultimoEvento?.data_hora || ultimoEvento?.created_at || null;
+
+  if (dataEventoRaw) {
+    const dataEvento = new Date(dataEventoRaw);
+
+    if (!Number.isNaN(dataEvento.getTime())) {
+      const diff = Date.now() - dataEvento.getTime();
+      const eventoRecente = diff < LIMITE_STATUS_ATIVO_MS;
+      const horario = formatarDataHora(dataEventoRaw);
+
+      if (evento === "conectou" && eventoRecente) {
+        return {
+          texto: "Ativo",
+          detalhe: `Ativo desde ${horario}`,
+          ativo: true,
+          classe: "ativo"
+        };
+      }
+
+      if (evento === "desconectou") {
+        return {
+          texto: "Inativo",
+          detalhe: `Inativo desde ${horario}`,
+          ativo: false,
+          classe: "inativo"
+        };
+      }
+
+      if (evento === "conectou" && !eventoRecente) {
+        return {
+          texto: "Inativo",
+          detalhe: "Inativo sem sinal recente do reprodutor",
+          ativo: false,
+          classe: "inativo"
+        };
+      }
+    }
+  }
+
+  return calcularStatusInfo(ponto);
+}
+
+  const ultimoEvento = Array.isArray(historicoConexao) ? historicoConexao[0] : null;
+  const evento = String(ultimoEvento?.evento || "").toLowerCase();
   const dataEvento = ultimoEvento?.data_hora || ultimoEvento?.created_at || null;
 
   if (evento === "conectou") {
