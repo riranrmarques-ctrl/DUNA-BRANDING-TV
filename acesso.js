@@ -1,11 +1,12 @@
-const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-const TABELA_CLIENTES = "clientes_app";
-const TABELA_CLIENTE_PONTOS = "cliente_pontos";
+const TABELA_CLIENTES = "dadosclientes";
+const TABELA_CLIENTE_PONTOS = "playercliente";
 const TABELA_PONTOS = "pontos";
 const TABELA_PLAYLIST = "playlists";
-const TABELA_HISTORICO = "historico_conexao";
+const TABELA_HISTORICO = "statuspontos";
+const TABELA_CONTRATOS_CLIENTES = "contratos_clientes";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -15,30 +16,6 @@ const codigoLogin = document.getElementById("codigoLogin");
 const btnEntrarCliente = document.getElementById("btnEntrarCliente");
 const loginErro = document.getElementById("loginErro");
 const loadingOverlay = document.getElementById("loadingOverlay");
-function mostrarLoading() {
-  document.body.classList.add("loading-page");
-
-  if (loadingOverlay) {
-    loadingOverlay.style.display = "flex";
-    requestAnimationFrame(() => {
-      loadingOverlay.classList.add("ativo");
-    });
-  }
-}
-
-function esconderLoading() {
-  document.body.classList.remove("loading-page");
-
-  if (loadingOverlay) {
-    loadingOverlay.classList.remove("ativo");
-
-    setTimeout(() => {
-      if (!loadingOverlay.classList.contains("ativo")) {
-        loadingOverlay.style.display = "none";
-      }
-    }, 280);
-  }
-}
 
 const btnAtualizar = document.getElementById("btnAtualizar");
 const btnSair = document.getElementById("btnSair");
@@ -68,6 +45,7 @@ const nomeClienteTopo = document.getElementById("nomeClienteTopo");
 
 let codigoClienteAtual = "";
 let clienteAtual = null;
+let contratoAtualCliente = null;
 let pontosContratados = [];
 let historicosPorPonto = {};
 let pontoSelecionado = "";
@@ -76,6 +54,7 @@ let timerMensagem = null;
 let timerLimparMensagem = null;
 let timerPreviewPlaylist = null;
 let canalClienteRealtime = null;
+let canalContratoRealtime = null;
 
 function setMensagem(texto, tipo = "normal") {
   if (!mensagemCliente) return;
@@ -123,6 +102,7 @@ function mostrarLoading() {
 
   if (loadingOverlay) {
     loadingOverlay.style.display = "flex";
+
     requestAnimationFrame(() => {
       loadingOverlay.classList.add("ativo");
     });
@@ -153,7 +133,9 @@ function escapeHtml(texto) {
   return String(texto || "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function normalizarCodigo(codigo) {
@@ -202,39 +184,26 @@ function clienteEhSupervisor(cliente) {
   return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
 }
 
-function contratoEstaDisponivel(cliente) {
-  if (!cliente) return false;
-  if (clienteEhSupervisor(cliente)) return false;
-  if (cliente.contrato_ativo === false) return false;
-  if (!cliente.contrato_html) return false;
-  return true;
+function contratoEstaDisponivel() {
+  if (!clienteAtual) return false;
+  if (clienteEhSupervisor(clienteAtual)) return false;
+  if (!contratoAtualCliente) return false;
+  if (!contratoAtualCliente.html_final) return false;
+
+  const status = String(contratoAtualCliente.status || "").trim().toLowerCase();
+  return status !== "cancelado" && status !== "apagado";
 }
 
-function contratoEstaConcluido(cliente) {
-  if (!cliente) return false;
+function contratoEstaConcluido() {
+  if (!contratoEstaDisponivel()) return false;
 
-  const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
-
-  if (!temAssinatura) return false;
-
-  const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
-  const dataContrato = new Date(
-    cliente.contrato_enviado_em ||
-    cliente.contrato_atualizado_em ||
-    cliente.contrato_updated_at ||
-    cliente.updated_at ||
-    0
+  const status = String(contratoAtualCliente.status || "").trim().toLowerCase();
+  return Boolean(
+    contratoAtualCliente.assinado_em ||
+    status === "assinado" ||
+    status === "concluido" ||
+    status === "concluído"
   );
-
-  if (Number.isNaN(dataAssinatura.getTime())) {
-    return Boolean(cliente.contrato_assinado_html);
-  }
-
-  if (!Number.isNaN(dataContrato.getTime()) && dataContrato > dataAssinatura) {
-    return false;
-  }
-
-  return true;
 }
 
 function obterImagemPonto(ponto) {
@@ -246,11 +215,11 @@ function obterNomePonto(ponto) {
 }
 
 function obterCidadePonto(ponto) {
-  return ponto?.cidade || ponto?.municipio || ponto?.localidade || "";
+  return ponto?.cidade || ponto?.cidade_regiao || ponto?.municipio || ponto?.localidade || "";
 }
 
 function obterEnderecoPonto(ponto) {
-  return ponto?.endereco || ponto?.endereço || ponto?.local || "";
+  return ponto?.endereco || ponto?.endereco_completo || ponto?.endereço || ponto?.local || "";
 }
 
 function obterLocalizacaoPonto(ponto) {
@@ -264,15 +233,24 @@ function obterLocalizacaoPonto(ponto) {
 }
 
 function obterUltimoPingPonto(ponto) {
-  return ponto?.ultimo_ping || ponto?.last_ping || ponto?.updated_at || ponto?.data_ping || null;
+  return ponto?.ultimo_ping || ponto?.last_ping || ponto?.updated_at || ponto?.data_ping || ponto?.created_at || null;
 }
 
 function pontoEstaDisponivel(ponto) {
-  return ponto?.disponivel !== false;
+  const status = String(ponto?.status || ponto?.situacao || "").toLowerCase().trim();
+
+  if (ponto?.disponivel === false) return false;
+  if (status === "inativo") return false;
+
+  return true;
+}
+
+function obterEventoHistorico(item) {
+  return String(item?.evento || item?.status || "").toLowerCase().trim();
 }
 
 function obterDataHistorico(item) {
-  return item?.data_hora || item?.created_at || null;
+  return item?.ultimo_ping || item?.data_hora || item?.created_at || null;
 }
 
 function eventoEhAtivo(evento) {
@@ -287,37 +265,76 @@ function eventoEhInativo(evento) {
 
 function calcularStatusPonto(ponto, historico = []) {
   if (!pontoEstaDisponivel(ponto)) {
-    return { texto: "Indisponível", detalhe: "Ponto indisponível", classe: "indisponivel" };
+    return {
+      texto: "Indisponível",
+      detalhe: "Ponto indisponível",
+      classe: "indisponivel"
+    };
   }
 
   const ultimoEvento = historico[0] || null;
+  const evento = obterEventoHistorico(ultimoEvento);
   const ultimoPing = obterUltimoPingPonto(ponto);
-  const dataReferencia = ultimoPing || obterDataHistorico(ultimoEvento);
+  const dataReferencia = obterDataHistorico(ultimoEvento) || ultimoPing;
 
   if (!dataReferencia) {
-    return { texto: "Inativo", detalhe: "Inativo desde sem histórico", classe: "inativo" };
+    return {
+      texto: "Inativo",
+      detalhe: "Inativo desde sem histórico",
+      classe: "inativo"
+    };
   }
 
   const data = new Date(dataReferencia);
+
   if (Number.isNaN(data.getTime())) {
-    return { texto: "Inativo", detalhe: "Inativo desde sem histórico", classe: "inativo" };
-  }
-
-  if (ultimoEvento && eventoEhAtivo(ultimoEvento.evento)) {
-    return { texto: "Ativo", detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`, classe: "ativo" };
-  }
-
-  if (ultimoEvento && eventoEhInativo(ultimoEvento.evento)) {
-    return { texto: "Inativo", detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`, classe: "inativo" };
+    return {
+      texto: "Inativo",
+      detalhe: "Inativo desde sem histórico",
+      classe: "inativo"
+    };
   }
 
   const diff = Date.now() - data.getTime();
+  const registroRecente = diff < 60 * 1000;
 
-  if (diff < 5 * 60 * 1000) {
-    return { texto: "Ativo", detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`, classe: "ativo" };
+  if (eventoEhAtivo(evento) && registroRecente) {
+    return {
+      texto: "Ativo",
+      detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`,
+      classe: "ativo"
+    };
   }
 
-  return { texto: "Inativo", detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`, classe: "inativo" };
+  if (eventoEhInativo(evento)) {
+    return {
+      texto: "Inativo",
+      detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`,
+      classe: "inativo"
+    };
+  }
+
+  if (eventoEhAtivo(evento) && !registroRecente) {
+    return {
+      texto: "Inativo",
+      detalhe: "Inativo sem sinal recente do reprodutor",
+      classe: "inativo"
+    };
+  }
+
+  if (diff < 60 * 1000) {
+    return {
+      texto: "Ativo",
+      detalhe: `Ativo desde ${formatarDataHora(dataReferencia)}`,
+      classe: "ativo"
+    };
+  }
+
+  return {
+    texto: "Inativo",
+    detalhe: `Inativo desde ${formatarDataHora(dataReferencia)}`,
+    classe: "inativo"
+  };
 }
 
 function itemEstaInativo(item) {
@@ -336,16 +353,25 @@ function detectarTipo(url, tipoOriginal = "") {
 
   if (tipo === "imagem" || tipo === "image") return "imagem";
   if (tipo === "video") return "video";
-  if (tipo === "site" || tipo === "texto" || tipo === "text") return "site";
+  if (tipo === "site" || tipo === "url" || tipo === "texto" || tipo === "text") return "site";
 
-  if (limpa.endsWith(".jpg") || limpa.endsWith(".jpeg") || limpa.endsWith(".png") || limpa.endsWith(".webp")) {
+  if (
+    limpa.endsWith(".jpg") ||
+    limpa.endsWith(".jpeg") ||
+    limpa.endsWith(".png") ||
+    limpa.endsWith(".webp")
+  ) {
     return "imagem";
   }
 
   if (limpa.endsWith(".txt")) return "site";
 
+  if (limpa.match(/\.(mp4|mov|webm)$/)) {
+    return "video";
+  }
+
   if (limpa.includes("youtube.com") || limpa.includes("youtu.be") || limpa.includes("http")) {
-    return limpa.match(/\.(mp4|mov|webm)$/) ? "video" : "site";
+    return "site";
   }
 
   return "video";
@@ -381,10 +407,7 @@ function filtrarMateriaisDoCliente(lista = []) {
       ...item,
       posicao_playlist: index + 1
     }))
-    .filter((item) => {
-      const codigoItem = normalizarCodigo(item.codigo_cliente);
-      return codigoItem === codigoClienteAtual;
-    });
+    .filter((item) => normalizarCodigo(item.codigo_cliente) === codigoClienteAtual);
 }
 
 function limitarHistorico72Horas(historico = []) {
@@ -412,24 +435,30 @@ function obterListaPreviewAtiva(lista = []) {
 function limparTelaDetalhe() {
   pontoSelecionado = "";
   limparTimerPreview();
+
   if (estadoVazio) estadoVazio.style.display = "flex";
   if (detalhePonto) detalhePonto.style.display = "none";
 }
 
-function pararAtualizacaoContratoEmTempoReal() {
+function pararAtualizacaoEmTempoReal() {
   if (canalClienteRealtime) {
     supabaseClient.removeChannel(canalClienteRealtime);
     canalClienteRealtime = null;
   }
+
+  if (canalContratoRealtime) {
+    supabaseClient.removeChannel(canalContratoRealtime);
+    canalContratoRealtime = null;
+  }
 }
 
-function iniciarAtualizacaoContratoEmTempoReal() {
+function iniciarAtualizacaoEmTempoReal() {
   if (!codigoClienteAtual) return;
 
-  pararAtualizacaoContratoEmTempoReal();
+  pararAtualizacaoEmTempoReal();
 
   canalClienteRealtime = supabaseClient
-    .channel(`cliente-contrato-${codigoClienteAtual}`)
+    .channel(`cliente-dados-${codigoClienteAtual}`)
     .on(
       "postgres_changes",
       {
@@ -438,13 +467,31 @@ function iniciarAtualizacaoContratoEmTempoReal() {
         table: TABELA_CLIENTES,
         filter: `codigo=eq.${codigoClienteAtual}`
       },
-      (payload) => {
-        const novoCliente = payload.new;
+      async (payload) => {
+        if (!payload.new) return;
 
-        if (!novoCliente) return;
-
-        clienteAtual = novoCliente;
+        clienteAtual = payload.new;
+        contratoAtualCliente = await buscarContratoCliente(codigoClienteAtual);
         renderizarContrato();
+        setMensagem("Área do cliente atualizada.", "ok");
+      }
+    )
+    .subscribe();
+
+  canalContratoRealtime = supabaseClient
+    .channel(`cliente-contrato-${codigoClienteAtual}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: TABELA_CONTRATOS_CLIENTES,
+        filter: `codigo_cliente=eq.${codigoClienteAtual}`
+      },
+      async () => {
+        contratoAtualCliente = await buscarContratoCliente(codigoClienteAtual);
+        renderizarContrato();
+        renderizarHistoricoContratoCliente();
         setMensagem("Contrato atualizado.", "ok");
       }
     )
@@ -459,11 +506,13 @@ function abrirAreaCliente() {
 function abrirLogin() {
   codigoClienteAtual = "";
   clienteAtual = null;
+  contratoAtualCliente = null;
   pontosContratados = [];
   historicosPorPonto = {};
   pontoSelecionado = "";
+
   limparTimerPreview();
-  pararAtualizacaoContratoEmTempoReal();
+  pararAtualizacaoEmTempoReal();
 
   if (areaCliente) areaCliente.style.display = "none";
   if (loginScreen) loginScreen.style.display = "flex";
@@ -481,24 +530,18 @@ function abrirLogin() {
 }
 
 function baixarContratoCliente() {
-  if (!clienteAtual) return;
-
-  const concluido = contratoEstaConcluido(clienteAtual);
-  const html = concluido
-    ? clienteAtual.contrato_assinado_html || clienteAtual.contrato_html
-    : clienteAtual.contrato_html;
-
-  if (!html) {
+  if (!contratoAtualCliente?.html_final) {
     setMensagem("Contrato indisponível para download.", "erro");
     return;
   }
 
-  const nomeArquivoBase = clienteAtual.contrato_nome_arquivo || `contrato-${codigoClienteAtual}.html`;
-  const nomeArquivo = concluido
-    ? nomeArquivoBase.replace(/\.html$/i, "-assinado.html")
-    : nomeArquivoBase;
+  const concluido = contratoEstaConcluido();
+  const nomeArquivo = `contrato-${codigoClienteAtual}${concluido ? "-assinado" : ""}.html`;
 
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const blob = new Blob([contratoAtualCliente.html_final], {
+    type: "text/html;charset=utf-8"
+  });
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -511,13 +554,34 @@ function baixarContratoCliente() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function renderizarHistoricoContratoCliente() {
+  if (!historicoContratoCliente) return;
+
+  if (!contratoAtualCliente) {
+    historicoContratoCliente.innerHTML = `<div class="vazio">Nenhum contrato enviado ainda.</div>`;
+    return;
+  }
+
+  const status = String(contratoAtualCliente.status || "pendente").toLowerCase();
+  const assinado = contratoEstaConcluido();
+
+  historicoContratoCliente.innerHTML = `
+    <div class="historico-contrato-item">
+      <strong>${escapeHtml(contratoAtualCliente.titulo || "Contrato")}</strong>
+      <span>Enviado em: ${escapeHtml(formatarDataHora(contratoAtualCliente.enviado_em || contratoAtualCliente.created_at))}</span>
+      <span>Status: ${escapeHtml(assinado ? "Assinado" : status)}</span>
+      ${contratoAtualCliente.assinado_em ? `<span>Assinado em: ${escapeHtml(formatarDataHora(contratoAtualCliente.assinado_em))}</span>` : ""}
+    </div>
+  `;
+}
+
 function renderizarContrato() {
   if (!clienteAtual) return;
 
   const nome = obterNomeCliente(clienteAtual);
   const supervisor = clienteEhSupervisor(clienteAtual);
-  const disponivel = contratoEstaDisponivel(clienteAtual);
-  const concluido = disponivel && contratoEstaConcluido(clienteAtual);
+  const disponivel = contratoEstaDisponivel();
+  const concluido = contratoEstaConcluido();
 
   if (nomeClienteTopo) {
     nomeClienteTopo.textContent = nome;
@@ -550,7 +614,7 @@ function renderizarContrato() {
 
   if (contratoBadge) {
     contratoBadge.textContent = concluido
-      ? "Contrato disponível"
+      ? "Contrato assinado"
       : disponivel
         ? "Contrato pendente"
         : "Contrato indisponível";
@@ -562,11 +626,11 @@ function renderizarContrato() {
 
   if (contratoInfo) {
     if (!disponivel) {
-      contratoInfo.textContent = "Seu contrato ainda não está pronto! Caso necessário, solicite à equipe Duna.";
+      contratoInfo.textContent = "Seu contrato ainda não está pronto. Caso necessário, solicite à equipe Duna.";
     } else if (concluido) {
-      contratoInfo.textContent = "Seu contrato foi concluído e está disponível para download. Baixe agora!";
+      contratoInfo.textContent = "Seu contrato foi assinado e está disponível para download.";
     } else {
-      contratoInfo.textContent = "Seu contrato já está disponível. Para finalizá-lo, é necessário realizar a leitura e concluir a assinatura.";
+      contratoInfo.textContent = "Seu contrato já está disponível. Para finalizá-lo, leia e conclua a assinatura.";
     }
   }
 
@@ -575,6 +639,7 @@ function renderizarContrato() {
       btnAssinarContrato.style.display = "none";
       btnAssinarContrato.disabled = true;
       btnAssinarContrato.onclick = null;
+      renderizarHistoricoContratoCliente();
       return;
     }
 
@@ -592,12 +657,18 @@ function renderizarContrato() {
 
       mostrarLoading();
 
+      const params = new URLSearchParams({
+        codigo: codigoClienteAtual,
+        contrato: String(contratoAtualCliente.id || "")
+      });
+
       setTimeout(() => {
-        window.location.href = `/assinatura.html?codigo=${encodeURIComponent(codigoClienteAtual)}`;
+        window.location.href = `/assinatura.html?${params.toString()}`;
       }, 220);
     };
-
   }
+
+  renderizarHistoricoContratoCliente();
 }
 
 function montarCardPonto(ponto) {
@@ -666,6 +737,7 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
 
   if (!playlist.length) {
     if (previewNome) previewNome.textContent = "";
+
     previewMidia.classList.toggle("offline", offline);
     previewMidia.innerHTML = `
       <div class="preview-vazio">Nenhum material para preview neste ponto.</div>
@@ -781,8 +853,6 @@ function renderizarMateriais(lista) {
 function obterTextoEvento(evento) {
   if (eventoEhAtivo(evento)) return "Ativo";
   if (eventoEhInativo(evento)) return "Inativo";
-  if (evento === "conectou") return "Ativo";
-  if (evento === "desconectou") return "Inativo";
   return evento || "Registro";
 }
 
@@ -797,8 +867,9 @@ function renderizarHistorico(historico) {
   }
 
   historicoStatusPonto.innerHTML = historico72h.map((item, index) => {
-    const texto = obterTextoEvento(item.evento);
-    const classe = index === 0 && eventoEhAtivo(item.evento) ? "ativo-primeiro" : "neutro";
+    const evento = obterEventoHistorico(item);
+    const texto = obterTextoEvento(evento);
+    const classe = index === 0 && eventoEhAtivo(evento) ? "ativo-primeiro" : "neutro";
 
     return `
       <div class="historico-item ${classe}">
@@ -841,15 +912,47 @@ async function buscarCliente(codigo) {
   return data;
 }
 
+async function buscarContratoCliente(codigo) {
+  const consultas = [
+    { ordenarPor: "enviado_em" },
+    { ordenarPor: "created_at" }
+  ];
+
+  for (const consulta of consultas) {
+    const { data, error } = await supabaseClient
+      .from(TABELA_CONTRATOS_CLIENTES)
+      .select("*")
+      .eq("codigo_cliente", codigo)
+      .order(consulta.ordenarPor, { ascending: false })
+      .limit(1);
+
+    if (!error) return data?.[0] || null;
+
+    console.warn("Falha ao buscar contrato do cliente:", error);
+  }
+
+  return null;
+}
+
+function extrairCodigoClienteVinculo(item) {
+  return normalizarCodigo(item?.cliente_codigo || item?.codigo_cliente || item?.codigo || "");
+}
+
+function extrairCodigoPontoVinculo(item) {
+  return normalizarCodigo(item?.ponto_codigo || item?.codigo_ponto || item?.codigo || "");
+}
+
 async function buscarVinculosCliente(codigo) {
   const { data, error } = await supabaseClient
     .from(TABELA_CLIENTE_PONTOS)
-    .select("ponto_codigo,created_at")
-    .eq("cliente_codigo", codigo)
-    .order("created_at", { ascending: true });
+    .select("*");
 
   if (error) throw error;
-  return (data || []).map((item) => normalizarCodigo(item.ponto_codigo)).filter(Boolean);
+
+  return (data || [])
+    .filter((item) => extrairCodigoClienteVinculo(item) === codigo)
+    .map(extrairCodigoPontoVinculo)
+    .filter(Boolean);
 }
 
 async function buscarPontos(codigos) {
@@ -865,7 +968,10 @@ async function buscarPontos(codigos) {
   const ordem = new Map(codigos.map((codigo, index) => [codigo, index]));
 
   return (data || [])
-    .map((ponto) => ({ ...ponto, codigo: normalizarCodigo(ponto.codigo) }))
+    .map((ponto) => ({
+      ...ponto,
+      codigo: normalizarCodigo(ponto.codigo)
+    }))
     .sort((a, b) => {
       const posA = ordem.has(a.codigo) ? ordem.get(a.codigo) : 9999;
       const posB = ordem.has(b.codigo) ? ordem.get(b.codigo) : 9999;
@@ -916,19 +1022,33 @@ async function buscarPlaylistPonto(codigo) {
 
 async function buscarHistoricoPonto(codigo) {
   const consultas = [
-    { colunas: "evento,data_hora,created_at", ordenarPor: "data_hora" },
-    { colunas: "evento,created_at", ordenarPor: "created_at" }
+    {
+      filtro: "ponto_codigo",
+      colunas: "*",
+      ordenarPor: "ultimo_ping"
+    },
+    {
+      filtro: "ponto_codigo",
+      colunas: "*",
+      ordenarPor: "created_at"
+    },
+    {
+      filtro: "codigo",
+      colunas: "*",
+      ordenarPor: "created_at"
+    }
   ];
 
   for (const consulta of consultas) {
     const { data, error } = await supabaseClient
       .from(TABELA_HISTORICO)
       .select(consulta.colunas)
-      .eq("codigo", codigo)
+      .eq(consulta.filtro, codigo)
       .order(consulta.ordenarPor, { ascending: false })
       .limit(120);
 
     if (!error) return data || [];
+
     console.warn("Falha ao buscar histórico:", error);
   }
 
@@ -955,6 +1075,7 @@ async function carregarHistoricosIniciais(pontos) {
 async function abrirPonto(codigo) {
   const codigoNormalizado = normalizarCodigo(codigo);
   const ponto = pontosContratados.find((item) => normalizarCodigo(item.codigo) === codigoNormalizado);
+
   if (!ponto) return;
 
   pontoSelecionado = codigoNormalizado;
@@ -962,6 +1083,7 @@ async function abrirPonto(codigo) {
 
   const historicoAtual = historicosPorPonto[codigoNormalizado] || [];
   const statusAtual = calcularStatusPonto(ponto, historicoAtual);
+
   renderizarDetalheBase(ponto, historicoAtual);
 
   if (previewMidia) previewMidia.innerHTML = `<div class="preview-vazio">Carregando preview...</div>`;
@@ -982,17 +1104,20 @@ async function abrirPonto(codigo) {
     renderizarDetalheBase(ponto, historico72h);
 
     const statusFinal = calcularStatusPonto(ponto, historico72h);
-    renderizarPreview(playlist, 0, statusFinal);
 
+    renderizarPreview(playlist, 0, statusFinal);
     renderizarMateriais(materiaisCliente);
     renderizarHistorico(historico72h);
     renderizarListaPontos();
+
     setMensagem("Área do cliente atualizada.", "ok");
   } catch (error) {
     console.error("Erro ao abrir ponto:", error);
+
     renderizarPreview([], 0, statusAtual);
     renderizarMateriais([]);
     renderizarHistorico(historicoAtual);
+
     setMensagem("Erro ao carregar dados deste ponto.", "erro");
   }
 }
@@ -1009,10 +1134,18 @@ async function carregarAreaCliente(codigo) {
   mostrarLoading();
   setMensagem("Carregando área do cliente...");
 
-  if (codigoClienteEl) codigoClienteEl.textContent = codigoClienteAtual;
+  if (codigoClienteEl) {
+    codigoClienteEl.textContent = codigoClienteAtual;
+  }
 
   try {
-    clienteAtual = await buscarCliente(codigoClienteAtual);
+    const [cliente, contrato] = await Promise.all([
+      buscarCliente(codigoClienteAtual),
+      buscarContratoCliente(codigoClienteAtual)
+    ]);
+
+    clienteAtual = cliente;
+    contratoAtualCliente = contrato;
 
     if (!clienteAtual) {
       abrirLogin();
@@ -1021,13 +1154,15 @@ async function carregarAreaCliente(codigo) {
     }
 
     renderizarContrato();
-    iniciarAtualizacaoContratoEmTempoReal();
+    iniciarAtualizacaoEmTempoReal();
 
     const codigosPontos = await buscarVinculosCliente(codigoClienteAtual);
-    pontosContratados = await buscarPontos(codigosPontos);
-    await carregarHistoricosIniciais(pontosContratados);
-    renderizarListaPontos();
 
+    pontosContratados = await buscarPontos(codigosPontos);
+
+    await carregarHistoricosIniciais(pontosContratados);
+
+    renderizarListaPontos();
     abrirAreaCliente();
 
     if (pontosContratados.length) {
@@ -1038,12 +1173,15 @@ async function carregarAreaCliente(codigo) {
         estadoVazio.textContent = "Este cliente ainda não possui pontos contratados vinculados.";
       }
 
-      if (detalhePonto) detalhePonto.style.display = "none";
+      if (detalhePonto) {
+        detalhePonto.style.display = "none";
+      }
     }
 
     setMensagem("Área do cliente carregada.", "ok");
   } catch (error) {
     console.error("Erro ao carregar área do cliente:", error);
+
     abrirLogin();
     setMensagem(error.message || "Erro ao carregar área do cliente.", "erro");
   } finally {
@@ -1062,16 +1200,23 @@ function entrarComCodigoDigitado() {
   carregarAreaCliente(codigo);
 }
 
-if (btnEntrarCliente) btnEntrarCliente.onclick = entrarComCodigoDigitado;
+if (btnEntrarCliente) {
+  btnEntrarCliente.onclick = entrarComCodigoDigitado;
+}
 
 if (codigoLogin) {
   codigoLogin.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") entrarComCodigoDigitado();
+    if (event.key === "Enter") {
+      entrarComCodigoDigitado();
+    }
   });
 }
 
 if (btnAtualizar) {
-  btnAtualizar.onclick = () => carregarAreaCliente(codigoClienteAtual);
+  btnAtualizar.onclick = () => {
+    if (!codigoClienteAtual) return;
+    carregarAreaCliente(codigoClienteAtual);
+  };
 }
 
 if (btnSair) {
