@@ -1193,9 +1193,8 @@ function renderizarPlaylistDados(lista, historicoConexao) {
 
 async function buscarPlaylistRemota(codigo) {
   const consultasPlaylist = [
-    "id,nome,nome_cliente,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
+    "id,nome,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
     "id,nome,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
-    "id,nome,video_url,storage_path,created_at,data_fim,ordem",
     "id,nome,video_url,storage_path,created_at"
   ];
 
