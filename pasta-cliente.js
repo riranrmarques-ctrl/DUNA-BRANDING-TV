@@ -4,11 +4,11 @@ if (!codigo) {
   window.location.replace("/painel.html");
 }
 
-const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const SUPABASE_CONTRATO_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
 const SUPABASE_CONTRATO_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
-const BUCKET = "videos";
+const BUCKET = "midias";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const supabaseContratoClient = window.supabase.createClient(SUPABASE_CONTRATO_URL, SUPABASE_CONTRATO_KEY);
@@ -229,7 +229,12 @@ function itemEstaInativo(item) {
 }
 
 function pontoEstaDisponivel(ponto) {
-  return ponto?.disponivel !== false;
+  if (ponto?.disponivel === false) return false;
+
+  const status = String(ponto?.status || "").trim().toLowerCase();
+  if (status === "inativo") return false;
+
+  return true;
 }
 
 function atualizarToggleContratoVisual() {
@@ -287,9 +292,9 @@ async function carregarPontos() {
 
   (data || []).forEach((ponto) => {
     const chave = String(
-      ponto.codigo_visual ||
-      ponto.codigo_ponto ||
       ponto.codigo ||
+      ponto.codigo_ponto ||
+      ponto.codigo_visual ||
       ponto.id_ponto ||
       ponto.id ||
       ""
@@ -346,16 +351,16 @@ async function carregarClausulasContrato() {
 }
 
 function obterNomeDoPonto(ponto, codigo) {
-  return ponto?.nome || ponto?.nome_painel || ponto?.titulo || ponto?.ambiente || `Ponto ${codigo}`;
+  return ponto?.nome || ponto?.nome_local || ponto?.nome_painel || ponto?.titulo || ponto?.ambiente || `Ponto ${codigo}`;
 }
 
 function obterCodigoRealDoPonto(codigoVisual) {
   const ponto = pontosData[codigoVisual];
 
   return String(
+    ponto?.codigo ||
     ponto?.codigo_ponto ||
     ponto?.codigo_visual ||
-    ponto?.codigo ||
     codigoVisual ||
     ""
   ).trim();
@@ -757,7 +762,7 @@ async function gerarContratoClienteParaHistorico() {
     };
 
     const { data, error } = await supabaseClient
-      .from("clientes_app")
+      .from("dadosclientes")
       .update(payloadContrato)
       .eq("codigo", codigoClienteAtual)
       .select("*")
@@ -828,7 +833,7 @@ async function excluirContratoDoHistorico(id) {
       };
 
       const { data, error } = await supabaseClient
-        .from("clientes_app")
+        .from("dadosclientes")
         .update(payloadLimparContrato)
         .eq("codigo", codigoClienteAtual)
         .select("*")
@@ -1358,36 +1363,31 @@ function renderizarPontosSelecionaveis(selecionados = []) {
 }
 
 async function carregarVinculosCliente() {
-  try {
-    const { data, error } = await supabaseClient
-      .from("cliente_pontos")
-      .select("ponto_codigo,tipo_vinculo")
-      .eq("cliente_codigo", codigoClienteAtual);
+  const tentativas = [
+    { colunas: "cliente_codigo,ponto_codigo,tipo_vinculo", campo: "cliente_codigo" },
+    { colunas: "codigo_cliente,ponto_codigo,tipo_vinculo", campo: "codigo_cliente" },
+    { colunas: "cliente_codigo,codigo_ponto,tipo_vinculo", campo: "cliente_codigo" },
+    { colunas: "*", campo: "cliente_codigo" }
+  ];
 
-    if (error) throw error;
-
-    return Array.isArray(data)
-      ? data.map((item) => String(item.ponto_codigo || "").trim()).filter(Boolean)
-      : [];
-  } catch (error) {
-    console.warn("Falha ao buscar tipo_vinculo. Tentando buscar somente ponto_codigo.", error);
-
+  for (const tentativa of tentativas) {
     try {
-      const { data, error: erroFallback } = await supabaseClient
-        .from("cliente_pontos")
-        .select("ponto_codigo")
-        .eq("cliente_codigo", codigoClienteAtual);
+      const { data, error } = await supabaseClient
+        .from("playercliente")
+        .select(tentativa.colunas)
+        .eq(tentativa.campo, codigoClienteAtual);
 
-      if (erroFallback) throw erroFallback;
+      if (error) throw error;
 
       return Array.isArray(data)
-        ? data.map((item) => String(item.ponto_codigo || "").trim()).filter(Boolean)
+        ? data.map((item) => String(item.ponto_codigo || item.codigo_ponto || "").trim()).filter(Boolean)
         : [];
-    } catch (fallbackError) {
-      console.error("Erro ao buscar vinculos em cliente_pontos:", fallbackError);
-      return [];
+    } catch (error) {
+      console.warn("Falha ao buscar vinculos em playercliente:", tentativa, error);
     }
   }
+
+  return [];
 }
 
 async function calcularStatusClienteRealPorCodigoCliente() {
@@ -1409,8 +1409,8 @@ async function sincronizarStatusCliente() {
   atualizarStatusClienteVisual(statusReal);
 
   const { error } = await supabaseClient
-    .from("clientes_app")
-    .update({ status: statusReal })
+    .from("dadosclientes")
+    .update({ status: statusReal.toLowerCase() === "ativo" ? "ativo" : "inativo" })
     .eq("codigo", codigoClienteAtual);
 
   if (error) console.error(error);
@@ -1450,22 +1450,21 @@ function validarCamposCliente() {
 
 async function carregarCliente() {
   const { data, error } = await supabaseClient
-    .from("clientes_app")
+    .from("dadosclientes")
     .select("*")
     .eq("codigo", codigoClienteAtual)
     .maybeSingle();
 
   if (error) {
-    console.error("Erro ao buscar cliente em clientes_app:", error);
+    console.error("Erro ao buscar cliente em dadosclientes:", error);
     throw error;
   }
-  
-if (inputCodigo) inputCodigo.value = codigoClienteAtual;
 
-clienteAtual = data || null;
+  if (inputCodigo) inputCodigo.value = codigoClienteAtual;
 
-if (!data) {
+  clienteAtual = data || null;
 
+  if (!data) {
     if (inputNome) inputNome.value = "";
     if (inputTelefone) inputTelefone.value = "";
     if (inputEmail) inputEmail.value = "";
@@ -1484,7 +1483,7 @@ if (!data) {
     atualizarModoSupervisor();
     desativarBotaoSalvar();
 
-    mostrarMensagem(`Cliente ${codigoClienteAtual} não encontrado na tabela clientes_app.`, "#ff6b6b");
+    mostrarMensagem(`Cliente ${codigoClienteAtual} não encontrado na tabela dadosclientes.`, "#ff6b6b");
     return;
   }
 
@@ -1528,7 +1527,7 @@ async function salvarCliente() {
     vencimento_exibicao: inputVencimento.value || null,
     valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
     data_postagem: inputDataPostagem.value || null,
-    status: await calcularStatusClienteRealPorCodigoCliente(),
+    status: (await calcularStatusClienteRealPorCodigoCliente()).toLowerCase() === "ativo" ? "ativo" : "inativo",
     contrato_ativo: true,
     tipo_acesso: tipoAcesso,
     material_upgrade_ativo: materialUpgradeEstaAtivo()
@@ -1536,32 +1535,72 @@ async function salvarCliente() {
 
   try {
     const { error: errorCliente } = await supabaseClient
-      .from("clientes_app")
+      .from("dadosclientes")
       .upsert(payload, { onConflict: "codigo" });
 
     if (errorCliente) throw errorCliente;
 
-    const { error: errorDelete } = await supabaseClient
-      .from("cliente_pontos")
-      .delete()
-      .eq("cliente_codigo", codigoClienteAtual);
+    const tentativasDelete = [
+      ["cliente_codigo", codigoClienteAtual],
+      ["codigo_cliente", codigoClienteAtual]
+    ];
 
-    if (errorDelete) throw errorDelete;
+    let deleteConcluido = false;
+    let deleteErrorFinal = null;
+
+    for (const [campo, valor] of tentativasDelete) {
+      const { error } = await supabaseClient
+        .from("playercliente")
+        .delete()
+        .eq(campo, valor);
+
+      if (!error) {
+        deleteConcluido = true;
+        deleteErrorFinal = null;
+        break;
+      }
+
+      deleteErrorFinal = error;
+      console.warn("Falha ao remover vinculos antigos:", campo, error);
+    }
+
+    if (!deleteConcluido && deleteErrorFinal) throw deleteErrorFinal;
 
     const pontosSelecionados = obterPontosMarcados();
 
     if (pontosSelecionados.length) {
-      const vinculos = pontosSelecionados.map((codigoVisual) => ({
+      const vinculosPreferenciais = pontosSelecionados.map((codigoVisual) => ({
         cliente_codigo: codigoClienteAtual,
         ponto_codigo: obterCodigoRealDoPonto(codigoVisual),
         tipo_vinculo: tipoVinculo
       }));
 
-      const { error: errorInsert } = await supabaseClient
-        .from("cliente_pontos")
-        .insert(vinculos);
+      const vinculosAlternativos = pontosSelecionados.map((codigoVisual) => ({
+        codigo_cliente: codigoClienteAtual,
+        ponto_codigo: obterCodigoRealDoPonto(codigoVisual),
+        tipo_vinculo: tipoVinculo
+      }));
 
-      if (errorInsert) throw errorInsert;
+      const tentativasInsert = [vinculosPreferenciais, vinculosAlternativos];
+      let insertSucesso = false;
+      let insertErrorFinal = null;
+
+      for (const vinculos of tentativasInsert) {
+        const { error } = await supabaseClient
+          .from("playercliente")
+          .insert(vinculos);
+
+        if (!error) {
+          insertSucesso = true;
+          insertErrorFinal = null;
+          break;
+        }
+
+        insertErrorFinal = error;
+        console.warn("Falha ao inserir vinculos em playercliente:", vinculos, error);
+      }
+
+      if (!insertSucesso && insertErrorFinal) throw insertErrorFinal;
     }
 
     await sincronizarStatusCliente();
@@ -1643,7 +1682,7 @@ async function uploadArquivoCliente() {
       const { error: uploadError } = await supabaseClient.storage.from(BUCKET).upload(path, file);
       if (uploadError) throw uploadError;
 
-      const { data: publicData } = await supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+      const { data: publicData } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
       const tipoFinal = /\.(jpg|jpeg|png|webp)$/i.test(file.name) ? "imagem" : "video";
 
       const registros = codigosDestino.map((codigoReal, index) => ({
@@ -1689,12 +1728,19 @@ async function excluirClienteAtual() {
   try {
     mostrarMensagem("Apagando cliente...", "#9fd2ff");
 
-    const { error: erroVinculos } = await supabaseClient
-      .from("cliente_pontos")
-      .delete()
-      .eq("cliente_codigo", codigoClienteAtual);
+    const tentativasDeleteVinculos = [
+      ["cliente_codigo", codigoClienteAtual],
+      ["codigo_cliente", codigoClienteAtual]
+    ];
 
-    if (erroVinculos) throw erroVinculos;
+    for (const [campo, valor] of tentativasDeleteVinculos) {
+      const { error } = await supabaseClient
+        .from("playercliente")
+        .delete()
+        .eq(campo, valor);
+
+      if (!error) break;
+    }
 
     const { error: erroPlaylists } = await supabaseClient
       .from("playlists")
@@ -1704,7 +1750,7 @@ async function excluirClienteAtual() {
     if (erroPlaylists) throw erroPlaylists;
 
     const { error: erroCliente } = await supabaseClient
-      .from("clientes_app")
+      .from("dadosclientes")
       .delete()
       .eq("codigo", codigoClienteAtual);
 
