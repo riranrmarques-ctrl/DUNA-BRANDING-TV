@@ -1,16 +1,15 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
-
-const BUCKETS_UPLOAD = ["playlists", "pontos", "midias", "uploads"];
+const BUCKET = "midias";
 
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_STATUS_PONTOS = "statuspontos";
 
-const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v9";
+const SENHA_PAINEL = "@helena";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v10";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v8_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v9_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 const LIMITE_STATUS_ATIVO_MS = 60 * 1000;
 
@@ -24,6 +23,7 @@ function limparCachesAntigos() {
     sessionStorage.removeItem("painel_pontos_cache_v6");
     sessionStorage.removeItem("painel_pontos_cache_v7");
     sessionStorage.removeItem("painel_pontos_cache_v8");
+    sessionStorage.removeItem("painel_pontos_cache_v9");
 
     Object.keys(sessionStorage).forEach((key) => {
       if (
@@ -33,7 +33,8 @@ function limparCachesAntigos() {
         key.startsWith("painel_playlist_cache_v4_") ||
         key.startsWith("painel_playlist_cache_v5_") ||
         key.startsWith("painel_playlist_cache_v6_") ||
-        key.startsWith("painel_playlist_cache_v7_")
+        key.startsWith("painel_playlist_cache_v7_") ||
+        key.startsWith("painel_playlist_cache_v8_")
       ) {
         sessionStorage.removeItem(key);
       }
@@ -56,6 +57,7 @@ const loginErro = document.getElementById("loginErro");
 const statusEl = document.querySelector(".status-topo") || document.getElementById("status");
 const listaPontos = document.getElementById("listaPontos");
 const pontoDetalhe = document.getElementById("pontoDetalhe");
+const pontosBox = document.querySelector(".pontos-box");
 
 const codigoAtual = document.getElementById("codigoAtual");
 const tituloPasta = document.getElementById("tituloPasta");
@@ -82,9 +84,9 @@ let pontosMap = {};
 let dragIndex = null;
 let arquivoImagemEdicao = null;
 let painelIniciado = false;
-let botoesCardsAtivados = false;
 let carregandoPontos = false;
 let carregandoPlaylist = false;
+let criandoNovoPonto = false;
 
 let posicaoImagemAtual = { x: 50, y: 50 };
 let arrastandoPreview = false;
@@ -452,35 +454,26 @@ function atualizarCachePonto(codigo, alteracoes) {
   salvarCachePontos(Object.values(pontosMap));
 }
 
-function ativarLazyImages() {
-  document.querySelectorAll(".card-imagem").forEach((imagem) => {
-    imagem.loading = "lazy";
-    imagem.decoding = "async";
-  });
+function aplicarPosicaoImagem(el, posicao) {
+  if (!el || !posicao) return;
+  el.style.objectPosition = `${posicao.x}% ${posicao.y}%`;
 }
 
 async function uploadArquivoEmBucket(file, path, opcoes = {}) {
-  let ultimoErro = null;
+  const { error } = await supabaseClient.storage
+    .from(BUCKET)
+    .upload(path, file, opcoes);
 
-  for (const bucket of BUCKETS_UPLOAD) {
-    const { error } = await supabaseClient.storage
-      .from(bucket)
-      .upload(path, file, opcoes);
-
-    if (!error) {
-      const { data } = supabaseClient.storage.from(bucket).getPublicUrl(path);
-
-      return {
-        bucket,
-        publicUrl: data.publicUrl
-      };
-    }
-
-    ultimoErro = error;
-    console.warn(`Falha no bucket ${bucket}:`, error);
+  if (error) {
+    throw error;
   }
 
-  throw ultimoErro || new Error("Nenhum bucket válido encontrado para upload.");
+  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+
+  return {
+    bucket: BUCKET,
+    publicUrl: data.publicUrl
+  };
 }
 
 async function uploadImagemPonto(file, codigo) {
@@ -523,34 +516,138 @@ function detectarTipoArquivoPlaylist(file) {
   return "video";
 }
 
-async function buscarPlaylistPorCampo(codigo, campoCodigo) {
-  const { data, error } = await supabaseClient
-    .from(TABELA)
-    .select("*")
-    .eq(campoCodigo, codigo);
+function gerarCodigoPontoAleatorio() {
+  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numeros = "0123456789";
 
-  return { data, error };
+  return (
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)]
+  );
+}
+
+async function obterCodigoPontoUnico() {
+  const usadosLocais = new Set(Object.keys(pontosMap));
+
+  for (let tentativa = 0; tentativa < 80; tentativa++) {
+    const codigo = gerarCodigoPontoAleatorio();
+
+    if (usadosLocais.has(codigo)) {
+      continue;
+    }
+
+    const { data, error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .select("codigo")
+      .eq("codigo", codigo)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return codigo;
+    }
+  }
+
+  throw new Error("Não foi possível gerar um código de ponto único.");
+}
+
+async function criarNovoPonto() {
+  if (criandoNovoPonto) return;
+
+  criandoNovoPonto = true;
+
+  if (btnNovoPonto) {
+    btnNovoPonto.disabled = true;
+  }
+
+  try {
+    setStatus("Criando novo ponto...", "normal");
+
+    const codigoLivre = await obterCodigoPontoUnico();
+
+    const payloads = [
+      {
+        codigo: codigoLivre,
+        nome: codigoLivre,
+        cidade: "",
+        endereco: "",
+        imagem_url: "https://placehold.co/600x320/png",
+        status: "ativo",
+        disponivel: true
+      },
+      {
+        codigo: codigoLivre,
+        nome_local: codigoLivre,
+        cidade_regiao: "",
+        endereco_completo: "",
+        imagem_url: "https://placehold.co/600x320/png",
+        status: "ativo",
+        disponivel: true
+      },
+      {
+        codigo: codigoLivre,
+        nome: codigoLivre
+      }
+    ];
+
+    let erroFinal = null;
+
+    for (const payload of payloads) {
+      const { error } = await supabaseClient
+        .from(TABELA_PONTOS)
+        .insert([payload]);
+
+      if (!error) {
+        erroFinal = null;
+        break;
+      }
+
+      erroFinal = error;
+      console.warn("Falha ao criar ponto com payload:", payload, error);
+    }
+
+    if (erroFinal) {
+      throw erroFinal;
+    }
+
+    limparCachePlaylist(codigoLivre);
+    await carregarPontosRemoto();
+    abrirPonto(codigoLivre);
+    setStatus(`Novo ponto ${codigoLivre} criado com sucesso`, "ok");
+  } catch (error) {
+    console.error(error);
+    setStatus("Erro ao criar novo ponto", "erro");
+  } finally {
+    criandoNovoPonto = false;
+
+    if (btnNovoPonto) {
+      btnNovoPonto.disabled = false;
+    }
+  }
 }
 
 async function obterProximaOrdemPlaylist() {
-  const campos = ["codigo_ponto", "codigo"];
+  const { data, error } = await supabaseClient
+    .from(TABELA)
+    .select("ordem")
+    .eq("codigo", codigoSelecionado)
+    .order("ordem", { ascending: false })
+    .limit(1);
 
-  for (const campo of campos) {
-    const { data, error } = await buscarPlaylistPorCampo(codigoSelecionado, campo);
-
-    if (!error) {
-      const maiorOrdem = (data || []).reduce((maior, item) => {
-        const ordem = Number(item?.ordem || 0);
-        return ordem > maior ? ordem : maior;
-      }, 0);
-
-      return maiorOrdem + 1;
-    }
-
-    console.warn(`Não foi possível buscar playlist por ${campo}:`, error);
+  if (error) {
+    console.warn("Não foi possível buscar ordem da playlist:", error);
+    return 1;
   }
 
-  return 1;
+  return Number(data?.[0]?.ordem || 0) + 1;
 }
 
 async function enviarMaterialDiretoPlaylist(file) {
@@ -565,7 +662,6 @@ async function enviarMaterialDiretoPlaylist(file) {
   }
 
   let path = "";
-  let bucketUsado = "";
 
   try {
     setStatus("Enviando material...", "normal");
@@ -579,68 +675,28 @@ async function enviarMaterialDiretoPlaylist(file) {
       upsert: false
     });
 
-    bucketUsado = uploadResultado.bucket;
-    const publicUrl = uploadResultado.publicUrl;
     const ordem = await obterProximaOrdemPlaylist();
 
-    const tentativas = [
-      {
-        codigo_ponto: codigoSelecionado,
-        nome_arquivo: file.name,
-        video_url: publicUrl,
-        storage_path: path,
-        bucket: bucketUsado,
-        tipo,
-        ordem
-      },
-      {
-        codigo_ponto: codigoSelecionado,
-        codigo_cliente: null,
-        nome_arquivo: file.name,
-        video_url: publicUrl,
-        storage_path: path,
-        bucket: bucketUsado,
-        tipo,
-        ordem
-      },
-      {
-        codigo: codigoSelecionado,
-        nome: file.name,
-        titulo_arquivo: file.name,
-        video_url: publicUrl,
-        storage_path: path,
-        tipo,
-        ordem
-      }
-    ];
+    const payload = {
+      codigo: codigoSelecionado,
+      nome: file.name,
+      titulo_arquivo: file.name,
+      video_url: uploadResultado.publicUrl,
+      storage_path: path,
+      codigo_cliente: null,
+      tipo,
+      ordem
+    };
 
-    let insertError = null;
-    let data = null;
+    const { data, error } = await supabaseClient
+      .from(TABELA)
+      .insert([payload])
+      .select();
 
-    for (const payload of tentativas) {
-      const resposta = await supabaseClient
-        .from(TABELA)
-        .insert([payload])
-        .select();
-
-      if (!resposta.error) {
-        data = resposta.data;
-        insertError = null;
-        break;
-      }
-
-      insertError = resposta.error;
-      console.warn("Falha ao gravar playlist com payload:", payload, resposta.error);
-    }
-
-    if (insertError) {
-      console.error("ERRO INSERT PLAYLIST:", insertError);
-
-      if (bucketUsado && path) {
-        await supabaseClient.storage.from(bucketUsado).remove([path]);
-      }
-
-      setStatus(`Erro ao gravar playlist: ${insertError.message || "falha no banco"}`, "erro");
+    if (error) {
+      console.error("ERRO INSERT PLAYLIST:", error);
+      await supabaseClient.storage.from(BUCKET).remove([path]);
+      setStatus(`Erro ao gravar playlist: ${error.message || "falha no banco"}`, "erro");
       return;
     }
 
@@ -653,18 +709,11 @@ async function enviarMaterialDiretoPlaylist(file) {
   } catch (error) {
     console.error("Erro ao enviar material:", error);
 
-    if (bucketUsado && path) {
-      await supabaseClient.storage.from(bucketUsado).remove([path]);
+    if (path) {
+      await supabaseClient.storage.from(BUCKET).remove([path]);
     }
 
-    const mensagemErro = String(error?.message || "");
-
-    if (mensagemErro.toLowerCase().includes("bucket")) {
-      setStatus("Erro no upload: bucket não encontrado", "erro");
-      return;
-    }
-
-    setStatus(`Erro ao enviar material: ${mensagemErro || "falha desconhecida"}`, "erro");
+    setStatus(`Erro ao enviar material: ${error.message || "falha desconhecida"}`, "erro");
   }
 }
 
@@ -695,11 +744,6 @@ function lerPosicaoImagem(codigo) {
   } catch {
     return { x: 50, y: 50 };
   }
-}
-
-function aplicarPosicaoImagem(el, posicao) {
-  if (!el || !posicao) return;
-  el.style.objectPosition = `${posicao.x}% ${posicao.y}%`;
 }
 
 function atualizarVisualDisponibilidade(disponivel) {
@@ -828,88 +872,56 @@ async function buscarPontosRemoto() {
   }));
 }
 
-function renderizarCardsPontos(lista) {
-  pontosMap = {};
+function montarCardPonto(ponto) {
+  const codigo = obterCodigoPonto(ponto);
+  const nome = obterNomePonto(ponto, codigo);
+  const cidade = obterCidadePonto(ponto);
+  const endereco = obterEnderecoPonto(ponto);
+  const statusInfo = obterStatusPontoParaPainel(codigo, ponto);
+  const imagem = obterImagemPonto(ponto);
 
-  lista.forEach((ponto) => {
-    const codigo = obterCodigoPonto(ponto);
-    if (codigo) {
-      pontosMap[codigo] = ponto;
-    }
-  });
+  return `
+    <div class="card-ponto ${statusInfo.classe === "indisponivel" ? "card-indisponivel" : ""}" data-codigo="${escapeHtml(codigo)}">
+      <div class="card-status-topo">
+        <span class="status-bolinha ${statusInfo.classe}"></span>
+        <span class="card-status ${statusInfo.classe}">${escapeHtml(statusInfo.texto)}</span>
+      </div>
 
-  document.querySelectorAll(".card-ponto").forEach((card) => {
-    const codigo = String(card.dataset.codigo || "").trim();
-    const ponto = pontosMap[codigo] || {};
+      <div class="card-imagem-box">
+        <img
+          class="card-imagem"
+          src="${escapeHtml(imagem)}"
+          alt="${escapeHtml(nome)}"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
 
-    const nomeEl = card.querySelector(".card-nome");
-    const cidadeEl = card.querySelector(".card-cidade");
-    const statusElCard = card.querySelector(".card-status");
-    const bolinhaEl = card.querySelector(".status-bolinha");
-    const imagemEl = card.querySelector(".card-imagem");
-    const codigoEl = card.querySelector(".card-codigo");
+      <div class="card-conteudo">
+        <div class="card-nome"><strong>${escapeHtml(nome)}</strong></div>
 
-    const nome = obterNomePonto(ponto, codigo);
-    const cidade = obterCidadePonto(ponto);
-    const endereco = obterEnderecoPonto(ponto);
-    const imagem = obterImagemPonto(ponto);
-    const statusInfo = obterStatusPontoParaPainel(codigo, ponto);
+        <div class="card-info-linha">
+          <div class="card-cidade">${obterLocalizacaoPonto(cidade, endereco)}</div>
 
-    card.classList.toggle("card-indisponivel", statusInfo.classe === "indisponivel");
+          <div class="card-codigo-area">
+            <div class="card-codigo" title="Clique para copiar">${escapeHtml(codigo)}</div>
+          </div>
+        </div>
+      </div>
 
-    if (nomeEl) {
-      nomeEl.innerHTML = `<strong>${escapeHtml(nome)}</strong>`;
-    }
-
-    if (cidadeEl) {
-      cidadeEl.innerHTML = obterLocalizacaoPonto(cidade, endereco);
-    }
-
-    if (codigoEl) {
-      codigoEl.textContent = codigo;
-      codigoEl.title = "Clique para copiar";
-    }
-
-    if (statusElCard) {
-      statusElCard.textContent = statusInfo.texto;
-      statusElCard.classList.toggle("ativo", statusInfo.classe === "ativo");
-      statusElCard.classList.toggle("inativo", statusInfo.classe === "inativo");
-      statusElCard.classList.toggle("indisponivel", statusInfo.classe === "indisponivel");
-    }
-
-    if (bolinhaEl) {
-      bolinhaEl.classList.toggle("ativo", statusInfo.classe === "ativo");
-      bolinhaEl.classList.toggle("inativo", statusInfo.classe === "inativo");
-      bolinhaEl.classList.toggle("indisponivel", statusInfo.classe === "indisponivel");
-    }
-
-    if (imagemEl) {
-      imagemEl.loading = "lazy";
-      imagemEl.decoding = "async";
-
-      if (imagemEl.src !== imagem) {
-        imagemEl.src = imagem;
-      }
-
-      imagemEl.alt = nome;
-      aplicarPosicaoImagem(imagemEl, lerPosicaoImagem(codigo));
-    }
-  });
+      <div class="card-acoes">
+        <button class="btn-abrir" data-codigo="${escapeHtml(codigo)}" type="button">Abrir pasta</button>
+      </div>
+    </div>
+  `;
 }
 
-function ativarBotoesCards() {
-  if (botoesCardsAtivados) return;
-  botoesCardsAtivados = true;
-
+function ativarEventosCardsRenderizados() {
   document.querySelectorAll(".btn-abrir").forEach((btn) => {
     btn.onclick = (event) => {
       event.stopPropagation();
       abrirPonto(btn.dataset.codigo);
     };
-  });
-
-  document.querySelectorAll(".btn-copiar").forEach((btn) => {
-    btn.style.display = "none";
   });
 
   document.querySelectorAll(".card-codigo").forEach((codigoEl) => {
@@ -929,11 +941,31 @@ function ativarBotoesCards() {
       }
     };
   });
+}
 
-  if (btnNovoPonto) {
-    btnNovoPonto.onclick = () => {
-      setStatus("Novo ponto ainda sem função", "normal");
-    };
+function renderizarCardsPontos(lista) {
+  pontosMap = {};
+
+  const ordenados = [...lista].sort((a, b) =>
+    obterCodigoPonto(a).localeCompare(obterCodigoPonto(b), "pt-BR")
+  );
+
+  ordenados.forEach((ponto) => {
+    const codigo = obterCodigoPonto(ponto);
+    if (codigo) {
+      pontosMap[codigo] = ponto;
+    }
+  });
+
+  if (pontosBox) {
+    pontosBox.innerHTML = ordenados.map((ponto) => montarCardPonto(ponto)).join("");
+    ativarEventosCardsRenderizados();
+
+    document.querySelectorAll(".card-imagem").forEach((imagemEl) => {
+      const card = imagemEl.closest(".card-ponto");
+      const codigo = String(card?.dataset.codigo || "").trim();
+      aplicarPosicaoImagem(imagemEl, lerPosicaoImagem(codigo));
+    });
   }
 }
 
@@ -1074,6 +1106,12 @@ if (btnUpgradePlaylist && inputUpgradePlaylist) {
     const file = event.target.files?.[0];
     await enviarMaterialDiretoPlaylist(file);
     inputUpgradePlaylist.value = "";
+  };
+}
+
+if (btnNovoPonto) {
+  btnNovoPonto.onclick = () => {
+    criarNovoPonto();
   };
 }
 
@@ -1257,10 +1295,6 @@ if (btnSalvarEdicao) {
 }
 
 function obterNomeArquivoPlaylist(item) {
-  if (item.nome_arquivo && String(item.nome_arquivo).trim()) {
-    return String(item.nome_arquivo).trim();
-  }
-
   if (item.titulo_arquivo && String(item.titulo_arquivo).trim()) {
     return String(item.titulo_arquivo).trim();
   }
@@ -1273,6 +1307,10 @@ function obterNomeArquivoPlaylist(item) {
   if (item.video_url) {
     const partes = String(item.video_url).split("/");
     return partes[partes.length - 1]?.split("?")[0] || "Arquivo";
+  }
+
+  if (item.nome && String(item.nome).trim()) {
+    return String(item.nome).trim();
   }
 
   return "Arquivo";
@@ -1320,7 +1358,7 @@ function montarItemPlaylist(item, index) {
         </div>
 
         <div class="playlist-item-data playlist-item-encerramento">
-          ${formatarData(item.data_fim || item.fim_exibicao)}
+          ${formatarData(item.data_fim)}
         </div>
 
         <div class="playlist-item-acoes-laterais">
@@ -1341,7 +1379,7 @@ function montarItemHistoricoEncerramento(item, index) {
     <div class="historico-item">
       <span class="historico-item-ordem">${index + 1}.</span>
       <span class="historico-item-nome">${escapeHtml(nomeCliente)} | ${escapeHtml(nomeArquivo)}</span>
-      <span class="historico-item-valor">${formatarData(item.data_fim || item.fim_exibicao)}</span>
+      <span class="historico-item-valor">${formatarData(item.data_fim)}</span>
     </div>
   `;
 }
@@ -1420,25 +1458,11 @@ function renderizarPlaylistDados(lista, historicoStatus) {
 }
 
 async function buscarPlaylistRemota(codigo) {
-  let playlistData = [];
-  let playlistError = null;
-
-  for (const campoCodigo of ["codigo_ponto", "codigo"]) {
-    const { data, error } = await supabaseClient
-      .from(TABELA)
-      .select("*")
-      .eq(campoCodigo, codigo)
-      .order("ordem", { ascending: true });
-
-    if (!error) {
-      playlistData = data || [];
-      playlistError = null;
-      break;
-    }
-
-    playlistError = error;
-    console.warn(`Falha ao buscar playlist por ${campoCodigo}:`, error);
-  }
+  const { data: playlistData, error: playlistError } = await supabaseClient
+    .from(TABELA)
+    .select("*")
+    .eq("codigo", codigo)
+    .order("ordem", { ascending: true });
 
   if (playlistError) {
     throw playlistError;
@@ -1481,7 +1505,6 @@ async function carregarPlaylist() {
 
   if (cache) {
     renderizarPlaylistDados(cache.playlist, cache.historico);
-    renderizarCardsPontos(Object.values(pontosMap));
     setStatus(cache.fresco ? "Painel Ativo" : "Atualizando playlist...", cache.fresco ? "ok" : "normal");
 
     if (cache.fresco) {
@@ -1500,7 +1523,6 @@ async function carregarPlaylist() {
 
     salvarCachePlaylist(codigo, dados.playlist, dados.historico);
     renderizarPlaylistDados(dados.playlist, dados.historico);
-    renderizarCardsPontos(Object.values(pontosMap));
     setStatus("Painel Ativo", "ok");
   } catch (error) {
     console.error(error);
@@ -1538,7 +1560,6 @@ function ativarRenomearItens() {
       }
 
       const tentativasUpdate = [
-        { nome_arquivo: nomeFinal },
         { titulo_arquivo: nomeFinal },
         { nome: nomeFinal }
       ];
@@ -1654,35 +1675,13 @@ function ativarDrag(lista) {
       novo.splice(target, 0, movido);
 
       for (let i = 0; i < novo.length; i++) {
-        const payloads = [
-          { ordem: i + 1 },
-          { ordem: i },
-          {}
-        ];
+        const { error } = await supabaseClient
+          .from(TABELA)
+          .update({ ordem: i + 1 })
+          .eq("id", novo[i].id);
 
-        let updateError = null;
-
-        for (const payload of payloads) {
-          if (!Object.keys(payload).length) {
-            updateError = null;
-            break;
-          }
-
-          const { error } = await supabaseClient
-            .from(TABELA)
-            .update(payload)
-            .eq("id", novo[i].id);
-
-          if (!error) {
-            updateError = null;
-            break;
-          }
-
-          updateError = error;
-        }
-
-        if (updateError) {
-          console.error(updateError);
+        if (error) {
+          console.error(error);
           setStatus("Erro ao reordenar playlist", "erro");
           item.classList.remove("drop-animating");
           return;
@@ -1721,9 +1720,6 @@ async function carregarPontosRemoto() {
 async function iniciarPainel() {
   if (painelIniciado) return;
   painelIniciado = true;
-
-  ativarLazyImages();
-  ativarBotoesCards();
 
   const cache = lerCachePontos();
 
