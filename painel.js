@@ -1,15 +1,16 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
-const BUCKET = "pontos";
+
+const BUCKETS_UPLOAD = ["playlists", "pontos", "midias", "uploads"];
 
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_STATUS_PONTOS = "statuspontos";
 
-const SENHA_PAINEL = "@helena";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v8";
+const SENHA_PAINEL = "@Helena26";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v9";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v7_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v8_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 const LIMITE_STATUS_ATIVO_MS = 60 * 1000;
 
@@ -22,6 +23,7 @@ function limparCachesAntigos() {
     sessionStorage.removeItem("painel_pontos_cache_v5");
     sessionStorage.removeItem("painel_pontos_cache_v6");
     sessionStorage.removeItem("painel_pontos_cache_v7");
+    sessionStorage.removeItem("painel_pontos_cache_v8");
 
     Object.keys(sessionStorage).forEach((key) => {
       if (
@@ -30,7 +32,8 @@ function limparCachesAntigos() {
         key.startsWith("painel_playlist_cache_v3_") ||
         key.startsWith("painel_playlist_cache_v4_") ||
         key.startsWith("painel_playlist_cache_v5_") ||
-        key.startsWith("painel_playlist_cache_v6_")
+        key.startsWith("painel_playlist_cache_v6_") ||
+        key.startsWith("painel_playlist_cache_v7_")
       ) {
         sessionStorage.removeItem(key);
       }
@@ -456,23 +459,40 @@ function ativarLazyImages() {
   });
 }
 
+async function uploadArquivoEmBucket(file, path, opcoes = {}) {
+  let ultimoErro = null;
+
+  for (const bucket of BUCKETS_UPLOAD) {
+    const { error } = await supabaseClient.storage
+      .from(bucket)
+      .upload(path, file, opcoes);
+
+    if (!error) {
+      const { data } = supabaseClient.storage.from(bucket).getPublicUrl(path);
+
+      return {
+        bucket,
+        publicUrl: data.publicUrl
+      };
+    }
+
+    ultimoErro = error;
+    console.warn(`Falha no bucket ${bucket}:`, error);
+  }
+
+  throw ultimoErro || new Error("Nenhum bucket válido encontrado para upload.");
+}
+
 async function uploadImagemPonto(file, codigo) {
   const extensao = (file.name.split(".").pop() || "jpg").toLowerCase();
   const nomeArquivo = `${codigo}/${Date.now()}.${extensao}`;
 
-  const { error: uploadError } = await supabaseClient.storage
-    .from(BUCKET)
-    .upload(nomeArquivo, file, {
-      cacheControl: "86400",
-      upsert: true
-    });
+  const resultado = await uploadArquivoEmBucket(file, nomeArquivo, {
+    cacheControl: "86400",
+    upsert: true
+  });
 
-  if (uploadError) {
-    throw uploadError;
-  }
-
-  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(nomeArquivo);
-  return data.publicUrl;
+  return resultado.publicUrl;
 }
 
 function limparNomeArquivo(nome) {
@@ -503,63 +523,31 @@ function detectarTipoArquivoPlaylist(file) {
   return "video";
 }
 
-async function consultarPlaylistPorCodigo(colunas, codigo, campoCodigo) {
-  const query = supabaseClient
+async function buscarPlaylistPorCampo(codigo, campoCodigo) {
+  const { data, error } = await supabaseClient
     .from(TABELA)
-    .select(colunas)
+    .select("*")
     .eq(campoCodigo, codigo);
 
-  if (colunas.includes("ordem")) {
-    query.order("ordem", { ascending: false });
-  } else {
-    query.order("created_at", { ascending: false });
-  }
-
-  query.limit(1);
-
-  return query;
+  return { data, error };
 }
 
 async function obterProximaOrdemPlaylist() {
-  const consultas = [
-    {
-      colunas: "ordem",
-      campoCodigo: "codigo_ponto"
-    },
-    {
-      colunas: "ordem",
-      campoCodigo: "codigo"
-    },
-    {
-      colunas: "created_at",
-      campoCodigo: "codigo_ponto"
-    },
-    {
-      colunas: "created_at",
-      campoCodigo: "codigo"
-    }
-  ];
+  const campos = ["codigo_ponto", "codigo"];
 
-  for (const consultaAtual of consultas) {
-    const { data, error } = await consultarPlaylistPorCodigo(
-      consultaAtual.colunas,
-      codigoSelecionado,
-      consultaAtual.campoCodigo
-    );
+  for (const campo of campos) {
+    const { data, error } = await buscarPlaylistPorCampo(codigoSelecionado, campo);
 
     if (!error) {
-      if (consultaAtual.colunas === "ordem") {
-        const maiorOrdem = Number(data?.[0]?.ordem || 0);
-        return maiorOrdem + 1;
-      }
+      const maiorOrdem = (data || []).reduce((maior, item) => {
+        const ordem = Number(item?.ordem || 0);
+        return ordem > maior ? ordem : maior;
+      }, 0);
 
-      return 1;
+      return maiorOrdem + 1;
     }
 
-    console.warn(
-      `Não foi possível buscar ordem usando ${consultaAtual.colunas} / ${consultaAtual.campoCodigo}:`,
-      error
-    );
+    console.warn(`Não foi possível buscar playlist por ${campo}:`, error);
   }
 
   return 1;
@@ -577,6 +565,7 @@ async function enviarMaterialDiretoPlaylist(file) {
   }
 
   let path = "";
+  let bucketUsado = "";
 
   try {
     setStatus("Enviando material...", "normal");
@@ -585,48 +574,48 @@ async function enviarMaterialDiretoPlaylist(file) {
     path = `playlists/${codigoSelecionado}/${Date.now()}-${nomeLimpo}`;
     const tipo = detectarTipoArquivoPlaylist(file);
 
-    const { error: uploadError } = await supabaseClient.storage
-      .from(BUCKET)
-      .upload(path, file, {
-        cacheControl: "86400",
-        upsert: false
-      });
+    const uploadResultado = await uploadArquivoEmBucket(file, path, {
+      cacheControl: "86400",
+      upsert: false
+    });
 
-    if (uploadError) {
-      console.error("ERRO UPLOAD STORAGE:", uploadError);
-      setStatus(`Erro no upload: ${uploadError.message || "falha no storage"}`, "erro");
-      return;
-    }
-
-    const { data: publicData } = supabaseClient.storage
-      .from(BUCKET)
-      .getPublicUrl(path);
-
+    bucketUsado = uploadResultado.bucket;
+    const publicUrl = uploadResultado.publicUrl;
     const ordem = await obterProximaOrdemPlaylist();
 
-    const payloadPrincipal = {
-      codigo_ponto: codigoSelecionado,
-      nome_arquivo: file.name,
-      video_url: publicData.publicUrl,
-      storage_path: path,
-      tipo,
-      ordem
-    };
+    const tentativas = [
+      {
+        codigo_ponto: codigoSelecionado,
+        nome_arquivo: file.name,
+        video_url: publicUrl,
+        storage_path: path,
+        bucket: bucketUsado,
+        tipo,
+        ordem
+      },
+      {
+        codigo_ponto: codigoSelecionado,
+        codigo_cliente: null,
+        nome_arquivo: file.name,
+        video_url: publicUrl,
+        storage_path: path,
+        bucket: bucketUsado,
+        tipo,
+        ordem
+      },
+      {
+        codigo: codigoSelecionado,
+        nome: file.name,
+        titulo_arquivo: file.name,
+        video_url: publicUrl,
+        storage_path: path,
+        tipo,
+        ordem
+      }
+    ];
 
-    const payloadAlternativo = {
-      codigo: codigoSelecionado,
-      nome: file.name,
-      titulo_arquivo: file.name,
-      video_url: publicData.publicUrl,
-      storage_path: path,
-      tipo,
-      ordem
-    };
-
-    let data = null;
     let insertError = null;
-
-    const tentativas = [payloadPrincipal, payloadAlternativo];
+    let data = null;
 
     for (const payload of tentativas) {
       const resposta = await supabaseClient
@@ -641,12 +630,16 @@ async function enviarMaterialDiretoPlaylist(file) {
       }
 
       insertError = resposta.error;
-      console.warn("Falha ao inserir playlist com payload:", payload, resposta.error);
+      console.warn("Falha ao gravar playlist com payload:", payload, resposta.error);
     }
 
     if (insertError) {
       console.error("ERRO INSERT PLAYLIST:", insertError);
-      await supabaseClient.storage.from(BUCKET).remove([path]);
+
+      if (bucketUsado && path) {
+        await supabaseClient.storage.from(bucketUsado).remove([path]);
+      }
+
       setStatus(`Erro ao gravar playlist: ${insertError.message || "falha no banco"}`, "erro");
       return;
     }
@@ -660,11 +653,18 @@ async function enviarMaterialDiretoPlaylist(file) {
   } catch (error) {
     console.error("Erro ao enviar material:", error);
 
-    if (path) {
-      await supabaseClient.storage.from(BUCKET).remove([path]);
+    if (bucketUsado && path) {
+      await supabaseClient.storage.from(bucketUsado).remove([path]);
     }
 
-    setStatus(`Erro ao enviar material: ${error.message || "falha desconhecida"}`, "erro");
+    const mensagemErro = String(error?.message || "");
+
+    if (mensagemErro.toLowerCase().includes("bucket")) {
+      setStatus("Erro no upload: bucket não encontrado", "erro");
+      return;
+    }
+
+    setStatus(`Erro ao enviar material: ${mensagemErro || "falha desconhecida"}`, "erro");
   }
 }
 
@@ -807,40 +807,25 @@ if (senhaInput) {
 }
 
 async function buscarPontosRemoto() {
-  const consultas = [
-    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel,status",
-    "codigo,nome_local,cidade_regiao,endereco_completo,imagem_url,ultimo_ping,status",
-    "codigo,nome_local,cidade_regiao,endereco_completo,imagem_url,created_at,status",
-    "codigo,nome,cidade,endereco,imagem_url",
-    "*"
-  ];
+  const { data, error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .select("*")
+    .order("codigo", { ascending: true });
 
-  let ultimoErro = null;
-
-  for (const colunas of consultas) {
-    const { data, error } = await supabaseClient
-      .from(TABELA_PONTOS)
-      .select(colunas)
-      .order("codigo", { ascending: true });
-
-    if (!error) {
-      return (data || []).map((ponto) => ({
-        ...ponto,
-        codigo: obterCodigoPonto(ponto),
-        nome: obterNomePonto(ponto, obterCodigoPonto(ponto)),
-        cidade: obterCidadePonto(ponto),
-        endereco: obterEnderecoPonto(ponto),
-        imagem_url: obterImagemPonto(ponto),
-        ultimo_ping: obterUltimoPingPonto(ponto),
-        disponivel: pontoEstaDisponivel(ponto)
-      }));
-    }
-
-    ultimoErro = error;
-    console.warn(`Falha ao buscar pontos com colunas: ${colunas}`, error);
+  if (error) {
+    throw error;
   }
 
-  throw ultimoErro;
+  return (data || []).map((ponto) => ({
+    ...ponto,
+    codigo: obterCodigoPonto(ponto),
+    nome: obterNomePonto(ponto, obterCodigoPonto(ponto)),
+    cidade: obterCidadePonto(ponto),
+    endereco: obterEnderecoPonto(ponto),
+    imagem_url: obterImagemPonto(ponto),
+    ultimo_ping: obterUltimoPingPonto(ponto),
+    disponivel: pontoEstaDisponivel(ponto)
+  }));
 }
 
 function renderizarCardsPontos(lista) {
@@ -1434,52 +1419,16 @@ function renderizarPlaylistDados(lista, historicoStatus) {
   ativarExclusaoItens();
 }
 
-async function buscarPlaylistComCampo(codigo, colunas, campoCodigo) {
-  const query = supabaseClient
-    .from(TABELA)
-    .select(colunas)
-    .eq(campoCodigo, codigo);
-
-  if (colunas.includes("ordem")) {
-    query.order("ordem", { ascending: true });
-  } else if (colunas.includes("data_inicio")) {
-    query.order("data_inicio", { ascending: true });
-  } else {
-    query.order("created_at", { ascending: true });
-  }
-
-  return query;
-}
-
 async function buscarPlaylistRemota(codigo) {
-  const consultasPlaylist = [
-    {
-      campoCodigo: "codigo_ponto",
-      colunas: "id,codigo_cliente,codigo_ponto,nome_arquivo,tipo,video_url,storage_path,data_inicio,data_fim,created_at,ordem"
-    },
-    {
-      campoCodigo: "codigo_ponto",
-      colunas: "id,codigo_cliente,codigo_ponto,nome_arquivo,tipo,data_inicio,data_fim,created_at,ordem"
-    },
-    {
-      campoCodigo: "codigo",
-      colunas: "id,nome,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem"
-    },
-    {
-      campoCodigo: "codigo_ponto",
-      colunas: "*"
-    }
-  ];
-
   let playlistData = [];
   let playlistError = null;
 
-  for (const consulta of consultasPlaylist) {
-    const { data, error } = await buscarPlaylistComCampo(
-      codigo,
-      consulta.colunas,
-      consulta.campoCodigo
-    );
+  for (const campoCodigo of ["codigo_ponto", "codigo"]) {
+    const { data, error } = await supabaseClient
+      .from(TABELA)
+      .select("*")
+      .eq(campoCodigo, codigo)
+      .order("ordem", { ascending: true });
 
     if (!error) {
       playlistData = data || [];
@@ -1488,21 +1437,18 @@ async function buscarPlaylistRemota(codigo) {
     }
 
     playlistError = error;
-    console.warn(
-      `Falha ao buscar playlist com colunas ${consulta.colunas} / ${consulta.campoCodigo}:`,
-      error
-    );
+    console.warn(`Falha ao buscar playlist por ${campoCodigo}:`, error);
   }
 
-  if (playlistError) throw playlistError;
+  if (playlistError) {
+    throw playlistError;
+  }
 
   let historicoData = [];
 
   const consultasHistorico = [
-    { ordem: "ultimo_ping", colunas: "status,ponto_codigo,ultimo_ping,created_at" },
-    { ordem: "created_at", colunas: "status,ponto_codigo,ultimo_ping,created_at" },
-    { ordem: "created_at", colunas: "status,ponto_codigo,created_at" },
-    { ordem: "ultimo_ping", colunas: "*" }
+    { ordem: "ultimo_ping", colunas: "*" },
+    { ordem: "created_at", colunas: "*" }
   ];
 
   for (const consulta of consultasHistorico) {
