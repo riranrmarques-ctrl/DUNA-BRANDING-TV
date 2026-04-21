@@ -353,11 +353,13 @@ function obterNomeDoPonto(ponto, codigo) {
 }
 
 function obterPontosMarcados() {
-  return Array.from(document.querySelectorAll('input[name="pontos"]:checked')).map((item) => item.value);
+  return Array.from(document.querySelectorAll('#listaPontos input[name="pontos"]:checked'))
+    .map((input) => String(input.value || "").trim())
+    .filter(Boolean);
 }
 
 function obterCodigosDestinoSelecionados() {
-  return obterPontosMarcados().map(obterCodigoRealDoPonto).filter(Boolean);
+  return obterPontosMarcados();
 }
 
 function obterPontosContratoTexto() {
@@ -1345,19 +1347,20 @@ async function uploadArquivoCliente() {
 
   const file = arquivoInput?.files?.[0];
 
-  if (!validarCamposCliente()) return;
-
   if (!file) {
     mostrarStatusUpload("Selecione um arquivo.", "#ff6b6b");
     return;
   }
 
-  const codigosDestino = obterCodigosDestinoSelecionados();
+  const codigosDestino = obterPontosMarcados();
 
   if (!codigosDestino.length) {
-    mostrarStatusUpload("Selecione ao menos um ponto.", "#ff6b6b");
+    mostrarStatusUpload("Selecione ao menos um ponto antes de enviar.", "#ff6b6b");
+    mostrarMensagem("Selecione ao menos um ponto antes de enviar o material.", "#ff6b6b");
     return;
   }
+
+  if (!validarCamposCliente()) return;
 
   try {
     mostrarStatusUpload("Salvando cliente...", "#9fd2ff");
@@ -1409,18 +1412,21 @@ async function uploadArquivoCliente() {
       nome: inputNome.value.trim(),
       titulo_arquivo: file.name,
       video_url: videoUrl,
+      storage_path: storagePath,
       tipo: tipoFinal,
       data_inicio: agoraIso,
       data_fim: dataFim,
-      storage_path: storagePath,
       ordem: baseOrdem + index
     }));
 
-    const { error } = await supabaseClient
+    console.log("Enviando material para pontos:", codigosDestino);
+    console.log("Registros playlists:", registros);
+
+    const { error: insertError } = await supabaseClient
       .from(TABELA_PLAYLISTS)
       .insert(registros);
 
-    if (error) throw error;
+    if (insertError) throw insertError;
 
     await carregarHistoricoArquivos();
     await sincronizarStatusCliente();
@@ -1428,10 +1434,12 @@ async function uploadArquivoCliente() {
     gerarHistoricoContratoVisual();
     gerarContratoCliente();
 
-    mostrarStatusUpload("Enviado com sucesso.", "#7CFC9A");
+    mostrarStatusUpload("Material enviado para a playlist.", "#7CFC9A");
+    mostrarMensagem("Material enviado para os pontos selecionados.", "#7CFC9A");
+
     arquivoInput.value = "";
   } catch (error) {
-    console.error("Erro ao enviar arquivo:", error);
+    console.error("Erro ao enviar material:", error);
     mostrarStatusUpload(`Erro ao enviar: ${error.message || "falha desconhecida"}`, "#ff6b6b");
   }
 }
