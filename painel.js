@@ -214,6 +214,53 @@ function formatarDataHora(valor) {
   return data.toLocaleString("pt-BR");
 }
 
+function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
+  const disponivel = pontoEstaDisponivel(ponto);
+
+  if (!disponivel) {
+    return {
+      texto: "Indisponível",
+      detalhe: "Indisponível",
+      ativo: false,
+      classe: "indisponivel"
+    };
+  }
+
+  const ultimoEvento = Array.isArray(historicoConexao) ? historicoConexao[0] : null;
+  const evento = String(ultimoEvento?.evento || "").toLowerCase();
+  const dataEvento = ultimoEvento?.data_hora || ultimoEvento?.created_at || null;
+
+  if (evento === "conectou") {
+    return {
+      texto: "Ativo",
+      detalhe: dataEvento ? `Ativo desde ${formatarDataHora(dataEvento)}` : "Ativo",
+      ativo: true,
+      classe: "ativo"
+    };
+  }
+
+  if (evento === "desconectou") {
+    return {
+      texto: "Inativo",
+      detalhe: dataEvento ? `Inativo desde ${formatarDataHora(dataEvento)}` : "Inativo",
+      ativo: false,
+      classe: "inativo"
+    };
+  }
+
+  return calcularStatusInfo(ponto);
+}
+
+function atualizarStatusDetalhePonto(statusInfo) {
+  const statusPonto = document.getElementById("statusPonto");
+  if (!statusPonto || !statusInfo) return;
+
+  statusPonto.textContent = statusInfo.detalhe || statusInfo.texto;
+  statusPonto.classList.remove("ativo", "inativo", "indisponivel");
+  statusPonto.classList.add(statusInfo.classe);
+  statusPonto.dataset.status = String(statusInfo.texto || "").toLowerCase();
+}
+
 function itemEstaInativo(item) {
   if (!item?.data_fim) return false;
 
@@ -548,6 +595,13 @@ async function alternarDisponibilidadePonto() {
     if (error) throw error;
 
     renderizarCardsPontos(Object.values(pontosMap));
+
+    const cachePlaylist = lerCachePlaylist(codigoSelecionado);
+    const statusInfo = cachePlaylist
+      ? calcularStatusPorHistorico(cachePlaylist.historico, pontosMap[codigoSelecionado])
+      : calcularStatusInfo(pontosMap[codigoSelecionado]);
+
+    atualizarStatusDetalhePonto(statusInfo);
     setStatus(novoStatus ? "Ponto disponível" : "Ponto indisponível", "ok");
   } catch (error) {
     console.error("Erro ao atualizar disponibilidade:", error);
@@ -556,6 +610,12 @@ async function alternarDisponibilidadePonto() {
     atualizarCachePonto(codigoSelecionado, { disponivel: disponivelAtual });
     renderizarCardsPontos(Object.values(pontosMap));
 
+    const cachePlaylist = lerCachePlaylist(codigoSelecionado);
+    const statusInfo = cachePlaylist
+      ? calcularStatusPorHistorico(cachePlaylist.historico, pontosMap[codigoSelecionado])
+      : calcularStatusInfo(pontosMap[codigoSelecionado]);
+
+    atualizarStatusDetalhePonto(statusInfo);
     setStatus("Erro ao atualizar disponibilidade", "erro");
   }
 }
@@ -762,22 +822,16 @@ function abrirPonto(codigo) {
 
   const cidadePonto = document.getElementById("cidadePonto");
   const enderecoPonto = document.getElementById("enderecoPonto");
-  const statusPonto = document.getElementById("statusPonto");
   const imagemPonto = document.getElementById("imagemPonto");
 
-  const disponivel = pontoEstaDisponivel(ponto);
-  const statusInfo = disponivel
-    ? calcularStatusInfo(ponto)
-    : {
-        texto: "Indisponível",
-        detalhe: "Indisponível",
-        ativo: false,
-        classe: "indisponivel"
-      };
+  const cachePlaylist = lerCachePlaylist(codigoSelecionado);
+  const statusInfo = cachePlaylist
+    ? calcularStatusPorHistorico(cachePlaylist.historico, ponto)
+    : calcularStatusInfo(ponto);
 
   const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
 
-  atualizarVisualDisponibilidade(disponivel);
+  atualizarVisualDisponibilidade(pontoEstaDisponivel(ponto));
 
   if (cidadePonto) {
     cidadePonto.innerHTML = obterLocalizacaoPonto(cidade, endereco);
@@ -787,12 +841,7 @@ function abrirPonto(codigo) {
     enderecoPonto.textContent = endereco || "";
   }
 
-  if (statusPonto) {
-    statusPonto.textContent = statusInfo.detalhe || statusInfo.texto;
-    statusPonto.classList.remove("ativo", "inativo", "indisponivel");
-    statusPonto.classList.add(statusInfo.classe);
-    statusPonto.dataset.status = statusInfo.texto.toLowerCase();
-  }
+  atualizarStatusDetalhePonto(statusInfo);
 
   if (imagemPonto) {
     imagemPonto.loading = "lazy";
@@ -1161,6 +1210,10 @@ function obterContainerHistoricoStatus() {
 }
 
 function renderizarPlaylistDados(lista, historicoConexao) {
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const statusInfo = calcularStatusPorHistorico(historicoConexao, ponto);
+  atualizarStatusDetalhePonto(statusInfo);
+
   const ativos = lista.filter((item) => !itemEstaInativo(item));
   const inativos = lista.filter((item) => itemEstaInativo(item));
 
