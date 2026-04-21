@@ -238,6 +238,15 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
       const eventoRecente = diff < LIMITE_STATUS_ATIVO_MS;
       const horario = formatarDataHora(dataEventoRaw);
 
+      if (evento === "conectou" && eventoRecente) {
+        return {
+          texto: "Ativo",
+          detalhe: `Ativo desde ${horario}`,
+          ativo: true,
+          classe: "ativo"
+        };
+      }
+
       if (evento === "desconectou") {
         return {
           texto: "Inativo",
@@ -261,26 +270,22 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
   return calcularStatusInfo(ponto);
 }
 
-  const ultimoEvento = Array.isArray(historicoConexao) ? historicoConexao[0] : null;
-  const evento = String(ultimoEvento?.evento || "").toLowerCase();
-  const dataEvento = ultimoEvento?.data_hora || ultimoEvento?.created_at || null;
+function obterStatusPontoParaPainel(codigo, ponto) {
+  const disponivel = pontoEstaDisponivel(ponto);
 
-  if (evento === "conectou") {
+  if (!disponivel) {
     return {
-      texto: "Ativo",
-      detalhe: dataEvento ? `Ativo desde ${formatarDataHora(dataEvento)}` : "Ativo",
-      ativo: true,
-      classe: "ativo"
+      texto: "Indisponível",
+      detalhe: "Indisponível",
+      ativo: false,
+      classe: "indisponivel"
     };
   }
 
-  if (evento === "desconectou") {
-    return {
-      texto: "Inativo",
-      detalhe: dataEvento ? `Inativo desde ${formatarDataHora(dataEvento)}` : "Inativo",
-      ativo: false,
-      classe: "inativo"
-    };
+  const cachePlaylist = lerCachePlaylist(codigo);
+
+  if (cachePlaylist?.historico?.length) {
+    return calcularStatusPorHistorico(cachePlaylist.historico, ponto);
   }
 
   return calcularStatusInfo(ponto);
@@ -631,11 +636,7 @@ async function alternarDisponibilidadePonto() {
 
     renderizarCardsPontos(Object.values(pontosMap));
 
-    const cachePlaylist = lerCachePlaylist(codigoSelecionado);
-    const statusInfo = cachePlaylist
-      ? calcularStatusPorHistorico(cachePlaylist.historico, pontosMap[codigoSelecionado])
-      : calcularStatusInfo(pontosMap[codigoSelecionado]);
-
+    const statusInfo = obterStatusPontoParaPainel(codigoSelecionado, pontosMap[codigoSelecionado]);
     atualizarStatusDetalhePonto(statusInfo);
     setStatus(novoStatus ? "Ponto disponível" : "Ponto indisponível", "ok");
   } catch (error) {
@@ -645,11 +646,7 @@ async function alternarDisponibilidadePonto() {
     atualizarCachePonto(codigoSelecionado, { disponivel: disponivelAtual });
     renderizarCardsPontos(Object.values(pontosMap));
 
-    const cachePlaylist = lerCachePlaylist(codigoSelecionado);
-    const statusInfo = cachePlaylist
-      ? calcularStatusPorHistorico(cachePlaylist.historico, pontosMap[codigoSelecionado])
-      : calcularStatusInfo(pontosMap[codigoSelecionado]);
-
+    const statusInfo = obterStatusPontoParaPainel(codigoSelecionado, pontosMap[codigoSelecionado]);
     atualizarStatusDetalhePonto(statusInfo);
     setStatus("Erro ao atualizar disponibilidade", "erro");
   }
@@ -743,18 +740,9 @@ function renderizarCardsPontos(lista) {
     const cidade = obterCidadePonto(ponto);
     const endereco = obterEnderecoPonto(ponto);
     const imagem = obterImagemPonto(ponto);
-    const disponivel = pontoEstaDisponivel(ponto);
+    const statusInfo = obterStatusPontoParaPainel(codigo, ponto);
 
-    const statusInfo = disponivel
-      ? calcularStatusInfo(ponto)
-      : {
-          texto: "Indisponível",
-          detalhe: "Indisponível",
-          ativo: false,
-          classe: "indisponivel"
-        };
-
-    card.classList.toggle("card-indisponivel", !disponivel);
+    card.classList.toggle("card-indisponivel", statusInfo.classe === "indisponivel");
 
     if (nomeEl) {
       nomeEl.innerHTML = `<strong>${escapeHtml(nome)}</strong>`;
@@ -771,15 +759,15 @@ function renderizarCardsPontos(lista) {
 
     if (statusElCard) {
       statusElCard.textContent = statusInfo.texto;
-      statusElCard.classList.toggle("ativo", disponivel && statusInfo.ativo);
-      statusElCard.classList.toggle("inativo", disponivel && !statusInfo.ativo);
-      statusElCard.classList.toggle("indisponivel", !disponivel);
+      statusElCard.classList.toggle("ativo", statusInfo.classe === "ativo");
+      statusElCard.classList.toggle("inativo", statusInfo.classe === "inativo");
+      statusElCard.classList.toggle("indisponivel", statusInfo.classe === "indisponivel");
     }
 
     if (bolinhaEl) {
-      bolinhaEl.classList.toggle("ativo", disponivel && statusInfo.ativo);
-      bolinhaEl.classList.toggle("inativo", disponivel && !statusInfo.ativo);
-      bolinhaEl.classList.toggle("indisponivel", !disponivel);
+      bolinhaEl.classList.toggle("ativo", statusInfo.classe === "ativo");
+      bolinhaEl.classList.toggle("inativo", statusInfo.classe === "inativo");
+      bolinhaEl.classList.toggle("indisponivel", statusInfo.classe === "indisponivel");
     }
 
     if (imagemEl) {
@@ -859,11 +847,7 @@ function abrirPonto(codigo) {
   const enderecoPonto = document.getElementById("enderecoPonto");
   const imagemPonto = document.getElementById("imagemPonto");
 
-  const cachePlaylist = lerCachePlaylist(codigoSelecionado);
-  const statusInfo = cachePlaylist
-    ? calcularStatusPorHistorico(cachePlaylist.historico, ponto)
-    : calcularStatusInfo(ponto);
-
+  const statusInfo = obterStatusPontoParaPainel(codigoSelecionado, ponto);
   const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
 
   atualizarVisualDisponibilidade(pontoEstaDisponivel(ponto));
@@ -1352,6 +1336,7 @@ async function carregarPlaylist() {
 
   if (cache) {
     renderizarPlaylistDados(cache.playlist, cache.historico);
+    renderizarCardsPontos(Object.values(pontosMap));
     setStatus(cache.fresco ? "Painel Ativo" : "Atualizando playlist...", cache.fresco ? "ok" : "normal");
 
     if (cache.fresco) {
@@ -1370,6 +1355,7 @@ async function carregarPlaylist() {
 
     salvarCachePlaylist(codigo, dados.playlist, dados.historico);
     renderizarPlaylistDados(dados.playlist, dados.historico);
+    renderizarCardsPontos(Object.values(pontosMap));
     setStatus("Painel Ativo", "ok");
   } catch (error) {
     console.error(error);
