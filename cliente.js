@@ -8,7 +8,7 @@ const mensagem = document.getElementById("mensagem");
 const botaoNovoCliente = document.getElementById("botaoNovoCliente");
 const botaoAtualizar = document.getElementById("botaoAtualizar");
 const buscaCliente = document.getElementById("buscaCliente");
-
+ 
 let clientesCarregados = [];
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
