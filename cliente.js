@@ -1,30 +1,7 @@
-const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const CODIGOS_FIXOS = [
-  "H3L1",
-  "E7N4", 
-  "H8E2",
-  "L3A9",
-  "N1H6",
-  "E4L7",
-  "A9H2",
-  "H5N8",
-  "L2E6",
-  "N7A3",
-  "E1H9",
-  "A4L8",
-  "H6A1",
-  "L9N5",
-  "E3A7",
-  "N8H4",
-  "A2E6",
-  "H7L3",
-  "L1H8",
-  "E9N2"
-];
 
 const listaClientes = document.getElementById("listaClientes");
 const mensagem = document.getElementById("mensagem");
@@ -35,7 +12,8 @@ const buscaCliente = document.getElementById("buscaCliente");
 let clientesCarregados = [];
 
 function mostrarMensagem(texto, cor = "#9fd2ff") {
-  mensagem.textContent = texto;
+  if (!mensagem) return;
+  mensagem.textContent = texto || "";
   mensagem.style.color = cor;
 }
 
@@ -52,6 +30,152 @@ function abrirCliente(codigo) {
   window.location.href = `cliente-admin.html?codigo=${encodeURIComponent(codigo)}`;
 }
 
+function normalizarCodigo(codigo) {
+  return String(codigo || "").trim().toUpperCase();
+}
+
+function obterNomeCliente(cliente) {
+  return String(
+    cliente?.nome_completo ||
+    cliente?.nome ||
+    "Sem nome"
+  ).trim();
+}
+
+function obterTelefoneCliente(cliente) {
+  return String(cliente?.telefone || "").trim();
+}
+
+function obterStatusCliente(cliente) {
+  const status = String(cliente?.status || "").trim().toLowerCase();
+
+  if (status === "ativo") return "Ativo";
+  if (status === "inativo") return "Inativo";
+  return cliente?.status ? String(cliente.status).trim() : "Inativo";
+}
+
+function obterTipoCliente(cliente) {
+  return String(cliente?.tipo_acesso || "cliente").trim();
+}
+
+function obterPontosTexto(cliente) {
+  return Array.isArray(cliente?.pontos) && cliente.pontos.length
+    ? cliente.pontos.join(", ")
+    : "nenhum";
+}
+
+async function buscarClientesTabela() {
+  const consultas = [
+    "codigo,nome_completo,telefone,email,cpf_cnpj,status,tipo_acesso,created_at",
+    "codigo,nome_completo,telefone,email,cpf_cnpj,status,tipo_acesso,data_postagem,created_at",
+    "*"
+  ];
+
+  let ultimoErro = null;
+
+  for (const colunas of consultas) {
+    const { data, error } = await supabaseClient
+      .from("dadosclientes")
+      .select(colunas)
+      .order("codigo", { ascending: true });
+
+    if (!error) {
+      return data || [];
+    }
+
+    ultimoErro = error;
+    console.warn(`Falha ao buscar clientes com colunas: ${colunas}`, error);
+  }
+
+  throw ultimoErro;
+}
+
+async function buscarVinculosTabela() {
+  const tentativas = [
+    { colunas: "cliente_codigo,ponto_codigo", ordem: "cliente_codigo" },
+    { colunas: "codigo_cliente,ponto_codigo", ordem: "codigo_cliente" },
+    { colunas: "cliente_codigo,codigo_ponto", ordem: "cliente_codigo" },
+    { colunas: "*", ordem: "created_at" }
+  ];
+
+  for (const tentativa of tentativas) {
+    const query = supabaseClient
+      .from("playercliente")
+      .select(tentativa.colunas);
+
+    const { data, error } = await query.order(tentativa.ordem, { ascending: true });
+
+    if (!error) {
+      return data || [];
+    }
+
+    console.warn(
+      `Falha ao buscar vínculos com colunas ${tentativa.colunas} e ordem ${tentativa.ordem}:`,
+      error
+    );
+  }
+
+  return [];
+}
+
+function extrairCodigoClienteVinculo(item) {
+  return normalizarCodigo(
+    item?.cliente_codigo ||
+    item?.codigo_cliente ||
+    item?.codigo ||
+    ""
+  );
+}
+
+function extrairCodigoPontoVinculo(item) {
+  return String(
+    item?.ponto_codigo ||
+    item?.codigo_ponto ||
+    item?.codigo ||
+    ""
+  ).trim();
+}
+
+async function excluirVinculosCliente(codigo) {
+  const codigoNormalizado = normalizarCodigo(codigo);
+
+  const tentativas = [
+    ["cliente_codigo", codigoNormalizado],
+    ["codigo_cliente", codigoNormalizado]
+  ];
+
+  let conseguiuAlguma = false;
+  let ultimoErroRelevante = null;
+
+  for (const [campo, valor] of tentativas) {
+    const { error } = await supabaseClient
+      .from("playercliente")
+      .delete()
+      .eq(campo, valor);
+
+    if (!error) {
+      conseguiuAlguma = true;
+      continue;
+    }
+
+    const mensagemErro = String(error.message || "").toLowerCase();
+    const erroDeColuna =
+      mensagemErro.includes("column") ||
+      mensagemErro.includes("schema cache") ||
+      mensagemErro.includes("does not exist");
+
+    if (!erroDeColuna) {
+      ultimoErroRelevante = error;
+    }
+  }
+
+  if (ultimoErroRelevante) {
+    throw ultimoErroRelevante;
+  }
+
+  return conseguiuAlguma;
+}
+
 async function excluirCliente(codigo) {
   const confirmar = window.confirm(`Deseja excluir o cliente ${codigo}?`);
   if (!confirmar) return;
@@ -59,17 +183,10 @@ async function excluirCliente(codigo) {
   try {
     mostrarMensagem("Excluindo cliente...");
 
-    const { error: errorVinculos } = await supabaseClient
-      .from("cliente_pontos")
-      .delete()
-      .eq("cliente_codigo", codigo);
-
-    if (errorVinculos) {
-      throw errorVinculos;
-    }
+    await excluirVinculosCliente(codigo);
 
     const { error: errorCliente } = await supabaseClient
-      .from("clientes_app")
+      .from("dadosclientes")
       .delete()
       .eq("codigo", codigo);
 
@@ -86,14 +203,19 @@ async function excluirCliente(codigo) {
 }
 
 function renderizarClientes() {
-  const termo = (buscaCliente.value || "").trim().toLowerCase();
+  if (!listaClientes) return;
+
+  const termo = (buscaCliente?.value || "").trim().toLowerCase();
 
   const filtrados = clientesCarregados.filter((cliente) => {
     const textoBusca = [
       cliente.codigo,
-      cliente.nome,
-      cliente.empresa,
-      cliente.telefone
+      cliente.nome_completo,
+      cliente.telefone,
+      cliente.email,
+      cliente.cpf_cnpj,
+      cliente.status,
+      cliente.tipo_acesso
     ]
       .join(" ")
       .toLowerCase();
@@ -112,14 +234,15 @@ function renderizarClientes() {
     const card = document.createElement("div");
     card.className = "cliente-card";
 
-    const pontosTexto = Array.isArray(cliente.pontos) && cliente.pontos.length
-      ? cliente.pontos.join(", ")
-      : "nenhum";
+    const pontosTexto = obterPontosTexto(cliente);
+    const statusTexto = obterStatusCliente(cliente);
+    const tipoTexto = obterTipoCliente(cliente);
 
     card.innerHTML = `
-      <h3>${escaparHtml(cliente.codigo)} - ${escaparHtml(cliente.nome || "Sem nome")}</h3>
-      <p><strong>Empresa:</strong> ${escaparHtml(cliente.empresa || "-")}</p>
-      <p><strong>Telefone:</strong> ${escaparHtml(cliente.telefone || "-")}</p>
+      <h3>${escaparHtml(cliente.codigo)} - ${escaparHtml(obterNomeCliente(cliente))}</h3>
+      <p><strong>Tipo:</strong> ${escaparHtml(tipoTexto || "-")}</p>
+      <p><strong>Telefone:</strong> ${escaparHtml(obterTelefoneCliente(cliente) || "-")}</p>
+      <p><strong>Status:</strong> ${escaparHtml(statusTexto || "-")}</p>
       <p><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</p>
       <div class="acoes-card">
         <button class="botao-abrir" type="button">Abrir</button>
@@ -141,76 +264,152 @@ async function carregarClientes() {
   try {
     mostrarMensagem("Carregando clientes...");
 
-    const { data: clientes, error } = await supabaseClient
-      .from("clientes_app")
-      .select("*")
-      .order("codigo", { ascending: true });
-
-    if (error) {
-      throw error;
-    }
-
-    const { data: vinculos, error: errorVinculos } = await supabaseClient
-      .from("cliente_pontos")
-      .select("*")
-      .order("cliente_codigo", { ascending: true });
-
-    if (errorVinculos) {
-      throw errorVinculos;
-    }
+    const clientes = await buscarClientesTabela();
+    const vinculos = await buscarVinculosTabela();
 
     const mapaPontos = {};
 
     vinculos.forEach((item) => {
-      if (!mapaPontos[item.cliente_codigo]) {
-        mapaPontos[item.cliente_codigo] = [];
+      const codigoCliente = extrairCodigoClienteVinculo(item);
+      const codigoPonto = extrairCodigoPontoVinculo(item);
+
+      if (!codigoCliente) return;
+
+      if (!mapaPontos[codigoCliente]) {
+        mapaPontos[codigoCliente] = [];
       }
-      mapaPontos[item.cliente_codigo].push(item.ponto_codigo);
+
+      if (codigoPonto && !mapaPontos[codigoCliente].includes(codigoPonto)) {
+        mapaPontos[codigoCliente].push(codigoPonto);
+      }
     });
 
-    clientesCarregados = clientes.map((cliente) => ({
-      ...cliente,
-      pontos: mapaPontos[cliente.codigo] || []
-    }));
+    clientesCarregados = (clientes || []).map((cliente) => {
+      const codigo = normalizarCodigo(cliente.codigo);
+
+      return {
+        ...cliente,
+        codigo,
+        nome_completo: obterNomeCliente(cliente),
+        telefone: obterTelefoneCliente(cliente),
+        pontos: mapaPontos[codigo] || []
+      };
+    });
 
     renderizarClientes();
     mostrarMensagem("Clientes carregados com sucesso.", "#7CFC9A");
   } catch (error) {
     console.error(error);
-    listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
+
+    if (listaClientes) {
+      listaClientes.innerHTML = `<div class="vazio">Erro ao carregar clientes.</div>`;
+    }
+
     mostrarMensagem("Erro ao carregar clientes do Supabase.", "#ff6b6b");
   }
 }
 
-function obterProximoCodigoLivre() {
-  const usados = new Set(clientesCarregados.map((cliente) => cliente.codigo));
-  return CODIGOS_FIXOS.find((codigo) => !usados.has(codigo)) || null;
+function gerarCodigoAleatorio() {
+  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numeros = "0123456789";
+
+  return (
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)]
+  );
 }
 
-async function criarNovoCliente() {
-  const codigoLivre = obterProximoCodigoLivre();
+async function obterCodigoUnico() {
+  const usadosLocais = new Set(clientesCarregados.map((cliente) => normalizarCodigo(cliente.codigo)));
 
-  if (!codigoLivre) {
-    mostrarMensagem("Todos os códigos fixos já foram usados.", "#ffb86b");
-    return;
-  }
+  for (let tentativa = 0; tentativa < 80; tentativa++) {
+    const codigo = gerarCodigoAleatorio();
 
-  try {
-    botaoNovoCliente.disabled = true;
-    mostrarMensagem("Criando novo cliente...");
+    if (usadosLocais.has(codigo)) {
+      continue;
+    }
 
-    const { error } = await supabaseClient
-      .from("clientes_app")
-      .insert({
-        codigo: codigoLivre,
-        nome: "Novo Cliente",
-        telefone: null,
-        empresa: null,
-        observacao: null
-      });
+    const { data, error } = await supabaseClient
+      .from("dadosclientes")
+      .select("codigo")
+      .eq("codigo", codigo)
+      .maybeSingle();
 
     if (error) {
       throw error;
+    }
+
+    if (!data) {
+      return codigo;
+    }
+  }
+
+  throw new Error("Não foi possível gerar um código único.");
+}
+
+async function criarNovoCliente() {
+  try {
+    if (botaoNovoCliente) {
+      botaoNovoCliente.disabled = true;
+    }
+
+    mostrarMensagem("Criando novo cliente...");
+
+    const codigoLivre = await obterCodigoUnico();
+
+    const tentativasPayload = [
+      {
+        codigo: codigoLivre,
+        nome_completo: "Novo Cliente",
+        telefone: "",
+        email: "",
+        cpf_cnpj: "",
+        status: "inativo",
+        tipo_acesso: "cliente"
+      },
+      {
+        codigo: codigoLivre,
+        nome_completo: "Novo Cliente",
+        telefone: "",
+        email: "",
+        cpf_cnpj: "",
+        status: "inativo",
+        tipo_acesso: "cliente",
+        contrato: ""
+      },
+      {
+        codigo: codigoLivre,
+        nome_completo: "Novo Cliente",
+        telefone: "",
+        email: "",
+        cpf_cnpj: "",
+        status: "inativo",
+        data_postagem: new Date().toISOString(),
+        tipo_acesso: "cliente",
+        contrato: ""
+      }
+    ];
+
+    let errorFinal = null;
+
+    for (const payload of tentativasPayload) {
+      const { error } = await supabaseClient
+        .from("dadosclientes")
+        .insert(payload);
+
+      if (!error) {
+        errorFinal = null;
+        break;
+      }
+
+      errorFinal = error;
+      console.warn("Falha ao criar cliente com payload:", payload, error);
+    }
+
+    if (errorFinal) {
+      throw errorFinal;
     }
 
     mostrarMensagem(`Cliente ${codigoLivre} criado com sucesso.`, "#7CFC9A");
@@ -219,12 +418,22 @@ async function criarNovoCliente() {
     console.error(error);
     mostrarMensagem("Erro ao criar novo cliente.", "#ff6b6b");
   } finally {
-    botaoNovoCliente.disabled = false;
+    if (botaoNovoCliente) {
+      botaoNovoCliente.disabled = false;
+    }
   }
 }
 
-botaoNovoCliente.addEventListener("click", criarNovoCliente);
-botaoAtualizar.addEventListener("click", carregarClientes);
-buscaCliente.addEventListener("input", renderizarClientes);
+if (botaoNovoCliente) {
+  botaoNovoCliente.addEventListener("click", criarNovoCliente);
+}
+
+if (botaoAtualizar) {
+  botaoAtualizar.addEventListener("click", carregarClientes);
+}
+
+if (buscaCliente) {
+  buscaCliente.addEventListener("input", renderizarClientes);
+}
 
 carregarClientes();
