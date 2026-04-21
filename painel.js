@@ -1,35 +1,38 @@
-const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const BUCKET = "pontos";
+
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
-const TABELA_HISTORICO_CONEXAO = "historico_conexao";
+const TABELA_STATUS_PONTOS = "statuspontos";
 
-const SENHA_PAINEL = "@Helena26";
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v7";
+const SENHA_PAINEL = "@helena";
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v8";
 const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v6_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v7_";
 const CACHE_PLAYLIST_TTL = 60 * 1000;
 const LIMITE_STATUS_ATIVO_MS = 60 * 1000;
 
 function limparCachesAntigos() {
   try {
-    localStorage.removeItem("painel_pontos_cache_v1");
-    localStorage.removeItem("painel_pontos_cache_v2");
-    localStorage.removeItem("painel_pontos_cache_v3");
-    localStorage.removeItem("painel_pontos_cache_v4");
-    localStorage.removeItem("painel_pontos_cache_v5");
-    localStorage.removeItem("painel_pontos_cache_v6");
+    sessionStorage.removeItem("painel_pontos_cache_v1");
+    sessionStorage.removeItem("painel_pontos_cache_v2");
+    sessionStorage.removeItem("painel_pontos_cache_v3");
+    sessionStorage.removeItem("painel_pontos_cache_v4");
+    sessionStorage.removeItem("painel_pontos_cache_v5");
+    sessionStorage.removeItem("painel_pontos_cache_v6");
+    sessionStorage.removeItem("painel_pontos_cache_v7");
 
-    Object.keys(localStorage).forEach((key) => {
+    Object.keys(sessionStorage).forEach((key) => {
       if (
         key.startsWith("painel_playlist_cache_v1_") ||
         key.startsWith("painel_playlist_cache_v2_") ||
         key.startsWith("painel_playlist_cache_v3_") ||
         key.startsWith("painel_playlist_cache_v4_") ||
-        key.startsWith("painel_playlist_cache_v5_")
+        key.startsWith("painel_playlist_cache_v5_") ||
+        key.startsWith("painel_playlist_cache_v6_")
       ) {
-        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
       }
     });
   } catch {
@@ -105,13 +108,20 @@ function escapeHtml(texto) {
 }
 
 function obterImagemPonto(ponto) {
-  return ponto?.imagem_url || ponto?.imagem || ponto?.foto_url || "https://placehold.co/600x320/png";
+  return (
+    ponto?.imagem_url ||
+    ponto?.imagem ||
+    ponto?.foto_url ||
+    ponto?.imagem_ponto ||
+    "https://placehold.co/600x320/png"
+  );
 }
 
 function obterCodigoPonto(ponto) {
   return String(
     ponto?.codigo ||
     ponto?.codigo_ponto ||
+    ponto?.ponto_codigo ||
     ponto?.codigo_visual ||
     ponto?.id_ponto ||
     ponto?.id ||
@@ -120,19 +130,34 @@ function obterCodigoPonto(ponto) {
 }
 
 function obterNomePonto(ponto, codigo) {
-  return ponto?.nome || ponto?.nome_painel || ponto?.titulo || ponto?.ambiente || codigo || "Carregando...";
+  return (
+    ponto?.nome ||
+    ponto?.nome_local ||
+    ponto?.nome_painel ||
+    ponto?.titulo ||
+    ponto?.ambiente ||
+    codigo ||
+    "Carregando..."
+  );
 }
 
 function obterCidadePonto(ponto) {
-  return ponto?.cidade || ponto?.municipio || ponto?.localidade || "";
+  return ponto?.cidade || ponto?.cidade_regiao || ponto?.municipio || ponto?.localidade || "";
 }
 
 function obterEnderecoPonto(ponto) {
-  return ponto?.endereco || ponto?.endereço || ponto?.local || "";
+  return ponto?.endereco || ponto?.endereco_completo || ponto?.endereço || ponto?.local || "";
 }
 
 function obterUltimoPingPonto(ponto) {
-  return ponto?.ultimo_ping || ponto?.last_ping || ponto?.updated_at || ponto?.data_ping || null;
+  return (
+    ponto?.ultimo_ping ||
+    ponto?.last_ping ||
+    ponto?.updated_at ||
+    ponto?.data_ping ||
+    ponto?.created_at ||
+    null
+  );
 }
 
 function obterLocalizacaoPonto(cidade, endereco = "") {
@@ -155,7 +180,21 @@ function obterLocalizacaoPonto(cidade, endereco = "") {
 }
 
 function pontoEstaDisponivel(ponto) {
-  return ponto?.disponivel !== false;
+  const statusCliente = String(ponto?.status || ponto?.situacao || "").toLowerCase().trim();
+
+  if (ponto?.disponivel === false) return false;
+  if (statusCliente === "inativo") return false;
+  return true;
+}
+
+function normalizarStatusHistorico(item) {
+  return String(item?.status || item?.evento || "")
+    .toLowerCase()
+    .trim();
+}
+
+function obterDataHistorico(item) {
+  return item?.ultimo_ping || item?.data_hora || item?.created_at || null;
 }
 
 function calcularStatusInfo(ponto) {
@@ -214,7 +253,7 @@ function formatarDataHora(valor) {
   return data.toLocaleString("pt-BR");
 }
 
-function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
+function calcularStatusPorHistorico(historicoStatus = [], ponto = {}) {
   const disponivel = pontoEstaDisponivel(ponto);
 
   if (!disponivel) {
@@ -226,9 +265,9 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
     };
   }
 
-  const ultimoEvento = Array.isArray(historicoConexao) ? historicoConexao[0] : null;
-  const evento = String(ultimoEvento?.evento || "").toLowerCase();
-  const dataEventoRaw = ultimoEvento?.data_hora || ultimoEvento?.created_at || null;
+  const ultimoEvento = Array.isArray(historicoStatus) ? historicoStatus[0] : null;
+  const status = normalizarStatusHistorico(ultimoEvento);
+  const dataEventoRaw = obterDataHistorico(ultimoEvento);
 
   if (dataEventoRaw) {
     const dataEvento = new Date(dataEventoRaw);
@@ -238,7 +277,7 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
       const eventoRecente = diff < LIMITE_STATUS_ATIVO_MS;
       const horario = formatarDataHora(dataEventoRaw);
 
-      if (evento === "conectou" && eventoRecente) {
+      if ((status === "ativo" || status === "conectou") && eventoRecente) {
         return {
           texto: "Ativo",
           detalhe: `Ativo desde ${horario}`,
@@ -247,7 +286,7 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
         };
       }
 
-      if (evento === "desconectou") {
+      if (status === "inativo" || status === "desconectou") {
         return {
           texto: "Inativo",
           detalhe: `Inativo desde ${horario}`,
@@ -256,7 +295,7 @@ function calcularStatusPorHistorico(historicoConexao = [], ponto = {}) {
         };
       }
 
-      if (evento === "conectou" && !eventoRecente) {
+      if ((status === "ativo" || status === "conectou") && !eventoRecente) {
         return {
           texto: "Inativo",
           detalhe: "Inativo sem sinal recente do reprodutor",
@@ -302,27 +341,33 @@ function atualizarStatusDetalhePonto(statusInfo) {
 }
 
 function itemEstaInativo(item) {
-  if (!item?.data_fim) return false;
+  const dataFim = item?.data_fim || item?.fim_exibicao || null;
+  if (!dataFim) return false;
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  const fim = new Date(item.data_fim);
+  const fim = new Date(dataFim);
   if (Number.isNaN(fim.getTime())) return false;
 
   fim.setHours(23, 59, 59, 999);
   return fim < hoje;
 }
 
-function obterTextoEventoConexao(evento) {
-  if (evento === "conectou") return "Conectou";
-  if (evento === "desconectou") return "Desconectou";
-  return evento || "Sem status";
+function obterTextoEventoConexao(item) {
+  const status = normalizarStatusHistorico(item);
+
+  if (status === "conectou") return "Conectou";
+  if (status === "desconectou") return "Desconectou";
+  if (status === "ativo") return "Ativo";
+  if (status === "inativo") return "Inativo";
+
+  return status || "Sem status";
 }
 
 function lerCachePontos() {
   try {
-    const bruto = localStorage.getItem(CACHE_PONTOS_KEY);
+    const bruto = sessionStorage.getItem(CACHE_PONTOS_KEY);
     if (!bruto) return null;
 
     const cache = JSON.parse(bruto);
@@ -342,7 +387,7 @@ function lerCachePontos() {
 
 function salvarCachePontos(pontos) {
   try {
-    localStorage.setItem(CACHE_PONTOS_KEY, JSON.stringify({
+    sessionStorage.setItem(CACHE_PONTOS_KEY, JSON.stringify({
       criadoEm: Date.now(),
       pontos
     }));
@@ -357,7 +402,7 @@ function obterChaveCachePlaylist(codigo) {
 
 function lerCachePlaylist(codigo) {
   try {
-    const bruto = localStorage.getItem(obterChaveCachePlaylist(codigo));
+    const bruto = sessionStorage.getItem(obterChaveCachePlaylist(codigo));
     if (!bruto) return null;
 
     const cache = JSON.parse(bruto);
@@ -375,7 +420,7 @@ function lerCachePlaylist(codigo) {
 
 function salvarCachePlaylist(codigo, playlist, historico) {
   try {
-    localStorage.setItem(obterChaveCachePlaylist(codigo), JSON.stringify({
+    sessionStorage.setItem(obterChaveCachePlaylist(codigo), JSON.stringify({
       criadoEm: Date.now(),
       playlist,
       historico
@@ -387,7 +432,7 @@ function salvarCachePlaylist(codigo, playlist, historico) {
 
 function limparCachePlaylist(codigo) {
   try {
-    localStorage.removeItem(obterChaveCachePlaylist(codigo));
+    sessionStorage.removeItem(obterChaveCachePlaylist(codigo));
   } catch {
     return;
   }
@@ -458,21 +503,49 @@ function detectarTipoArquivoPlaylist(file) {
   return "video";
 }
 
+async function consultarPlaylistPorCodigo(colunas, codigo, campoCodigo) {
+  const query = supabaseClient
+    .from(TABELA)
+    .select(colunas)
+    .eq(campoCodigo, codigo);
+
+  if (colunas.includes("ordem")) {
+    query.order("ordem", { ascending: false });
+  } else {
+    query.order("created_at", { ascending: false });
+  }
+
+  query.limit(1);
+
+  return query;
+}
+
 async function obterProximaOrdemPlaylist() {
   const consultas = [
-    { colunas: "ordem", ordenarPor: "ordem" },
-    { colunas: "created_at", ordenarPor: "created_at" }
+    {
+      colunas: "ordem",
+      campoCodigo: "codigo_ponto"
+    },
+    {
+      colunas: "ordem",
+      campoCodigo: "codigo"
+    },
+    {
+      colunas: "created_at",
+      campoCodigo: "codigo_ponto"
+    },
+    {
+      colunas: "created_at",
+      campoCodigo: "codigo"
+    }
   ];
 
   for (const consultaAtual of consultas) {
-    const query = supabaseClient
-      .from(TABELA)
-      .select(consultaAtual.colunas)
-      .eq("codigo", codigoSelecionado)
-      .order(consultaAtual.ordenarPor, { ascending: false })
-      .limit(1);
-
-    const { data, error } = await query;
+    const { data, error } = await consultarPlaylistPorCodigo(
+      consultaAtual.colunas,
+      codigoSelecionado,
+      consultaAtual.campoCodigo
+    );
 
     if (!error) {
       if (consultaAtual.colunas === "ordem") {
@@ -483,7 +556,10 @@ async function obterProximaOrdemPlaylist() {
       return 1;
     }
 
-    console.warn(`Não foi possível buscar ordem usando ${consultaAtual.colunas}:`, error);
+    console.warn(
+      `Não foi possível buscar ordem usando ${consultaAtual.colunas} / ${consultaAtual.campoCodigo}:`,
+      error
+    );
   }
 
   return 1;
@@ -528,7 +604,16 @@ async function enviarMaterialDiretoPlaylist(file) {
 
     const ordem = await obterProximaOrdemPlaylist();
 
-    const payload = {
+    const payloadPrincipal = {
+      codigo_ponto: codigoSelecionado,
+      nome_arquivo: file.name,
+      video_url: publicData.publicUrl,
+      storage_path: path,
+      tipo,
+      ordem
+    };
+
+    const payloadAlternativo = {
       codigo: codigoSelecionado,
       nome: file.name,
       titulo_arquivo: file.name,
@@ -538,10 +623,26 @@ async function enviarMaterialDiretoPlaylist(file) {
       ordem
     };
 
-    const { data, error: insertError } = await supabaseClient
-      .from(TABELA)
-      .insert([payload])
-      .select();
+    let data = null;
+    let insertError = null;
+
+    const tentativas = [payloadPrincipal, payloadAlternativo];
+
+    for (const payload of tentativas) {
+      const resposta = await supabaseClient
+        .from(TABELA)
+        .insert([payload])
+        .select();
+
+      if (!resposta.error) {
+        data = resposta.data;
+        insertError = null;
+        break;
+      }
+
+      insertError = resposta.error;
+      console.warn("Falha ao inserir playlist com payload:", payload, resposta.error);
+    }
 
     if (insertError) {
       console.error("ERRO INSERT PLAYLIST:", insertError);
@@ -573,14 +674,14 @@ function obterChavePosicaoImagem(codigo) {
 
 function salvarPosicaoImagem(codigo, posicao) {
   if (!codigo) return;
-  localStorage.setItem(obterChavePosicaoImagem(codigo), JSON.stringify(posicao));
+  sessionStorage.setItem(obterChavePosicaoImagem(codigo), JSON.stringify(posicao));
 }
 
 function lerPosicaoImagem(codigo) {
   if (!codigo) return { x: 50, y: 50 };
 
   try {
-    const salva = localStorage.getItem(obterChavePosicaoImagem(codigo));
+    const salva = sessionStorage.getItem(obterChavePosicaoImagem(codigo));
     if (!salva) return { x: 50, y: 50 };
 
     const obj = JSON.parse(salva);
@@ -622,17 +723,40 @@ async function alternarDisponibilidadePonto() {
   const novoStatus = !disponivelAtual;
 
   atualizarVisualDisponibilidade(novoStatus);
-  atualizarCachePonto(codigoSelecionado, { disponivel: novoStatus });
+  atualizarCachePonto(codigoSelecionado, {
+    disponivel: novoStatus,
+    status: novoStatus ? "ativo" : "inativo"
+  });
 
   try {
     setStatus(novoStatus ? "Marcando como disponível..." : "Marcando como indisponível...", "normal");
 
-    const { error } = await supabaseClient
-      .from(TABELA_PONTOS)
-      .update({ disponivel: novoStatus })
-      .eq("codigo", codigoSelecionado);
+    const tentativas = [
+      { disponivel: novoStatus },
+      { status: novoStatus ? "ativo" : "inativo" },
+      { disponivel: novoStatus, status: novoStatus ? "ativo" : "inativo" }
+    ];
 
-    if (error) throw error;
+    let errorFinal = null;
+
+    for (const payload of tentativas) {
+      const { error } = await supabaseClient
+        .from(TABELA_PONTOS)
+        .update(payload)
+        .eq("codigo", codigoSelecionado);
+
+      if (!error) {
+        errorFinal = null;
+        break;
+      }
+
+      errorFinal = error;
+      console.warn("Falha ao atualizar ponto com payload:", payload, error);
+    }
+
+    if (errorFinal) {
+      throw errorFinal;
+    }
 
     renderizarCardsPontos(Object.values(pontosMap));
 
@@ -643,7 +767,11 @@ async function alternarDisponibilidadePonto() {
     console.error("Erro ao atualizar disponibilidade:", error);
 
     atualizarVisualDisponibilidade(disponivelAtual);
-    atualizarCachePonto(codigoSelecionado, { disponivel: disponivelAtual });
+    atualizarCachePonto(codigoSelecionado, {
+      disponivel: disponivelAtual,
+      status: disponivelAtual ? "ativo" : "inativo"
+    });
+
     renderizarCardsPontos(Object.values(pontosMap));
 
     const statusInfo = obterStatusPontoParaPainel(codigoSelecionado, pontosMap[codigoSelecionado]);
@@ -658,7 +786,7 @@ function validarLogin() {
     return;
   }
 
-  localStorage.setItem("painelLiberado", "1");
+  sessionStorage.setItem("painelLiberado", "1");
 
   if (loginErro) loginErro.textContent = "";
   if (loginBox) loginBox.style.display = "none";
@@ -680,10 +808,10 @@ if (senhaInput) {
 
 async function buscarPontosRemoto() {
   const consultas = [
-    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel",
-    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping",
+    "codigo,nome,cidade,endereco,imagem_url,ultimo_ping,disponivel,status",
+    "codigo,nome_local,cidade_regiao,endereco_completo,imagem_url,ultimo_ping,status",
+    "codigo,nome_local,cidade_regiao,endereco_completo,imagem_url,created_at,status",
     "codigo,nome,cidade,endereco,imagem_url",
-    "codigo,nome,cidade,endereco",
     "*"
   ];
 
@@ -704,7 +832,7 @@ async function buscarPontosRemoto() {
         endereco: obterEnderecoPonto(ponto),
         imagem_url: obterImagemPonto(ponto),
         ultimo_ping: obterUltimoPingPonto(ponto),
-        disponivel: ponto.disponivel !== false
+        disponivel: pontoEstaDisponivel(ponto)
       }));
     }
 
@@ -1049,39 +1177,78 @@ if (btnSalvarEdicao) {
     try {
       setStatus("Salvando informações...", "normal");
 
-      const { error: erroInfo } = await supabaseClient
-        .from(TABELA_PONTOS)
-        .update({
+      const payloadsInfo = [
+        {
           nome,
           cidade,
           endereco
-        })
-        .eq("codigo", codigoSelecionado);
+        },
+        {
+          nome_local: nome,
+          cidade_regiao: cidade,
+          endereco_completo: endereco
+        }
+      ];
 
-      if (erroInfo) {
-        console.error("Erro ao salvar textos:", erroInfo);
+      let erroInfoFinal = null;
+
+      for (const payload of payloadsInfo) {
+        const { error } = await supabaseClient
+          .from(TABELA_PONTOS)
+          .update(payload)
+          .eq("codigo", codigoSelecionado);
+
+        if (!error) {
+          erroInfoFinal = null;
+          break;
+        }
+
+        erroInfoFinal = error;
+        console.warn("Erro ao salvar textos com payload:", payload, error);
+      }
+
+      if (erroInfoFinal) {
+        console.error("Erro ao salvar textos:", erroInfoFinal);
         setStatus("Erro ao atualizar informações", "erro");
         return;
       }
 
       ponto.nome = nome;
+      ponto.nome_local = nome;
       ponto.cidade = cidade;
+      ponto.cidade_regiao = cidade;
       ponto.endereco = endereco;
+      ponto.endereco_completo = endereco;
 
       if (arquivoImagemEdicao) {
         setStatus("Enviando imagem...", "normal");
 
         const imagemUrlFinal = await uploadImagemPonto(arquivoImagemEdicao, codigoSelecionado);
 
-        const { error: erroImagem } = await supabaseClient
-          .from(TABELA_PONTOS)
-          .update({
-            imagem_url: imagemUrlFinal
-          })
-          .eq("codigo", codigoSelecionado);
+        const payloadsImagem = [
+          { imagem_url: imagemUrlFinal },
+          { imagem: imagemUrlFinal }
+        ];
 
-        if (erroImagem) {
-          console.error("Erro ao salvar imagem:", erroImagem);
+        let erroImagemFinal = null;
+
+        for (const payload of payloadsImagem) {
+          const { error } = await supabaseClient
+            .from(TABELA_PONTOS)
+            .update(payload)
+            .eq("codigo", codigoSelecionado);
+
+          if (!error) {
+            erroImagemFinal = null;
+            break;
+          }
+
+          erroImagemFinal = error;
+          console.warn("Erro ao salvar imagem com payload:", payload, error);
+        }
+
+        if (erroImagemFinal) {
+          console.error("Erro ao salvar imagem:", erroImagemFinal);
           setStatus("Erro ao salvar imagem", "erro");
           return;
         }
@@ -1105,6 +1272,10 @@ if (btnSalvarEdicao) {
 }
 
 function obterNomeArquivoPlaylist(item) {
+  if (item.nome_arquivo && String(item.nome_arquivo).trim()) {
+    return String(item.nome_arquivo).trim();
+  }
+
   if (item.titulo_arquivo && String(item.titulo_arquivo).trim()) {
     return String(item.titulo_arquivo).trim();
   }
@@ -1160,11 +1331,11 @@ function montarItemPlaylist(item, index) {
         </div>
 
         <div class="playlist-item-data playlist-item-postado">
-          ${formatarDataHora(item.created_at)}
+          ${formatarDataHora(item.created_at || item.data_inicio)}
         </div>
 
         <div class="playlist-item-data playlist-item-encerramento">
-          ${formatarData(item.data_fim)}
+          ${formatarData(item.data_fim || item.fim_exibicao)}
         </div>
 
         <div class="playlist-item-acoes-laterais">
@@ -1185,22 +1356,22 @@ function montarItemHistoricoEncerramento(item, index) {
     <div class="historico-item">
       <span class="historico-item-ordem">${index + 1}.</span>
       <span class="historico-item-nome">${escapeHtml(nomeCliente)} | ${escapeHtml(nomeArquivo)}</span>
-      <span class="historico-item-valor">${formatarData(item.data_fim)}</span>
+      <span class="historico-item-valor">${formatarData(item.data_fim || item.fim_exibicao)}</span>
     </div>
   `;
 }
 
 function montarItemHistoricoStatus(item, index) {
-  const textoEvento = obterTextoEventoConexao(item.evento);
-  const eventoNormalizado = String(item.evento || "").toLowerCase();
+  const textoEvento = obterTextoEventoConexao(item);
+  const eventoNormalizado = normalizarStatusHistorico(item);
   const classe =
-    eventoNormalizado === "conectou"
+    eventoNormalizado === "conectou" || eventoNormalizado === "ativo"
       ? "ativo"
-      : eventoNormalizado === "desconectou"
+      : eventoNormalizado === "desconectou" || eventoNormalizado === "inativo"
         ? "inativo"
         : "";
 
-  const data = formatarDataHora(item.data_hora || item.created_at);
+  const data = formatarDataHora(obterDataHistorico(item));
 
   return `
     <div class="historico-item">
@@ -1228,9 +1399,9 @@ function obterContainerHistoricoStatus() {
   );
 }
 
-function renderizarPlaylistDados(lista, historicoConexao) {
+function renderizarPlaylistDados(lista, historicoStatus) {
   const ponto = pontosMap[codigoSelecionado] || {};
-  const statusInfo = calcularStatusPorHistorico(historicoConexao, ponto);
+  const statusInfo = calcularStatusPorHistorico(historicoStatus, ponto);
   atualizarStatusDetalhePonto(statusInfo);
 
   const ativos = lista.filter((item) => !itemEstaInativo(item));
@@ -1238,7 +1409,7 @@ function renderizarPlaylistDados(lista, historicoConexao) {
 
   const playlistAtiva = document.getElementById("playlistAtiva");
   const historicoEncerramento = obterContainerHistoricoEncerramento();
-  const historicoStatus = obterContainerHistoricoStatus();
+  const historicoStatusEl = obterContainerHistoricoStatus();
 
   if (playlistAtiva) {
     playlistAtiva.innerHTML = ativos.length
@@ -1252,9 +1423,9 @@ function renderizarPlaylistDados(lista, historicoConexao) {
       : `<div class="playlist-vazia">Sem histórico</div>`;
   }
 
-  if (historicoStatus) {
-    historicoStatus.innerHTML = historicoConexao.length
-      ? historicoConexao.map((item, index) => montarItemHistoricoStatus(item, index)).join("")
+  if (historicoStatusEl) {
+    historicoStatusEl.innerHTML = historicoStatus.length
+      ? historicoStatus.map((item, index) => montarItemHistoricoStatus(item, index)).join("")
       : `<div class="playlist-vazia">Sem histórico</div>`;
   }
 
@@ -1263,29 +1434,52 @@ function renderizarPlaylistDados(lista, historicoConexao) {
   ativarExclusaoItens();
 }
 
+async function buscarPlaylistComCampo(codigo, colunas, campoCodigo) {
+  const query = supabaseClient
+    .from(TABELA)
+    .select(colunas)
+    .eq(campoCodigo, codigo);
+
+  if (colunas.includes("ordem")) {
+    query.order("ordem", { ascending: true });
+  } else if (colunas.includes("data_inicio")) {
+    query.order("data_inicio", { ascending: true });
+  } else {
+    query.order("created_at", { ascending: true });
+  }
+
+  return query;
+}
+
 async function buscarPlaylistRemota(codigo) {
   const consultasPlaylist = [
-    "id,nome,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
-    "id,nome,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem",
-    "id,nome,video_url,storage_path,created_at"
+    {
+      campoCodigo: "codigo_ponto",
+      colunas: "id,codigo_cliente,codigo_ponto,nome_arquivo,tipo,video_url,storage_path,data_inicio,data_fim,created_at,ordem"
+    },
+    {
+      campoCodigo: "codigo_ponto",
+      colunas: "id,codigo_cliente,codigo_ponto,nome_arquivo,tipo,data_inicio,data_fim,created_at,ordem"
+    },
+    {
+      campoCodigo: "codigo",
+      colunas: "id,nome,codigo_cliente,titulo_arquivo,video_url,storage_path,created_at,data_fim,ordem"
+    },
+    {
+      campoCodigo: "codigo_ponto",
+      colunas: "*"
+    }
   ];
 
   let playlistData = [];
   let playlistError = null;
 
-  for (const colunas of consultasPlaylist) {
-    const query = supabaseClient
-      .from(TABELA)
-      .select(colunas)
-      .eq("codigo", codigo);
-
-    if (colunas.includes("ordem")) {
-      query.order("ordem", { ascending: true });
-    } else {
-      query.order("created_at", { ascending: true });
-    }
-
-    const { data, error } = await query;
+  for (const consulta of consultasPlaylist) {
+    const { data, error } = await buscarPlaylistComCampo(
+      codigo,
+      consulta.colunas,
+      consulta.campoCodigo
+    );
 
     if (!error) {
       playlistData = data || [];
@@ -1294,7 +1488,10 @@ async function buscarPlaylistRemota(codigo) {
     }
 
     playlistError = error;
-    console.warn(`Falha ao buscar playlist com colunas: ${colunas}`, error);
+    console.warn(
+      `Falha ao buscar playlist com colunas ${consulta.colunas} / ${consulta.campoCodigo}:`,
+      error
+    );
   }
 
   if (playlistError) throw playlistError;
@@ -1302,15 +1499,17 @@ async function buscarPlaylistRemota(codigo) {
   let historicoData = [];
 
   const consultasHistorico = [
-    { ordem: "data_hora", colunas: "evento,data_hora,created_at" },
-    { ordem: "created_at", colunas: "evento,created_at" }
+    { ordem: "ultimo_ping", colunas: "status,ponto_codigo,ultimo_ping,created_at" },
+    { ordem: "created_at", colunas: "status,ponto_codigo,ultimo_ping,created_at" },
+    { ordem: "created_at", colunas: "status,ponto_codigo,created_at" },
+    { ordem: "ultimo_ping", colunas: "*" }
   ];
 
   for (const consulta of consultasHistorico) {
     const { data, error } = await supabaseClient
-      .from(TABELA_HISTORICO_CONEXAO)
+      .from(TABELA_STATUS_PONTOS)
       .select(consulta.colunas)
-      .eq("codigo", codigo)
+      .eq("ponto_codigo", codigo)
       .order(consulta.ordem, { ascending: false })
       .limit(30);
 
@@ -1393,6 +1592,7 @@ function ativarRenomearItens() {
       }
 
       const tentativasUpdate = [
+        { nome_arquivo: nomeFinal },
         { titulo_arquivo: nomeFinal },
         { nome: nomeFinal }
       ];
@@ -1509,6 +1709,7 @@ function ativarDrag(lista) {
 
       for (let i = 0; i < novo.length; i++) {
         const payloads = [
+          { ordem: i + 1 },
           { ordem: i },
           {}
         ];
@@ -1596,7 +1797,7 @@ async function iniciarPainel() {
   await carregarPontosRemoto();
 }
 
-if (localStorage.getItem("painelLiberado") === "1") {
+if (sessionStorage.getItem("painelLiberado") === "1") {
   if (loginBox) loginBox.style.display = "none";
   if (conteudoPainel) conteudoPainel.style.display = "block";
   setStatus("Painel Ativo", "ok");
