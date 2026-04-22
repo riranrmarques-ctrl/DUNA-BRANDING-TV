@@ -8,10 +8,10 @@ const TABELA_STATUS_PONTOS = "statuspontos";
 
 const SENHA_PAINEL = "@helena";
 const CACHE_PONTOS_KEY = "painel_pontos_cache_v10";
-const CACHE_PONTOS_TTL = 15 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v9_";
-const CACHE_PLAYLIST_TTL = 60 * 1000;
-const LIMITE_STATUS_ATIVO_MS = 60 * 1000;
+const CACHE_PONTOS_TTL = 60 * 1000;
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v10_";
+const CACHE_PLAYLIST_TTL = 10 * 60 * 1000;
+const LIMITE_STATUS_ATIVO_MS = 10 * 60 * 1000;
 
 function limparCachesAntigos() {
   try {
@@ -326,13 +326,52 @@ function obterStatusPontoParaPainel(codigo, ponto) {
     };
   }
 
-  const cachePlaylist = lerCachePlaylist(codigo);
+  const statusDireto = String(ponto?.status_statuspontos || "").toLowerCase().trim();
+  const ultimoPingDireto = ponto?.ultimo_ping_statuspontos || null;
 
-  if (cachePlaylist?.historico?.length) {
-    return calcularStatusPorHistorico(cachePlaylist.historico, ponto);
+  if (ultimoPingDireto) {
+    const dataPing = new Date(ultimoPingDireto);
+
+    if (!Number.isNaN(dataPing.getTime())) {
+      const diff = Date.now() - dataPing.getTime();
+      const recente = diff < LIMITE_STATUS_ATIVO_MS;
+      const horario = dataPing.toLocaleString("pt-BR");
+
+      if ((statusDireto === "ativo" || statusDireto === "conectou") && recente) {
+        return {
+          texto: "Ativo",
+          detalhe: `Ativo desde ${horario}`,
+          ativo: true,
+          classe: "ativo"
+        };
+      }
+
+      if (statusDireto === "inativo" || statusDireto === "desconectou") {
+        return {
+          texto: "Inativo",
+          detalhe: `Inativo desde ${horario}`,
+          ativo: false,
+          classe: "inativo"
+        };
+      }
+
+      if ((statusDireto === "ativo" || statusDireto === "conectou") && !recente) {
+        return {
+          texto: "Inativo",
+          detalhe: "Inativo sem sinal recente do reprodutor",
+          ativo: false,
+          classe: "inativo"
+        };
+      }
+    }
   }
 
-  return calcularStatusInfo(ponto);
+  return {
+    texto: "Inativo",
+    detalhe: "Sem histórico recente",
+    ativo: false,
+    classe: "inativo"
+  };
 }
 
 function atualizarStatusDetalhePonto(statusInfo) {
