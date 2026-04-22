@@ -8,10 +8,10 @@ const TABELA_STATUS_PONTOS = "statuspontos";
 
 const SENHA_PAINEL = "@helena";
 const CACHE_PONTOS_KEY = "painel_pontos_cache_v10";
-const CACHE_PONTOS_TTL = 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v10_";
-const CACHE_PLAYLIST_TTL = 10 * 60 * 1000;
-const LIMITE_STATUS_ATIVO_MS = 10 * 60 * 1000;
+const CACHE_PONTOS_TTL = 15 * 60 * 1000;
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v9_";
+const CACHE_PLAYLIST_TTL = 60 * 1000;
+const LIMITE_STATUS_ATIVO_MS = 60 * 1000;
 
 function limparCachesAntigos() {
   try {
@@ -326,52 +326,13 @@ function obterStatusPontoParaPainel(codigo, ponto) {
     };
   }
 
-  const statusDireto = String(ponto?.status_statuspontos || "").toLowerCase().trim();
-  const ultimoPingDireto = ponto?.ultimo_ping_statuspontos || null;
+  const cachePlaylist = lerCachePlaylist(codigo);
 
-  if (ultimoPingDireto) {
-    const dataPing = new Date(ultimoPingDireto);
-
-    if (!Number.isNaN(dataPing.getTime())) {
-      const diff = Date.now() - dataPing.getTime();
-      const recente = diff < LIMITE_STATUS_ATIVO_MS;
-      const horario = dataPing.toLocaleString("pt-BR");
-
-      if ((statusDireto === "ativo" || statusDireto === "conectou") && recente) {
-        return {
-          texto: "Ativo",
-          detalhe: `Ativo desde ${horario}`,
-          ativo: true,
-          classe: "ativo"
-        };
-      }
-
-      if (statusDireto === "inativo" || statusDireto === "desconectou") {
-        return {
-          texto: "Inativo",
-          detalhe: `Inativo desde ${horario}`,
-          ativo: false,
-          classe: "inativo"
-        };
-      }
-
-      if ((statusDireto === "ativo" || statusDireto === "conectou") && !recente) {
-        return {
-          texto: "Inativo",
-          detalhe: "Inativo sem sinal recente do reprodutor",
-          ativo: false,
-          classe: "inativo"
-        };
-      }
-    }
+  if (cachePlaylist?.historico?.length) {
+    return calcularStatusPorHistorico(cachePlaylist.historico, ponto);
   }
 
-  return {
-    texto: "Inativo",
-    detalhe: "Sem histórico recente",
-    ativo: false,
-    classe: "inativo"
-  };
+  return calcularStatusInfo(ponto);
 }
 
 function atualizarStatusDetalhePonto(statusInfo) {
@@ -890,62 +851,25 @@ if (senhaInput) {
 }
 
 async function buscarPontosRemoto() {
-  const { data: pontosData, error: pontosError } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from(TABELA_PONTOS)
     .select("*")
     .order("codigo", { ascending: true });
 
-  if (pontosError) {
-    throw pontosError;
+  if (error) {
+    throw error;
   }
 
-  const pontos = (pontosData || []).map((ponto) => ({
+  return (data || []).map((ponto) => ({
     ...ponto,
     codigo: obterCodigoPonto(ponto),
     nome: obterNomePonto(ponto, obterCodigoPonto(ponto)),
     cidade: obterCidadePonto(ponto),
     endereco: obterEnderecoPonto(ponto),
     imagem_url: obterImagemPonto(ponto),
+    ultimo_ping: obterUltimoPingPonto(ponto),
     disponivel: pontoEstaDisponivel(ponto)
   }));
-
-  const codigos = pontos.map((p) => p.codigo).filter(Boolean);
-
-  if (!codigos.length) {
-    return pontos;
-  }
-
-  const { data: statusData, error: statusError } = await supabaseClient
-    .from(TABELA_STATUS_PONTOS)
-    .select("*")
-    .in("ponto_codigo", codigos)
-    .order("ultimo_ping", { ascending: false });
-
-  if (statusError) {
-    console.warn("Erro ao buscar statuspontos:", statusError);
-    return pontos;
-  }
-
-  const mapaStatus = {};
-
-  (statusData || []).forEach((item) => {
-    const codigo = String(item?.ponto_codigo || "").trim();
-    if (!codigo) return;
-
-    if (!mapaStatus[codigo]) {
-      mapaStatus[codigo] = item;
-    }
-  });
-
-  return pontos.map((ponto) => {
-    const status = mapaStatus[ponto.codigo];
-
-    return {
-      ...ponto,
-      status_statuspontos: status?.status || null,
-      ultimo_ping_statuspontos: status?.ultimo_ping || status?.created_at || null
-    };
-  });
 }
 
 function montarCardPonto(ponto) {
