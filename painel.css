@@ -1586,3 +1586,42 @@ body.loading-page {
   letter-spacing: 0.08em;
   color: rgba(255,255,255,0.55);
 }
+
+.status-destaque {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.status-data-topo {
+  font-size: 11px;
+  color: #ffffff;
+  opacity: 0.85;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.status-badge-topo {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 7px 16px;
+  border-radius: 6px;
+  min-width: 78px;
+  text-align: center;
+}
+
+.status-badge-topo.ativo {
+  background: #16a34a;
+}
+
+.status-badge-topo.inativo {
+  background: #ef4444;
+}
+
+.status-badge-topo.indisponivel {
+  background: #6b7280;
+}
