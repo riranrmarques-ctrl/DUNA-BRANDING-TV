@@ -1512,3 +1512,71 @@ svg {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+.how-flow {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.flow-card {
+  position: relative;
+  z-index: 1;
+  min-height: 200px;
+  padding: 22px 20px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(11, 19, 32, 0.96), rgba(8, 14, 24, 0.98));
+  border: 1px solid rgba(131, 168, 222, 0.12);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.26);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+
+.step-pill {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #6f9fd4 0%, #4d84c5 100%);
+  color: white;
+  font-weight: 800;
+  margin-bottom: 14px;
+  box-shadow: 0 10px 22px rgba(76, 132, 197, 0.24);
+}
+
+.step-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  margin-bottom: 16px;
+  background: rgba(92, 149, 214, 0.08);
+  border: 1px solid rgba(137, 171, 218, 0.14);
+  color: #84b2e5;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.step-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+
+.step-desc {
+  color: #dce7f8;
+  line-height: 1.45;
+  margin-bottom: 10px;
+  font-size: 0.98rem;
+}
+
+.step-info {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
