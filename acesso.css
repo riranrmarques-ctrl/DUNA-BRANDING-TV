@@ -1713,3 +1713,74 @@ body.loading-page {
   color: #ffffff;
 }
 
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 8, 21, 0.38);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.loading-overlay.ativo {
+  display: flex;
+  opacity: 1;
+}
+
+.loading-box {
+  width: min(100%, 420px);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.loading-logo {
+  display: block;
+  width: 220px;
+  max-width: 70vw;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto;
+  transform: none;
+  position: static;
+  filter: drop-shadow(0 18px 40px rgba(255, 255, 255, 0.08));
+}
+
+.loading-texto {
+  margin: 0;
+  color: #f8fbff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+  opacity: 0.96;
+}
+
+body.loading-page {
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .loading-box {
+    min-height: 180px;
+  }
+
+  .loading-logo {
+    width: 180px;
+    max-width: 72vw;
+  }
+
+  .loading-texto {
+    font-size: 0.84rem;
+  }
+}
+
