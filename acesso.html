@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="acesso.css?v=1052">
+  <link rel="stylesheet" href="acesso.css?v=1053">
 
   <style>
     .cliente-layout {
@@ -148,6 +148,42 @@
         <p id="subtituloCliente"></p>
       </section>
 
+      <section id="visibilidadeCliente" class="visibilidade-cliente" style="display:none;">
+        <div class="visibilidade-topo">
+          <div>
+            <span class="visibilidade-label">VISIBILIDADE DOS MATERIAIS</span>
+            <h2>Exibições estimadas nas telas</h2>
+          </div>
+
+          <div class="visibilidade-tendencia">Estimativa baseada nos pontos ativos</div>
+        </div>
+
+        <div class="visibilidade-grid">
+          <div class="visibilidade-metricas">
+            <div>
+              <span>24h</span>
+              <strong id="visHoje">0</strong>
+            </div>
+            <div>
+              <span>7 dias</span>
+              <strong id="visSemana">0</strong>
+            </div>
+            <div>
+              <span>Mês</span>
+              <strong id="visMes">0</strong>
+            </div>
+            <div>
+              <span>Total</span>
+              <strong id="visTotal">0</strong>
+            </div>
+          </div>
+
+          <div class="visibilidade-grafico">
+            <div id="visBarras" class="vis-barras"></div>
+          </div>
+        </div>
+      </section>
+
       <section class="cliente-layout">
         <div class="coluna-esquerda">
           <aside class="pontos-cliente">
@@ -225,6 +261,6 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=1022"></script>
+  <script src="acesso.js?v=1023"></script>
 </body>
 </html>
