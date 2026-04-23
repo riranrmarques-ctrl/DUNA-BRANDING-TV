@@ -2,10 +2,7 @@ const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const TABELA_PONTOS = "pontos";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function obterImagem(ponto) {
   return (
@@ -70,7 +67,7 @@ function escaparHtml(texto) {
 function mostrarMensagemGrid(container, mensagem) {
   container.innerHTML = `
     <div style="
-      grid-column: 1 / -1;
+      min-width: 320px;
       padding: 28px;
       border: 1px solid rgba(132,168,220,0.1);
       border-radius: 22px;
@@ -101,6 +98,57 @@ function montarCard(ponto, index = 0) {
   `;
 }
 
+function iniciarRolagemAutomaticaAmbientes() {
+  const container = document.getElementById("gridAmbientes");
+  if (!container) return;
+
+  if (container.dataset.autoScrollAtivo === "1") return;
+  container.dataset.autoScrollAtivo = "1";
+
+  let pausado = false;
+  const velocidade = 0.35;
+
+  const animar = () => {
+    if (!pausado) {
+      container.scrollLeft += velocidade;
+
+      const fim = container.scrollWidth - container.clientWidth;
+
+      if (container.scrollLeft >= fim - 1) {
+        container.scrollLeft = 0;
+      }
+    }
+
+    requestAnimationFrame(animar);
+  };
+
+  container.addEventListener("mouseenter", () => {
+    pausado = true;
+  });
+
+  container.addEventListener("mouseleave", () => {
+    pausado = false;
+  });
+
+  container.addEventListener(
+    "touchstart",
+    () => {
+      pausado = true;
+    },
+    { passive: true }
+  );
+
+  container.addEventListener(
+    "touchend",
+    () => {
+      pausado = false;
+    },
+    { passive: true }
+  );
+
+  requestAnimationFrame(animar);
+}
+
 async function carregarAmbientes() {
   const container = document.getElementById("gridAmbientes");
   if (!container) return;
@@ -124,11 +172,15 @@ async function carregarAmbientes() {
       return;
     }
 
-    container.innerHTML = data.map((ponto, index) => montarCard(ponto, index)).join("");
+    container.innerHTML = data
+      .map((ponto, index) => montarCard(ponto, index))
+      .join("");
 
     container.querySelectorAll(".fade-up").forEach((el) => {
       el.classList.add("visible");
     });
+
+    iniciarRolagemAutomaticaAmbientes();
   } catch (erro) {
     console.error("Erro geral:", erro);
     mostrarMensagemGrid(container, `Falha ao carregar ambientes: ${erro.message}`);
