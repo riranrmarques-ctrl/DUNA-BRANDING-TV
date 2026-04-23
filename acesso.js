@@ -184,6 +184,29 @@ function clienteEhSupervisor(cliente) {
   return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
 }
 
+function normalizarContratoClienteLegado(cliente) {
+  const htmlOriginal = cliente?.contrato_texto || cliente?.contrato_html || "";
+  const htmlAssinado = cliente?.contrato_assinado_html || "";
+  const htmlFinal = htmlAssinado || htmlOriginal;
+
+  if (!htmlFinal) return null;
+
+  const assinadoEm = cliente?.contrato_assinado_em || null;
+  const status = cliente?.contrato_status || (assinadoEm || htmlAssinado ? "concluido" : "pendente");
+
+  return {
+    id: cliente?.contrato_id || cliente?.id || "",
+    codigo_cliente: normalizarCodigo(cliente?.codigo || codigoClienteAtual),
+    titulo: cliente?.contrato_titulo || "Contrato",
+    status,
+    html_final: htmlFinal,
+    assinado_em: assinadoEm,
+    enviado_em: cliente?.contrato_enviado_em || cliente?.updated_at || cliente?.created_at || null,
+    created_at: cliente?.created_at || null,
+    origem: TABELA_CLIENTES
+  };
+}
+
 function contratoEstaDisponivel() {
   if (!clienteAtual) return false;
   if (clienteEhSupervisor(clienteAtual)) return false;
@@ -926,12 +949,26 @@ async function buscarContratoCliente(codigo) {
       .order(consulta.ordenarPor, { ascending: false })
       .limit(1);
 
-    if (!error) return data?.[0] || null;
+    if (!error) {
+      if (data?.[0]) return data[0];
+      continue;
+    }
 
     console.warn("Falha ao buscar contrato do cliente:", error);
   }
 
-  return null;
+  const { data: clienteContrato, error: erroClienteContrato } = await supabaseClient
+    .from(TABELA_CLIENTES)
+    .select("*")
+    .eq("codigo", codigo)
+    .maybeSingle();
+
+  if (erroClienteContrato) {
+    console.warn("Falha ao buscar contrato em dados do cliente:", erroClienteContrato);
+    return null;
+  }
+
+  return normalizarContratoClienteLegado(clienteContrato);
 }
 
 function extrairCodigoClienteVinculo(item) {
