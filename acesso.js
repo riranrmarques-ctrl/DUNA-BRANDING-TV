@@ -617,7 +617,6 @@ function renderizarHistoricoContratoCliente() {
   }
 }
 
-
 function renderizarContrato() {
   if (!clienteAtual) return;
 
@@ -765,7 +764,59 @@ function renderizarListaPontos() {
   });
 }
 
-function renderizarPreview(lista, indice = 0, statusPonto = null) {
+function obterDuracaoPreviewMs(item) {
+  const url = normalizarUrl(obterUrlPlaylist(item));
+  const tipo = detectarTipo(url, item?.tipo);
+
+  if (!url) return 5000;
+  if (tipo === "imagem") return 8000;
+  if (tipo === "site") return 12000;
+
+  return 20000;
+}
+
+function calcularPosicaoPreviewAoVivo(lista = []) {
+  const playlist = obterListaPreviewAtiva(lista);
+
+  if (!playlist.length) {
+    return {
+      indice: 0,
+      offsetMs: 0
+    };
+  }
+
+  const duracoes = playlist.map(obterDuracaoPreviewMs);
+  const duracaoTotal = duracoes.reduce((total, duracao) => total + duracao, 0);
+
+  if (!duracaoTotal) {
+    return {
+      indice: 0,
+      offsetMs: 0
+    };
+  }
+
+  let cursor = Date.now() % duracaoTotal;
+
+  for (let indice = 0; indice < duracoes.length; indice += 1) {
+    const duracao = duracoes[indice];
+
+    if (cursor < duracao) {
+      return {
+        indice,
+        offsetMs: cursor
+      };
+    }
+
+    cursor -= duracao;
+  }
+
+  return {
+    indice: 0,
+    offsetMs: 0
+  };
+}
+
+function renderizarPreview(lista, indice = 0, statusPonto = null, offsetMs = 0) {
   limparTimerPreview();
 
   if (!previewMidia) return;
@@ -789,7 +840,8 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
     return;
   }
 
-  const indexSeguro = indice >= playlist.length ? 0 : indice;
+  const indexSeguro = indice >= playlist.length || indice < 0 ? 0 : indice;
+  const offsetSeguro = Math.max(0, Number(offsetMs) || 0);
   const item = playlist[indexSeguro];
   const proximoIndex = indexSeguro + 1 >= playlist.length ? 0 : indexSeguro + 1;
 
@@ -806,6 +858,8 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
     : "";
 
   if (!url) {
+    const tempoRestante = Math.max(1000, obterDuracaoPreviewMs(item) - offsetSeguro);
+
     previewMidia.innerHTML = `
       <div class="preview-vazio">Material sem URL disponível.</div>
       ${avisoOffline}
@@ -813,12 +867,14 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
 
     timerPreviewPlaylist = setTimeout(() => {
       renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 5000);
+    }, tempoRestante);
 
     return;
   }
 
   if (tipo === "imagem") {
+    const tempoRestante = Math.max(1000, obterDuracaoPreviewMs(item) - offsetSeguro);
+
     previewMidia.innerHTML = `
       <img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">
       ${avisoOffline}
@@ -826,12 +882,14 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
 
     timerPreviewPlaylist = setTimeout(() => {
       renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 8000);
+    }, tempoRestante);
 
     return;
   }
 
   if (tipo === "site") {
+    const tempoRestante = Math.max(1000, obterDuracaoPreviewMs(item) - offsetSeguro);
+
     previewMidia.innerHTML = `
       <iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen"></iframe>
       ${avisoOffline}
@@ -839,7 +897,7 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
 
     timerPreviewPlaylist = setTimeout(() => {
       renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 12000);
+    }, tempoRestante);
 
     return;
   }
@@ -852,6 +910,16 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
   const video = previewMidia.querySelector("video");
 
   if (video) {
+    const segundosIniciais = offsetSeguro / 1000;
+
+    if (segundosIniciais > 0) {
+      video.addEventListener("loadedmetadata", () => {
+        if (Number.isFinite(video.duration) && video.duration > segundosIniciais + 1) {
+          video.currentTime = segundosIniciais;
+        }
+      }, { once: true });
+    }
+
     video.onended = () => {
       renderizarPreview(playlist, proximoIndex, statusPonto);
     };
@@ -864,7 +932,7 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
 
     timerPreviewPlaylist = setTimeout(() => {
       renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 45000);
+    }, Math.max(3000, 45000 - offsetSeguro));
   }
 }
 
@@ -1162,7 +1230,9 @@ async function abrirPonto(codigo) {
 
     const statusFinal = calcularStatusPonto(ponto, historico72h);
 
-    renderizarPreview(playlist, 0, statusFinal);
+    const posicaoPreview = calcularPosicaoPreviewAoVivo(playlist);
+
+    renderizarPreview(playlist, posicaoPreview.indice, statusFinal, posicaoPreview.offsetMs);
     renderizarMateriais(materiaisCliente);
     renderizarHistorico(historico72h);
     renderizarListaPontos();
