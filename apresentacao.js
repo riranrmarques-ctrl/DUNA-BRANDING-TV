@@ -108,7 +108,7 @@ async function carregarAmbientes() {
   mostrarMensagemGrid(container, "Carregando ambientes...");
 
   try {
-    const { data, error } = await supabaseClient.from
+    const { data, error } = await supabaseClient
       .from(TABELA_PONTOS)
       .select("*")
       .limit(8);
