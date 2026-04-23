@@ -1,7 +1,8 @@
-const SUPABASE_URL = "https://dfzvmambzhhsijopcizk.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gSPO1gNfcdy3JNOxMprCbg_Wca6u6WQ";
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-const TABELA_CLIENTES = "clientes_app";
+const TABELA_CLIENTES = "dadosclientes";
+const TABELA_CONTRATOS_CLIENTES = "contratos_clientes";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -23,6 +24,8 @@ const estadoConcluido = document.getElementById("estadoConcluido");
 
 let codigoAtual = "";
 let clienteAtual = null;
+let contratoAtualRegistro = null;
+let contratoOrigem = "";
 let contratoAtualHtml = "";
 let contratoFinalHtml = "";
 let desenhando = false;
@@ -99,11 +102,18 @@ function clienteEhSupervisor(cliente) {
 function contratoEstaConcluido(cliente) {
   if (!cliente) return false;
 
-  const temAssinatura = Boolean(cliente.contrato_assinado_em || cliente.contrato_assinado_html);
+  const status = String(cliente.status || cliente.contrato_status || "").trim().toLowerCase();
+
+  if (status === "assinado" || status === "concluido" || status === "concluído") {
+    return true;
+  }
+
+  const temAssinatura = Boolean(cliente.assinado_em || cliente.contrato_assinado_em || cliente.contrato_assinado_html);
   if (!temAssinatura) return false;
 
-  const dataAssinatura = new Date(cliente.contrato_assinado_em || cliente.updated_at || 0);
+  const dataAssinatura = new Date(cliente.assinado_em || cliente.contrato_assinado_em || cliente.updated_at || 0);
   const dataContrato = new Date(
+    cliente.enviado_em ||
     cliente.contrato_enviado_em ||
     cliente.updated_at ||
     0
@@ -451,25 +461,51 @@ function baixarHtmlContrato() {
 async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = [] }) {
   contratoFinalHtml = anexarConclusaoAoContrato({ metodo, assinaturaImagem, fotos });
 
-  const payload = {
-    contrato_status: "concluido",
-    contrato_assinado_em: new Date().toISOString(),
-    contrato_assinado_html: contratoFinalHtml,
-    contrato_assinatura_imagem: assinaturaImagem || null,
-    contrato_comprovantes: fotos,
-    contrato_metodo_assinatura: metodo
-  };
+  const assinadoEm = new Date().toISOString();
+  let data = null;
 
-  const { data, error } = await supabaseClient
-    .from(TABELA_CLIENTES)
-    .update(payload)
-    .eq("codigo", codigoAtual)
-    .select("*")
-    .maybeSingle();
+  if (contratoOrigem === TABELA_CONTRATOS_CLIENTES && contratoAtualRegistro?.id) {
+    const payloadContrato = {
+      status: "concluido",
+      assinado_em: assinadoEm,
+      html_final: contratoFinalHtml
+    };
 
-  if (error) throw error;
+    const resposta = await supabaseClient
+      .from(TABELA_CONTRATOS_CLIENTES)
+      .update(payloadContrato)
+      .eq("id", contratoAtualRegistro.id)
+      .select("*")
+      .maybeSingle();
 
-  clienteAtual = data || { ...clienteAtual, ...payload };
+    if (resposta.error) throw resposta.error;
+
+    data = normalizarContratoDaTabela(resposta.data || { ...contratoAtualRegistro, ...payloadContrato }, clienteAtual);
+  } else {
+    const payloadCliente = {
+      contrato_status: "concluido",
+      contrato_texto: contratoFinalHtml
+    };
+
+    const resposta = await supabaseClient
+      .from(TABELA_CLIENTES)
+      .update(payloadCliente)
+      .eq("codigo", codigoAtual)
+      .select("*")
+      .maybeSingle();
+
+    if (resposta.error) throw resposta.error;
+
+    data = {
+      ...(resposta.data || clienteAtual),
+      contrato_status: "concluido",
+      contrato_html: contratoFinalHtml,
+      contrato_assinado_html: contratoFinalHtml,
+      contrato_assinado_em: assinadoEm
+    };
+  }
+
+  clienteAtual = data || clienteAtual;
 
   renderizarPreview(contratoFinalHtml);
   atualizarEstadoVisual();
@@ -596,6 +632,106 @@ async function concluirComFotos() {
   }
 }
 
+function normalizarContratoDaTabela(contrato, cliente = {}) {
+  if (!contrato?.html_final) return null;
+
+  const status = contrato.status || "pendente";
+  const concluido = String(status).trim().toLowerCase() === "assinado" ||
+    String(status).trim().toLowerCase() === "concluido" ||
+    String(status).trim().toLowerCase() === "concluído" ||
+    Boolean(contrato.assinado_em);
+
+  return {
+    ...cliente,
+    ...contrato,
+    codigo: normalizarCodigo(contrato.codigo_cliente || cliente.codigo || codigoAtual),
+    nome_completo: cliente.nome_completo || cliente.nome || cliente.razao_social || "Cliente",
+    contrato_html: contrato.html_final,
+    contrato_assinado_html: concluido ? contrato.html_final : "",
+    contrato_assinado_em: contrato.assinado_em || "",
+    contrato_enviado_em: contrato.enviado_em || contrato.created_at || "",
+    contrato_nome_arquivo: `contrato-${normalizarCodigo(contrato.codigo_cliente || cliente.codigo || codigoAtual)}.html`,
+    contrato_status: status
+  };
+}
+
+function normalizarContratoDoCliente(cliente) {
+  const html = cliente?.contrato_texto || cliente?.contrato_html || "";
+
+  if (!html) return null;
+
+  return {
+    ...cliente,
+    contrato_html: html,
+    contrato_assinado_html: "",
+    contrato_assinado_em: "",
+    contrato_nome_arquivo: `contrato-${normalizarCodigo(cliente.codigo || codigoAtual)}.html`,
+    contrato_status: cliente.contrato_status || "pendente"
+  };
+}
+
+async function buscarCliente(codigo) {
+  const { data, error } = await supabaseClient
+    .from(TABELA_CLIENTES)
+    .select("*")
+    .eq("codigo", codigo)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+async function buscarContratoCliente(codigo, contratoId = "") {
+  if (contratoId) {
+    const { data, error } = await supabaseClient
+      .from(TABELA_CONTRATOS_CLIENTES)
+      .select("*")
+      .eq("id", contratoId)
+      .maybeSingle();
+
+    if (!error && data) return data;
+  }
+
+  const consultas = [
+    { ordenarPor: "enviado_em" },
+    { ordenarPor: "created_at" }
+  ];
+
+  for (const consulta of consultas) {
+    const { data, error } = await supabaseClient
+      .from(TABELA_CONTRATOS_CLIENTES)
+      .select("*")
+      .eq("codigo_cliente", codigo)
+      .order(consulta.ordenarPor, { ascending: false })
+      .limit(1);
+
+    if (!error && data?.[0]) return data[0];
+  }
+
+  return null;
+}
+
+async function buscarDadosAssinatura(codigo) {
+  const params = new URLSearchParams(window.location.search);
+  const contratoId = String(params.get("contrato") || "").trim();
+  const [cliente, contrato] = await Promise.all([
+    buscarCliente(codigo),
+    buscarContratoCliente(codigo, contratoId)
+  ]);
+
+  if (!cliente) return null;
+
+  if (contrato?.html_final) {
+    contratoAtualRegistro = contrato;
+    contratoOrigem = TABELA_CONTRATOS_CLIENTES;
+    return normalizarContratoDaTabela(contrato, cliente);
+  }
+
+  contratoAtualRegistro = cliente;
+  contratoOrigem = TABELA_CLIENTES;
+  return normalizarContratoDoCliente(cliente);
+}
+
 function aplicarEstadoCarregado(data) {
   clienteAtual = data;
   contratoAtualHtml = data.contrato_html || "";
@@ -646,13 +782,7 @@ async function carregarContrato() {
   }
 
   try {
-    const { data, error } = await supabaseClient
-      .from(TABELA_CLIENTES)
-      .select("*")
-      .eq("codigo", codigoAtual)
-      .maybeSingle();
-
-    if (error) throw error;
+    const data = await buscarDadosAssinatura(codigoAtual);
 
     if (!data) {
       alert("Cliente não encontrado.");
