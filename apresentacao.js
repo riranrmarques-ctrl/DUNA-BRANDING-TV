@@ -2,7 +2,7 @@ const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const TABELA_PONTOS = "pontos";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(...)
 
 function obterImagem(ponto) {
   return (
@@ -105,7 +105,7 @@ async function carregarAmbientes() {
   mostrarMensagemGrid(container, "Carregando ambientes...");
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient.from
       .from(TABELA_PONTOS)
       .select("*")
       .limit(8);
