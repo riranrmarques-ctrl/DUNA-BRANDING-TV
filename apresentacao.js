@@ -2,7 +2,10 @@ const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const TABELA_PONTOS = "pontos";
 
-const supabaseClient = window.supabase.createClient(...)
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 function obterImagem(ponto) {
   return (
