@@ -1,165 +1,262 @@
-.results-wrap {
-  display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 18px;
-  align-items: stretch;
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+const TABELA_PONTOS = "pontos";
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function obterImagem(ponto) {
+  return (
+    ponto?.imagem_url ||
+    ponto?.imagem ||
+    ponto?.foto_url ||
+    ponto?.imagem_ponto ||
+    "https://placehold.co/600x320/png"
+  );
 }
 
-.phone-card,
-.benefit-card,
-.cta-band {
-  background: linear-gradient(180deg, rgba(10, 16, 27, 0.95), rgba(8, 13, 22, 0.98));
-  border: 1px solid rgba(132, 168, 220, 0.1);
-  border-radius: 24px;
-  box-shadow: var(--shadow);
+function obterNome(ponto) {
+  return (
+    ponto?.nome ||
+    ponto?.nome_local ||
+    ponto?.nome_painel ||
+    ponto?.titulo ||
+    ponto?.ambiente ||
+    "Ponto"
+  );
 }
 
-.phone-card {
-  padding: 24px;
-  display: grid;
-  place-items: center;
-  min-height: 320px;
-  position: relative;
-  overflow: hidden;
+function obterCidade(ponto) {
+  return (
+    ponto?.cidade ||
+    ponto?.cidade_regiao ||
+    ponto?.municipio ||
+    ponto?.localidade ||
+    ""
+  );
 }
 
-.phone-card::before {
-  content: "";
-  position: absolute;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle, rgba(92, 149, 214, 0.16), transparent 68%);
-  filter: blur(20px);
+function obterEndereco(ponto) {
+  return (
+    ponto?.endereco ||
+    ponto?.endereco_completo ||
+    ponto?.endereço ||
+    ponto?.local ||
+    ""
+  );
 }
 
-.phone {
-  width: 210px;
-  height: 410px;
-  border-radius: 36px;
-  padding: 12px;
-  background: linear-gradient(180deg, #162233 0%, #0a1018 100%);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.42);
-  transform: rotate(-11deg);
-  position: relative;
-  z-index: 1;
+function montarLocalizacao(ponto) {
+  const cidade = String(obterCidade(ponto) || "").trim();
+  const endereco = String(obterEndereco(ponto) || "").trim();
+
+  if (cidade && endereco) return `${cidade} • ${endereco}`;
+  if (cidade) return cidade;
+  if (endereco) return endereco;
+  return "Localização não informada";
 }
 
-.phone-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 28px;
-  background: linear-gradient(180deg, #09111d 0%, #0b1625 100%);
-  padding: 22px 18px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(145, 181, 230, 0.12);
+function escaparHtml(texto) {
+  return String(texto || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-.phone-notch {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 88px;
-  height: 18px;
-  border-radius: 0 0 14px 14px;
-  background: #060b13;
+function mostrarMensagemGrid(container, mensagem) {
+  container.innerHTML = `
+    <div style="
+      min-width: 320px;
+      padding: 28px;
+      border: 1px solid rgba(132,168,220,0.1);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(10,17,28,0.94), rgba(7,12,21,0.98));
+      color: #94a8c6;
+      text-align: center;
+      font-size: 1rem;
+    ">
+      ${escaparHtml(mensagem)}
+    </div>
+  `;
 }
 
-.qr-box {
-  margin-top: 34px;
-  width: 100%;
-  aspect-ratio: 1;
-  background:
-    linear-gradient(45deg, #ffffff 25%, #0b1625 25%, #0b1625 50%, #ffffff 50%, #ffffff 75%, #0b1625 75%),
-    linear-gradient(45deg, #ffffff 25%, #0b1625 25%, #0b1625 50%, #ffffff 50%, #ffffff 75%, #0b1625 75%);
-  background-size: 28px 28px;
-  background-position: 0 0, 14px 14px;
-  border-radius: 18px;
-  border: 8px solid #fff;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+function montarCard(ponto, index = 0) {
+  return `
+    <article class="location-card fade-up delay-${Math.min((index % 5) + 1, 5)}">
+      <img
+        src="${escaparHtml(obterImagem(ponto))}"
+        alt="${escaparHtml(obterNome(ponto))}"
+        loading="lazy"
+        decoding="async"
+      >
+      <div class="location-body">
+        <strong>${escaparHtml(obterNome(ponto))}</strong>
+        <p>${escaparHtml(montarLocalizacao(ponto))}</p>
+      </div>
+    </article>
+  `;
 }
 
-.phone-label {
-  text-align: center;
-  margin-top: 16px;
-  color: #bfd1e6;
-  font-size: 0.9rem;
+function iniciarRolagemAutomaticaAmbientes(container) {
+  if (!container) return;
+  if (container.dataset.carouselAtivo === "1") return;
+
+  container.dataset.carouselAtivo = "1";
+
+  let pausado = false;
+  const velocidade = 0.8;
+
+  function animar() {
+    if (!pausado) {
+      container.scrollLeft += velocidade;
+
+      if (container.scrollLeft >= container.scrollWidth / 2) {
+        container.scrollLeft = 0;
+      }
+    }
+
+    requestAnimationFrame(animar);
+  }
+
+  container.addEventListener("mouseenter", () => {
+    pausado = true;
+  });
+
+  container.addEventListener("mouseleave", () => {
+    pausado = false;
+  });
+
+  container.addEventListener(
+    "touchstart",
+    () => {
+      pausado = true;
+    },
+    { passive: true }
+  );
+
+  container.addEventListener(
+    "touchend",
+    () => {
+      pausado = false;
+    },
+    { passive: true }
+  );
+
+  requestAnimationFrame(animar);
 }
 
-.diff-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+async function carregarAmbientes() {
+  const container = document.getElementById("gridAmbientes");
+  if (!container) return;
+
+  mostrarMensagemGrid(container, "Carregando ambientes...");
+
+  try {
+    const { data, error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .select("*")
+      .limit(8);
+
+    if (error) {
+      console.error("Erro ao buscar pontos:", error);
+      mostrarMensagemGrid(container, `Erro ao carregar ambientes: ${error.message}`);
+      return;
+    }
+
+    if (!data || !data.length) {
+      mostrarMensagemGrid(container, "Nenhum ambiente encontrado.");
+      return;
+    }
+
+    const ambientes = [...data, ...data];
+
+    container.innerHTML = ambientes
+      .map((ponto, index) => montarCard(ponto, index))
+      .join("");
+
+    container.querySelectorAll(".fade-up").forEach((el) => {
+      el.classList.add("visible");
+    });
+
+    iniciarRolagemAutomaticaAmbientes(container);
+  } catch (erro) {
+    console.error("Erro geral:", erro);
+    mostrarMensagemGrid(container, `Falha ao carregar ambientes: ${erro.message}`);
+  }
 }
 
-.benefit-card {
-  padding: 24px;
-  min-height: 220px;
+function iniciarAnimacoesBasicas() {
+  const fadeElements = document.querySelectorAll(".fade-up");
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+      }
+    });
+  }, { threshold: 0.14 });
+
+  fadeElements.forEach((el) => observer.observe(el));
+
+  const numberFormatter = (value, decimals = 0) => {
+    return Number(value).toLocaleString("pt-BR", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  };
+
+  const animateCount = (element) => {
+    const target = Number(element.dataset.count || 0);
+    const decimals = Number(element.dataset.decimals || 0);
+    const duration = 1600;
+    const start = performance.now();
+
+    const update = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = target * eased;
+
+      element.textContent = numberFormatter(current, decimals);
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    };
+
+    requestAnimationFrame(update);
+  };
+
+  const countObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      animateCount(entry.target);
+      obs.unobserve(entry.target);
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll("[data-count]").forEach((item) => {
+    countObserver.observe(item);
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const id = link.getAttribute("href");
+      if (!id || id === "#") return;
+
+      const target = document.querySelector(id);
+      if (!target) return;
+
+      event.preventDefault();
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  });
 }
 
-.benefit-card h4 {
-  font-size: 1.16rem;
-  margin-bottom: 12px;
-  letter-spacing: -0.03em;
-}
-
-.benefit-card p {
-  color: var(--muted);
-  line-height: 1.75;
-}
-
-.cta-band {
-  margin-top: 22px;
-  padding: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.cta-band h4 {
-  font-size: clamp(1.8rem, 3vw, 3rem);
-  line-height: 1;
-  letter-spacing: -0.05em;
-  margin-bottom: 10px;
-}
-
-.cta-band p {
-  color: var(--muted);
-  line-height: 1.7;
-  max-width: 520px;
-}
-
-.cta-actions {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.stat-chip {
-  border-radius: 18px;
-  padding: 16px 18px;
-  background: rgba(9, 16, 27, 0.84);
-  border: 1px solid rgba(132, 168, 220, 0.09);
-  text-align: center;
-}
-
-.stat-chip strong {
-  display: block;
-  font-size: 1.4rem;
-  margin-bottom: 6px;
-  letter-spacing: -0.05em;
-}
-
-.stat-chip span {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
+document.addEventListener("DOMContentLoaded", () => {
+  iniciarAnimacoesBasicas();
+  carregarAmbientes();
+});
