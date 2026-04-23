@@ -581,22 +581,42 @@ function renderizarHistoricoContratoCliente() {
   if (!historicoContratoCliente) return;
 
   if (!contratoAtualCliente) {
-    historicoContratoCliente.innerHTML = `<div class="vazio">Nenhum contrato enviado ainda.</div>`;
+    historicoContratoCliente.innerHTML = "";
     return;
   }
 
-  const status = String(contratoAtualCliente.status || "pendente").toLowerCase();
   const assinado = contratoEstaConcluido();
 
+  if (!assinado) {
+    historicoContratoCliente.innerHTML = "";
+    return;
+  }
+
+  const dataAssinatura = contratoAtualCliente.assinado_em || contratoAtualCliente.updated_at || contratoAtualCliente.enviado_em || contratoAtualCliente.created_at;
+
   historicoContratoCliente.innerHTML = `
-    <div class="historico-contrato-item">
-      <strong>${escapeHtml(contratoAtualCliente.titulo || "Contrato")}</strong>
-      <span>Enviado em: ${escapeHtml(formatarDataHora(contratoAtualCliente.enviado_em || contratoAtualCliente.created_at))}</span>
-      <span>Status: ${escapeHtml(assinado ? "Assinado" : status)}</span>
-      ${contratoAtualCliente.assinado_em ? `<span>Assinado em: ${escapeHtml(formatarDataHora(contratoAtualCliente.assinado_em))}</span>` : ""}
+    <div class="historico-contratos-concluidos">
+      <h3>Histórico de contratos concluídos</h3>
+
+      <div class="historico-contrato-concluido">
+        <div>
+          <strong>${escapeHtml(contratoAtualCliente.titulo || "Contrato")}</strong>
+          <span>Concluído em ${escapeHtml(formatarDataHora(dataAssinatura))}</span>
+        </div>
+
+        <button id="btnBaixarHistoricoContrato" class="btn-historico-contrato" type="button">
+          Baixar
+        </button>
+      </div>
     </div>
   `;
+
+  const btnBaixarHistoricoContrato = document.getElementById("btnBaixarHistoricoContrato");
+  if (btnBaixarHistoricoContrato) {
+    btnBaixarHistoricoContrato.onclick = baixarContratoCliente;
+  }
 }
+
 
 function renderizarContrato() {
   if (!clienteAtual) return;
