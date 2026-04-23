@@ -1908,3 +1908,65 @@
   </script>
 </body>
 </html>
+
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+const TABELA_PONTOS = "pontos";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function obterImagem(p) {
+  return (
+    p.imagem_url ||
+    p.imagem ||
+    p.foto_url ||
+    "https://placehold.co/600x400"
+  );
+}
+
+function obterNome(p) {
+  return p.nome || p.nome_local || "Ponto";
+}
+
+function obterCidade(p) {
+  return p.cidade || p.cidade_regiao || "";
+}
+
+function obterEndereco(p) {
+  return p.endereco || p.endereco_completo || "";
+}
+
+function montarCard(ponto) {
+  return `
+    <div class="ambiente-card">
+      <img src="${obterImagem(ponto)}">
+
+      <div class="overlay">
+        <strong>${obterNome(ponto)}</strong>
+        <span>${obterCidade(ponto)} ${obterEndereco(ponto)}</span>
+      </div>
+    </div>
+  `;
+}
+
+async function carregarAmbientes() {
+  const { data, error } = await supabase
+    .from(TABELA_PONTOS)
+    .select("*")
+    .limit(8);
+
+  if (error) {
+    console.error("Erro ao buscar pontos:", error);
+    return;
+  }
+
+  const container = document.getElementById("gridAmbientes");
+
+  if (!container) return;
+
+  container.innerHTML = data.map(montarCard).join("");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarAmbientes();
+});
