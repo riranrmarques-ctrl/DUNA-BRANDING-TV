@@ -1,166 +1,100 @@
-function renderizarPreview(lista, indice = 0, statusPonto = null, offsetMs = 0) {
-  limparTimerPreview();
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-  if (!previewMidia) return;
+const TABELA_CLIENTES = "dadosclientes";
+const TABELA_CLIENTE_PONTOS = "playercliente";
+const TABELA_PONTOS = "pontos";
+const TABELA_PLAYLIST = "playlists";
+const TABELA_HISTORICO = "statuspontos";
+const TABELA_CONTRATOS_CLIENTES = "contratos_clientes";
 
-  const playlist = obterListaPreviewAtiva(lista);
-  const offline = statusPonto?.classe !== "ativo";
-  const tituloPreview = document.getElementById("tituloPreview");
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  if (tituloPreview) {
-    tituloPreview.textContent = offline ? "TV offline ou inativa |" : "Exibição em tempo real |";
+const loginScreen = document.getElementById("loginScreen");
+const areaCliente = document.getElementById("areaCliente");
+const codigoLogin = document.getElementById("codigoLogin");
+const btnEntrarCliente = document.getElementById("btnEntrarCliente");
+const loginErro = document.getElementById("loginErro");
+const loadingOverlay = document.getElementById("loadingOverlay");
+
+const btnAtualizar = document.getElementById("btnAtualizar");
+const btnSair = document.getElementById("btnSair");
+const tituloBoasVindas = document.getElementById("tituloBoasVindas");
+const subtituloCliente = document.getElementById("subtituloCliente");
+const contratoBadge = document.getElementById("contratoBadge");
+const contratoInfo = document.getElementById("contratoInfo");
+const codigoClienteEl = document.getElementById("codigoCliente");
+const contratoCard = document.querySelector(".contrato-card");
+const btnAssinarContrato = document.getElementById("btnAssinarContrato");
+const historicoContratoCliente = document.getElementById("historicoContratoCliente");
+const mensagemCliente = document.getElementById("mensagemCliente");
+const contadorPontos = document.getElementById("contadorPontos");
+const listaPontosCliente = document.getElementById("listaPontosCliente");
+
+const estadoVazio = document.getElementById("estadoVazio");
+const detalhePonto = document.getElementById("detalhePonto");
+const nomePontoDetalhe = document.getElementById("nomePontoDetalhe");
+const localPontoDetalhe = document.getElementById("localPontoDetalhe");
+const statusPontoDetalhe = document.getElementById("statusPontoDetalhe");
+const statusDesdeDetalhe = document.getElementById("statusDesdeDetalhe");
+const previewNome = document.getElementById("previewNome");
+const previewMidia = document.getElementById("previewMidia");
+const listaMateriais = document.getElementById("listaMateriais");
+const historicoStatusPonto = document.getElementById("historicoStatusPonto");
+const nomeClienteTopo = document.getElementById("nomeClienteTopo");
+
+let codigoClienteAtual = "";
+let clienteAtual = null;
+let contratoAtualCliente = null;
+let pontosContratados = [];
+let historicosPorPonto = {};
+let pontoSelecionado = "";
+
+let timerMensagem = null;
+let timerLimparMensagem = null;
+let timerPreviewPlaylist = null;
+let canalClienteRealtime = null;
+let canalContratoRealtime = null;
+
+function setMensagem(texto, tipo = "normal") {
+  if (!mensagemCliente) return;
+
+  if (timerMensagem) {
+    clearTimeout(timerMensagem);
+    timerMensagem = null;
   }
 
-  if (!playlist.length) {
-    if (previewNome) previewNome.textContent = "";
-
-    previewMidia.classList.toggle("offline", offline);
-    previewMidia.innerHTML = offline
-      ? `
-        <div class="preview-vazio">
-          <strong>TV OFFLINE OU INATIVA</strong>
-          <span>IMAGEM ATUAL CONGELADA</span>
-        </div>
-      `
-      : `<div class="preview-vazio">Nenhum material para preview neste ponto.</div>`;
-    return;
+  if (timerLimparMensagem) {
+    clearTimeout(timerLimparMensagem);
+    timerLimparMensagem = null;
   }
 
-  const indexSeguro = indice >= playlist.length || indice < 0 ? 0 : indice;
-  const offsetSeguro = Math.max(0, Number(offsetMs) || 0);
-  const item = playlist[indexSeguro];
-  const proximoIndex = indexSeguro + 1 >= playlist.length ? 0 : indexSeguro + 1;
+  mensagemCliente.textContent = texto || "";
+  mensagemCliente.classList.remove("ok", "erro", "saindo");
 
-  const url = normalizarUrl(obterUrlPlaylist(item));
-  const tipo = detectarTipo(url, item.tipo);
-  const arquivo = obterNomeArquivo(item);
+  if (tipo === "ok") mensagemCliente.classList.add("ok");
+  if (tipo === "erro") mensagemCliente.classList.add("erro");
 
-  if (previewNome) previewNome.textContent = arquivo;
+  if (!texto) return;
 
-  previewMidia.classList.toggle("offline", offline);
+  timerMensagem = setTimeout(() => {
+    mensagemCliente.classList.add("saindo");
 
-  const avisoOffline = `
-    <div class="preview-aviso-offline">
-      <strong>TV OFFLINE OU INATIVA</strong>
-      <span>IMAGEM ATUAL CONGELADA</span>
-    </div>
-  `;
-
-  if (offline) {
-    if (!url) {
-      previewMidia.innerHTML = `
-        <div class="preview-vazio">
-          <strong>TV OFFLINE OU INATIVA</strong>
-          <span>IMAGEM ATUAL CONGELADA</span>
-        </div>
-      `;
-      return;
-    }
-
-    if (tipo === "imagem") {
-      previewMidia.innerHTML = `
-        <img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">
-        ${avisoOffline}
-      `;
-      return;
-    }
-
-    if (tipo === "site") {
-      previewMidia.innerHTML = `
-        <div class="preview-vazio">
-          <strong>TV OFFLINE OU INATIVA</strong>
-          <span>IMAGEM ATUAL CONGELADA</span>
-        </div>
-      `;
-      return;
-    }
-
-    previewMidia.innerHTML = `
-      <video src="${escapeHtml(url)}" muted playsinline preload="metadata"></video>
-      ${avisoOffline}
-    `;
-
-    const video = previewMidia.querySelector("video");
-
-    if (video) {
-      video.addEventListener("loadedmetadata", () => {
-        try {
-          const tempoCongelado = Number.isFinite(video.duration) && video.duration > 2
-            ? Math.min(1, video.duration - 1)
-            : 0;
-
-          video.currentTime = tempoCongelado;
-          video.pause();
-        } catch {}
-      }, { once: true });
-    }
-
-    return;
-  }
-
-  if (!url) {
-    const tempoRestante = Math.max(1000, obterDuracaoPreviewMs(item) - offsetSeguro);
-
-    previewMidia.innerHTML = `<div class="preview-vazio">Material sem URL disponível.</div>`;
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, tempoRestante);
-
-    return;
-  }
-
-  if (tipo === "imagem") {
-    const tempoRestante = Math.max(1000, obterDuracaoPreviewMs(item) - offsetSeguro);
-
-    previewMidia.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">`;
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, tempoRestante);
-
-    return;
-  }
-
-  if (tipo === "site") {
-    const tempoRestante = Math.max(1000, obterDuracaoPreviewMs(item) - offsetSeguro);
-
-    previewMidia.innerHTML = `<iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen"></iframe>`;
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, tempoRestante);
-
-    return;
-  }
-
-  previewMidia.innerHTML = `<video src="${escapeHtml(url)}" autoplay muted playsinline></video>`;
-
-  const video = previewMidia.querySelector("video");
-
-  if (video) {
-    const segundosIniciais = offsetSeguro / 1000;
-
-    if (segundosIniciais > 0) {
-      video.addEventListener("loadedmetadata", () => {
-        if (Number.isFinite(video.duration) && video.duration > segundosIniciais + 1) {
-          video.currentTime = segundosIniciais;
-        }
-      }, { once: true });
-    }
-
-    video.onended = () => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    };
-
-    video.onerror = () => {
-      timerPreviewPlaylist = setTimeout(() => {
-        renderizarPreview(playlist, proximoIndex, statusPonto);
-      }, 3000);
-    };
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, Math.max(3000, 45000 - offsetSeguro));
-  }
+    timerLimparMensagem = setTimeout(() => {
+      mensagemCliente.textContent = "";
+      mensagemCliente.classList.remove("saindo", "ok", "erro");
+    }, 350);
+  }, 4500);
 }
+
+function setLoginErro(texto) {
+  if (loginErro) loginErro.textContent = texto || "";
+}
+
+function mostrarLoading() {
+  document.body.classList.add("loading-page");
+
+  if (btnEntrarCliente) {
+    btnEntrarCliente.classList.add("carregando");
+    btnEntrarCliente.disabled = true;
+    btnEntrarCliente.textContent = "Entrando...";
