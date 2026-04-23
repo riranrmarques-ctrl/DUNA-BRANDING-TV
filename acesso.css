@@ -1650,3 +1650,66 @@ body.loading-page {
     font-size: 10px;
   }
 }
+
+.historico-contratos-concluidos {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  text-align: left;
+}
+
+.historico-contratos-concluidos h3 {
+  margin: 0 0 10px;
+  color: #111827;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.historico-contrato-concluido {
+  min-height: 58px;
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.historico-contrato-concluido strong {
+  display: block;
+  color: #101827;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  font-weight: 900;
+}
+
+.historico-contrato-concluido span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.btn-historico-contrato {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #22c55e;
+  color: #052e16;
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn-historico-contrato:hover {
+  background: #16a34a;
+  color: #ffffff;
+}
+
