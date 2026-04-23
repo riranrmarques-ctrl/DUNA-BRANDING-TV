@@ -698,24 +698,22 @@ section {
 }
 
 .locations-grid {
-  display: flex;
-  gap: 18px;
+  display: flex !important;
+  flex-wrap: nowrap !important;
   overflow-x: auto;
   overflow-y: hidden;
-  flex-wrap: nowrap;
+  gap: 18px;
   scroll-behavior: smooth;
   padding-bottom: 8px;
-  scrollbar-width: none;
-  scroll-snap-type: x mandatory;
 }
 
 .locations-grid::-webkit-scrollbar {
   display: none;
 }
 
-.locations-grid .location-card {
-  flex: 0 0 252px;
-  scroll-snap-align: start;
+.location-card {
+  flex: 0 0 260px !important;
+  min-width: 260px;
 }
 
 .clients-marquee-wrap {
