@@ -172,7 +172,9 @@ async function carregarAmbientes() {
       return;
     }
 
-    container.innerHTML = data
+    const ambientes = [...data, ...data];
+
+    container.innerHTML = ambientes
       .map((ponto, index) => montarCard(ponto, index))
       .join("");
 
@@ -180,11 +182,52 @@ async function carregarAmbientes() {
       el.classList.add("visible");
     });
 
-    iniciarRolagemAutomaticaAmbientes();
+    iniciarRolagemAutomaticaAmbientes(container);
   } catch (erro) {
     console.error("Erro geral:", erro);
     mostrarMensagemGrid(container, `Falha ao carregar ambientes: ${erro.message}`);
   }
+}
+
+function iniciarRolagemAutomaticaAmbientes(container) {
+  if (!container) return;
+  if (container.dataset.carouselAtivo === "1") return;
+
+  container.dataset.carouselAtivo = "1";
+
+  let pausado = false;
+  let animationFrameId = null;
+  const velocidade = 0.45;
+
+  const animar = () => {
+    if (!pausado) {
+      container.scrollLeft += velocidade;
+
+      if (container.scrollLeft >= container.scrollWidth / 2) {
+        container.scrollLeft = 0;
+      }
+    }
+
+    animationFrameId = requestAnimationFrame(animar);
+  };
+
+  container.addEventListener("mouseenter", () => {
+    pausado = true;
+  });
+
+  container.addEventListener("mouseleave", () => {
+    pausado = false;
+  });
+
+  container.addEventListener("touchstart", () => {
+    pausado = true;
+  }, { passive: true });
+
+  container.addEventListener("touchend", () => {
+    pausado = false;
+  }, { passive: true });
+
+  animar();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
