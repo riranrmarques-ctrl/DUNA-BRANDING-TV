@@ -295,11 +295,20 @@ transform: translateY(0);
 }
 
 @media (max-width: 900px) {
-.hero-grid,
-.how-flow,
-.locations-grid,
-.results-wrap,
-.stats-row {
-grid-template-columns: 1fr;
-}
+  .hero-grid,
+  .how-flow,
+  .results-wrap,
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .locations-grid {
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .locations-grid .location-card {
+    flex: 0 0 220px;
+  }
 }
