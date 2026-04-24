@@ -754,3 +754,13 @@ section {
     min-width: 200px;
   }
 }
+
+.step-icon svg {
+  width: 42px;
+  height: 42px;
+  stroke: #6ea8ff;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
