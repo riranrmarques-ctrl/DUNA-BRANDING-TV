@@ -1,13 +1,63 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+const SENHA_PAINEL = "@helena";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let todosOsPontos = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-  carregarcentralpainel();
+  iniciarLoginCentral();
 });
+
+function iniciarLoginCentral() {
+  const loginBox = document.getElementById("loginBox");
+  const conteudoPainel = document.getElementById("conteudoPainel");
+  const senhaInput = document.getElementById("senhaInput");
+  const btnLogin = document.getElementById("btnLogin");
+  const loginErro = document.getElementById("loginErro");
+
+  function liberarPainel() {
+    if (loginBox) loginBox.style.display = "none";
+    if (conteudoPainel) conteudoPainel.style.display = "flex";
+    carregarcentralpainel();
+  }
+
+  function bloquearPainel() {
+    if (loginBox) loginBox.style.display = "flex";
+    if (conteudoPainel) conteudoPainel.style.display = "none";
+  }
+
+  function validarLogin() {
+    const senha = senhaInput ? senhaInput.value.trim() : "";
+
+    if (senha !== SENHA_PAINEL) {
+      if (loginErro) loginErro.textContent = "Código inválido";
+      return;
+    }
+
+    sessionStorage.setItem("painelLiberado", "1");
+
+    if (loginErro) loginErro.textContent = "";
+    liberarPainel();
+  }
+
+  if (sessionStorage.getItem("painelLiberado") === "1") {
+    liberarPainel();
+  } else {
+    bloquearPainel();
+  }
+
+  if (btnLogin) {
+    btnLogin.onclick = validarLogin;
+  }
+
+  if (senhaInput) {
+    senhaInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") validarLogin();
+    });
+  }
+}
 
 async function carregarcentralpainel() {
   try {
@@ -27,7 +77,6 @@ async function carregarcentralpainel() {
     }
 
     todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
-
     atualizarPainel(todosOsPontos);
   } catch (erro) {
     console.error("Erro ao carregar central painel:", erro);
@@ -36,10 +85,10 @@ async function carregarcentralpainel() {
 
 function combinarPontosComStatus(pontos, status) {
   return pontos.map(ponto => {
-    const codigoPonto = String(ponto.codigo || ponto.codigo_ponto || "").trim();
+    const codigoPonto = String(ponto.codigo || ponto.codigo_ponto || ponto.ponto_codigo || "").trim();
 
     const statusEncontrado = status.find(item => {
-      const codigoStatus = String(item.codigo || item.codigo_ponto || "").trim();
+      const codigoStatus = String(item.codigo || item.codigo_ponto || item.ponto_codigo || "").trim();
       return codigoStatus === codigoPonto;
     });
 
@@ -133,8 +182,8 @@ function renderizarPontos(pontos) {
   }
 
   pontos.forEach(ponto => {
-    const nome = ponto.nome || ponto.nome_ponto || ponto.titulo || ponto.codigo_final || "Ponto sem nome";
-    const endereco = ponto.endereco || ponto.localizacao || ponto.rua || "Endereço não informado";
+    const nome = ponto.nome || ponto.nome_ponto || ponto.nome_local || ponto.titulo || ponto.codigo_final || "Ponto sem nome";
+    const endereco = ponto.endereco || ponto.endereco_completo || ponto.localizacao || ponto.rua || "Endereço não informado";
     const status = ponto.status_final;
     const ultimoPing = ponto.ultimo_ping_final;
     const uptime = calcularUptimeIndividual(ultimoPing, status);
@@ -159,7 +208,7 @@ function renderizarPontos(pontos) {
 }
 
 function calcularUptimeMedio(pontos) {
-  if (!pontos.length) return "0";
+  if (!pontos.length) return "0,0";
 
   const soma = pontos.reduce((total, ponto) => {
     return total + calcularUptimeIndividual(ponto.ultimo_ping_final, ponto.status_final);
