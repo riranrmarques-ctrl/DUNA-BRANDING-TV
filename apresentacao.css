@@ -880,3 +880,12 @@ section {
   height: 240px;
   object-fit: cover;
 }
+
+#pontos {
+  padding-bottom: 120px;
+}
+
+.locations-grid::after {
+  content: "";
+  min-width: 60px;
+}
