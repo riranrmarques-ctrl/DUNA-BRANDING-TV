@@ -1669,3 +1669,7 @@ body.loading-page {
   pointer-events: none;
   user-select: none;
 }
+
+body.modo-detalhe .topo-esquerda {
+  display: none;
+}
