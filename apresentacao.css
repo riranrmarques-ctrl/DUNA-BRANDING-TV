@@ -841,3 +841,37 @@ section {
   color: #4d84c5;
   border-top: 1px solid rgba(7, 17, 29, 0.10);
 }
+
+#pontos {
+  background: #ffffff;
+  color: #07111d;
+  padding-top: 70px;
+  padding-bottom: 120px;
+}
+
+#pontos .section-head h3 {
+  color: #07111d;
+}
+
+#pontos .section-head p {
+  color: #52627a;
+}
+
+#pontos .location-card {
+  background: #ffffff;
+  border: 1px solid rgba(7, 17, 29, 0.12);
+  box-shadow: 0 18px 44px rgba(7, 17, 29, 0.10);
+}
+
+#pontos .location-body strong {
+  color: #07111d;
+}
+
+#pontos .location-body p {
+  color: #52627a;
+}
+
+#pontos .location-flow {
+  color: #4d84c5;
+  border-top: 1px solid rgba(7, 17, 29, 0.10);
+}
