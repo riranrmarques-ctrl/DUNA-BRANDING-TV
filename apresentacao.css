@@ -882,3 +882,31 @@ section {
   letter-spacing: -0.05em;
   color: #07111d;
 }
+
+#pontos .container {
+  width: 100%;
+  max-width: none;
+  padding: 0 70px;
+}
+
+#gridAmbientes {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  padding: 10px 0 28px;
+  scroll-padding-left: 70px;
+}
+
+#gridAmbientes .location-card {
+  flex: 0 0 360px !important;
+  min-width: 360px;
+}
+
+#gridAmbientes .location-card:first-child {
+  margin-left: 0;
+}
+
+#gridAmbientes .location-card:last-child {
+  margin-right: 70px;
+}
