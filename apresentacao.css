@@ -202,7 +202,7 @@ img {
   border: 1px solid rgba(135, 170, 217, 0.14);
   background:
     linear-gradient(180deg, rgba(4, 8, 14, 0.35), rgba(4, 8, 14, 0.82)),
-    url("capainicial.jpg) center/cover;
+    url("capainicial.jpg") center/cover no-repeat;
   min-height: 700px;
   box-shadow: var(--shadow);
 }
@@ -226,7 +226,7 @@ img {
   aspect-ratio: 1.03;
   background:
     linear-gradient(180deg, rgba(5, 9, 15, 0.26), rgba(5, 9, 15, 0.54)),
-    url("capaincial.jpg") center/cover no-repeat;
+    url("capainicial.jpg") center/cover no-repeat;
   padding: 36px;
   display: flex;
   flex-direction: column;
