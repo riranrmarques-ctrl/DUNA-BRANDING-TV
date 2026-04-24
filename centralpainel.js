@@ -86,7 +86,7 @@ async function carregarcentralpainel() {
 
     const { data: playlists, error: erroPlaylists } = await supabaseClient
       .from("playlists")
-      .select("codigo_cliente,data_fim,fim_exibicao");
+      .select("codigo_cliente,data_fim");
 
     if (erroPlaylists) {
       console.warn("Playlists não carregaram:", erroPlaylists);
