@@ -200,10 +200,12 @@ img {
   border-radius: var(--radius-xl);
   overflow: hidden;
   border: 1px solid rgba(135, 170, 217, 0.14);
-  background:
-    linear-gradient(180deg, rgba(4, 8, 14, 0.35), rgba(4, 8, 14, 0.82)),
-    url("capainicial.jpg") center/cover no-repeat;
-  min-height: 700px;
+
+  background: url("capainicial.jpg") center/cover no-repeat;
+
+  aspect-ratio: 1 / 1;
+  min-height: unset;
+
   box-shadow: var(--shadow);
 }
 
@@ -826,5 +828,5 @@ section {
 }
 
 .realtime-card {
-  bottom: 56px;
+  bottom: 140px;
 }
