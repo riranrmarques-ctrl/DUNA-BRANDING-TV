@@ -379,7 +379,7 @@ function atualizarTextoComercial(saldo, ganhos, quedas) {
   }
 }
 
-function desenharGraficoComercial(dados) {
+function desenharGraficoResumoComercial(dados) {
   const svg = document.querySelector(".contracts .chart svg");
   const linha = document.querySelector(".contracts .chart svg .line");
   const area = document.querySelector(".contracts .chart svg .area");
@@ -392,14 +392,14 @@ function desenharGraficoComercial(dados) {
   const baseY = 210;
   const topoY = 70;
 
-  const valores = dados.map(item => item.saldo);
+  const valores = dados.map(item => item.valor);
   const max = Math.max(...valores, 1);
   const min = Math.min(...valores, 0);
   const faixa = Math.max(max - min, 1);
 
   const pontos = dados.map((item, index) => {
     const x = inicioX + (index * largura) / (dados.length - 1);
-    const y = baseY - ((item.saldo - min) / faixa) * (baseY - topoY);
+    const y = baseY - ((item.valor - min) / faixa) * (baseY - topoY);
     return { x, y };
   });
 
@@ -414,77 +414,20 @@ function desenharGraficoComercial(dados) {
 
   svg.querySelectorAll("circle").forEach(circle => circle.remove());
 
-  pontos
-    .filter((_, index) => index % 6 === 0 || index === pontos.length - 1)
-    .forEach(ponto => {
-      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      circle.setAttribute("cx", ponto.x);
-      circle.setAttribute("cy", ponto.y);
-      circle.setAttribute("r", "7");
-      svg.appendChild(circle);
-    });
-
-  const indicesLabels = [0, 7, 14, 21, dados.length - 1];
+  pontos.forEach(ponto => {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", ponto.x);
+    circle.setAttribute("cy", ponto.y);
+    circle.setAttribute("r", "7");
+    svg.appendChild(circle);
+  });
 
   labels.forEach((label, index) => {
-    const item = dados[indicesLabels[index]];
-    if (!item) return;
+    if (!dados[index]) {
+      label.textContent = "";
+      return;
+    }
 
-    label.textContent = item.dia.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit"
-    });
+    label.textContent = dados[index].label;
   });
 }
-
-function criarDiasPeriodo(inicio, fim) {
-  const dias = [];
-  const atual = new Date(inicio);
-
-  while (atual <= fim) {
-    dias.push(new Date(atual));
-    atual.setDate(atual.getDate() + 1);
-  }
-
-  return dias;
-}
-
-function mesmaData(data, dia) {
-  if (!data) return false;
-
-  return (
-    data.getFullYear() === dia.getFullYear() &&
-    data.getMonth() === dia.getMonth() &&
-    data.getDate() === dia.getDate()
-  );
-}
-
-function obterData(valor) {
-  if (!valor) return null;
-
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return null;
-
-  return data;
-}
-
-function normalizarStatusCliente(status) {
-  const s = String(status || "").toLowerCase().trim();
-
-  if (s === "ativo" || s === "ativa" || s === "active") return "ativo";
-
-  if (
-    s === "inativo" ||
-    s === "inativa" ||
-    s === "cancelado" ||
-    s === "cancelada" ||
-    s === "desativado" ||
-    s === "desativada" ||
-    s.includes("indispon")
-  ) {
-    return "inativo";
-  }
-
-  return "inativo";
-}
-
