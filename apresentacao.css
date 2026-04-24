@@ -786,3 +786,38 @@ section {
   stroke-width: 2;
   margin-bottom: 10px;
 }
+
+.hero {
+  padding: 0 0 34px;
+}
+
+.hero-copy {
+  padding-top: 0;
+  justify-content: flex-start;
+  transform: translateY(-34px);
+}
+
+.hero-visual {
+  transform: translateY(-34px);
+}
+
+.eyebrow {
+  letter-spacing: 0.16em;
+}
+
+.hero h1 {
+  letter-spacing: -0.045em;
+}
+
+.hero p {
+  letter-spacing: 0.015em;
+}
+
+.button-primary,
+.button-secondary {
+  letter-spacing: 0.01em;
+}
+
+.nav {
+  letter-spacing: 0.01em;
+}
