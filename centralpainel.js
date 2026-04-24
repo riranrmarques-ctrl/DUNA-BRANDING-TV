@@ -35,7 +35,7 @@ async function carregarcentralpainel() {
     preencherFiltroClientes(todosOsPontos);
     atualizarPainel(todosOsPontos);
   } catch (erro) {
-    console.error("Erro ao carregar painel central:", erro);
+    console.error("Erro ao carregar central painel:", erro);
   }
 }
 
