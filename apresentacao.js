@@ -4,6 +4,35 @@ const TABELA_PONTOS = "pontos";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function iniciarRolagemAutomaticaAmbientes(container) {
+  if (!container) return;
+  if (container.dataset.carouselAtivo === "1") return;
+
+  container.dataset.carouselAtivo = "1";
+
+  let pausado = false;
+  const velocidade = 0.7;
+
+  function animar() {
+    if (!pausado && container.scrollWidth > container.clientWidth) {
+      container.scrollLeft += velocidade;
+
+      const limite = container.scrollWidth / 4;
+
+      if (container.scrollLeft >= limite) {
+        container.scrollLeft = 0;
+      }
+    }
+
+    requestAnimationFrame(animar);
+  }
+
+  container.addEventListener("mouseenter", () => pausado = true);
+  container.addEventListener("mouseleave", () => pausado = false);
+
+  requestAnimationFrame(animar);
+}
+
 function obterImagem(ponto) {
   return (
     ponto?.imagem_url ||
@@ -134,6 +163,9 @@ async function carregarAmbientes() {
     container.querySelectorAll(".fade-up").forEach((el) => {
       el.classList.add("visible");
     });
+
+    iniciarRolagemAutomaticaAmbientes(container);
+
   } catch (erro) {
     console.error("Erro geral:", erro);
     mostrarMensagemGrid(container, `Falha ao carregar ambientes: ${erro.message}`);
