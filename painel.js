@@ -822,16 +822,6 @@ async function alternarDisponibilidadePonto() {
   }
 }
 
-  sessionStorage.setItem("painelLiberado", "1");
-
-  if (loginErro) loginErro.textContent = "";
-  if (loginBox) loginBox.style.display = "none";
-  if (conteudoPainel) conteudoPainel.style.display = "block";
-
-  setStatus("Painel Ativo", "ok");
-  iniciarPainel();
-}
-
 async function buscarPontosRemoto() {
   const { data, error } = await supabaseClient
     .from(TABELA_PONTOS)
@@ -1770,4 +1760,3 @@ async function iniciarPainel() {
 
   setStatus("Painel Ativo", "ok");
   iniciarPainel();
-}
