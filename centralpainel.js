@@ -333,42 +333,6 @@ function escaparHtml(valor) {
     .replaceAll("'", "&#039;");
 }
 
-function atualizarGraficoComercial(clientes, contratos) {
-  const clientesAtivos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) === "ativo";
-  }).length;
-
-  const clientesInativos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) !== "ativo";
-  }).length;
-
-  const contratosTotal = contratos.length;
-  const ganhos = clientesAtivos + contratosTotal;
-  const quedas = clientesInativos;
-  const saldo = ganhos - quedas;
-
-  setTexto("novosContratos", saldo);
-  atualizarTextoComercial(saldo, ganhos, quedas);
-
-  const dados = [
-    { label: "Clientes ativos", valor: clientesAtivos },
-    { label: "Contratos", valor: contratosTotal },
-    { label: "Quedas", valor: -quedas },
-    { label: "Saldo", valor: saldo }
-  ];
-
-  desenharGraficoResumoComercial(dados);
-}
-
-  const totalGanhos = dados.reduce((total, item) => total + item.ganhos, 0);
-  const totalQuedas = dados.reduce((total, item) => total + item.quedas, 0);
-  const saldo = totalGanhos - totalQuedas;
-
-  setTexto("novosContratos", saldo);
-  atualizarTextoComercial(saldo, totalGanhos, totalQuedas);
-  desenharGraficoComercial(dados);
-}
-
 function atualizarTextoComercial(saldo, ganhos, quedas) {
   const texto = document.querySelector(".contract-number p");
   const comparativo = document.querySelector(".contract-number strong");
@@ -431,3 +395,31 @@ function desenharGraficoResumoComercial(dados) {
     label.textContent = dados[index].label;
   });
 }
+
+function normalizarStatusCliente(status) {
+  const s = String(status || "").toLowerCase().trim();
+
+  if (
+    s === "ativo" ||
+    s === "ativa" ||
+    s === "active" ||
+    s === "supervisor"
+  ) {
+    return "ativo";
+  }
+
+  if (
+    s === "inativo" ||
+    s === "inativa" ||
+    s === "cancelado" ||
+    s === "cancelada" ||
+    s === "desativado" ||
+    s === "desativada" ||
+    s.includes("indispon")
+  ) {
+    return "inativo";
+  }
+
+  return "inativo";
+}
+
