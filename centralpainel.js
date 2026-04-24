@@ -7,12 +7,6 @@ let todosOsPontos = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   carregarcentralpainel();
-  setInterval(carregarcentralpainel, 30000);
-
-  const filtroCliente = document.getElementById("filtroCliente");
-  if (filtroCliente) {
-    filtroCliente.addEventListener("change", aplicarFiltroCliente);
-  }
 });
 
 async function carregarcentralpainel() {
@@ -34,34 +28,10 @@ async function carregarcentralpainel() {
 
     todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
 
-    preencherFiltroClientes(todosOsPontos);
     atualizarPainel(todosOsPontos);
   } catch (erro) {
     console.error("Erro ao carregar central painel:", erro);
   }
-}
-
-function atualizarPainel(pontos) {
-  atualizarMetricas(pontos);
-  atualizarDonut(pontos);
-
-  const ordem = {
-    "ativo": 1,
-    "sem material": 2,
-    "inativo": 3,
-    "offline": 4
-  };
-
-  const pontosOrdenados = [...pontos].sort((a, b) => {
-    const ordemA = ordem[a.status_final] || 99;
-    const ordemB = ordem[b.status_final] || 99;
-
-    if (ordemA !== ordemB) return ordemA - ordemB;
-
-    return new Date(b.ultimo_ping_final || 0) - new Date(a.ultimo_ping_final || 0);
-  });
-
-  renderizarPontos(pontosOrdenados.slice(0, 4));
 }
 
 function combinarPontosComStatus(pontos, status) {
@@ -93,10 +63,11 @@ function atualizarPainel(pontos) {
     "offline": 4
   };
 
-  const pontosOrdenados = pontos.sort((a, b) => {
-    if (a.status_final !== b.status_final) {
-      return ordem[a.status_final] - ordem[b.status_final];
-    }
+  const pontosOrdenados = [...pontos].sort((a, b) => {
+    const ordemA = ordem[a.status_final] || 99;
+    const ordemB = ordem[b.status_final] || 99;
+
+    if (ordemA !== ordemB) return ordemA - ordemB;
 
     return new Date(b.ultimo_ping_final || 0) - new Date(a.ultimo_ping_final || 0);
   });
@@ -162,8 +133,6 @@ function renderizarPontos(pontos) {
   }
 
   pontos.forEach(ponto => {
-
-  pontos.slice(0, 4).forEach(ponto => {
     const nome = ponto.nome || ponto.nome_ponto || ponto.titulo || ponto.codigo_final || "Ponto sem nome";
     const endereco = ponto.endereco || ponto.localizacao || ponto.rua || "Endereço não informado";
     const status = ponto.status_final;
@@ -187,41 +156,6 @@ function renderizarPontos(pontos) {
       </article>
     `;
   });
-}
-
-function preencherFiltroClientes(pontos) {
-  const filtro = document.getElementById("filtroCliente");
-  if (!filtro) return;
-
-  const valorAtual = filtro.value || "todos";
-  const nomes = [...new Set(pontos.map(p => p.cliente || p.nome_cliente || p.empresa).filter(Boolean))];
-
-  filtro.innerHTML = `<option value="todos">Todos os clientes</option>`;
-
-  nomes.forEach(nome => {
-    filtro.innerHTML += `<option value="${escaparHtml(nome)}">${escaparHtml(nome)}</option>`;
-  });
-
-  filtro.value = nomes.includes(valorAtual) ? valorAtual : "todos";
-}
-
-function aplicarFiltroCliente() {
-  const filtro = document.getElementById("filtroCliente");
-  if (!filtro) return;
-
-  const valor = filtro.value;
-
-  if (valor === "todos") {
-    atualizarPainel(todosOsPontos);
-    return;
-  }
-
-  const filtrados = todosOsPontos.filter(p => {
-    const cliente = p.cliente || p.nome_cliente || p.empresa || "";
-    return cliente === valor;
-  });
-
-  atualizarPainel(filtrados);
 }
 
 function calcularUptimeMedio(pontos) {
