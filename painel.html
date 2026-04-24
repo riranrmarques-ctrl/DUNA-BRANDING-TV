@@ -12,369 +12,159 @@
 </head>
 
 <body>
-  <div id="loginBox" class="login-screen">
-    <div class="login-card">
-      <h2>Acesso ao Painel</h2>
-      <input type="password" id="senhaInput" placeholder="Digite o código">
-      <button id="btnLogin" type="button">Entrar</button>
-      <p id="loginErro" class="login-erro"></p>
+
+<div id="conteudoPainel">
+
+  <div class="topo-fixo novo-topo">
+
+    <!-- BOTÃO VOLTAR (SUBSTITUIU MENU) -->
+    <div class="topo-esquerda">
+      <button onclick="window.location.href='centralpainel.html'" class="menu-topo-btn">
+        ← Voltar
+      </button>
+    </div>
+
+    <div class="topo-centro">
+      <h1>Gerenciador de Pontos</h1>
+      <p>Gerencie seus pontos e playlists</p>
+    </div>
+
+    <div class="topo-direita">
+      <img src="logo.png?v=2" class="logo-topo-img">
+      <div class="status-topo">Painel Ativo</div>
+    </div>
+
+  </div>
+
+  <div class="painel-shell">
+
+    <!-- LISTA DE PONTOS -->
+    <div id="listaPontos">
+      <div class="pontos-box"></div>
+
+      <div class="novo-ponto-area">
+        <button id="btnNovoPonto" class="btn-novo-ponto">+ Novo ponto</button>
+      </div>
+
+      <div class="assinatura-duna">
+        Desenvolvido por <strong>Duna Branding</strong>
+      </div>
+    </div>
+
+    <!-- DETALHE DO PONTO -->
+    <div id="pontoDetalhe" class="playlist-box" style="display:none;">
+
+      <div class="playlist-topbar playlist-topbar-novo">
+        <div class="topbar-esquerda">
+          <button id="btnVoltar" class="btn-secundario">← Voltar</button>
+          <span class="topbar-titulo">Gerencie e organize a sua playlist</span>
+        </div>
+
+        <!-- STATUS ORIGINAL MANTIDO -->
+        <div class="topbar-direita">
+          <div id="statusPonto" class="status-destaque"></div>
+        </div>
+      </div>
+
+      <div class="playlist-header playlist-header-novo">
+        <div class="playlist-topo-flex">
+
+          <div class="playlist-imagem-box">
+            <img id="imagemPonto" src="https://placehold.co/600x320/png">
+          </div>
+
+          <div class="playlist-header-textos">
+
+            <h2 id="tituloPasta"></h2>
+
+            <div class="playlist-info-extra">
+              <div id="cidadePonto" class="playlist-info-item"></div>
+              <div id="enderecoPonto" class="playlist-info-item"></div>
+            </div>
+
+            <div class="playlist-codigo-linha">
+              <button id="btnToggleDisponibilidade" class="toggle-ponto ativo">
+                <span class="toggle-bolinha"></span>
+                <span class="toggle-texto">Disponível</span>
+              </button>
+
+              <span id="codigoAtual"></span>
+            </div>
+
+            <div class="playlist-acoes-topo">
+              <button id="btnEditarInfo" class="btn-secundario">Editar informações</button>
+              <button id="btnUpgradePlaylist" class="btn-upgrade-playlist">upgrade</button>
+              <input id="inputUpgradePlaylist" type="file" hidden>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="playlist-layout-novo">
+
+        <div class="playlist-coluna-ativa">
+          <div class="playlist-secao playlist-secao-ativa">
+            <div class="playlist-secao-topo">
+              <h4>Playlist ativa</h4>
+            </div>
+            <div id="playlistAtiva" class="playlist-lista"></div>
+          </div>
+        </div>
+
+        <div class="playlist-coluna-historico">
+
+          <div class="playlist-secao">
+            <div class="playlist-secao-topo">
+              <h4>Histórico de encerramento</h4>
+            </div>
+            <div id="historicoEncerramento" class="historico-lista"></div>
+          </div>
+
+          <div class="playlist-secao">
+            <div class="playlist-secao-topo">
+              <h4>Histórico de status</h4>
+            </div>
+            <div id="historicoStatus" class="historico-lista"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL EDITAR -->
+  <div id="modalEditar" class="modal-editar" style="display:none;">
+    <div class="modal-conteudo">
+
+      <h3>Editar Informações</h3>
+
+      <input type="text" id="editNome">
+      <input type="text" id="editCidade">
+      <input type="text" id="editEndereco">
+
+      <div class="edit-imagem-box">
+        <img id="previewImagem">
+        <input type="file" id="inputImagem">
+      </div>
+
+      <!-- BOTÃO DELETAR AQUI (COMO VOCÊ PEDIU) -->
+      <div class="edit-botoes">
+        <button id="btnSalvarEdicao">Salvar</button>
+        <button id="btnDeletarPonto" class="btn-deletar-ponto">Deletar ponto</button>
+        <button id="btnFecharModal">Cancelar</button>
+      </div>
+
     </div>
   </div>
 
-  <div id="conteudoPainel" style="display:none;">
-    <div class="topo-fixo novo-topo">
-      <div class="topo-esquerda">
-        <div class="menu-topo-wrap">
-          <div class="menu-topo-btn">☰ Menu</div>
+</div>
 
-          <div class="menu-topo-dropdown">
-            <a class="menu-item" href="/central-clientes.html">Clientes</a>
-            <a class="menu-item" href="/contratos.html">Contratos</a>
-            <a class="menu-item" href="#">Downloads</a>
-            <a class="menu-item" href="#">Financeiro</a>
-            <a class="menu-item" href="#">Relatórios</a>
-            <a class="menu-item" href="#">Configuração</a>
-          </div>
-        </div>
-      </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="painel.js?v=120"></script>
 
-      <div class="topo-centro">
-        <h1>Gerenciador de Pontos</h1>
-        <p>Gerencie seus pontos e playlists.</p>
-      </div>
-
-      <div class="topo-direita">
-        <img src="logo.png?v=2" class="logo-topo-img" alt="Duna TV">
-        <div class="status-topo">Painel Ativo</div>
-      </div>
-    </div>
-
-    <div class="painel-shell">
-      <div id="listaPontos">
-        <div class="pontos-box">
-          <div class="card-ponto" data-codigo="H4E9L2A">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">H4E9L2A</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="H4E9L2A" type="button">Abrir pasta</button>
-            </div>
-          </div>
-
-          <div class="card-ponto" data-codigo="N7H3E8L">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">N7H3E8L</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="N7H3E8L" type="button">Abrir pasta</button>
-            </div>
-          </div>
-
-          <div class="card-ponto" data-codigo="E2A6H9N">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">E2A6H9N</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="E2A6H9N" type="button">Abrir pasta</button>
-            </div>
-          </div>
-
-          <div class="card-ponto" data-codigo="L8E1N5A">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">L8E1N5A</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="L8E1N5A" type="button">Abrir pasta</button>
-            </div>
-          </div>
-
-          <div class="card-ponto" data-codigo="H6N4E7A">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">H6N4E7A</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="H6N4E7A" type="button">Abrir pasta</button>
-            </div>
-          </div>
-
-          <div class="card-ponto" data-codigo="A9L3E2H">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">A9L3E2H</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="A9L3E2H" type="button">Abrir pasta</button>
-            </div>
-          </div>
-
-          <div class="card-ponto" data-codigo="E5H8A1N">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">E5H8A1N</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="E5H8A1N" type="button">Abrir pasta</button>
-            </div>
-          </div>
-
-          <div class="card-ponto" data-codigo="N2E7L4A">
-            <div class="card-status-topo">
-              <span class="status-bolinha"></span>
-              <span class="card-status">Status...</span>
-            </div>
-
-            <div class="card-imagem-box">
-              <img class="card-imagem" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="card-conteudo">
-              <div class="card-nome">Carregando...</div>
-              <div class="card-info-linha">
-                <div class="card-cidade">Cidade não definida</div>
-
-                <div class="card-codigo-area">
-                  <div class="card-codigo" title="Clique para copiar">N2E7L4A</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-acoes">
-              <button class="btn-abrir" data-codigo="N2E7L4A" type="button">Abrir pasta</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="novo-ponto-area">
-          <button id="btnNovoPonto" class="btn-novo-ponto" type="button">+ Novo ponto</button>
-        </div>
-
-        <div class="assinatura-duna">
-          Desenvolvido por <strong>Duna Branding</strong>
-        </div>
-      </div>
-
-      <div id="pontoDetalhe" class="playlist-box" style="display:none;">
-        <div class="playlist-topbar playlist-topbar-novo">
-          <div class="topbar-esquerda">
-            <button id="btnVoltar" type="button" class="btn-secundario btn-voltar-topo">← Voltar</button>
-            <span class="topbar-titulo">Gerencie e organize a sua playlist</span>
-          </div>
-
-          <div class="topbar-direita">
-            <div id="statusPonto" class="status-destaque"></div>
-          </div>
-        </div>
-
-        <div class="playlist-header playlist-header-novo">
-          <div class="playlist-topo-flex">
-            <div class="playlist-imagem-box">
-              <img id="imagemPonto" src="https://placehold.co/600x320/png" alt="Imagem do ponto">
-            </div>
-
-            <div class="playlist-header-textos">
-              <h2 id="tituloPasta"></h2>
-
-              <div class="playlist-info-extra">
-                <div id="cidadePonto" class="playlist-info-item"></div>
-                <div id="enderecoPonto" class="playlist-info-item"></div>
-              </div>
-
-              <div class="playlist-codigo-linha">
-                <button id="btnToggleDisponibilidade" class="toggle-ponto ativo" type="button" aria-pressed="true">
-                  <span class="toggle-bolinha"></span>
-                  <span class="toggle-texto">Disponível</span>
-                </button>
-
-                <span id="codigoAtual" title="Clique para copiar"></span>
-              </div>
-
-              <div class="playlist-acoes-topo">
-                <button id="btnEditarInfo" type="button" class="btn-secundario">Editar informações</button>
-                <button id="btnUpgradePlaylist" type="button" class="btn-upgrade-playlist">upgrade</button>
-                <input id="inputUpgradePlaylist" type="file" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt" hidden>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="playlist-layout-novo">
-          <div class="playlist-coluna-ativa">
-            <div class="playlist-secao playlist-secao-ativa">
-              <div class="playlist-secao-topo">
-                <h4>Playlist ativa</h4>
-              </div>
-
-              <div class="playlist-header-linha">
-                <span>#</span>
-                <span></span>
-                <span>Cliente / Arquivo</span>
-                <span>Postado</span>
-                <span>Encerramento</span>
-                <span>Ações</span>
-              </div>
-
-              <div id="playlistAtiva" class="playlist-lista"></div>
-            </div>
-          </div>
-
-          <div class="playlist-coluna-historico">
-            <div class="playlist-secao playlist-secao-historico">
-              <div class="playlist-secao-topo">
-                <h4>Histórico de encerramento</h4>
-              </div>
-              <div id="historicoEncerramento" class="historico-lista"></div>
-            </div>
-
-            <div class="playlist-secao playlist-secao-historico">
-              <div class="playlist-secao-topo">
-                <h4>Histórico de status</h4>
-              </div>
-              <div id="historicoStatus" class="historico-lista"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="modalEditar" class="modal-editar" style="display:none;">
-      <div class="modal-conteudo">
-        <h3>Editar Informações</h3>
-
-        <input type="text" id="editNome" placeholder="Nome do ponto">
-        <input type="text" id="editCidade" placeholder="Cidade">
-        <input type="text" id="editEndereco" placeholder="Endereço">
-
-        <div class="edit-imagem-box">
-          <img id="previewImagem" src="" alt="Preview da imagem">
-          <input type="file" id="inputImagem" accept="image/*">
-        </div>
-
-        <div class="edit-botoes">
-          <button id="btnSalvarEdicao" type="button">Salvar</button>
-          <button id="btnFecharModal" type="button">Cancelar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="painel.js?v=120"></script>
 </body>
 </html>
