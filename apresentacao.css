@@ -222,17 +222,6 @@ img {
   overflow: hidden;
 }
 
-.screen-body {
-  aspect-ratio: 1.03;
-  background:
-    linear-gradient(180deg, rgba(5, 9, 15, 0.26), rgba(5, 9, 15, 0.54)),
-    url("capainicial.jpg") center/cover no-repeat;
-  padding: 36px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
 .screen-body small {
   align-self: flex-end;
   font-size: 1.55rem;
