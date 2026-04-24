@@ -120,7 +120,7 @@ function renderizarPontos(pontos) {
     return;
   }
 
-  pontos.forEach(ponto => {
+  pontos.slice(0, 4).forEach(ponto => {
     const nome = ponto.nome || ponto.nome_ponto || ponto.titulo || ponto.codigo_final || "Ponto sem nome";
     const endereco = ponto.endereco || ponto.localizacao || ponto.rua || "Endereço não informado";
     const status = ponto.status_final;
