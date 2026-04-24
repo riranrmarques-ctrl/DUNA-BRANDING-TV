@@ -77,24 +77,27 @@ async function carregarcentralpainel() {
     }
 
     const { data: clientes, error: erroClientes } = await supabaseClient
-      .from("clientes")
+      .from("dadosclientes")
       .select("*");
 
     if (erroClientes) {
       console.warn("Clientes não carregaram:", erroClientes);
     }
 
-    const { data: contratos, error: erroContratos } = await supabaseClient
-      .from("contratos")
-      .select("*");
+    const { data: playlists, error: erroPlaylists } = await supabaseClient
+      .from("playlists")
+      .select("codigo_cliente,data_fim,fim_exibicao");
 
-    if (erroContratos) {
-      console.warn("Contratos não carregaram:", erroContratos);
+    if (erroPlaylists) {
+      console.warn("Playlists não carregaram:", erroPlaylists);
     }
+
+    const clientesComStatusReal = calcularStatusRealClientes(clientes || [], playlists || []);
+    const contratos = clientesComStatusReal.filter(cliente => clienteTemContrato(cliente));
 
     todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
     atualizarPainel(todosOsPontos);
-    atualizarGraficoComercial(clientes || [], contratos || []);
+    atualizarGraficoComercial(clientesComStatusReal, contratos);
   } catch (erro) {
     console.error("Erro ao carregar central painel:", erro);
   }
@@ -223,11 +226,11 @@ function renderizarPontos(pontos) {
 
 function atualizarGraficoComercial(clientes, contratos) {
   const clientesAtivos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) === "ativo";
+    return normalizarStatusCliente(cliente) === "ativo";
   }).length;
 
   const clientesInativos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) !== "ativo";
+    return normalizarStatusCliente(cliente) !== "ativo";
   }).length;
 
   const contratosTotal = contratos.length;
@@ -304,6 +307,51 @@ function desenharGraficoResumoComercial(dados) {
   });
 }
 
+function calcularStatusRealClientes(clientes, playlists) {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const clientesAtivosPorPlaylist = new Set();
+
+  playlists.forEach(item => {
+    const codigo = String(item.codigo_cliente || "").trim().toUpperCase();
+    if (!codigo) return;
+
+    const dataFimValor = item.data_fim || item.fim_exibicao;
+
+    if (!dataFimValor) {
+      clientesAtivosPorPlaylist.add(codigo);
+      return;
+    }
+
+    const dataFim = new Date(dataFimValor);
+    if (!Number.isNaN(dataFim.getTime()) && dataFim >= hoje) {
+      clientesAtivosPorPlaylist.add(codigo);
+    }
+  });
+
+  return clientes.map(cliente => {
+    const codigo = String(cliente.codigo || "").trim().toUpperCase();
+    const statusBanco = String(cliente.statuscliente || cliente.status || "").toLowerCase().trim();
+    const supervisor = String(cliente.tipo_acesso || "").toLowerCase().trim() === "supervisor";
+
+    return {
+      ...cliente,
+      status_real: supervisor || clientesAtivosPorPlaylist.has(codigo) || statusBanco === "ativo" ? "ativo" : "inativo"
+    };
+  });
+}
+
+function clienteTemContrato(cliente) {
+  return Boolean(
+    String(cliente.contrato || "").trim() ||
+    String(cliente.contrato_texto || "").trim() ||
+    String(cliente.contrato_modelo_nome || "").trim() ||
+    String(cliente.contrato_status || "").trim() ||
+    String(cliente.contrato_enviado_em || "").trim()
+  );
+}
+
 function calcularUptimeMedio(pontos) {
   if (!pontos.length) return "0,0";
 
@@ -354,19 +402,12 @@ function normalizarStatus(status) {
   return "inativo";
 }
 
-function normalizarStatusCliente(status) {
-  const s = String(status || "").toLowerCase().trim();
+function normalizarStatusCliente(cliente) {
+  const status = String(cliente?.status_real || cliente?.statuscliente || cliente?.status || "")
+    .toLowerCase()
+    .trim();
 
-  if (
-    s === "ativo" ||
-    s === "ativa" ||
-    s === "active" ||
-    s === "supervisor"
-  ) {
-    return "ativo";
-  }
-
-  return "inativo";
+  return status === "ativo" ? "ativo" : "inativo";
 }
 
 function textoStatus(status) {
