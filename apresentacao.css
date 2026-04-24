@@ -794,11 +794,11 @@ section {
 .hero-copy {
   padding-top: 0;
   justify-content: flex-start;
-  transform: translateY(-5px);
+  transform: translateY(5px);
 }
 
 .hero-visual {
-  transform: translateY(-5px);
+  transform: translateY(5px);
 }
 
 .eyebrow {
