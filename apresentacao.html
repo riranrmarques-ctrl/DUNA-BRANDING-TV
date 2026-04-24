@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duna Branding | Apresentação</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
   <style>
 :root {
   --bg: #04070d;
@@ -28,14 +30,17 @@
   --radius-sm: 14px;
   --container: 1260px;
 }
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
+
 html {
   scroll-behavior: smooth;
 }
+
 body {
   font-family: "Inter", system-ui, sans-serif;
   background:
@@ -45,18 +50,22 @@ body {
   color: var(--text);
   overflow-x: hidden;
 }
+
 a {
   color: inherit;
   text-decoration: none;
 }
+
 img {
   display: block;
   max-width: 100%;
 }
+
 .container {
   width: min(var(--container), calc(100% - 40px));
   margin: 0 auto;
 }
+
 .site-header {
   position: sticky;
   top: 0;
@@ -65,23 +74,1257 @@ img {
   background: rgba(3, 7, 13, 0.72);
   border-bottom: 1px solid rgba(130, 164, 214, 0.08);
 }
+
 .header-inner {
   min-height: 84px;
   display: flex;
   align-items: center;
   gap: 24px;
 }
+
 .brand {
   display: flex;
   align-items: center;
 }
+
 .brand-logo {
   width: 172px;
   height: auto;
   object-fit: contain;
   display: block;
 }
+
 .nav {
   margin-left: auto;
   display: flex;
   align-items: center;
+  gap: 34px;
+  color: #dbe5f6;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.nav a {
+  transition: 0.25s ease;
+}
+
+.nav a:hover {
+  color: var(--accent-2);
+}
+
+.hero {
+  padding: 0 0 34px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.02fr 0.98fr;
+  gap: 30px;
+  align-items: stretch;
+}
+
+.hero-copy {
+  padding: 0 4px 20px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transform: translateY(20px);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(92, 149, 214, 0.08);
+  color: var(--accent-2);
+  border: 1px solid rgba(125, 168, 216, 0.18);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 22px;
+}
+
+.hero h1 {
+  font-size: clamp(3rem, 6vw, 5.6rem);
+  line-height: 0.93;
+  letter-spacing: -0.045em;
+  max-width: 760px;
+  margin-bottom: 22px;
+}
+
+.hero h1 .accent {
+  color: #74a6de;
+}
+
+.hero p {
+  max-width: 620px;
+  font-size: 1.16rem;
+  line-height: 1.7;
+  color: var(--muted);
+  margin-bottom: 26px;
+  letter-spacing: 0.015em;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.button-primary,
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58px;
+  padding: 0 26px;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.button-primary {
+  color: white;
+  background: linear-gradient(180deg, #6c9fd8 0%, #4d84c5 100%);
+  box-shadow: 0 16px 30px rgba(76, 132, 197, 0.22);
+}
+
+.button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(76, 132, 197, 0.32);
+}
+
+.button-secondary {
+  border: 1px solid rgba(140, 174, 218, 0.22);
+  color: #ecf3ff;
+  background: rgba(10, 16, 27, 0.66);
+}
+
+.button-secondary:hover {
+  border-color: rgba(140, 174, 218, 0.38);
+  background: rgba(13, 21, 35, 0.92);
+  transform: translateY(-2px);
+}
+
+.hero-visual {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid rgba(135, 170, 217, 0.14);
+  background:
+    linear-gradient(180deg, rgba(4, 7, 13, 0.08), rgba(4, 7, 13, 0.58)),
+    url("capainicial.jpg") center/cover no-repeat,
+    linear-gradient(135deg, #0c1a2b, #162f4d);
+  aspect-ratio: 1 / 1;
+  min-height: unset;
+  box-shadow: var(--shadow);
+  transform: translateY(20px);
+}
+
+.hero-screen {
+  position: absolute;
+  right: 30px;
+  top: 34px;
+  width: min(90%, 430px);
+  background: transparent;
+  border: 2px solid rgba(117, 163, 219, 0.42);
+  border-radius: 26px;
+  box-shadow:
+    0 0 0 1px rgba(117, 163, 219, 0.08),
+    0 0 34px rgba(117, 163, 219, 0.18),
+    0 30px 80px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.screen-body {
+  aspect-ratio: 16 / 9;
+  background:
+    url("capainicial.jpg") center/cover no-repeat,
+    linear-gradient(135deg, #0d2239, #24496f);
+}
+
+.realtime-card {
+  position: absolute;
+  right: 18px;
+  bottom: 20px;
+  left: 18px;
+  border-radius: 22px;
+  background: rgba(6, 12, 21, 0.82);
+  border: 1px solid rgba(137, 171, 218, 0.14);
+  padding: 18px;
+  backdrop-filter: blur(16px);
+}
+
+.realtime-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.realtime-head strong {
+  font-size: 1.15rem;
+}
+
+.live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #74e295;
+  font-size: 0.95rem;
+}
+
+.live-dot::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #4fe882;
+  box-shadow: 0 0 0 0 rgba(79, 232, 130, 0.7);
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(79, 232, 130, 0.65); }
+  70% { box-shadow: 0 0 0 12px rgba(79, 232, 130, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 232, 130, 0); }
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.metric {
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(154, 184, 228, 0.08);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  margin-bottom: 6px;
+}
+
+.metric-label {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+section {
+  padding: 46px 0;
+}
+
+.section-head {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.overline {
+  color: var(--accent-2);
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.section-head h3 {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  margin-bottom: 10px;
+}
+
+.section-head p {
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.how-wrap {
+  border: 1px solid rgba(132, 168, 220, 0.1);
+  background: linear-gradient(180deg, rgba(7, 12, 20, 0.78), rgba(5, 10, 16, 0.9));
+  border-radius: 28px;
+  padding: 28px 22px 24px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+
+.how-flow {
+  display: grid;
+  grid-template-columns: 1fr 34px 1fr 34px 1fr 34px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.flow-card {
+  min-height: 190px;
+  padding: 20px 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(11, 19, 32, 0.96), rgba(8, 14, 24, 0.98));
+  border: 1px solid rgba(131, 168, 222, 0.12);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+  position: relative;
+  overflow: hidden;
+}
+
+.flow-card::before {
+  content: "";
+  position: absolute;
+  inset: auto -20% -50% auto;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(92, 149, 214, 0.14), transparent 70%);
+  pointer-events: none;
+}
+
+.flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6ea3df;
+  font-size: 1.7rem;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.step-pill {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #6f9fd4 0%, #4d84c5 100%);
+  color: white;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+}
+
+.step-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  background: rgba(92, 149, 214, 0.08);
+  border: 1px solid rgba(137, 171, 218, 0.14);
+  color: #84b2e5;
+}
+
+.step-icon svg {
+  width: 42px;
+  height: 42px;
+  stroke: #6ea8ff;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.step-title {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+
+.step-desc {
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.9rem;
+}
+
+#pontos {
+  background: #ffffff;
+  color: #07111d;
+  padding-top: 70px;
+  padding-bottom: 120px;
+  overflow: hidden;
+}
+
+#pontos .container {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+#pontos .section-head {
+  width: min(var(--container), calc(100% - 40px));
+  margin: 0 auto 34px;
+}
+
+#pontos .section-head h3 {
+  color: #07111d;
+}
+
+.locations-grid,
+#gridAmbientes {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 24px;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-behavior: auto !important;
+  padding: 20px 90px 34px !important;
+  width: 100%;
+  max-width: 100%;
+}
+
+.locations-grid::-webkit-scrollbar,
+#gridAmbientes::-webkit-scrollbar {
+  display: none;
+}
+
+.locations-grid::before,
+#gridAmbientes::before,
+.locations-grid::after,
+#gridAmbientes::after {
+  content: "";
+  flex: 0 0 40px;
+}
+
+.location-card,
+#gridAmbientes .location-card {
+  flex: 0 0 360px !important;
+  min-width: 360px !important;
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: #ffffff;
+  border: 1px solid rgba(7, 17, 29, 0.12);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgba(7, 17, 29, 0.10);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.location-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(77, 132, 197, 0.24);
+  box-shadow: 0 22px 54px rgba(7, 17, 29, 0.14);
+}
+
+.location-card img {
+  width: 100%;
+  height: 285px;
+  object-fit: cover;
+  display: block;
+  border-bottom: 1px solid rgba(7, 17, 29, 0.08);
+}
+
+.location-body {
+  padding: 18px 20px 22px;
+}
+
+.location-body strong {
+  display: block;
+  font-size: 1.28rem;
+  margin-bottom: 10px;
+  line-height: 1.2;
+  color: #07111d;
+}
+
+.location-body p {
+  color: #52627a;
+  line-height: 1.65;
+  font-size: 1rem;
+}
+
+.location-flow {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(7, 17, 29, 0.10);
+  color: #4d84c5;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.location-flow::before {
+  content: "👥 ";
+}
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.benefit-card,
+.cta-band {
+  background: linear-gradient(180deg, rgba(10, 16, 27, 0.95), rgba(8, 13, 22, 0.98));
+  border: 1px solid rgba(132, 168, 220, 0.1);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.benefit-card {
+  padding: 26px;
+  min-height: 190px;
+  position: relative;
+}
+
+.benefit-card::before {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+  background: rgba(92, 149, 214, 0.1);
+  border: 1px solid rgba(137, 171, 218, 0.14);
+  color: #7da8d8;
+  font-size: 1.25rem;
+}
+
+.benefit-card:nth-child(1)::before {
+  content: "📊";
+}
+
+.benefit-card:nth-child(2)::before {
+  content: "✓";
+  font-weight: 900;
+  font-size: 1.4rem;
+}
+
+.benefit-card:nth-child(3)::before {
+  content: "🎯";
+}
+
+.benefit-card h4 {
+  font-size: 1.18rem;
+  margin-bottom: 12px;
+  letter-spacing: -0.03em;
+}
+
+.benefit-card p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.cta-band {
+  margin-top: 22px;
+  padding: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.cta-band h4 {
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  margin-bottom: 10px;
+}
+
+.cta-band p {
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 520px;
+}
+
+.cta-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.delay-1 { transition-delay: 0.04s; }
+.delay-2 { transition-delay: 0.08s; }
+.delay-3 { transition-delay: 0.12s; }
+.delay-4 { transition-delay: 0.16s; }
+.delay-5 { transition-delay: 0.2s; }
+
+@media (max-width: 1180px) {
+  .hero-grid,
+  .cta-band {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-visual {
+    min-height: 640px;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .how-flow {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .flow-arrow {
+    display: none;
+  }
+
+  .diff-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .location-card,
+  #gridAmbientes .location-card {
+    flex: 0 0 320px !important;
+    min-width: 320px !important;
+  }
+
+  .location-card img {
+    height: 250px;
+  }
+}
+
+@media (max-width: 860px) {
+  .brand-logo {
+    width: 138px;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .header-inner {
+    min-height: 76px;
+  }
+
+  .hero {
+    padding-top: 24px;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 10vw, 3.8rem);
+  }
+
+  .hero-copy {
+    padding-top: 15px;
+    transform: none;
+  }
+
+  .hero-visual {
+    min-height: 600px;
+    transform: none;
+  }
+
+  .hero-screen {
+    left: 18px;
+    right: 18px;
+    width: auto;
+  }
+
+  .metric-grid,
+  .diff-grid,
+  .how-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .locations-grid,
+  #gridAmbientes {
+    padding: 18px 24px 30px !important;
+  }
+
+  .locations-grid::before,
+  #gridAmbientes::before,
+  .locations-grid::after,
+  #gridAmbientes::after {
+    flex: 0 0 0;
+  }
+
+  .location-card,
+  #gridAmbientes .location-card {
+    flex: 0 0 280px !important;
+    min-width: 280px !important;
+  }
+
+  .location-card img {
+    height: 225px;
+  }
+
+  .cta-band {
+    padding: 26px 22px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cta-actions {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-logo {
+    width: 124px;
+  }
+
+  .container {
+    width: min(var(--container), calc(100% - 24px));
+  }
+
+  .hero p,
+  .section-head p {
+    font-size: 0.98rem;
+  }
+
+  .button-primary,
+  .button-secondary {
+    width: 100%;
+  }
+
+  .hero-visual {
+    min-height: 540px;
+  }
+
+  .realtime-card {
+    padding: 14px;
+  }
+
+  .flow-card,
+  .benefit-card,
+  .location-card {
+    border-radius: 20px;
+  }
+
+  .location-card,
+  #gridAmbientes .location-card {
+    flex: 0 0 255px !important;
+    min-width: 255px !important;
+    min-height: 390px;
+  }
+
+  .location-card img {
+    height: 205px;
+  }
+
+  .location-body {
+    padding: 16px;
+  }
+
+  .location-body strong {
+    font-size: 1.08rem;
+  }
+
+  .location-body p {
+    font-size: 0.9rem;
+  }
+}
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="#inicio" class="brand">
+      <img src="logo.png" class="brand-logo" alt="Duna Branding">
+    </a>
+
+    <nav class="nav">
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#pontos">Pontos</a>
+      <a href="#vantagens">Vantagens</a>
+      <a href="https://wa.me/5573981888817?text=Ol%C3%A1%20Duna%20Branding%2C" target="_blank" rel="noopener">Solicitar</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero" id="inicio">
+  <div class="container hero-grid">
+
+    <div class="hero-copy">
+      <div class="eyebrow">Mídia indoor inteligente</div>
+
+      <h1>
+        Branding que <br>
+        te posiciona <br>
+        em <span class="accent">ambientes</span> <br>
+        <span class="accent">exclusivos.</span>
+      </h1>
+
+      <p>
+        Telas estratégicas com controle total e resultados reais.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://wa.me/5573981888817?text=Ol%C3%A1%20Duna%20Branding%2C" target="_blank" rel="noopener" class="button-primary">Quero anunciar</a>
+        <a href="#como-funciona" class="button-secondary">Ver como funciona</a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hero-screen">
+        <div class="screen-body"></div>
+      </div>
+
+      <div class="realtime-card">
+        <div class="realtime-head">
+          <strong>Resultados</strong>
+          <span class="live-dot">Ao vivo</span>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <div class="metric-value" data-count="3024">0</div>
+            <div class="metric-label">Reproduções por dia</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-value" data-count="17">0</div>
+            <div class="metric-label">Telas indoor</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-value" data-count="6">0</div>
+            <div class="metric-label">Pontos seletivos</div>
+          </div>
+
+          <div class="metric">
+            <div class="metric-value">20s</div>
+            <div class="metric-label">Tempo de exibição</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section id="como-funciona">
+  <div class="container">
+    <div class="how-wrap">
+
+      <div class="section-head">
+        <div class="overline">Operação simples e eficiente</div>
+        <h3>Como funciona</h3>
+        <p>Do conteúdo ao resultado. Simples assim.</p>
+      </div>
+
+      <div class="how-flow how-flow-compact">
+
+        <article class="flow-card compact">
+          <div class="step-pill">1</div>
+          <div class="step-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 16V6"></path>
+              <path d="M8 10l4-4 4 4"></path>
+              <path d="M5 18h14"></path>
+            </svg>
+          </div>
+          <div class="step-title">Você envia o conteúdo</div>
+          <div class="step-desc">Arte, vídeo ou campanha. Nós cuidamos do resto.</div>
+        </article>
+
+        <div class="flow-arrow">→</div>
+
+        <article class="flow-card compact">
+          <div class="step-pill">2</div>
+          <div class="step-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="12" rx="2"></rect>
+              <path d="M8 21h8"></path>
+              <path d="M12 17v4"></path>
+            </svg>
+          </div>
+          <div class="step-title">Programamos e distribuímos</div>
+          <div class="step-desc">Seu conteúdo é enviado para telas estratégicas.</div>
+        </article>
+
+        <div class="flow-arrow">→</div>
+
+        <article class="flow-card compact">
+          <div class="step-pill">3</div>
+          <div class="step-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="12" rx="2"></rect>
+              <path d="M10 9l5 2.5L10 14z" fill="#6ea8ff"></path>
+            </svg>
+          </div>
+          <div class="step-title">Exibimos nas melhores telas</div>
+          <div class="step-desc">Ambientes de alto fluxo e público qualificado.</div>
+        </article>
+
+        <div class="flow-arrow">→</div>
+
+        <article class="flow-card compact">
+          <div class="step-pill">4</div>
+          <div class="step-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 18V10"></path>
+              <path d="M12 18V6"></path>
+              <path d="M18 18v-4"></path>
+            </svg>
+          </div>
+          <div class="step-title">Você acompanha tudo</div>
+          <div class="step-desc">Relatórios em tempo real com métricas e comprovação.</div>
+        </article>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pontos">
+  <div class="container">
+    <div class="section-head">
+      <h3>Ambientes Estratégicos</h3>
+    </div>
+
+    <div id="gridAmbientes" class="locations-grid"></div>
+  </div>
+</section>
+
+<section id="vantagens">
+  <div class="container">
+
+    <div class="section-head">
+      <h3>Vantagens</h3>
+      <p>Mais presença, mais controle e mais valor para sua marca.</p>
+    </div>
+
+    <div class="diff-grid">
+      <div class="benefit-card">
+        <h4>Relatórios em tempo real</h4>
+        <p>Acompanhe reproduções, pontos ativos e desempenho da campanha com clareza.</p>
+      </div>
+
+      <div class="benefit-card">
+        <h4>Comprovação de exibição</h4>
+        <p>Tenha mais segurança sobre onde e quando sua marca está sendo veiculada.</p>
+      </div>
+
+      <div class="benefit-card">
+        <h4>Público qualificado</h4>
+        <p>Sua marca posicionada em ambientes seletivos, com fluxo real e atenção local.</p>
+      </div>
+    </div>
+
+    <div class="cta-band" id="contato">
+      <div>
+        <h4>Vamos começar?</h4>
+        <p>Solicite sua proposta e posicione sua marca nas telas certas.</p>
+      </div>
+
+      <div class="cta-actions">
+        <a href="https://wa.me/5573981888817?text=Ol%C3%A1%20Duna%20Branding%2C" target="_blank" rel="noopener" class="button-primary">Solicitar</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<script>
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+const TABELA_PONTOS = "pontos";
+const SUPABASE_SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js";
+
+function carregarSupabaseSdk() {
+  return new Promise((resolve, reject) => {
+    if (window.supabase) {
+      resolve();
+      return;
+    }
+
+    const scriptExistente = document.querySelector(`script[src="${SUPABASE_SDK_URL}"]`);
+    if (scriptExistente) {
+      scriptExistente.addEventListener("load", resolve, { once: true });
+      scriptExistente.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = SUPABASE_SDK_URL;
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+function iniciarRolagemAutomaticaAmbientes(container) {
+  if (!container) return;
+  if (container.dataset.carouselAtivo === "1") return;
+
+  container.dataset.carouselAtivo = "1";
+
+  let posicao = container.scrollLeft;
+  let ultimoFrame = performance.now();
+  const velocidade = 42;
+
+  function animar(agora) {
+    const delta = Math.min(agora - ultimoFrame, 64);
+    ultimoFrame = agora;
+
+    if (container.scrollWidth > container.clientWidth) {
+      const limite = container.scrollWidth / 4;
+      posicao += (velocidade * delta) / 1000;
+
+      if (posicao >= limite) {
+        posicao = 0;
+      }
+
+      container.scrollLeft = posicao;
+    }
+
+    requestAnimationFrame(animar);
+  }
+
+  container.addEventListener("scroll", () => {
+    posicao = container.scrollLeft;
+  });
+
+  requestAnimationFrame(animar);
+}
+
+function obterImagem(ponto) {
+  return (
+    ponto?.imagem_url ||
+    ponto?.imagem ||
+    ponto?.foto_url ||
+    ponto?.imagem_ponto ||
+    "https://placehold.co/600x320/png"
+  );
+}
+
+function obterNome(ponto) {
+  return (
+    ponto?.nome ||
+    ponto?.nome_local ||
+    ponto?.nome_painel ||
+    ponto?.titulo ||
+    ponto?.ambiente ||
+    "Ponto"
+  );
+}
+
+function obterCidade(ponto) {
+  return (
+    ponto?.cidade ||
+    ponto?.cidade_regiao ||
+    ponto?.municipio ||
+    ponto?.localidade ||
+    ""
+  );
+}
+
+function obterEndereco(ponto) {
+  return (
+    ponto?.endereco ||
+    ponto?.endereco_completo ||
+    ponto?.endereço ||
+    ponto?.local ||
+    ""
+  );
+}
+
+function montarLocalizacao(ponto) {
+  const cidade = String(obterCidade(ponto) || "").trim();
+  const endereco = String(obterEndereco(ponto) || "").trim();
+
+  if (cidade && endereco) return `${cidade} • ${endereco}`;
+  if (cidade) return cidade;
+  if (endereco) return endereco;
+  return "Localização não informada";
+}
+
+function escaparHtml(texto) {
+  return String(texto || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function mostrarMensagemGrid(container, mensagem) {
+  container.innerHTML = `
+    <div style="
+      min-width: 320px;
+      padding: 28px;
+      border: 1px solid rgba(132,168,220,0.1);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(10,17,28,0.94), rgba(7,12,21,0.98));
+      color: #94a8c6;
+      text-align: center;
+      font-size: 1rem;
+    ">
+      ${escaparHtml(mensagem)}
+    </div>
+  `;
+}
+
+function montarCard(ponto, index = 0) {
+  return `
+    <article class="location-card fade-up delay-${Math.min((index % 5) + 1, 5)}">
+      <img
+        src="${escaparHtml(obterImagem(ponto))}"
+        alt="${escaparHtml(obterNome(ponto))}"
+        loading="lazy"
+        decoding="async"
+      >
+      <div class="location-body">
+        <strong>${escaparHtml(obterNome(ponto))}</strong>
+        <p>${escaparHtml(montarLocalizacao(ponto))}</p>
+
+        <div class="location-flow">
+          Fluxo de pessoas: ${escaparHtml(ponto?.fluxo_pessoas || "")}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+async function carregarAmbientes() {
+  const container = document.getElementById("gridAmbientes");
+  if (!container) return;
+
+  mostrarMensagemGrid(container, "Carregando ambientes...");
+
+  try {
+    await carregarSupabaseSdk();
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const { data, error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .select("*")
+      .limit(8);
+
+    if (error) {
+      console.error("Erro ao buscar pontos:", error);
+      mostrarMensagemGrid(container, `Erro ao carregar ambientes: ${error.message}`);
+      return;
+    }
+
+    if (!data || !data.length) {
+      mostrarMensagemGrid(container, "Nenhum ambiente encontrado.");
+      return;
+    }
+
+    const ambientes = [...data, ...data, ...data, ...data];
+
+    container.innerHTML = ambientes
+      .map((ponto, index) => montarCard(ponto, index))
+      .join("");
+
+    container.querySelectorAll(".fade-up").forEach((el) => {
+      el.classList.add("visible");
+    });
+
+    iniciarRolagemAutomaticaAmbientes(container);
+  } catch (erro) {
+    console.error("Erro geral:", erro);
+    mostrarMensagemGrid(container, `Falha ao carregar ambientes: ${erro.message}`);
+  }
+}
+
+function iniciarAnimacoesBasicas() {
+  const fadeElements = document.querySelectorAll(".fade-up");
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+      }
+    });
+  }, { threshold: 0.14 });
+
+  fadeElements.forEach((el) => observer.observe(el));
+
+  const numberFormatter = (value, decimals = 0) => {
+    return Number(value).toLocaleString("pt-BR", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  };
+
+  const animateCount = (element) => {
+    const target = Number(element.dataset.count || 0);
+    const decimals = Number(element.dataset.decimals || 0);
+    const duration = 1600;
+    const start = performance.now();
+
+    const update = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = target * eased;
+
+      element.textContent = numberFormatter(current, decimals);
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    };
+
+    requestAnimationFrame(update);
+  };
+
+  const countObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      animateCount(entry.target);
+      obs.unobserve(entry.target);
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll("[data-count]").forEach((item) => {
+    countObserver.observe(item);
+  });
+
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const id = link.getAttribute("href");
+      if (!id || id === "#") return;
+
+      const target = document.querySelector(id);
+      if (!target) return;
+
+      event.preventDefault();
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  iniciarAnimacoesBasicas();
+  carregarAmbientes();
+});
+</script>
+
+</body>
+</html>
