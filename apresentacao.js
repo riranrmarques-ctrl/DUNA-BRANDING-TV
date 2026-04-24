@@ -102,50 +102,6 @@ function montarCard(ponto, index = 0) {
   `;
 }
 
-function iniciarRolagemAutomaticaAmbientes(container) {
-  if (!container) return;
-  if (container.dataset.carouselAtivo === "1") return;
-
-  container.dataset.carouselAtivo = "1";
-
-  let pausado = false;
-  const velocidade = 0.8;
-
-  function animar() {
-    if (!pausado && container.scrollWidth > container.clientWidth) {
-      container.scrollLeft += velocidade;
-
-      const limite = container.scrollWidth / 3;
-
-      if (container.scrollLeft >= limite) {
-        container.scrollLeft = 0;
-      }
-    }
-
-    requestAnimationFrame(animar);
-  }
-
-  container.addEventListener("mouseenter", () => {
-    pausado = true;
-  });
-
-  container.addEventListener("mouseleave", () => {
-    pausado = false;
-  });
-
-  container.addEventListener("touchstart", () => {
-    pausado = true;
-  }, { passive: true });
-
-  container.addEventListener("touchend", () => {
-    pausado = false;
-  }, { passive: true });
-
-  setTimeout(() => {
-    requestAnimationFrame(animar);
-  }, 300);
-}
-
 async function carregarAmbientes() {
   const container = document.getElementById("gridAmbientes");
   if (!container) return;
@@ -169,17 +125,13 @@ async function carregarAmbientes() {
       return;
     }
 
-    const ambientes = [...data, ...data, ...data];
-
-    container.innerHTML = ambientes
+    container.innerHTML = data
       .map((ponto, index) => montarCard(ponto, index))
       .join("");
 
     container.querySelectorAll(".fade-up").forEach((el) => {
       el.classList.add("visible");
     });
-
-    iniciarRolagemAutomaticaAmbientes(container);
   } catch (erro) {
     console.error("Erro geral:", erro);
     mostrarMensagemGrid(container, `Falha ao carregar ambientes: ${erro.message}`);
