@@ -465,3 +465,8 @@ circle {
     flex-direction: column;
   }
 }
+
+.logo-img {
+  width: 160px;
+  height: auto;
+}
