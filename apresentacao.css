@@ -766,37 +766,7 @@ section {
 }
 
 .benefits-row {
-  grid-column: 1 / -1;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
-  margin-top: 40px;
-  flex-wrap: nowrap;
-}
-
-.benefit-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  font-size: 14px;
-  color: #8fbaff;
-  opacity: 0.9;
-}
-
-.benefit-item svg {
-  width: 34px;
-  height: 34px;
-  stroke: #6ea8ff;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  margin-bottom: 12px;
+  display: none !important;
 }
 
 .benefit-item {
