@@ -1634,3 +1634,27 @@ body.loading-page {
 .status-badge-topo.indisponivel {
   background: #6b7280;
 }
+
+.card-ponto {
+  cursor: grab;
+}
+
+.card-ponto:active {
+  cursor: grabbing;
+}
+
+.card-arrastando {
+  opacity: 0.42;
+  transform: scale(0.96);
+  border-color: rgba(86, 103, 241, 0.9);
+  box-shadow: 0 0 0 2px rgba(86, 103, 241, 0.35);
+}
+
+.card-drag-over {
+  transform: translateX(10px) scale(1.02);
+  border-color: rgba(86, 103, 241, 0.75);
+}
+
+.arrastando-ponto .card-ponto {
+  transition: transform 0.22s ease, opacity 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
