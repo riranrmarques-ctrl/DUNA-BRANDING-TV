@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Indoor Mídia | Central Painel</title>
+  <title>Indoor Mídia | Central</title>
   <link rel="stylesheet" href="centralpainel.css" />
 </head>
 
@@ -19,14 +19,33 @@
       </div>
 
       <nav class="menu">
-        <a class="active" href="#">⌂ <span>Dashboard</span></a>
-        <a href="#">⌖ <span>Pontos</span></a>
-        <a href="#">▣ <span>Conteúdos</span></a>
-        <a href="#">⌘ <span>QR Code</span></a>
-        <a href="#"># <span>Relatórios</span></a>
-        <a href="#">▤ <span>Contratos</span></a>
-        <a href="#">☷ <span>Usuários</span></a>
-        <a href="#">⚙ <span>Configurações</span></a>
+        <a class="active" href="#">
+          ⌂ <span>Central</span>
+        </a>
+
+        <a href="https://www.dunabranding.com.br/painel.html">
+          ⌖ <span>Pontos</span>
+        </a>
+
+        <a href="#">
+          ⌘ <span>QR Code</span>
+        </a>
+
+        <a href="#">
+          # <span>Relatórios</span>
+        </a>
+
+        <a href="https://www.dunabranding.com.br/contratos.html">
+          ▤ <span>Contratos</span>
+        </a>
+
+        <a href="https://www.dunabranding.com.br/central-clientes.html">
+          ☷ <span>Clientes</span>
+        </a>
+
+        <a href="#">
+          ⚙ <span>Configurações</span>
+        </a>
       </nav>
     </div>
 
@@ -41,9 +60,7 @@
   </aside>
 
   <main class="main">
-    <header class="topbar">
-      <div></div>
-    </header>
+    <header class="topbar"></header>
 
     <section class="metrics">
       <article class="metric-card">
@@ -100,46 +117,14 @@
             <span>vs. período anterior</span>
           </div>
 
-          <div class="chart">
-            <svg viewBox="0 0 600 260" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#6c5cff" stop-opacity=".45" />
-                  <stop offset="100%" stop-color="#6c5cff" stop-opacity="0" />
-                </linearGradient>
-              </defs>
-
-              <line x1="0" y1="40" x2="600" y2="40" />
-              <line x1="0" y1="95" x2="600" y2="95" />
-              <line x1="0" y1="150" x2="600" y2="150" />
-              <line x1="0" y1="205" x2="600" y2="205" />
-
-              <path class="area" d="M30 210 L70 190 L105 155 L145 175 L180 188 L220 160 L260 135 L300 160 L340 180 L380 150 L420 110 L460 95 L500 75 L540 105 L575 135 L575 240 L30 240 Z" />
-              <path class="line" d="M30 210 L70 190 L105 155 L145 175 L180 188 L220 160 L260 135 L300 160 L340 180 L380 150 L420 110 L460 95 L500 75 L540 105 L575 135" />
-
-              <circle cx="30" cy="210" r="7" />
-              <circle cx="105" cy="155" r="7" />
-              <circle cx="260" cy="135" r="7" />
-              <circle cx="420" cy="110" r="7" />
-              <circle cx="500" cy="75" r="7" />
-              <circle cx="575" cy="135" r="7" />
-            </svg>
-
-            <div class="chart-labels">
-              <span>01/05</span>
-              <span>08/05</span>
-              <span>15/05</span>
-              <span>22/05</span>
-              <span>31/05</span>
-            </div>
-          </div>
+          <div class="chart"></div>
         </div>
       </article>
 
       <article class="panel status-panel">
         <div class="panel-head">
           <h3>Status dos pontos</h3>
-          <a href="pontos.html">Ver todos ›</a>
+          <a href="https://www.dunabranding.com.br/painel.html">Ver todos ›</a>
         </div>
 
         <div class="status-content">
@@ -151,10 +136,10 @@
           </div>
 
           <ul class="legend">
-            <li><i class="green-dot"></i> Ativos <strong id="legendaAtivos">0 (0%)</strong></li>
-            <li><i class="yellow-dot"></i> Sem material <strong id="legendaSemMaterial">0 (0%)</strong></li>
-            <li><i class="red-dot"></i> Inativos <strong id="legendaInativos">0 (0%)</strong></li>
-            <li><i class="gray-dot"></i> Offline <strong id="legendaOffline">0 (0%)</strong></li>
+            <li><i class="green-dot"></i> Ativos <strong id="legendaAtivos">0</strong></li>
+            <li><i class="yellow-dot"></i> Sem material <strong id="legendaSemMaterial">0</strong></li>
+            <li><i class="red-dot"></i> Inativos <strong id="legendaInativos">0</strong></li>
+            <li><i class="gray-dot"></i> Offline <strong id="legendaOffline">0</strong></li>
           </ul>
         </div>
       </article>
@@ -163,7 +148,7 @@
     <section class="panel points">
       <div class="panel-head">
         <h3>Status dos Pontos</h3>
-        <a href="painel.html">Ver todos ›</a>
+        <a href="https://www.dunabranding.com.br/painel.html">Ver todos ›</a>
       </div>
 
       <div class="point-list" id="listaPontos"></div>
