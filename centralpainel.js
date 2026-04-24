@@ -334,45 +334,31 @@ function escaparHtml(valor) {
 }
 
 function atualizarGraficoComercial(clientes, contratos) {
-  const hoje = new Date();
-  const inicio = new Date();
-  inicio.setDate(hoje.getDate() - 29);
-  inicio.setHours(0, 0, 0, 0);
+  const clientesAtivos = clientes.filter(cliente => {
+    return normalizarStatusCliente(cliente.status) === "ativo";
+  }).length;
 
-  const dias = criarDiasPeriodo(inicio, hoje);
+  const clientesInativos = clientes.filter(cliente => {
+    return normalizarStatusCliente(cliente.status) !== "ativo";
+  }).length;
 
-  const dados = dias.map(dia => {
-    const ganhosClientes = clientes.filter(cliente => {
-      const status = normalizarStatusCliente(cliente.status);
-      const criadoEm = obterData(cliente.created_at || cliente.criado_em || cliente.data_cadastro);
+  const contratosTotal = contratos.length;
+  const ganhos = clientesAtivos + contratosTotal;
+  const quedas = clientesInativos;
+  const saldo = ganhos - quedas;
 
-      return status === "ativo" && mesmaData(criadoEm, dia);
-    }).length;
+  setTexto("novosContratos", saldo);
+  atualizarTextoComercial(saldo, ganhos, quedas);
 
-    const ganhosContratos = contratos.filter(contrato => {
-      const criadoEm = obterData(contrato.created_at || contrato.criado_em || contrato.data_contrato);
+  const dados = [
+    { label: "Clientes ativos", valor: clientesAtivos },
+    { label: "Contratos", valor: contratosTotal },
+    { label: "Quedas", valor: -quedas },
+    { label: "Saldo", valor: saldo }
+  ];
 
-      return mesmaData(criadoEm, dia);
-    }).length;
-
-    const quedasClientes = clientes.filter(cliente => {
-      const status = normalizarStatusCliente(cliente.status);
-      const alteradoEm = obterData(
-        cliente.status_updated_at ||
-        cliente.status_alterado_em ||
-        cliente.updated_at
-      );
-
-      return status !== "ativo" && mesmaData(alteradoEm, dia);
-    }).length;
-
-    return {
-      dia,
-      ganhos: ganhosClientes + ganhosContratos,
-      quedas: quedasClientes,
-      saldo: ganhosClientes + ganhosContratos - quedasClientes
-    };
-  });
+  desenharGraficoResumoComercial(dados);
+}
 
   const totalGanhos = dados.reduce((total, item) => total + item.ganhos, 0);
   const totalQuedas = dados.reduce((total, item) => total + item.quedas, 0);
