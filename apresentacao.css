@@ -821,3 +821,7 @@ section {
 .nav {
   letter-spacing: 0.01em;
 }
+
+.hero h1 {
+  max-width: 520px;
+}
