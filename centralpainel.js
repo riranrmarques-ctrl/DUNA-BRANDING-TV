@@ -6,8 +6,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let todosOsPontos = [];
 
 document.addEventListener("DOMContentLoaded", () => {
-  carregarPainelCentral();
-  setInterval(carregarPainelCentral, 30000);
+  carregarcentralpainel();
+  setInterval(carregarcentralpainel, 30000);
 
   const filtroCliente = document.getElementById("filtroCliente");
   if (filtroCliente) {
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-async function carregarPainelCentral() {
+async function carregarcentralpainel() {
   try {
     const { data: pontos, error: erroPontos } = await supabaseClient
       .from("pontos")
