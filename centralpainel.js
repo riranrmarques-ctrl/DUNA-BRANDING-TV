@@ -76,23 +76,35 @@ async function carregarcentralpainel() {
       console.warn("Status não carregou, usando pontos sem status:", erroStatus);
     }
 
-    const { data: clientes, error: erroClientes } = await supabaseClient
+    let clientes = [];
+    let playlists = [];
+
+    const respostaClientes = await supabaseClient
       .from("dadosclientes")
       .select("*");
 
-    if (erroClientes) {
-      console.warn("Clientes não carregaram:", erroClientes);
+    if (respostaClientes.error) {
+      console.warn("Clientes não carregaram:", respostaClientes.error);
+    } else {
+      clientes = respostaClientes.data || [];
     }
 
-    const { data: playlists, error: erroPlaylists } = await supabaseClient
+    const respostaPlaylists = await supabaseClient
       .from("playlists")
-      .select("codigo_cliente,data_fim");
+      .select("*")
 
-    if (erroPlaylists) {
-      console.warn("Playlists não carregaram:", erroPlaylists);
+    if (respostaPlaylists.error) {
+      console.warn("Playlists não carregaram:", respostaPlaylists.error);
+    } else {
+      playlists = respostaPlaylists.data || [];
     }
 
-    const clientesComStatusReal = calcularStatusRealClientes(clientes || [], playlists || []);
+    console.log("pontos:", pontos);
+    console.log("status:", status);
+    console.log("clientes:", clientes);
+    console.log("playlists:", playlists);
+
+    const clientesComStatusReal = calcularStatusRealClientes(clientes, playlists);
     const contratos = clientesComStatusReal.filter(cliente => clienteTemContrato(cliente));
 
     todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
