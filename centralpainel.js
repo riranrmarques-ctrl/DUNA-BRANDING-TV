@@ -105,12 +105,34 @@ function atualizarPainel(pontos) {
   atualizarMetricas(pontos);
   atualizarDonut(pontos);
 
-  const ordem = {
-    "ativo": 1,
-    "sem material": 2,
-    "inativo": 3,
-    "offline": 4
-  };
+function atualizarDonut(pontos) {
+  const total = pontos.length;
+  const ativos = pontos.filter(p => p.status_final === "ativo").length;
+  const inativos = pontos.filter(p => p.status_final === "inativo").length;
+  const desativados = pontos.filter(p => p.status_final === "desativado").length;
+
+  setTexto("donutTotal", total);
+  setHtml("legendaAtivos", `${ativos} (${percentual(ativos, total)})`);
+  setHtml("legendaInativos", `${inativos} (${percentual(inativos, total)})`);
+  setHtml("legendaDesativados", `${desativados} (${percentual(desativados, total)})`);
+
+  const donut = document.querySelector(".donut");
+  if (!donut) return;
+
+  if (!total) {
+    donut.style.background = "#1e293b";
+    return;
+  }
+
+  const pAtivos = (ativos / total) * 100;
+  const pInativos = pAtivos + (inativos / total) * 100;
+
+  donut.style.background = `conic-gradient(
+    #22c55e 0% ${pAtivos}%,
+    #ef4444 ${pAtivos}% ${pInativos}%,
+    #6b7280 ${pInativos}% 100%
+  )`;
+}
 
   const pontosOrdenados = [...pontos].sort((a, b) => {
     const ordemA = ordem[a.status_final] || 99;
@@ -241,29 +263,36 @@ function normalizarStatus(status) {
 
   if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") return "ativo";
   if (s === "inativo" || s === "parado") return "inativo";
-  if (s === "sem material" || s === "sem_material" || s === "sem-material") return "sem material";
-  if (s === "offline" || s === "desconectado") return "offline";
 
-  return "offline";
+  if (
+    s === "desativado" ||
+    s === "desativada" ||
+    s === "offline" ||
+    s === "desconectado" ||
+    s === "sem material" ||
+    s === "sem_material" ||
+    s === "sem-material"
+  ) {
+    return "desativado";
+  }
+
+  return "desativado";
 }
 
 function textoStatus(status) {
   if (status === "ativo") return "ATIVO";
-  if (status === "sem material") return "SEM MATERIAL";
   if (status === "inativo") return "INATIVO";
-  return "OFFLINE";
+  return "DESATIVADO";
 }
 
 function classeStatus(status) {
   if (status === "ativo") return "active";
-  if (status === "sem material") return "warning";
   if (status === "inativo") return "inactive";
   return "offline";
 }
 
 function barraStatus(status) {
-  if (status === "sem material") return "warning-bar";
-  if (status === "inativo" || status === "offline") return "inactive-bar";
+  if (status === "inativo" || status === "desativado") return "inactive-bar";
   return "";
 }
 
