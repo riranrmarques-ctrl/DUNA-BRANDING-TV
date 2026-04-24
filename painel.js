@@ -324,6 +324,49 @@ function obterStatusPontoParaPainel(codigo, ponto) {
     };
   }
 
+  const evento = String(ponto?.status_evento || "").toLowerCase().trim();
+  const ultimoPing = ponto?.ultimo_ping || null;
+
+  if (ultimoPing) {
+    const dataPing = new Date(ultimoPing);
+
+    if (!Number.isNaN(dataPing.getTime())) {
+      const diff = Date.now() - dataPing.getTime();
+      const recente = diff < LIMITE_STATUS_ATIVO_MS;
+      const horario = formatarDataHora(ultimoPing);
+
+      if ((evento === "ativo" || evento === "conectou") && recente) {
+        return {
+          texto: "Ativo",
+          detalhe: `Ativo desde ${horario}`,
+          ativo: true,
+          classe: "ativo"
+        };
+      }
+
+      if (evento === "inativo" || evento === "desconectou") {
+        return {
+          texto: "Inativo",
+          detalhe: `Inativo desde ${horario}`,
+          ativo: false,
+          classe: "inativo"
+        };
+      }
+
+      if ((evento === "ativo" || evento === "conectou") && !recente) {
+        return {
+          texto: "Inativo",
+          detalhe: "Inativo sem sinal recente do reprodutor",
+          ativo: false,
+          classe: "inativo"
+        };
+      }
+    }
+  }
+
+  return calcularStatusInfo(ponto);
+}
+
   const cachePlaylist = lerCachePlaylist(codigo);
 
   if (cachePlaylist?.historico?.length) {
@@ -823,25 +866,57 @@ async function alternarDisponibilidadePonto() {
 }
 
 async function buscarPontosRemoto() {
-  const { data, error } = await supabaseClient
+  const { data: pontosData, error: pontosError } = await supabaseClient
     .from(TABELA_PONTOS)
     .select("*")
     .order("codigo", { ascending: true });
 
-  if (error) {
-    throw error;
+  if (pontosError) {
+    throw pontosError;
   }
 
-  return (data || []).map((ponto) => ({
-    ...ponto,
-    codigo: obterCodigoPonto(ponto),
-    nome: obterNomePonto(ponto, obterCodigoPonto(ponto)),
-    cidade: obterCidadePonto(ponto),
-    endereco: obterEnderecoPonto(ponto),
-    imagem_url: obterImagemPonto(ponto),
-    ultimo_ping: obterUltimoPingPonto(ponto),
-    disponivel: pontoEstaDisponivel(ponto)
-  }));
+  const { data: statusData, error: statusError } = await supabaseClient
+    .from(TABELA_STATUS_PONTOS)
+    .select("*")
+    .order("ultimo_ping", { ascending: false });
+
+  if (statusError) {
+    console.warn("Status dos pontos não carregou:", statusError);
+  }
+
+  const statusPorCodigo = {};
+
+  (statusData || []).forEach((item) => {
+    const codigo = String(
+      item.ponto_codigo ||
+      item.codigo ||
+      item.codigo_ponto ||
+      ""
+    ).trim();
+
+    if (!codigo) return;
+
+    if (!statusPorCodigo[codigo]) {
+      statusPorCodigo[codigo] = item;
+    }
+  });
+
+  return (pontosData || []).map((ponto) => {
+    const codigo = obterCodigoPonto(ponto);
+    const statusMaisRecente = statusPorCodigo[codigo];
+
+    return {
+      ...ponto,
+      codigo,
+      nome: obterNomePonto(ponto, codigo),
+      cidade: obterCidadePonto(ponto),
+      endereco: obterEnderecoPonto(ponto),
+      imagem_url: obterImagemPonto(ponto),
+      ultimo_ping: statusMaisRecente?.ultimo_ping || obterUltimoPingPonto(ponto),
+      status_evento: statusMaisRecente?.status || statusMaisRecente?.evento || ponto.status,
+      disponivel: pontoEstaDisponivel(ponto)
+    };
+  });
 }
 
 function montarCardPonto(ponto) {
