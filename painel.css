@@ -1671,5 +1671,6 @@ body.loading-page {
 }
 
 body.modo-detalhe .topo-esquerda {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
 }
