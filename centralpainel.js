@@ -60,7 +60,23 @@ function combinarPontosComStatus(pontos, status) {
 function atualizarPainel(pontos) {
   atualizarMetricas(pontos);
   atualizarDonut(pontos);
-  renderizarPontos(pontos.slice(0, 4));
+
+  const ordem = {
+    "ativo": 1,
+    "sem material": 2,
+    "inativo": 3,
+    "offline": 4
+  };
+
+  const pontosOrdenados = pontos.sort((a, b) => {
+    if (a.status_final !== b.status_final) {
+      return ordem[a.status_final] - ordem[b.status_final];
+    }
+
+    return new Date(b.ultimo_ping_final || 0) - new Date(a.ultimo_ping_final || 0);
+  });
+
+  renderizarPontos(pontosOrdenados.slice(0, 4));
 }
 
 function atualizarMetricas(pontos) {
