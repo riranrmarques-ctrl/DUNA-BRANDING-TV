@@ -125,7 +125,9 @@ async function carregarAmbientes() {
       return;
     }
 
-    container.innerHTML = data
+    const ambientes = [...data, ...data, ...data, ...data];
+
+    container.innerHTML = ambientes
       .map((ponto, index) => montarCard(ponto, index))
       .join("");
 
