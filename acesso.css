@@ -1997,3 +1997,7 @@ body.loading-page {
     font-size: 0.64rem;
   }
 }
+
+.benefits-row {
+  display: none !important;
+}
