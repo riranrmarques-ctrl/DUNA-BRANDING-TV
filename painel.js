@@ -367,15 +367,6 @@ function obterStatusPontoParaPainel(codigo, ponto) {
   return calcularStatusInfo(ponto);
 }
 
-  const cachePlaylist = lerCachePlaylist(codigo);
-
-  if (cachePlaylist?.historico?.length) {
-    return calcularStatusPorHistorico(cachePlaylist.historico, ponto);
-  }
-
-  return calcularStatusInfo(ponto);
-}
-
 function atualizarStatusDetalhePonto(statusInfo) {
   const statusPonto = document.getElementById("statusPonto");
   if (!statusPonto || !statusInfo) return;
