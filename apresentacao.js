@@ -109,13 +109,15 @@ function iniciarRolagemAutomaticaAmbientes(container) {
   container.dataset.carouselAtivo = "1";
 
   let pausado = false;
-  const velocidade = 0.8;
+  const velocidade = 0.9;
 
   function animar() {
-    if (!pausado) {
+    if (!pausado && container.scrollWidth > container.clientWidth) {
       container.scrollLeft += velocidade;
 
-      if (container.scrollLeft >= container.scrollWidth / 2) {
+      const limite = container.scrollWidth / 3;
+
+      if (container.scrollLeft >= limite) {
         container.scrollLeft = 0;
       }
     }
@@ -173,7 +175,7 @@ async function carregarAmbientes() {
       return;
     }
 
-    const ambientes = [...data, ...data];
+    const ambientes = [...data, ...data, ...data];
 
     container.innerHTML = ambientes
       .map((ponto, index) => montarCard(ponto, index))
