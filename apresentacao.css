@@ -202,7 +202,7 @@ img {
   border: 1px solid rgba(135, 170, 217, 0.14);
   background:
     linear-gradient(180deg, rgba(4, 8, 14, 0.35), rgba(4, 8, 14, 0.82)),
-    url("https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1600&q=80") center/cover;
+    url("capainicial.jpg) center/cover;
   min-height: 700px;
   box-shadow: var(--shadow);
 }
