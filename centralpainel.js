@@ -105,6 +105,24 @@ function atualizarPainel(pontos) {
   atualizarMetricas(pontos);
   atualizarDonut(pontos);
 
+  const ordem = {
+    "ativo": 1,
+    "inativo": 2,
+    "desativado": 3
+  };
+
+  const pontosOrdenados = [...pontos].sort((a, b) => {
+    const ordemA = ordem[a.status_final] || 99;
+    const ordemB = ordem[b.status_final] || 99;
+
+    if (ordemA !== ordemB) return ordemA - ordemB;
+
+    return new Date(b.ultimo_ping_final || 0) - new Date(a.ultimo_ping_final || 0);
+  });
+
+  renderizarPontos(pontosOrdenados.slice(0, 4));
+}
+
 function atualizarDonut(pontos) {
   const total = pontos.length;
   const ativos = pontos.filter(p => p.status_final === "ativo").length;
@@ -130,64 +148,6 @@ function atualizarDonut(pontos) {
   donut.style.background = `conic-gradient(
     #22c55e 0% ${pAtivos}%,
     #ef4444 ${pAtivos}% ${pInativos}%,
-    #6b7280 ${pInativos}% 100%
-  )`;
-}
-
-  const pontosOrdenados = [...pontos].sort((a, b) => {
-    const ordemA = ordem[a.status_final] || 99;
-    const ordemB = ordem[b.status_final] || 99;
-
-    if (ordemA !== ordemB) return ordemA - ordemB;
-
-    return new Date(b.ultimo_ping_final || 0) - new Date(a.ultimo_ping_final || 0);
-  });
-
-  renderizarPontos(pontosOrdenados.slice(0, 4));
-}
-
-function atualizarMetricas(pontos) {
-  const total = pontos.length;
-  const ativos = pontos.filter(p => p.status_final === "ativo").length;
-  const uptime = calcularUptimeMedio(pontos);
-
-  setTexto("totalReproducoes", "0");
-  setTexto("totalQrCode", "0");
-  setHtml("pontosAtivos", `${ativos} <small>+0</small>`);
-  setTexto("totalPontosTexto", `De um total de ${total} pontos`);
-  setTexto("uptimeMedio", `${uptime}%`);
-  setTexto("novosContratos", "0");
-}
-
-function atualizarDonut(pontos) {
-  const total = pontos.length;
-  const ativos = pontos.filter(p => p.status_final === "ativo").length;
-  const semMaterial = pontos.filter(p => p.status_final === "sem material").length;
-  const inativos = pontos.filter(p => p.status_final === "inativo").length;
-  const offline = pontos.filter(p => p.status_final === "offline").length;
-
-  setTexto("donutTotal", total);
-  setHtml("legendaAtivos", `${ativos} (${percentual(ativos, total)})`);
-  setHtml("legendaSemMaterial", `${semMaterial} (${percentual(semMaterial, total)})`);
-  setHtml("legendaInativos", `${inativos} (${percentual(inativos, total)})`);
-  setHtml("legendaOffline", `${offline} (${percentual(offline, total)})`);
-
-  const donut = document.querySelector(".donut");
-  if (!donut) return;
-
-  if (!total) {
-    donut.style.background = "#1e293b";
-    return;
-  }
-
-  const pAtivos = (ativos / total) * 100;
-  const pSemMaterial = pAtivos + (semMaterial / total) * 100;
-  const pInativos = pSemMaterial + (inativos / total) * 100;
-
-  donut.style.background = `conic-gradient(
-    #22c55e 0% ${pAtivos}%,
-    #f59e0b ${pAtivos}% ${pSemMaterial}%,
-    #ef4444 ${pSemMaterial}% ${pInativos}%,
     #6b7280 ${pInativos}% 100%
   )`;
 }
@@ -261,8 +221,14 @@ function calcularUptimeIndividual(ultimoPing, status) {
 function normalizarStatus(status) {
   const s = String(status || "").toLowerCase().trim();
 
-  if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") {
-    return "ativo";
+  if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") return "ativo";
+
+  if (
+    s === "desativado" ||
+    s === "desativada" ||
+    s.includes("indispon")
+  ) {
+    return "desativado";
   }
 
   if (
@@ -277,20 +243,8 @@ function normalizarStatus(status) {
     return "inativo";
   }
 
-  if (
-    s === "desativado" ||
-    s === "desativada" ||
-    s === "indisponivel" ||
-    s === "indisponível" ||
-    s === "indisponiveis" ||
-    s === "indisponíveis"
-  ) {
-    return "desativado";
-  }
-
   return "inativo";
 }
-
 
 function textoStatus(status) {
   if (status === "ativo") return "ATIVO";
