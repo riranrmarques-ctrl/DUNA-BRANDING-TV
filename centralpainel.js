@@ -261,23 +261,36 @@ function calcularUptimeIndividual(ultimoPing, status) {
 function normalizarStatus(status) {
   const s = String(status || "").toLowerCase().trim();
 
-  if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") return "ativo";
-  if (s === "inativo" || s === "parado") return "inativo";
+  if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") {
+    return "ativo";
+  }
 
   if (
-    s === "desativado" ||
-    s === "desativada" ||
+    s === "inativo" ||
+    s === "parado" ||
     s === "offline" ||
     s === "desconectado" ||
     s === "sem material" ||
     s === "sem_material" ||
     s === "sem-material"
   ) {
+    return "inativo";
+  }
+
+  if (
+    s === "desativado" ||
+    s === "desativada" ||
+    s === "indisponivel" ||
+    s === "indisponível" ||
+    s === "indisponiveis" ||
+    s === "indisponíveis"
+  ) {
     return "desativado";
   }
 
-  return "desativado";
+  return "inativo";
 }
+
 
 function textoStatus(status) {
   if (status === "ativo") return "ATIVO";
