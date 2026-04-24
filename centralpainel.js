@@ -76,8 +76,25 @@ async function carregarcentralpainel() {
       console.warn("Status não carregou, usando pontos sem status:", erroStatus);
     }
 
+    const { data: clientes, error: erroClientes } = await supabaseClient
+      .from("clientes")
+      .select("*");
+
+    if (erroClientes) {
+      console.warn("Clientes não carregaram:", erroClientes);
+    }
+
+    const { data: contratos, error: erroContratos } = await supabaseClient
+      .from("contratos")
+      .select("*");
+
+    if (erroContratos) {
+      console.warn("Contratos não carregaram:", erroContratos);
+    }
+
     todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
     atualizarPainel(todosOsPontos);
+    atualizarGraficoComercial(clientes || [], contratos || []);
   } catch (erro) {
     console.error("Erro ao carregar central painel:", erro);
   }
@@ -315,3 +332,173 @@ function escaparHtml(valor) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+function atualizarGraficoComercial(clientes, contratos) {
+  const hoje = new Date();
+  const inicio = new Date();
+  inicio.setDate(hoje.getDate() - 29);
+  inicio.setHours(0, 0, 0, 0);
+
+  const dias = criarDiasPeriodo(inicio, hoje);
+
+  const dados = dias.map(dia => {
+    const ganhosClientes = clientes.filter(cliente => {
+      const status = normalizarStatusCliente(cliente.status);
+      const criadoEm = obterData(cliente.created_at || cliente.criado_em || cliente.data_cadastro);
+
+      return status === "ativo" && mesmaData(criadoEm, dia);
+    }).length;
+
+    const ganhosContratos = contratos.filter(contrato => {
+      const criadoEm = obterData(contrato.created_at || contrato.criado_em || contrato.data_contrato);
+
+      return mesmaData(criadoEm, dia);
+    }).length;
+
+    const quedasClientes = clientes.filter(cliente => {
+      const status = normalizarStatusCliente(cliente.status);
+      const alteradoEm = obterData(
+        cliente.status_updated_at ||
+        cliente.status_alterado_em ||
+        cliente.updated_at
+      );
+
+      return status !== "ativo" && mesmaData(alteradoEm, dia);
+    }).length;
+
+    return {
+      dia,
+      ganhos: ganhosClientes + ganhosContratos,
+      quedas: quedasClientes,
+      saldo: ganhosClientes + ganhosContratos - quedasClientes
+    };
+  });
+
+  const totalGanhos = dados.reduce((total, item) => total + item.ganhos, 0);
+  const totalQuedas = dados.reduce((total, item) => total + item.quedas, 0);
+  const saldo = totalGanhos - totalQuedas;
+
+  setTexto("novosContratos", saldo);
+  atualizarTextoComercial(saldo, totalGanhos, totalQuedas);
+  desenharGraficoComercial(dados);
+}
+
+function atualizarTextoComercial(saldo, ganhos, quedas) {
+  const texto = document.querySelector(".contract-number p");
+  const comparativo = document.querySelector(".contract-number strong");
+
+  if (texto) texto.textContent = "saldo comercial";
+  if (comparativo) {
+    comparativo.textContent = `Ganhos ${ganhos} | Quedas ${quedas}`;
+  }
+}
+
+function desenharGraficoComercial(dados) {
+  const svg = document.querySelector(".contracts .chart svg");
+  const linha = document.querySelector(".contracts .chart svg .line");
+  const area = document.querySelector(".contracts .chart svg .area");
+  const labels = document.querySelectorAll(".contracts .chart-labels span");
+
+  if (!svg || !linha || !area || !dados.length) return;
+
+  const largura = 545;
+  const inicioX = 30;
+  const baseY = 210;
+  const topoY = 70;
+
+  const valores = dados.map(item => item.saldo);
+  const max = Math.max(...valores, 1);
+  const min = Math.min(...valores, 0);
+  const faixa = Math.max(max - min, 1);
+
+  const pontos = dados.map((item, index) => {
+    const x = inicioX + (index * largura) / (dados.length - 1);
+    const y = baseY - ((item.saldo - min) / faixa) * (baseY - topoY);
+    return { x, y };
+  });
+
+  const pathLinha = pontos.map((ponto, index) => {
+    return `${index === 0 ? "M" : "L"}${ponto.x.toFixed(1)} ${ponto.y.toFixed(1)}`;
+  }).join(" ");
+
+  const pathArea = `${pathLinha} L${pontos[pontos.length - 1].x.toFixed(1)} 240 L${pontos[0].x.toFixed(1)} 240 Z`;
+
+  linha.setAttribute("d", pathLinha);
+  area.setAttribute("d", pathArea);
+
+  svg.querySelectorAll("circle").forEach(circle => circle.remove());
+
+  pontos
+    .filter((_, index) => index % 6 === 0 || index === pontos.length - 1)
+    .forEach(ponto => {
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", ponto.x);
+      circle.setAttribute("cy", ponto.y);
+      circle.setAttribute("r", "7");
+      svg.appendChild(circle);
+    });
+
+  const indicesLabels = [0, 7, 14, 21, dados.length - 1];
+
+  labels.forEach((label, index) => {
+    const item = dados[indicesLabels[index]];
+    if (!item) return;
+
+    label.textContent = item.dia.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit"
+    });
+  });
+}
+
+function criarDiasPeriodo(inicio, fim) {
+  const dias = [];
+  const atual = new Date(inicio);
+
+  while (atual <= fim) {
+    dias.push(new Date(atual));
+    atual.setDate(atual.getDate() + 1);
+  }
+
+  return dias;
+}
+
+function mesmaData(data, dia) {
+  if (!data) return false;
+
+  return (
+    data.getFullYear() === dia.getFullYear() &&
+    data.getMonth() === dia.getMonth() &&
+    data.getDate() === dia.getDate()
+  );
+}
+
+function obterData(valor) {
+  if (!valor) return null;
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return null;
+
+  return data;
+}
+
+function normalizarStatusCliente(status) {
+  const s = String(status || "").toLowerCase().trim();
+
+  if (s === "ativo" || s === "ativa" || s === "active") return "ativo";
+
+  if (
+    s === "inativo" ||
+    s === "inativa" ||
+    s === "cancelado" ||
+    s === "cancelada" ||
+    s === "desativado" ||
+    s === "desativada" ||
+    s.includes("indispon")
+  ) {
+    return "inativo";
+  }
+
+  return "inativo";
+}
+
