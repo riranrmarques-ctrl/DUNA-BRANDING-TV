@@ -48,9 +48,9 @@ button {
 .login-screen {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 20px 16px;
+  padding-top: 120px;
 }
 
 .login-conteudo {
