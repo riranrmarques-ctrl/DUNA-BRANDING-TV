@@ -240,8 +240,7 @@ function normalizarStatus(status) {
   if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") return "ativo";
 
   if (
-    s === "desativado" ||
-    s === "desativada" ||
+    s.includes("desativ") ||
     s.includes("indispon")
   ) {
     return "desativado";
@@ -261,6 +260,7 @@ function normalizarStatus(status) {
 
   return "inativo";
 }
+
 
 function textoStatus(status) {
   if (status === "ativo") return "ATIVO";
