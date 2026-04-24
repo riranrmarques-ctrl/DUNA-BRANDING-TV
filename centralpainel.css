@@ -5,16 +5,17 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #0b1220;
-  color: #fff;
   display: flex;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #020617;
+  color: #fff;
 }
 
 .sidebar {
   width: 240px;
   height: 100vh;
-  background: #0f172a;
+  background: #020617;
+  border-right: 1px solid #111827;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -25,13 +26,16 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
 }
 
 .brand-icon {
+  width: 40px;
+  height: 40px;
   background: #6c5cff;
-  padding: 10px;
   border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand span {
@@ -40,15 +44,15 @@ body {
 }
 
 .menu {
+  margin-top: 30px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 30px;
+  gap: 8px;
 }
 
 .menu a {
-  text-decoration: none;
   color: #9ca3af;
+  text-decoration: none;
   padding: 10px;
   border-radius: 10px;
   display: flex;
@@ -61,7 +65,7 @@ body {
 }
 
 .menu a:hover {
-  background: #1e293b;
+  background: #111827;
   color: #fff;
 }
 
@@ -75,7 +79,7 @@ body {
 .avatar {
   width: 32px;
   height: 32px;
-  background: #1e293b;
+  background: #111827;
   border-radius: 50%;
 }
 
@@ -97,8 +101,8 @@ body {
 
 select,
 .date-filter {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: #020617;
+  border: 1px solid #111827;
   color: #fff;
   padding: 10px;
   border-radius: 10px;
@@ -112,7 +116,8 @@ select,
 }
 
 .metric-card {
-  background: #0f172a;
+  background: #020617;
+  border: 1px solid #111827;
   padding: 15px;
   border-radius: 15px;
   display: flex;
@@ -133,15 +138,6 @@ select,
 .orange { background: #f59e0b; }
 .green { background: #22c55e; }
 
-.metric-card h2 {
-  font-size: 22px;
-}
-
-.metric-card small {
-  color: #22c55e;
-  font-size: 12px;
-}
-
 .metric-card span {
   font-size: 11px;
   color: #9ca3af;
@@ -152,6 +148,10 @@ select,
   color: #6b7280;
 }
 
+.metric-card h2 {
+  font-size: 22px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -160,7 +160,8 @@ select,
 }
 
 .panel {
-  background: #0f172a;
+  background: #020617;
+  border: 1px solid #111827;
   border-radius: 15px;
   padding: 15px;
 }
@@ -180,21 +181,13 @@ select,
   font-size: 36px;
 }
 
-.contract-number strong {
-  color: #22c55e;
-}
-
-.chart {
-  flex: 1;
-}
-
-svg {
+.chart svg {
   width: 100%;
   height: 200px;
 }
 
 svg line {
-  stroke: #1e293b;
+  stroke: #111827;
 }
 
 .area {
@@ -228,12 +221,6 @@ circle {
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: conic-gradient(
-    #22c55e 0% 84%,
-    #f59e0b 84% 90%,
-    #ef4444 90% 95%,
-    #6b7280 95% 100%
-  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -242,7 +229,7 @@ circle {
 .donut div {
   width: 90px;
   height: 90px;
-  background: #0f172a;
+  background: #020617;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -259,11 +246,6 @@ circle {
   margin-bottom: 8px;
 }
 
-.green-dot { background:#22c55e; }
-.yellow-dot { background:#f59e0b; }
-.red-dot { background:#ef4444; }
-.gray-dot { background:#6b7280; }
-
 .legend i {
   width: 10px;
   height: 10px;
@@ -271,6 +253,11 @@ circle {
   border-radius: 50%;
   margin-right: 6px;
 }
+
+.green-dot { background: #22c55e; }
+.yellow-dot { background: #f59e0b; }
+.red-dot { background: #ef4444; }
+.gray-dot { background: #6b7280; }
 
 .points .point-list {
   display: grid;
@@ -280,8 +267,15 @@ circle {
 
 .point-card {
   background: #020617;
+  border: 1px solid #111827;
   border-radius: 15px;
   overflow: hidden;
+  transition: 0.2s;
+}
+
+.point-card:hover {
+  transform: translateY(-4px);
+  border-color: #6c5cff;
 }
 
 .point-card img {
@@ -312,10 +306,11 @@ circle {
 .active { color: #22c55e; }
 .warning { color: #f59e0b; }
 .inactive { color: #ef4444; }
+.offline { color: #6b7280; }
 
 .progress {
   height: 5px;
-  background: #1e293b;
+  background: #111827;
   border-radius: 10px;
   margin-top: 5px;
 }
@@ -327,5 +322,11 @@ circle {
   border-radius: 10px;
 }
 
-.warning-bar i { background:#f59e0b; }
-.inactive-bar i { background:#ef4444; }
+.warning-bar i { background: #f59e0b; }
+.inactive-bar i { background: #ef4444; }
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
