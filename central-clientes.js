@@ -27,7 +27,7 @@ function verificarAcesso() {
   const liberado = sessionStorage.getItem("painelLiberado");
 
   if (liberado !== "1") {
-    window.location.href = "/painel.html";
+    window.location.href = "/centralpainel.html";
     return false;
   }
 
