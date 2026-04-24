@@ -28,7 +28,9 @@ async function carregarcentralpainel() {
       .from("statuspontos")
       .select("*");
 
-    if (erroStatus) throw erroStatus;
+    if (erroStatus) {
+      console.warn("Status não carregou, usando pontos sem status:", erroStatus);
+    }
 
     todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
 
@@ -37,6 +39,29 @@ async function carregarcentralpainel() {
   } catch (erro) {
     console.error("Erro ao carregar central painel:", erro);
   }
+}
+
+function atualizarPainel(pontos) {
+  atualizarMetricas(pontos);
+  atualizarDonut(pontos);
+
+  const ordem = {
+    "ativo": 1,
+    "sem material": 2,
+    "inativo": 3,
+    "offline": 4
+  };
+
+  const pontosOrdenados = [...pontos].sort((a, b) => {
+    const ordemA = ordem[a.status_final] || 99;
+    const ordemB = ordem[b.status_final] || 99;
+
+    if (ordemA !== ordemB) return ordemA - ordemB;
+
+    return new Date(b.ultimo_ping_final || 0) - new Date(a.ultimo_ping_final || 0);
+  });
+
+  renderizarPontos(pontosOrdenados.slice(0, 4));
 }
 
 function combinarPontosComStatus(pontos, status) {
@@ -135,6 +160,8 @@ function renderizarPontos(pontos) {
     lista.innerHTML = `<div class="empty-state">Nenhum ponto encontrado.</div>`;
     return;
   }
+
+  pontos.forEach(ponto => {
 
   pontos.slice(0, 4).forEach(ponto => {
     const nome = ponto.nome || ponto.nome_ponto || ponto.titulo || ponto.codigo_final || "Ponto sem nome";
