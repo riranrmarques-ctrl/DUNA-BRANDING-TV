@@ -936,9 +936,14 @@ function renderizarCardsPontos(lista) {
 
   if (pontosBox) {
     pontosBox.innerHTML = ordenados.map((ponto) => montarCardPonto(ponto)).join("");
+    
     ativarEventosCardsRenderizados();
+    document.querySelectorAll(".card-imagem").forEach((img) => {
+      img.setAttribute("draggable", "false");
+    });
+    
     ativarDragPontos();
-
+    
     document.querySelectorAll(".card-imagem").forEach((imagemEl) => {
       const card = imagemEl.closest(".card-ponto");
       const codigo = String(card?.dataset.codigo || "").trim();
