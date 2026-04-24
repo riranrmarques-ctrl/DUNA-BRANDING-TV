@@ -682,7 +682,7 @@ async function criarNovoCliente() {
 function iniciarPagina() {
   if (botaoVoltarPainel) {
     botaoVoltarPainel.addEventListener("click", () => {
-      window.location.href = "/painel.html";
+      window.location.href = "/centralpainel.html";
     });
   }
 
