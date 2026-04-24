@@ -1,119 +1,279 @@
+const SUPABASE_URL = "SUA_URL_DO_SUPABASE";
+const SUPABASE_KEY = "SUA_ANON_KEY_DO_SUPABASE";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let todosOsPontos = [];
+
 document.addEventListener("DOMContentLoaded", () => {
-  iniciarDashboard();
+  carregarPainelCentral();
+  setInterval(carregarPainelCentral, 30000);
+
+  const filtroCliente = document.getElementById("filtroCliente");
+  if (filtroCliente) {
+    filtroCliente.addEventListener("change", aplicarFiltroCliente);
+  }
 });
 
-function iniciarDashboard() {
-  animarNumeros();
-  atualizarDataTopo();
-  iniciarAtualizacaoAutomatica();
+async function carregarPainelCentral() {
+  try {
+    const { data: pontos, error: erroPontos } = await supabaseClient
+      .from("pontos")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (erroPontos) throw erroPontos;
+
+    const { data: status, error: erroStatus } = await supabaseClient
+      .from("statuspontos")
+      .select("*");
+
+    if (erroStatus) throw erroStatus;
+
+    todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
+
+    preencherFiltroClientes(todosOsPontos);
+    atualizarPainel(todosOsPontos);
+  } catch (erro) {
+    console.error("Erro ao carregar painel central:", erro);
+  }
 }
 
-function animarNumeros() {
-  const numeros = document.querySelectorAll(".metric-card h2");
+function combinarPontosComStatus(pontos, status) {
+  return pontos.map(ponto => {
+    const codigoPonto = String(ponto.codigo || ponto.codigo_ponto || "").trim();
 
-  numeros.forEach(el => {
-    const texto = el.innerText.replace(/[^\d]/g, "");
-    const valorFinal = parseInt(texto || 0);
-    let atual = 0;
-    const incremento = Math.ceil(valorFinal / 60);
+    const statusEncontrado = status.find(item => {
+      const codigoStatus = String(item.codigo || item.codigo_ponto || "").trim();
+      return codigoStatus === codigoPonto;
+    });
 
-    const animar = () => {
-      atual += incremento;
-      if (atual >= valorFinal) atual = valorFinal;
-
-      el.innerHTML = formatarNumero(atual) + extrairSufixo(el.innerHTML);
-
-      if (atual < valorFinal) requestAnimationFrame(animar);
+    return {
+      ...ponto,
+      codigo_final: codigoPonto,
+      status_final: normalizarStatus(statusEncontrado?.status || ponto.status || "offline"),
+      ultimo_ping_final: statusEncontrado?.ultimo_ping || ponto.ultimo_ping || ponto.updated_at || null
     };
-
-    animar();
   });
 }
 
-function extrairSufixo(html) {
-  const match = html.match(/(<small>.*<\/small>)/);
-  return match ? " " + match[1] : "";
+function atualizarPainel(pontos) {
+  atualizarMetricas(pontos);
+  atualizarDonut(pontos);
+  renderizarPontos(pontos);
 }
 
-function formatarNumero(num) {
-  return num.toLocaleString("pt-BR");
+function atualizarMetricas(pontos) {
+  const total = pontos.length;
+  const ativos = pontos.filter(p => p.status_final === "ativo").length;
+  const uptime = calcularUptimeMedio(pontos);
+
+  setTexto("totalReproducoes", "0");
+  setTexto("totalQrCode", "0");
+  setHtml("pontosAtivos", `${ativos} <small>+0</small>`);
+  setTexto("totalPontosTexto", `De um total de ${total} pontos`);
+  setTexto("uptimeMedio", `${uptime}%`);
+  setTexto("novosContratos", "0");
 }
 
-function atualizarDataTopo() {
-  const botao = document.querySelector(".date-filter");
-  if (!botao) return;
+function atualizarDonut(pontos) {
+  const total = pontos.length;
+  const ativos = pontos.filter(p => p.status_final === "ativo").length;
+  const semMaterial = pontos.filter(p => p.status_final === "sem material").length;
+  const inativos = pontos.filter(p => p.status_final === "inativo").length;
+  const offline = pontos.filter(p => p.status_final === "offline").length;
 
-  botao.addEventListener("click", () => {
-    alert("Datepicker aqui depois");
-  });
-}
+  setTexto("donutTotal", total);
+  setHtml("legendaAtivos", `${ativos} (${percentual(ativos, total)})`);
+  setHtml("legendaSemMaterial", `${semMaterial} (${percentual(semMaterial, total)})`);
+  setHtml("legendaInativos", `${inativos} (${percentual(inativos, total)})`);
+  setHtml("legendaOffline", `${offline} (${percentual(offline, total)})`);
 
-function iniciarAtualizacaoAutomatica() {
-  setInterval(simularAtualizacao, 8000);
-}
+  const donut = document.querySelector(".donut");
+  if (!donut) return;
 
-function simularAtualizacao() {
-  atualizarCard(0, randomEntre(120000, 150000));
-  atualizarCard(1, randomEntre(10000, 15000));
-  atualizarCard(2, randomEntre(30, 45));
-
-  const uptime = document.querySelectorAll(".metric-card h2")[3];
-  if (uptime) {
-    const valor = (Math.random() * 5 + 95).toFixed(1);
-    uptime.innerHTML = valor.replace(".", ",") + "%";
+  if (!total) {
+    donut.style.background = "#1e293b";
+    return;
   }
+
+  const pAtivos = (ativos / total) * 100;
+  const pSemMaterial = pAtivos + (semMaterial / total) * 100;
+  const pInativos = pSemMaterial + (inativos / total) * 100;
+
+  donut.style.background = `conic-gradient(
+    #22c55e 0% ${pAtivos}%,
+    #f59e0b ${pAtivos}% ${pSemMaterial}%,
+    #ef4444 ${pSemMaterial}% ${pInativos}%,
+    #6b7280 ${pInativos}% 100%
+  )`;
 }
 
-function atualizarCard(index, valor) {
-  const el = document.querySelectorAll(".metric-card h2")[index];
-  if (!el) return;
+function renderizarPontos(pontos) {
+  const lista = document.getElementById("listaPontos");
+  if (!lista) return;
 
-  const sufixo = extrairSufixo(el.innerHTML);
-  el.innerHTML = formatarNumero(valor) + sufixo;
-}
+  lista.innerHTML = "";
 
-function randomEntre(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function atualizarStatusPontos() {
-  const cards = document.querySelectorAll(".point-card");
-
-  cards.forEach(card => {
-    const statusEl = card.querySelector(".status");
-    const progress = card.querySelector(".progress i");
-
-    const r = Math.random();
-
-    if (r < 0.7) {
-      statusEl.className = "status active";
-      statusEl.innerText = "● ATIVO";
-      progress.style.width = randomEntre(90, 100) + "%";
-    } else if (r < 0.85) {
-      statusEl.className = "status warning";
-      statusEl.innerText = "● SEM MATERIAL";
-      progress.style.width = "10%";
-    } else {
-      statusEl.className = "status inactive";
-      statusEl.innerText = "● INATIVO";
-      progress.style.width = "2%";
-    }
-  });
-}
-
-setInterval(atualizarStatusPontos, 10000);
-
-document.addEventListener("click", e => {
-  const card = e.target.closest(".point-card");
-  if (card) {
-    const nome = card.querySelector("h4").innerText;
-    alert("Abrir: " + nome);
+  if (!pontos.length) {
+    lista.innerHTML = `<div class="empty-state">Nenhum ponto encontrado.</div>`;
+    return;
   }
-});
 
-const filtro = document.querySelector("select");
-if (filtro) {
-  filtro.addEventListener("change", () => {
-    console.log("Filtro:", filtro.value);
+  pontos.forEach(ponto => {
+    const nome = ponto.nome || ponto.nome_ponto || ponto.titulo || ponto.codigo_final || "Ponto sem nome";
+    const endereco = ponto.endereco || ponto.localizacao || ponto.rua || "Endereço não informado";
+    const status = ponto.status_final;
+    const ultimoPing = ponto.ultimo_ping_final;
+    const uptime = calcularUptimeIndividual(ultimoPing, status);
+    const imagem = ponto.imagem_url || ponto.foto_url || ponto.imagem || ponto.banner_url || "https://placehold.co/600x300/020617/ffffff?text=Indoor+Midia";
+
+    lista.innerHTML += `
+      <article class="point-card" data-codigo="${escaparHtml(ponto.codigo_final)}">
+        <img src="${escaparHtml(imagem)}" alt="${escaparHtml(nome)}">
+        <div class="point-body">
+          <h4>${escaparHtml(nome)}</h4>
+          <p>${escaparHtml(endereco)}</p>
+          <span class="status ${classeStatus(status)}">● ${textoStatus(status)}</span>
+          <p>Último ping: ${formatarPing(ultimoPing)}</p>
+          <strong>${uptime}% uptime</strong>
+          <div class="progress ${barraStatus(status)}">
+            <i style="width:${uptime}%"></i>
+          </div>
+        </div>
+      </article>
+    `;
   });
+}
+
+function preencherFiltroClientes(pontos) {
+  const filtro = document.getElementById("filtroCliente");
+  if (!filtro) return;
+
+  const valorAtual = filtro.value || "todos";
+  const nomes = [...new Set(pontos.map(p => p.cliente || p.nome_cliente || p.empresa).filter(Boolean))];
+
+  filtro.innerHTML = `<option value="todos">Todos os clientes</option>`;
+
+  nomes.forEach(nome => {
+    filtro.innerHTML += `<option value="${escaparHtml(nome)}">${escaparHtml(nome)}</option>`;
+  });
+
+  filtro.value = nomes.includes(valorAtual) ? valorAtual : "todos";
+}
+
+function aplicarFiltroCliente() {
+  const filtro = document.getElementById("filtroCliente");
+  if (!filtro) return;
+
+  const valor = filtro.value;
+
+  if (valor === "todos") {
+    atualizarPainel(todosOsPontos);
+    return;
+  }
+
+  const filtrados = todosOsPontos.filter(p => {
+    const cliente = p.cliente || p.nome_cliente || p.empresa || "";
+    return cliente === valor;
+  });
+
+  atualizarPainel(filtrados);
+}
+
+function calcularUptimeMedio(pontos) {
+  if (!pontos.length) return "0";
+
+  const soma = pontos.reduce((total, ponto) => {
+    return total + calcularUptimeIndividual(ponto.ultimo_ping_final, ponto.status_final);
+  }, 0);
+
+  return (soma / pontos.length).toFixed(1).replace(".", ",");
+}
+
+function calcularUptimeIndividual(ultimoPing, status) {
+  if (status === "inativo" || status === "offline") return 0;
+  if (!ultimoPing) return status === "ativo" ? 80 : 0;
+
+  const agora = new Date();
+  const ultimo = new Date(ultimoPing);
+
+  if (Number.isNaN(ultimo.getTime())) return 0;
+
+  const segundos = (agora - ultimo) / 1000;
+
+  if (segundos <= 90) return 100;
+  if (segundos <= 300) return 95;
+  if (segundos <= 600) return 80;
+  if (segundos <= 1200) return 50;
+
+  return 0;
+}
+
+function normalizarStatus(status) {
+  const s = String(status || "").toLowerCase().trim();
+
+  if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") return "ativo";
+  if (s === "inativo" || s === "parado") return "inativo";
+  if (s === "sem material" || s === "sem_material" || s === "sem-material") return "sem material";
+  if (s === "offline" || s === "desconectado") return "offline";
+
+  return "offline";
+}
+
+function textoStatus(status) {
+  if (status === "ativo") return "ATIVO";
+  if (status === "sem material") return "SEM MATERIAL";
+  if (status === "inativo") return "INATIVO";
+  return "OFFLINE";
+}
+
+function classeStatus(status) {
+  if (status === "ativo") return "active";
+  if (status === "sem material") return "warning";
+  if (status === "inativo") return "inactive";
+  return "offline";
+}
+
+function barraStatus(status) {
+  if (status === "sem material") return "warning-bar";
+  if (status === "inativo" || status === "offline") return "inactive-bar";
+  return "";
+}
+
+function percentual(valor, total) {
+  if (!total) return "0%";
+  return ((valor / total) * 100).toFixed(1).replace(".", ",") + "%";
+}
+
+function formatarPing(data) {
+  if (!data) return "--:--:--";
+
+  const d = new Date(data);
+  if (Number.isNaN(d.getTime())) return "--:--:--";
+
+  return d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+function setTexto(id, texto) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = texto;
+}
+
+function setHtml(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function escaparHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
