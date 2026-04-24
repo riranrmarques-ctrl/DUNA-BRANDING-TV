@@ -918,9 +918,14 @@ function ativarEventosCardsRenderizados() {
 function renderizarCardsPontos(lista) {
   pontosMap = {};
 
-  const ordenados = [...lista].sort((a, b) =>
-    obterCodigoPonto(a).localeCompare(obterCodigoPonto(b), "pt-BR")
-  );
+  const ordenados = [...lista].sort((a, b) => {
+    const ordemA = Number(a.ordem || 999999);
+    const ordemB = Number(b.ordem || 999999);
+
+    if (ordemA !== ordemB) return ordemA - ordemB;
+
+    return obterCodigoPonto(a).localeCompare(obterCodigoPonto(b), "pt-BR");
+  });
 
   ordenados.forEach((ponto) => {
     const codigo = obterCodigoPonto(ponto);
@@ -932,6 +937,7 @@ function renderizarCardsPontos(lista) {
   if (pontosBox) {
     pontosBox.innerHTML = ordenados.map((ponto) => montarCardPonto(ponto)).join("");
     ativarEventosCardsRenderizados();
+    ativarDragPontos();
 
     document.querySelectorAll(".card-imagem").forEach((imagemEl) => {
       const card = imagemEl.closest(".card-ponto");
@@ -1716,6 +1722,83 @@ async function deletarPontoAtual() {
 
 if (btnDeletarPonto) {
   btnDeletarPonto.onclick = deletarPontoAtual;
+}
+
+function ativarDragPontos() {
+  const cards = document.querySelectorAll(".card-ponto");
+
+  cards.forEach((card) => {
+    card.setAttribute("draggable", "true");
+
+    card.addEventListener("dragstart", () => {
+      card.classList.add("card-arrastando");
+      document.body.classList.add("arrastando-ponto");
+    });
+
+    card.addEventListener("dragend", () => {
+      card.classList.remove("card-arrastando");
+      document.body.classList.remove("arrastando-ponto");
+
+      document.querySelectorAll(".card-ponto").forEach((el) => {
+        el.classList.remove("card-drag-over");
+      });
+    });
+
+    card.addEventListener("dragover", (event) => {
+      event.preventDefault();
+
+      const cardArrastando = document.querySelector(".card-arrastando");
+
+      if (!cardArrastando || cardArrastando === card) return;
+
+      card.classList.add("card-drag-over");
+
+      const box = card.parentElement;
+      const cardsArray = [...box.querySelectorAll(".card-ponto:not(.card-arrastando)")];
+
+      const proximoCard = cardsArray.find((item) => {
+        const rect = item.getBoundingClientRect();
+        return event.clientY < rect.top + rect.height / 2;
+      });
+
+      if (proximoCard) {
+        box.insertBefore(cardArrastando, proximoCard);
+      } else {
+        box.appendChild(cardArrastando);
+      }
+    });
+
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("card-drag-over");
+    });
+
+    card.addEventListener("drop", async () => {
+      await salvarOrdemPontos();
+    });
+  });
+}
+
+async function salvarOrdemPontos() {
+  const cards = [...document.querySelectorAll(".card-ponto")];
+
+  for (let index = 0; index < cards.length; index++) {
+    const codigo = cards[index].dataset.codigo;
+    const ordem = index + 1;
+
+    if (!codigo) continue;
+
+    await supabaseClient
+      .from(TABELA_PONTOS)
+      .update({ ordem })
+      .eq("codigo", codigo);
+
+    if (pontosMap[codigo]) {
+      pontosMap[codigo].ordem = ordem;
+    }
+  }
+
+  salvarCachePontos(Object.values(pontosMap));
+  setStatus("Ordem dos pontos atualizada", "ok");
 }
 
 async function carregarPontosRemoto() {
