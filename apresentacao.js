@@ -93,6 +93,10 @@ function montarCard(ponto, index = 0) {
       <div class="location-body">
         <strong>${escaparHtml(obterNome(ponto))}</strong>
         <p>${escaparHtml(montarLocalizacao(ponto))}</p>
+
+        <div class="location-flow">
+          Fluxo de pessoas: ${escaparHtml(ponto?.fluxo_pessoas || "")}
+        </div>
       </div>
     </article>
   `;
