@@ -131,7 +131,6 @@ function atualizarMetricas(pontos) {
   setHtml("pontosAtivos", `${ativos} <small>+0</small>`);
   setTexto("totalPontosTexto", `De um total de ${total} pontos`);
   setTexto("uptimeMedio", `${uptime}%`);
-  setTexto("novosContratos", "0");
 }
 
 function atualizarPainel(pontos) {
@@ -222,6 +221,89 @@ function renderizarPontos(pontos) {
   });
 }
 
+function atualizarGraficoComercial(clientes, contratos) {
+  const clientesAtivos = clientes.filter(cliente => {
+    return normalizarStatusCliente(cliente.status) === "ativo";
+  }).length;
+
+  const clientesInativos = clientes.filter(cliente => {
+    return normalizarStatusCliente(cliente.status) !== "ativo";
+  }).length;
+
+  const contratosTotal = contratos.length;
+  const ganhos = clientesAtivos + contratosTotal;
+  const quedas = clientesInativos;
+  const saldo = ganhos - quedas;
+
+  setTexto("novosContratos", saldo);
+  atualizarTextoComercial(saldo, ganhos, quedas);
+
+  const dados = [
+    { label: "Clientes ativos", valor: clientesAtivos },
+    { label: "Contratos", valor: contratosTotal },
+    { label: "Quedas", valor: -quedas },
+    { label: "Saldo", valor: saldo }
+  ];
+
+  desenharGraficoResumoComercial(dados);
+}
+
+function atualizarTextoComercial(saldo, ganhos, quedas) {
+  const texto = document.querySelector(".contract-number p");
+  const comparativo = document.querySelector(".contract-number strong");
+
+  if (texto) texto.textContent = "saldo comercial";
+  if (comparativo) comparativo.textContent = `Ganhos ${ganhos} | Quedas ${quedas}`;
+}
+
+function desenharGraficoResumoComercial(dados) {
+  const svg = document.querySelector(".contracts .chart svg");
+  const linha = document.querySelector(".contracts .chart svg .line");
+  const area = document.querySelector(".contracts .chart svg .area");
+  const labels = document.querySelectorAll(".contracts .chart-labels span");
+
+  if (!svg || !linha || !area || !dados.length) return;
+
+  const largura = 545;
+  const inicioX = 30;
+  const baseY = 210;
+  const topoY = 70;
+
+  const valores = dados.map(item => item.valor);
+  const max = Math.max(...valores, 1);
+  const min = Math.min(...valores, 0);
+  const faixa = Math.max(max - min, 1);
+
+  const pontos = dados.map((item, index) => {
+    const x = inicioX + (index * largura) / (dados.length - 1);
+    const y = baseY - ((item.valor - min) / faixa) * (baseY - topoY);
+    return { x, y };
+  });
+
+  const pathLinha = pontos.map((ponto, index) => {
+    return `${index === 0 ? "M" : "L"}${ponto.x.toFixed(1)} ${ponto.y.toFixed(1)}`;
+  }).join(" ");
+
+  const pathArea = `${pathLinha} L${pontos[pontos.length - 1].x.toFixed(1)} 240 L${pontos[0].x.toFixed(1)} 240 Z`;
+
+  linha.setAttribute("d", pathLinha);
+  area.setAttribute("d", pathArea);
+
+  svg.querySelectorAll("circle").forEach(circle => circle.remove());
+
+  pontos.forEach(ponto => {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", ponto.x);
+    circle.setAttribute("cy", ponto.y);
+    circle.setAttribute("r", "7");
+    svg.appendChild(circle);
+  });
+
+  labels.forEach((label, index) => {
+    label.textContent = dados[index] ? dados[index].label : "";
+  });
+}
+
 function calcularUptimeMedio(pontos) {
   if (!pontos.length) return "0,0";
 
@@ -255,13 +337,7 @@ function normalizarStatus(status) {
   const s = String(status || "").toLowerCase().trim();
 
   if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") return "ativo";
-
-  if (
-    s.includes("desativ") ||
-    s.includes("indispon")
-  ) {
-    return "desativado";
-  }
+  if (s.includes("desativ") || s.includes("indispon")) return "desativado";
 
   if (
     s === "inativo" ||
@@ -278,6 +354,20 @@ function normalizarStatus(status) {
   return "inativo";
 }
 
+function normalizarStatusCliente(status) {
+  const s = String(status || "").toLowerCase().trim();
+
+  if (
+    s === "ativo" ||
+    s === "ativa" ||
+    s === "active" ||
+    s === "supervisor"
+  ) {
+    return "ativo";
+  }
+
+  return "inativo";
+}
 
 function textoStatus(status) {
   if (status === "ativo") return "ATIVO";
@@ -332,148 +422,3 @@ function escaparHtml(valor) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
-
-function atualizarGraficoComercial(clientes, contratos) {
-  const clientesAtivos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) === "ativo";
-  }).length;
-
-  const clientesInativos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) !== "ativo";
-  }).length;
-
-  const contratosTotal = contratos.length;
-  const ganhos = clientesAtivos + contratosTotal;
-  const quedas = clientesInativos;
-  const saldo = ganhos - quedas;
-
-  setTexto("novosContratos", saldo);
-  atualizarTextoComercial(saldo, ganhos, quedas);
-
-  const dados = [
-    { label: "Clientes ativos", valor: clientesAtivos },
-    { label: "Contratos", valor: contratosTotal },
-    { label: "Quedas", valor: -quedas },
-    { label: "Saldo", valor: saldo }
-  ];
-
-  desenharGraficoResumoComercial(dados);
-}
-
-function atualizarGraficoComercial(clientes, contratos) {
-  const clientesAtivos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) === "ativo";
-  }).length;
-
-  const clientesInativos = clientes.filter(cliente => {
-    return normalizarStatusCliente(cliente.status) !== "ativo";
-  }).length;
-
-  const contratosTotal = contratos.length;
-  const ganhos = clientesAtivos + contratosTotal;
-  const quedas = clientesInativos;
-  const saldo = ganhos - quedas;
-
-  setTexto("novosContratos", saldo);
-  atualizarTextoComercial(saldo, ganhos, quedas);
-
-  const dados = [
-    { label: "Clientes ativos", valor: clientesAtivos },
-    { label: "Contratos", valor: contratosTotal },
-    { label: "Quedas", valor: -quedas },
-    { label: "Saldo", valor: saldo }
-  ];
-
-  desenharGraficoResumoComercial(dados);
-}
-
-function atualizarTextoComercial(saldo, ganhos, quedas) {
-  const texto = document.querySelector(".contract-number p");
-  const comparativo = document.querySelector(".contract-number strong");
-
-  if (texto) texto.textContent = "saldo comercial";
-  if (comparativo) {
-    comparativo.textContent = `Ganhos ${ganhos} | Quedas ${quedas}`;
-  }
-}
-
-function desenharGraficoResumoComercial(dados) {
-  const svg = document.querySelector(".contracts .chart svg");
-  const linha = document.querySelector(".contracts .chart svg .line");
-  const area = document.querySelector(".contracts .chart svg .area");
-  const labels = document.querySelectorAll(".contracts .chart-labels span");
-
-  if (!svg || !linha || !area || !dados.length) return;
-
-  const largura = 545;
-  const inicioX = 30;
-  const baseY = 210;
-  const topoY = 70;
-
-  const valores = dados.map(item => item.valor);
-  const max = Math.max(...valores, 1);
-  const min = Math.min(...valores, 0);
-  const faixa = Math.max(max - min, 1);
-
-  const pontos = dados.map((item, index) => {
-    const x = inicioX + (index * largura) / (dados.length - 1);
-    const y = baseY - ((item.valor - min) / faixa) * (baseY - topoY);
-    return { x, y };
-  });
-
-  const pathLinha = pontos.map((ponto, index) => {
-    return `${index === 0 ? "M" : "L"}${ponto.x.toFixed(1)} ${ponto.y.toFixed(1)}`;
-  }).join(" ");
-
-  const pathArea = `${pathLinha} L${pontos[pontos.length - 1].x.toFixed(1)} 240 L${pontos[0].x.toFixed(1)} 240 Z`;
-
-  linha.setAttribute("d", pathLinha);
-  area.setAttribute("d", pathArea);
-
-  svg.querySelectorAll("circle").forEach(circle => circle.remove());
-
-  pontos.forEach(ponto => {
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("cx", ponto.x);
-    circle.setAttribute("cy", ponto.y);
-    circle.setAttribute("r", "7");
-    svg.appendChild(circle);
-  });
-
-  labels.forEach((label, index) => {
-    if (!dados[index]) {
-      label.textContent = "";
-      return;
-    }
-
-    label.textContent = dados[index].label;
-  });
-}
-
-function normalizarStatusCliente(status) {
-  const s = String(status || "").toLowerCase().trim();
-
-  if (
-    s === "ativo" ||
-    s === "ativa" ||
-    s === "active" ||
-    s === "supervisor"
-  ) {
-    return "ativo";
-  }
-
-  if (
-    s === "inativo" ||
-    s === "inativa" ||
-    s === "cancelado" ||
-    s === "cancelada" ||
-    s === "desativado" ||
-    s === "desativada" ||
-    s.includes("indispon")
-  ) {
-    return "inativo";
-  }
-
-  return "inativo";
-}
-
