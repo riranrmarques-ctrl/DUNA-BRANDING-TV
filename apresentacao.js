@@ -109,31 +109,21 @@ function iniciarRolagemAutomaticaAmbientes(container) {
   container.dataset.carouselAtivo = "1";
 
   let pausado = false;
-  const velocidade = 0.6;
-
-  const larguraTotal = container.scrollWidth;
+  const velocidade = 0.8;
 
   function animar() {
-    if (!pausado) {
+    if (!pausado && container.scrollWidth > container.clientWidth) {
       container.scrollLeft += velocidade;
 
-      // quando chega no fim, reinicia suavemente
-      if (container.scrollLeft >= larguraTotal / 2) {
-        container.scrollLeft -= larguraTotal / 2;
+      const limite = container.scrollWidth / 3;
+
+      if (container.scrollLeft >= limite) {
+        container.scrollLeft = 0;
       }
     }
 
     requestAnimationFrame(animar);
   }
-
-  container.addEventListener("mouseenter", () => pausado = true);
-  container.addEventListener("mouseleave", () => pausado = false);
-
-  container.addEventListener("touchstart", () => pausado = true, { passive: true });
-  container.addEventListener("touchend", () => pausado = false, { passive: true });
-
-  requestAnimationFrame(animar);
-}
 
   container.addEventListener("mouseenter", () => {
     pausado = true;
@@ -143,23 +133,17 @@ function iniciarRolagemAutomaticaAmbientes(container) {
     pausado = false;
   });
 
-  container.addEventListener(
-    "touchstart",
-    () => {
-      pausado = true;
-    },
-    { passive: true }
-  );
+  container.addEventListener("touchstart", () => {
+    pausado = true;
+  }, { passive: true });
 
-  container.addEventListener(
-    "touchend",
-    () => {
-      pausado = false;
-    },
-    { passive: true }
-  );
+  container.addEventListener("touchend", () => {
+    pausado = false;
+  }, { passive: true });
 
-  requestAnimationFrame(animar);
+  setTimeout(() => {
+    requestAnimationFrame(animar);
+  }, 300);
 }
 
 async function carregarAmbientes() {
