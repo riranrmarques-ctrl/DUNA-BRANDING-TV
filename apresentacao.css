@@ -435,11 +435,11 @@ section {
 .locations-grid {
   display: flex !important;
   flex-wrap: nowrap !important;
-  overflow-x: auto;
+  overflow-x: auto !important;
   overflow-y: hidden;
-  gap: 18px;
-  scroll-behavior: smooth;
-  padding-bottom: 8px;
+  gap: 22px;
+  scroll-behavior: auto !important;
+  padding: 10px 0;
 }
 
 .locations-grid::-webkit-scrollbar {
