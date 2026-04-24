@@ -324,7 +324,6 @@ function obterStatusPontoParaPainel(codigo, ponto) {
     };
   }
 
-  const evento = String(ponto?.status_evento || "").toLowerCase().trim();
   const ultimoPing = ponto?.ultimo_ping || null;
 
   if (ultimoPing) {
@@ -332,39 +331,24 @@ function obterStatusPontoParaPainel(codigo, ponto) {
 
     if (!Number.isNaN(dataPing.getTime())) {
       const diff = Date.now() - dataPing.getTime();
-      const recente = diff < LIMITE_STATUS_ATIVO_MS;
+      const ativo = diff < LIMITE_STATUS_ATIVO_MS;
       const horario = formatarDataHora(ultimoPing);
 
-      if ((evento === "ativo" || evento === "conectou") && recente) {
-        return {
-          texto: "Ativo",
-          detalhe: `Ativo desde ${horario}`,
-          ativo: true,
-          classe: "ativo"
-        };
-      }
-
-      if (evento === "inativo" || evento === "desconectou") {
-        return {
-          texto: "Inativo",
-          detalhe: `Inativo desde ${horario}`,
-          ativo: false,
-          classe: "inativo"
-        };
-      }
-
-      if ((evento === "ativo" || evento === "conectou") && !recente) {
-        return {
-          texto: "Inativo",
-          detalhe: "Inativo sem sinal recente do reprodutor",
-          ativo: false,
-          classe: "inativo"
-        };
-      }
+      return {
+        texto: ativo ? "Ativo" : "Inativo",
+        detalhe: `${ativo ? "Ativo" : "Inativo"} desde ${horario}`,
+        ativo,
+        classe: ativo ? "ativo" : "inativo"
+      };
     }
   }
 
-  return calcularStatusInfo(ponto);
+  return {
+    texto: "Inativo",
+    detalhe: "Inativo desde sem histórico",
+    ativo: false,
+    classe: "inativo"
+  };
 }
 
 function atualizarStatusDetalhePonto(statusInfo) {
