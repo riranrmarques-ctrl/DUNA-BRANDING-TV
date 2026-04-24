@@ -92,14 +92,18 @@ function combinarPontosComStatus(pontos, status) {
       return codigoStatus === codigoPonto;
     });
 
+    const statusCadastro = normalizarStatus(ponto.status || "");
+    const statusAtual = normalizarStatus(statusEncontrado?.status || "");
+
     return {
       ...ponto,
       codigo_final: codigoPonto,
-      status_final: normalizarStatus(statusEncontrado?.status || ponto.status || "offline"),
+      status_final: statusCadastro === "desativado" ? "desativado" : statusAtual,
       ultimo_ping_final: statusEncontrado?.ultimo_ping || ponto.ultimo_ping || ponto.updated_at || null
     };
   });
 }
+
 function atualizarMetricas(pontos) {
   const total = pontos.length;
   const ativos = pontos.filter(p => p.status_final === "ativo").length;
