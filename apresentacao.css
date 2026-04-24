@@ -460,43 +460,87 @@ section {
   display: none !important;
 }
 
-.locations-grid {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  overflow-y: hidden;
-  gap: 24px;
-  scroll-behavior: auto !important;
-  padding: 10px 0 18px;
+#pontos {
+  background: #ffffff;
+  color: #07111d;
+  padding-top: 70px;
+  padding-bottom: 120px;
+  overflow: hidden;
 }
 
-.locations-grid::-webkit-scrollbar {
+#pontos .container {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+#pontos .section-head {
+  width: min(var(--container), calc(100% - 40px));
+  margin: 0 auto 34px;
+}
+
+.titulo-pontos {
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: #07111d;
+}
+
+#pontos .section-head h3 {
+  color: #07111d;
+}
+
+#pontos .section-head p {
+  color: #52627a;
+}
+
+.locations-grid,
+#gridAmbientes {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 24px;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-behavior: auto !important;
+  padding: 20px 90px 34px !important;
+  width: 100%;
+  max-width: 100%;
+}
+
+.locations-grid::-webkit-scrollbar,
+#gridAmbientes::-webkit-scrollbar {
   display: none;
 }
 
-.locations-grid::after {
+.locations-grid::before,
+#gridAmbientes::before,
+.locations-grid::after,
+#gridAmbientes::after {
   content: "";
-  min-width: 60px;
+  flex: 0 0 40px;
 }
 
-.location-card {
-  flex: 0 0 350px !important;
-  min-width: 350px;
+.location-card,
+#gridAmbientes .location-card {
+  flex: 0 0 360px !important;
+  min-width: 360px !important;
   min-height: 460px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  background: linear-gradient(180deg, rgba(10, 17, 28, 0.94), rgba(7, 12, 21, 0.98));
-  border: 1px solid rgba(132, 168, 220, 0.1);
+  background: #ffffff;
+  border: 1px solid rgba(7, 17, 29, 0.12);
   border-radius: 24px;
   overflow: hidden;
+  box-shadow: 0 18px 44px rgba(7, 17, 29, 0.10);
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .location-card:hover {
   transform: translateY(-6px);
-  border-color: rgba(140, 184, 234, 0.22);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
+  border-color: rgba(77, 132, 197, 0.24);
+  box-shadow: 0 22px 54px rgba(7, 17, 29, 0.14);
 }
 
 .location-card img {
@@ -504,7 +548,7 @@ section {
   height: 285px;
   object-fit: cover;
   display: block;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(7, 17, 29, 0.08);
 }
 
 .location-body {
@@ -516,10 +560,11 @@ section {
   font-size: 1.28rem;
   margin-bottom: 10px;
   line-height: 1.2;
+  color: #07111d;
 }
 
 .location-body p {
-  color: var(--muted);
+  color: #52627a;
   line-height: 1.65;
   font-size: 1rem;
 }
@@ -527,8 +572,8 @@ section {
 .location-flow {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid rgba(132, 168, 220, 0.12);
-  color: #7da8d8;
+  border-top: 1px solid rgba(7, 17, 29, 0.10);
+  color: #4d84c5;
   font-size: 0.9rem;
   font-weight: 700;
   display: flex;
@@ -634,10 +679,6 @@ section {
   display: none !important;
 }
 
-#pontos {
-  padding-bottom: 120px;
-}
-
 @media (max-width: 1180px) {
   .hero-grid,
   .cta-band {
@@ -664,9 +705,10 @@ section {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .locations-grid .location-card {
-    flex: 0 0 310px !important;
-    min-width: 310px;
+  .location-card,
+  #gridAmbientes .location-card {
+    flex: 0 0 320px !important;
+    min-width: 320px !important;
   }
 
   .location-card img {
@@ -721,9 +763,22 @@ section {
     grid-template-columns: 1fr;
   }
 
-  .locations-grid .location-card {
+  .locations-grid,
+  #gridAmbientes {
+    padding: 18px 24px 30px !important;
+  }
+
+  .locations-grid::before,
+  #gridAmbientes::before,
+  .locations-grid::after,
+  #gridAmbientes::after {
+    flex: 0 0 0;
+  }
+
+  .location-card,
+  #gridAmbientes .location-card {
     flex: 0 0 280px !important;
-    min-width: 280px;
+    min-width: 280px !important;
   }
 
   .location-card img {
@@ -782,12 +837,10 @@ section {
     border-radius: 20px;
   }
 
-  .locations-grid .location-card {
+  .location-card,
+  #gridAmbientes .location-card {
     flex: 0 0 255px !important;
-    min-width: 255px;
-  }
-
-  .location-card {
+    min-width: 255px !important;
     min-height: 390px;
   }
 
@@ -806,133 +859,4 @@ section {
   .location-body p {
     font-size: 0.9rem;
   }
-}
-
-#pontos {
-  background: #ffffff;
-  color: #07111d;
-  padding-top: 70px;
-  padding-bottom: 120px;
-}
-
-#pontos .section-head h3 {
-  color: #07111d;
-}
-
-#pontos .section-head p {
-  color: #52627a;
-}
-
-#pontos .location-card {
-  background: #ffffff;
-  border: 1px solid rgba(7, 17, 29, 0.12);
-  box-shadow: 0 18px 44px rgba(7, 17, 29, 0.10);
-}
-
-#pontos .location-body strong {
-  color: #07111d;
-}
-
-#pontos .location-body p {
-  color: #52627a;
-}
-
-#pontos .location-flow {
-  color: #4d84c5;
-  border-top: 1px solid rgba(7, 17, 29, 0.10);
-}
-
-#pontos {
-  background: #ffffff;
-  color: #07111d;
-  padding-top: 70px;
-  padding-bottom: 120px;
-}
-
-#pontos .section-head h3 {
-  color: #07111d;
-}
-
-#pontos .section-head p {
-  color: #52627a;
-}
-
-#pontos .location-card {
-  background: #ffffff;
-  border: 1px solid rgba(7, 17, 29, 0.12);
-  box-shadow: 0 18px 44px rgba(7, 17, 29, 0.10);
-}
-
-#pontos .location-body strong {
-  color: #07111d;
-}
-
-#pontos .location-body p {
-  color: #52627a;
-}
-
-#pontos .location-flow {
-  color: #4d84c5;
-  border-top: 1px solid rgba(7, 17, 29, 0.10);
-}
-
-.titulo-pontos {
-  font-size: clamp(2.8rem, 5vw, 4.8rem);
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  color: #07111d;
-}
-
-#pontos .container {
-  width: 100%;
-  max-width: none;
-  padding: 0 70px;
-}
-
-#gridAmbientes {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto !important;
-  overflow-y: hidden;
-  padding: 10px 0 28px;
-  scroll-padding-left: 70px;
-}
-
-#gridAmbientes .location-card {
-  flex: 0 0 360px !important;
-  min-width: 360px;
-}
-
-#gridAmbientes .location-card:first-child {
-  margin-left: 0;
-}
-
-#gridAmbientes .location-card:last-child {
-  margin-right: 70px;
-}
-
-#pontos .container {
-  width: 100%;
-  max-width: none;
-  padding-left: 90px;
-  padding-right: 0;
-  overflow: hidden;
-}
-
-#gridAmbientes {
-  padding-left: 0;
-  padding-right: 90px;
-  overflow-x: auto !important;
-  scroll-padding-left: 0;
-}
-
-#gridAmbientes .location-card {
-  flex: 0 0 360px !important;
-  min-width: 360px;
-}
-
-#gridAmbientes::before,
-#gridAmbientes::after {
-  content: "";
-  flex: 0 0 0px;
 }
