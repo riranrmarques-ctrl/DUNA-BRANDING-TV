@@ -954,6 +954,7 @@ function renderizarCardsPontos(lista) {
 
 function abrirPonto(codigo) {
   codigoSelecionado = String(codigo || "").trim();
+
   const ponto = pontosMap[codigoSelecionado] || {};
   const nome = obterNomePonto(ponto, codigoSelecionado);
   const cidade = obterCidadePonto(ponto);
@@ -961,6 +962,8 @@ function abrirPonto(codigo) {
 
   if (listaPontos) listaPontos.style.display = "none";
   if (pontoDetalhe) pontoDetalhe.style.display = "block";
+
+  document.body.classList.add("modo-detalhe");
 
   if (codigoAtual) {
     codigoAtual.textContent = codigoSelecionado;
@@ -1037,6 +1040,9 @@ if (btnVoltar) {
     if (listaPontos) listaPontos.style.display = "block";
     if (pontoDetalhe) pontoDetalhe.style.display = "none";
     codigoSelecionado = null;
+
+    document.body.classList.remove("modo-detalhe");
+    
   };
 }
 
