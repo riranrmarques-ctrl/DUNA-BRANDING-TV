@@ -810,3 +810,21 @@ section {
 .nav {
   letter-spacing: 0.01em;
 }
+
+.hero-visual {
+  background:
+    url("capainicial.jpg") center/cover no-repeat;
+}
+
+.screen-body {
+  background:
+    url("capainicial.jpg") center/cover no-repeat;
+}
+
+.hero-screen {
+  background: transparent;
+}
+
+.realtime-card {
+  bottom: 56px;
+}
