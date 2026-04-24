@@ -60,7 +60,7 @@ function combinarPontosComStatus(pontos, status) {
 function atualizarPainel(pontos) {
   atualizarMetricas(pontos);
   atualizarDonut(pontos);
-  renderizarPontos(pontos);
+  renderizarPontos(pontos.slice(0, 4));
 }
 
 function atualizarMetricas(pontos) {
