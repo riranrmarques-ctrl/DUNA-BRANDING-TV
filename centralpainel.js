@@ -100,6 +100,18 @@ function combinarPontosComStatus(pontos, status) {
     };
   });
 }
+function atualizarMetricas(pontos) {
+  const total = pontos.length;
+  const ativos = pontos.filter(p => p.status_final === "ativo").length;
+  const uptime = calcularUptimeMedio(pontos);
+
+  setTexto("totalReproducoes", "0");
+  setTexto("totalQrCode", "0");
+  setHtml("pontosAtivos", `${ativos} <small>+0</small>`);
+  setTexto("totalPontosTexto", `De um total de ${total} pontos`);
+  setTexto("uptimeMedio", `${uptime}%`);
+  setTexto("novosContratos", "0");
+}
 
 function atualizarPainel(pontos) {
   atualizarMetricas(pontos);
@@ -200,7 +212,7 @@ function calcularUptimeMedio(pontos) {
 }
 
 function calcularUptimeIndividual(ultimoPing, status) {
-  if (status === "inativo" || status === "offline") return 0;
+  if (status === "inativo" || status === "desativado") return 0;
   if (!ultimoPing) return status === "ativo" ? 80 : 0;
 
   const agora = new Date();
