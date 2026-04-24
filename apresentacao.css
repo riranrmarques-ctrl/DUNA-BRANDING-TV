@@ -853,10 +853,10 @@ section {
 }
 
 .location-flow {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(132, 168, 220, 0.12);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(132,168,220,0.12);
   color: #7da8d8;
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
