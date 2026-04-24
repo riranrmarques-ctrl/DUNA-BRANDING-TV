@@ -333,6 +333,33 @@ function escaparHtml(valor) {
     .replaceAll("'", "&#039;");
 }
 
+function atualizarGraficoComercial(clientes, contratos) {
+  const clientesAtivos = clientes.filter(cliente => {
+    return normalizarStatusCliente(cliente.status) === "ativo";
+  }).length;
+
+  const clientesInativos = clientes.filter(cliente => {
+    return normalizarStatusCliente(cliente.status) !== "ativo";
+  }).length;
+
+  const contratosTotal = contratos.length;
+  const ganhos = clientesAtivos + contratosTotal;
+  const quedas = clientesInativos;
+  const saldo = ganhos - quedas;
+
+  setTexto("novosContratos", saldo);
+  atualizarTextoComercial(saldo, ganhos, quedas);
+
+  const dados = [
+    { label: "Clientes ativos", valor: clientesAtivos },
+    { label: "Contratos", valor: contratosTotal },
+    { label: "Quedas", valor: -quedas },
+    { label: "Saldo", valor: saldo }
+  ];
+
+  desenharGraficoResumoComercial(dados);
+}
+
 function atualizarTextoComercial(saldo, ganhos, quedas) {
   const texto = document.querySelector(".contract-number p");
   const comparativo = document.querySelector(".contract-number strong");
