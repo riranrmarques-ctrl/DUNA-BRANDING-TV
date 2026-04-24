@@ -8,163 +8,174 @@
 </head>
 
 <body>
-  <aside class="sidebar">
-    <div>
-      <div class="brand">
-        <img src="https://raw.githubusercontent.com/riranrmarques-ctrl/DUNA-BRANDING-TV/main/logo.png" class="logo-img">
-        <div>
-          <strong>INDOOR</strong>
-          <span>MÍDIA</span>
-        </div>
-      </div>
-
-      <nav class="menu">
-        <a class="active" href="centralpainel.html">⌂ <span>Central</span></a>
-        <a href="painel.html">⌖ <span>Pontos</span></a>
-        <a href="#">⌘ <span>QR Code</span></a>
-        <a href="#"># <span>Relatórios</span></a>
-        <a href="contratos.html">▤ <span>Contratos</span></a>
-        <a href="central-clientes.html">☷ <span>Clientes</span></a>
-        <a href="#">⚙ <span>Configurações</span></a>
-      </nav>
+  <div id="loginBox" class="login-screen">
+    <div class="login-card">
+      <h2>Acesso ao Painel</h2>
+      <input type="password" id="senhaInput" placeholder="Digite o código">
+      <button id="btnLogin" type="button">Entrar</button>
+      <p id="loginErro" class="login-erro"></p>
     </div>
+  </div>
 
-    <div class="admin">
-      <div class="avatar"></div>
+  <div id="conteudoPainel" style="display:none;">
+    <aside class="sidebar">
       <div>
-        <strong>Administrador</strong>
-        <span>admin@indoor.com</span>
+        <div class="brand">
+          <img src="https://raw.githubusercontent.com/riranrmarques-ctrl/DUNA-BRANDING-TV/main/logo.png" class="logo-img" alt="Indoor Mídia">
+          <div>
+            <strong>INDOOR</strong>
+            <span>MÍDIA</span>
+          </div>
+        </div>
+
+        <nav class="menu">
+          <a class="active" href="centralpainel.html">⌂ <span>Central</span></a>
+          <a href="painel.html">⌖ <span>Pontos</span></a>
+          <a href="#">⌘ <span>QR Code</span></a>
+          <a href="#"># <span>Relatórios</span></a>
+          <a href="contratos.html">▤ <span>Contratos</span></a>
+          <a href="central-clientes.html">☷ <span>Clientes</span></a>
+          <a href="#">⚙ <span>Configurações</span></a>
+        </nav>
       </div>
-      <small>⌄</small>
-    </div>
-  </aside>
 
-  <main class="main">
-    <header class="topbar"></header>
-
-    <section class="metrics">
-      <article class="metric-card">
-        <div class="metric-icon purple">▷</div>
+      <div class="admin">
+        <div class="avatar"></div>
         <div>
-          <span>REPRODUÇÕES (PERÍODO)</span>
-          <h2 id="totalReproducoes">0 <small>+0%</small></h2>
-          <p>Total de execuções de mídia</p>
+          <strong>Administrador</strong>
+          <span>admin@indoor.com</span>
         </div>
-      </article>
+        <small>⌄</small>
+      </div>
+    </aside>
 
-      <article class="metric-card">
-        <div class="metric-icon cyan">⌘</div>
-        <div>
-          <span>LEITURAS DE QR CODE</span>
-          <h2 id="totalQrCode">0 <small>+0%</small></h2>
-          <p>Total de leituras no período</p>
-        </div>
-      </article>
+    <main class="main">
+      <header class="topbar"></header>
 
-      <article class="metric-card">
-        <div class="metric-icon orange">▭</div>
-        <div>
-          <span>PONTOS ATIVOS</span>
-          <h2 id="pontosAtivos">0 <small>+0</small></h2>
-          <p id="totalPontosTexto">De um total de 0 pontos</p>
-        </div>
-      </article>
+      <section class="metrics">
+        <article class="metric-card">
+          <div class="metric-icon purple">▷</div>
+          <div>
+            <span>REPRODUÇÕES (PERÍODO)</span>
+            <h2 id="totalReproducoes">0</h2>
+            <p>Total de execuções de mídia</p>
+          </div>
+        </article>
 
-      <article class="metric-card">
-        <div class="metric-icon green">⌁</div>
-        <div>
-          <span>UPTIME MÉDIO</span>
-          <h2 id="uptimeMedio">0%</h2>
-          <p>Disponibilidade dos players</p>
-        </div>
-      </article>
-    </section>
+        <article class="metric-card">
+          <div class="metric-icon cyan">⌘</div>
+          <div>
+            <span>LEITURAS DE QR CODE</span>
+            <h2 id="totalQrCode">0</h2>
+            <p>Total de leituras no período</p>
+          </div>
+        </article>
 
-    <section class="grid">
-      <article class="panel contracts">
-        <div class="panel-head">
-          <h3>Novos contratos</h3>
-          <select>
-            <option>Últimos 30 dias</option>
-          </select>
-        </div>
+        <article class="metric-card">
+          <div class="metric-icon orange">▭</div>
+          <div>
+            <span>PONTOS ATIVOS</span>
+            <h2 id="pontosAtivos">0 <small>+0</small></h2>
+            <p id="totalPontosTexto">De um total de 0 pontos</p>
+          </div>
+        </article>
 
-        <div class="contract-content">
-          <div class="contract-number">
-            <h2 id="novosContratos">0</h2>
-            <p>novos contratos</p>
-            <strong>↑ 0% vs. período anterior</strong>
+        <article class="metric-card">
+          <div class="metric-icon green">⌁</div>
+          <div>
+            <span>UPTIME MÉDIO</span>
+            <h2 id="uptimeMedio">0%</h2>
+            <p>Disponibilidade dos players</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="panel contracts">
+          <div class="panel-head">
+            <h3>Novos contratos</h3>
+            <select>
+              <option>Últimos 30 dias</option>
+            </select>
           </div>
 
-          <div class="chart">
-            <svg viewBox="0 0 600 260" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#6c5cff" stop-opacity=".45" />
-                  <stop offset="100%" stop-color="#6c5cff" stop-opacity="0" />
-                </linearGradient>
-              </defs>
+          <div class="contract-content">
+            <div class="contract-number">
+              <h2 id="novosContratos">0</h2>
+              <p>novos contratos</p>
+              <strong>↑ 0% vs. período anterior</strong>
+            </div>
 
-              <line x1="0" y1="40" x2="600" y2="40" />
-              <line x1="0" y1="95" x2="600" y2="95" />
-              <line x1="0" y1="150" x2="600" y2="150" />
-              <line x1="0" y1="205" x2="600" y2="205" />
+            <div class="chart">
+              <svg viewBox="0 0 600 260" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6c5cff" stop-opacity=".45" />
+                    <stop offset="100%" stop-color="#6c5cff" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
 
-              <path class="area" d="M30 210 L70 190 L105 155 L145 175 L180 188 L220 160 L260 135 L300 160 L340 180 L380 150 L420 110 L460 95 L500 75 L540 105 L575 135 L575 240 L30 240 Z" />
-              <path class="line" d="M30 210 L70 190 L105 155 L145 175 L180 188 L220 160 L260 135 L300 160 L340 180 L380 150 L420 110 L460 95 L500 75 L540 105 L575 135" />
+                <line x1="0" y1="40" x2="600" y2="40" />
+                <line x1="0" y1="95" x2="600" y2="95" />
+                <line x1="0" y1="150" x2="600" y2="150" />
+                <line x1="0" y1="205" x2="600" y2="205" />
 
-              <circle cx="30" cy="210" r="7" />
-              <circle cx="105" cy="155" r="7" />
-              <circle cx="260" cy="135" r="7" />
-              <circle cx="420" cy="110" r="7" />
-              <circle cx="500" cy="75" r="7" />
-              <circle cx="575" cy="135" r="7" />
-            </svg>
+                <path class="area" d="M30 210 L70 190 L105 155 L145 175 L180 188 L220 160 L260 135 L300 160 L340 180 L380 150 L420 110 L460 95 L500 75 L540 105 L575 135 L575 240 L30 240 Z" />
+                <path class="line" d="M30 210 L70 190 L105 155 L145 175 L180 188 L220 160 L260 135 L300 160 L340 180 L380 150 L420 110 L460 95 L500 75 L540 105 L575 135" />
 
-            <div class="chart-labels">
-              <span>01/05</span>
-              <span>08/05</span>
-              <span>15/05</span>
-              <span>22/05</span>
-              <span>31/05</span>
+                <circle cx="30" cy="210" r="7" />
+                <circle cx="105" cy="155" r="7" />
+                <circle cx="260" cy="135" r="7" />
+                <circle cx="420" cy="110" r="7" />
+                <circle cx="500" cy="75" r="7" />
+                <circle cx="575" cy="135" r="7" />
+              </svg>
+
+              <div class="chart-labels">
+                <span>01/05</span>
+                <span>08/05</span>
+                <span>15/05</span>
+                <span>22/05</span>
+                <span>31/05</span>
+              </div>
             </div>
           </div>
-        </div>
-      </article>
+        </article>
 
-      <article class="panel status-panel">
+        <article class="panel status-panel">
+          <div class="panel-head">
+            <h3>Status dos pontos</h3>
+            <a href="painel.html">Ver todos ›</a>
+          </div>
+
+          <div class="status-content">
+            <div class="donut">
+              <div>
+                <strong id="donutTotal">0</strong>
+                <span>pontos</span>
+              </div>
+            </div>
+
+            <ul class="legend">
+              <li><i class="green-dot"></i> Ativos <strong id="legendaAtivos">0 (0%)</strong></li>
+              <li><i class="yellow-dot"></i> Sem material <strong id="legendaSemMaterial">0 (0%)</strong></li>
+              <li><i class="red-dot"></i> Inativos <strong id="legendaInativos">0 (0%)</strong></li>
+              <li><i class="gray-dot"></i> Offline <strong id="legendaOffline">0 (0%)</strong></li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel points">
         <div class="panel-head">
-          <h3>Status dos pontos</h3>
+          <h3>Status dos Pontos</h3>
           <a href="painel.html">Ver todos ›</a>
         </div>
 
-        <div class="status-content">
-          <div class="donut">
-            <div>
-              <strong id="donutTotal">0</strong>
-              <span>pontos</span>
-            </div>
-          </div>
-
-          <ul class="legend">
-            <li><i class="green-dot"></i> Ativos <strong id="legendaAtivos">0 (0%)</strong></li>
-            <li><i class="yellow-dot"></i> Sem material <strong id="legendaSemMaterial">0 (0%)</strong></li>
-            <li><i class="red-dot"></i> Inativos <strong id="legendaInativos">0 (0%)</strong></li>
-            <li><i class="gray-dot"></i> Offline <strong id="legendaOffline">0 (0%)</strong></li>
-          </ul>
-        </div>
-      </article>
-    </section>
-
-    <section class="panel points">
-      <div class="panel-head">
-        <h3>Status dos Pontos</h3>
-        <a href="painel.html">Ver todos ›</a>
-      </div>
-
-      <div class="point-list" id="listaPontos"></div>
-    </section>
-  </main>
+        <div class="point-list" id="listaPontos"></div>
+      </section>
+    </main>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="centralpainel.js"></script>
