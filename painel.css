@@ -1658,3 +1658,14 @@ body.loading-page {
 .arrastando-ponto .card-ponto {
   transition: transform 0.22s ease, opacity 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
+
+.card-ponto,
+.card-ponto * {
+  -webkit-user-drag: none;
+}
+
+.card-imagem,
+.card-imagem-box img {
+  pointer-events: none;
+  user-select: none;
+}
