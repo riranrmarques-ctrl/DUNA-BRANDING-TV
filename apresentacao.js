@@ -11,16 +11,20 @@ function iniciarRolagemAutomaticaAmbientes(container) {
   container.dataset.carouselAtivo = "1";
 
   let pausado = false;
-  const velocidade = 0.7;
+  const velocidade = 0.6;
+
+  const larguraTotal = container.scrollWidth / 2;
 
   function animar() {
     if (!pausado && container.scrollWidth > container.clientWidth) {
       container.scrollLeft += velocidade;
 
-      const limite = container.scrollWidth / 4;
+      if (container.scrollLeft >= larguraTotal) {
+        container.scrollLeft -= larguraTotal;
+      }
 
-      if (container.scrollLeft >= limite) {
-        container.scrollLeft = 0;
+      if (container.scrollLeft <= 0) {
+        container.scrollLeft += larguraTotal;
       }
     }
 
@@ -32,7 +36,6 @@ function iniciarRolagemAutomaticaAmbientes(container) {
 
   requestAnimationFrame(animar);
 }
-
 function obterImagem(ponto) {
   return (
     ponto?.imagem_url ||
