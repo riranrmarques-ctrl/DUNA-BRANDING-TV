@@ -910,3 +910,29 @@ section {
 #gridAmbientes .location-card:last-child {
   margin-right: 70px;
 }
+
+#pontos .container {
+  width: 100%;
+  max-width: none;
+  padding-left: 90px;
+  padding-right: 0;
+  overflow: hidden;
+}
+
+#gridAmbientes {
+  padding-left: 0;
+  padding-right: 90px;
+  overflow-x: auto !important;
+  scroll-padding-left: 0;
+}
+
+#gridAmbientes .location-card {
+  flex: 0 0 360px !important;
+  min-width: 360px;
+}
+
+#gridAmbientes::before,
+#gridAmbientes::after {
+  content: "";
+  flex: 0 0 0px;
+}
