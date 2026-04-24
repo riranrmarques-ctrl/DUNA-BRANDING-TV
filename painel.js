@@ -324,31 +324,32 @@ function obterStatusPontoParaPainel(codigo, ponto) {
     };
   }
 
+  const evento = String(ponto?.status_evento || ponto?.status || ponto?.evento || "")
+    .toLowerCase()
+    .trim();
+
   const ultimoPing = ponto?.ultimo_ping || null;
+  const horario = ultimoPing ? formatarDataHora(ultimoPing) : "sem histórico";
 
-  if (ultimoPing) {
-    const dataPing = new Date(ultimoPing);
-
-    if (!Number.isNaN(dataPing.getTime())) {
-      const diff = Date.now() - dataPing.getTime();
-      const ativo = diff < LIMITE_STATUS_ATIVO_MS;
-      const horario = formatarDataHora(ultimoPing);
-
-      return {
-        texto: ativo ? "Ativo" : "Inativo",
-        detalhe: `${ativo ? "Ativo" : "Inativo"} desde ${horario}`,
-        ativo,
-        classe: ativo ? "ativo" : "inativo"
-      };
-    }
+  if (evento === "ativo" || evento === "conectou") {
+    return {
+      texto: "Ativo",
+      detalhe: `Ativo desde ${horario}`,
+      ativo: true,
+      classe: "ativo"
+    };
   }
 
-  return {
-    texto: "Inativo",
-    detalhe: "Inativo desde sem histórico",
-    ativo: false,
-    classe: "inativo"
-  };
+  if (evento === "inativo" || evento === "desconectou") {
+    return {
+      texto: "Inativo",
+      detalhe: `Inativo desde ${horario}`,
+      ativo: false,
+      classe: "inativo"
+    };
+  }
+
+  return calcularStatusInfo(ponto);
 }
 
 function atualizarStatusDetalhePonto(statusInfo) {
