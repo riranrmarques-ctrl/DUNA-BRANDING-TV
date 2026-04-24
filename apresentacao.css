@@ -861,13 +861,6 @@ section {
   font-weight: 600;
 }
 
-#gridAmbientes {
-  display: flex;
-  gap: 22px;
-  overflow-x: hidden;
-  padding: 10px 0;
-}
-
 .location-card {
   flex: 0 0 320px;
   min-width: 320px;
