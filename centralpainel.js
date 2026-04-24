@@ -112,17 +112,24 @@ function combinarPontosComStatus(pontos, status) {
       return codigoStatus === codigoPonto;
     });
 
+    const pontoIndisponivel =
+      ponto.disponivel === false ||
+      ponto.indisponivel === true ||
+      String(ponto.disponivel || "").toLowerCase().trim() === "false" ||
+      String(ponto.status_disponibilidade || "").toLowerCase().includes("indispon");
+
     const statusCadastro = normalizarStatus(ponto.status || "");
     const statusAtual = normalizarStatus(statusEncontrado?.status || "");
 
     return {
       ...ponto,
       codigo_final: codigoPonto,
-      status_final: statusCadastro === "desativado" ? "desativado" : statusAtual,
+      status_final: pontoIndisponivel || statusCadastro === "desativado" ? "desativado" : statusAtual,
       ultimo_ping_final: statusEncontrado?.ultimo_ping || ponto.ultimo_ping || ponto.updated_at || null
     };
   });
 }
+
 
 function atualizarMetricas(pontos) {
   const total = pontos.length;
@@ -317,7 +324,7 @@ function calcularStatusRealClientes(clientes, playlists) {
     const codigo = String(item.codigo_cliente || "").trim().toUpperCase();
     if (!codigo) return;
 
-    const dataFimValor = item.data_fim || item.fim_exibicao;
+    const dataFimValor = item.data_fim;
 
     if (!dataFimValor) {
       clientesAtivosPorPlaylist.add(codigo);
