@@ -251,9 +251,6 @@ function atualizarCamposCliente() {
   });
 }
 
-  atualizarToggleContratoVisual();
-}
-
 function obterCodigoPonto(ponto) {
   return String(ponto?.codigo || "").trim();
 }
@@ -419,7 +416,7 @@ function gerarContratoCliente() {
     </div>
   `;
 
-  contratoStatus.textContent = supervisorEstaAtivo() ? "Supervisor sem contrato" : "Modelo carregado";
+  contratoStatus.textContent = "Modelo carregado";
 }
 
 function montarHtmlContratoCompleto(dadosContrato = null) {
@@ -1018,7 +1015,7 @@ function renderizarPontosSelecionaveis(selecionados = []) {
     </div>
   `;
 
-  atualizarModoSupervisor();
+  atualizarCamposCliente();
 }
 
 function extrairCodigoClienteVinculo(item) {
@@ -1048,7 +1045,6 @@ async function carregarVinculosCliente() {
 }
 
 async function calcularStatusClienteRealPorCodigoCliente() {
-  if (supervisorEstaAtivo()) return "Não ativo";
 
   const { data, error } = await supabaseClient
     .from(TABELA_PLAYLISTS)
@@ -1080,11 +1076,7 @@ async function sincronizarStatusCliente() {
 
 function validarCamposCliente() {
   let valido = true;
-  const supervisor = supervisorEstaAtivo();
-
-  const camposObrigatorios = supervisor
-    ? [inputNome]
-    : [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento];
+  const camposObrigatorios = [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento];
 
   [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento].forEach(limparErro);
 
@@ -1134,14 +1126,12 @@ async function carregarCliente() {
     if (inputVencimento) inputVencimento.value = "";
     if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(0);
     if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
-    if (tipoAcessoCliente) tipoAcessoCliente.value = "cliente";
 
     atualizarStatusClienteVisual("Não ativo");
     renderizarPontosSelecionaveis([]);
     renderizarHistoricoArquivos([]);
     gerarHistoricoContratoVisual();
     gerarContratoCliente();
-    atualizarModoSupervisor();
     ativarBotaoSalvar();
 
     mostrarMensagem(`Cliente ${codigoClienteAtual} ainda não existe no banco. Preencha e clique em Salvar.`, "#ffb86b");
@@ -1157,7 +1147,6 @@ async function carregarCliente() {
   if (inputVencimento) inputVencimento.value = data.vencimento_midia || "";
   if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? 0);
   if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
-  if (tipoAcessoCliente) tipoAcessoCliente.value = data.tipo_acesso === "supervisor" ? "supervisor" : "cliente";
 
   const statusBanco = data.statuscliente || data.status || "inativo";
   atualizarStatusClienteVisual(String(statusBanco).toLowerCase() === "ativo" ? "Ativo" : "Não ativo");
@@ -1170,7 +1159,6 @@ async function carregarCliente() {
 
   gerarHistoricoContratoVisual();
   gerarContratoCliente();
-  atualizarModoSupervisor();
   desativarBotaoSalvar();
 
   mostrarMensagem(`Cliente ${codigoClienteAtual} carregado com sucesso.`, "#7CFC9A");
@@ -1285,7 +1273,6 @@ async function salvarCliente() {
 
     gerarHistoricoContratoVisual();
     gerarContratoCliente();
-    atualizarModoSupervisor();
 
     mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
@@ -1470,17 +1457,6 @@ if (listaPontos) {
   });
 }
 
-if (btnSupervisor) {
-  btnSupervisor.addEventListener("click", () => {
-    if (!tipoAcessoCliente) return;
-
-    tipoAcessoCliente.value = supervisorEstaAtivo() ? "cliente" : "supervisor";
-    atualizarModoSupervisor();
-    ativarBotaoSalvar();
-    gerarContratoCliente();
-  });
-}
-
 if (inputNome) inputNome.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
 if (inputEmail) inputEmail.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
 if (inputVencimento) inputVencimento.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
@@ -1540,7 +1516,6 @@ async function iniciar() {
     await carregarCliente();
 
     gerarContratoCliente();
-    atualizarModoSupervisor();
   } catch (error) {
     console.error("Erro ao iniciar pasta-cliente:", error);
     mostrarMensagem(`Erro ao carregar dados: ${error.message || "falha desconhecida"}`, "#ff6b6b");
