@@ -558,6 +558,7 @@ function baixarHtmlContrato(html, nomeArquivo) {
 }
 
 async function gerarContratoClienteParaHistorico() {
+  try {
     const dados = obterDadosContratoCliente();
     const historico = lerHistoricoContratosGerados();
     const agoraIso = new Date().toISOString();
