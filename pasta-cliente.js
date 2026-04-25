@@ -28,8 +28,6 @@ const inputVencimento = document.getElementById("vencimentoExibicao");
 const inputValorContratado = document.getElementById("valorContratado");
 const inputDataPostagem = document.getElementById("dataPostagem");
 const statusCliente = document.getElementById("statusCliente");
-const tipoAcessoCliente = document.getElementById("tipoAcessoCliente");
-const btnSupervisor = document.getElementById("btnSupervisor");
 
 const listaPontos = document.getElementById("listaPontos");
 const mensagem = document.getElementById("mensagem");
@@ -47,6 +45,7 @@ const historicoArquivos = document.getElementById("historicoArquivos");
 const contratoPreview = document.getElementById("contratoPreview");
 const contratoStatus = document.getElementById("contratoStatus");
 const btnBaixarContrato = document.getElementById("btnBaixarContrato");
+const btnBaixarQrCode = document.getElementById("btnBaixarQrCode");
 
 let pontosData = {};
 let codigoClienteAtual = "";
@@ -78,14 +77,6 @@ function mostrarStatusUpload(texto, cor = "#9fd2ff") {
 
 function obterCodigoDaUrl() {
   return String(new URLSearchParams(window.location.search).get("codigo") || "").trim().toUpperCase();
-}
-
-function supervisorEstaAtivo() {
-  return tipoAcessoCliente?.value === "supervisor";
-}
-
-function obterTipoAcessoAtual() {
-  return supervisorEstaAtivo() ? "supervisor" : "cliente";
 }
 
 function escaparHtml(texto) {
@@ -235,25 +226,8 @@ function pontoEstaDisponivel(ponto) {
   return ponto?.disponivel !== false;
 }
 
-function atualizarToggleContratoVisual() {
-  if (!btnBaixarContrato) return;
-
-  const bloqueado = supervisorEstaAtivo();
-  btnBaixarContrato.disabled = bloqueado;
-  btnBaixarContrato.style.opacity = bloqueado ? "0.45" : "1";
-  btnBaixarContrato.style.cursor = bloqueado ? "not-allowed" : "pointer";
-}
-
-function atualizarModoSupervisor() {
-  const ativo = supervisorEstaAtivo();
-
-  if (btnSupervisor) {
-    btnSupervisor.classList.toggle("ativo", ativo);
-    btnSupervisor.textContent = ativo ? "Supervisor ativo" : "Supervisor";
-  }
-
+function atualizarCamposCliente() {
   [
-    inputCodigo,
     inputTelefone,
     inputEmail,
     inputCpfCnpj,
@@ -262,9 +236,11 @@ function atualizarModoSupervisor() {
     inputDataPostagem,
     arquivoInput,
     btnUploadCliente,
-    btnBaixarContrato
-  ].forEach((campo) => aplicarCampoDesativado(campo, ativo));
+    btnBaixarContrato,
+    btnBaixarQrCode
+  ].forEach((campo) => aplicarCampoDesativado(campo, false));
 
+  aplicarCampoDesativado(inputCodigo, true);
   aplicarCampoDesativado(inputNome, false);
   aplicarCampoDesativado(botaoSalvar, false);
 
@@ -273,6 +249,7 @@ function atualizarModoSupervisor() {
     checkbox.style.cursor = "pointer";
     checkbox.style.opacity = "1";
   });
+}
 
   atualizarToggleContratoVisual();
 }
@@ -1251,8 +1228,8 @@ async function apagarVinculosCliente() {
 async function salvarCliente() {
   if (!validarCamposCliente()) return false;
 
-  const tipoAcesso = obterTipoAcessoAtual();
-  const tipoVinculo = tipoAcesso === "supervisor" ? "supervisor" : "cliente";
+  const tipoAcesso = "cliente";
+  const tipoVinculo = "cliente";
   const statusReal = await calcularStatusClienteRealPorCodigoCliente();
   const statusBanco = statusReal === "Ativo" ? "ativo" : "inativo";
   const nomeCliente = inputNome.value.trim();
