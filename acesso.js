@@ -593,27 +593,10 @@ async function buscarReproducoesCliente(codigoCliente, dias) {
 
   if (error) {
     console.warn("Erro ao buscar reproduções:", error);
-    return normalizarSeriePorDia(dias, []);
+    return mesclarReproducoesVirtuais(normalizarSeriePorDia(dias, []));
   }
 
-  return normalizarSeriePorDia(dias, data || []);
-}
-
-function renderizarGraficoBarrasCliente(serie = []) {
-  if (!graficoReproducoesCliente) return;
-
-  const maior = Math.max(...serie.map((item) => item.total), 1);
-
-  graficoReproducoesCliente.innerHTML = serie.map((item) => {
-    const altura = Math.max((item.total / maior) * 100, item.total > 0 ? 8 : 4);
-
-    return `
-      <div class="barra-dia" title="${escapeHtml(`${item.rotulo}: ${item.total}`)}">
-        <div class="barra-coluna" style="--altura:${altura}%"></div>
-        <span>${escapeHtml(item.rotulo)}</span>
-      </div>
-    `;
-  }).join("");
+  return mesclarReproducoesVirtuais(normalizarSeriePorDia(dias, data || []));
 }
 
 function renderizarGraficoLinhaCliente(serie = []) {
@@ -890,7 +873,88 @@ function renderizarListaPontos() {
   });
 }
 
-function renderizarPreview(lista, indice = 0, statusPonto = null) {
+function obterChavePreviewVirtual() {
+  return `preview_virtual_${codigoClienteAtual}_${pontoSelecionado}`;
+}
+
+function lerEstadoPreviewVirtual() {
+  try {
+    return JSON.parse(localStorage.getItem(obterChavePreviewVirtual()) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function salvarEstadoPreviewVirtual(estado) {
+  localStorage.setItem(obterChavePreviewVirtual(), JSON.stringify(estado));
+}
+
+function obterIdMaterialPreview(item) {
+  return String(item?.id || item?.storage_path || item?.video_url || item?.url || item?.nome || "").trim();
+}
+
+function itemPertenceAoCliente(item) {
+  return normalizarCodigo(item?.codigo_cliente) === codigoClienteAtual;
+}
+
+function obterDuracaoVirtualPreview(item, tipo) {
+  if (tipo === "imagem") return 8000;
+  if (tipo === "site") return 12000;
+  return 45000;
+}
+
+function obterChaveReproducoesVirtuais() {
+  return `reproducoes_virtuais_${codigoClienteAtual}`;
+}
+
+function lerReproducoesVirtuais() {
+  try {
+    const lista = JSON.parse(localStorage.getItem(obterChaveReproducoesVirtuais()) || "[]");
+    return Array.isArray(lista) ? lista : [];
+  } catch {
+    return [];
+  }
+}
+
+function salvarReproducoesVirtuais(lista) {
+  localStorage.setItem(obterChaveReproducoesVirtuais(), JSON.stringify(lista));
+}
+
+function obterHojeISO() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function registrarReproducaoVirtual(item) {
+  if (!itemPertenceAoCliente(item)) return;
+
+  const hoje = obterHojeISO();
+  const lista = lerReproducoesVirtuais();
+  const existente = lista.find((linha) => linha.data === hoje);
+
+  if (existente) {
+    existente.total = Number(existente.total || 0) + 1;
+  } else {
+    lista.push({ data: hoje, total: 1 });
+  }
+
+  salvarReproducoesVirtuais(lista);
+
+  if (typeof carregarMetricasCliente === "function") {
+    carregarMetricasCliente();
+  }
+}
+
+function mesclarReproducoesVirtuais(serie = []) {
+  const locais = lerReproducoesVirtuais();
+  const mapa = new Map(locais.map((item) => [item.data, Number(item.total || 0)]));
+
+  return serie.map((dia) => ({
+    ...dia,
+    total: Number(dia.total || 0) + Number(mapa.get(dia.iso) || 0)
+  }));
+}
+
+function renderizarPreview(lista, indice = null, statusPonto = null) {
   limparTimerPreview();
 
   if (!previewMidia) return;
@@ -913,6 +977,71 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
     `;
     return;
   }
+
+  const estadoSalvo = lerEstadoPreviewVirtual();
+  const indiceBase = indice === null ? Number(estadoSalvo.indice || 0) : Number(indice || 0);
+  const indexSeguro = indiceBase >= playlist.length ? 0 : indiceBase;
+  const item = playlist[indexSeguro];
+  const proximoIndex = indexSeguro + 1 >= playlist.length ? 0 : indexSeguro + 1;
+
+  const url = normalizarUrl(obterUrlPlaylist(item));
+  const tipo = detectarTipo(url, item.tipo);
+  const arquivo = obterNomeArquivo(item);
+  const agora = Date.now();
+  const duracao = obterDuracaoVirtualPreview(item, tipo);
+  const idMaterial = obterIdMaterialPreview(item);
+
+  if (previewNome) previewNome.textContent = arquivo;
+
+  previewMidia.classList.toggle("offline", offline);
+
+  const avisoOffline = offline
+    ? `<div class="preview-aviso-offline">Você está assistindo a playlist da TV offline.</div>`
+    : "";
+
+  const jaContado =
+    estadoSalvo.idMaterial === idMaterial &&
+    Number(estadoSalvo.expiraEm || 0) > agora;
+
+  salvarEstadoPreviewVirtual({
+    indice: indexSeguro,
+    idMaterial,
+    iniciouEm: jaContado ? estadoSalvo.iniciouEm : agora,
+    expiraEm: jaContado ? estadoSalvo.expiraEm : agora + duracao
+  });
+
+  if (!offline && !jaContado) {
+    registrarReproducaoVirtual(item);
+  }
+
+  if (!url) {
+    previewMidia.innerHTML = `
+      <div class="preview-vazio">Material sem URL disponível.</div>
+      ${avisoOffline}
+    `;
+  } else if (tipo === "imagem") {
+    previewMidia.innerHTML = `
+      <img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">
+      ${avisoOffline}
+    `;
+  } else if (tipo === "site") {
+    previewMidia.innerHTML = `
+      <iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen"></iframe>
+      ${avisoOffline}
+    `;
+  } else {
+    previewMidia.innerHTML = `
+      <video src="${escapeHtml(url)}" autoplay muted playsinline></video>
+      ${avisoOffline}
+    `;
+  }
+
+  if (offline) return;
+
+  timerPreviewPlaylist = setTimeout(() => {
+    renderizarPreview(playlist, proximoIndex, statusPonto);
+  }, duracao);
+}
 
   const indexSeguro = indice >= playlist.length ? 0 : indice;
   const item = playlist[indexSeguro];
