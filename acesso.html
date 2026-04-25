@@ -155,6 +155,42 @@
         <p id="subtituloCliente"></p>
       </section>
 
+      <section class="metricas-cliente" id="metricasCliente">
+  <article class="metrica-card">
+    <div class="metrica-topo">
+      <div class="metrica-icone play">▶</div>
+
+      <div>
+        <span class="metrica-label">Reproduções diárias</span>
+        <strong id="totalReproducoesCliente">0</strong>
+        <small>total de reproduções</small>
+      </div>
+
+      <span class="metrica-periodo">Últimos 7 dias</span>
+    </div>
+
+    <div class="grafico-barras" id="graficoReproducoesCliente"></div>
+  </article>
+
+  <article class="metrica-card">
+    <div class="metrica-topo">
+      <div class="metrica-icone qr">▦</div>
+
+      <div>
+        <span class="metrica-label">Escaneamentos QR Code</span>
+        <strong id="totalQrCodeCliente">0</strong>
+        <small>total de escaneamentos</small>
+      </div>
+
+      <span class="metrica-periodo">Últimos 7 dias</span>
+    </div>
+
+    <div class="grafico-linha">
+      <svg id="graficoQrCodeCliente" viewBox="0 0 700 190" preserveAspectRatio="none"></svg>
+    </div>
+  </article>
+</section>
+
       <section id="visibilidadeCliente" class="visibilidade-cliente" style="display:none;">
         <div class="visibilidade-topo">
           <div>
