@@ -558,12 +558,6 @@ function baixarHtmlContrato(html, nomeArquivo) {
 }
 
 async function gerarContratoClienteParaHistorico() {
-  if (supervisorEstaAtivo()) {
-    mostrarMensagem("Supervisor não usa envio de contrato.", "#ffb86b");
-    return;
-  }
-
-  try {
     const dados = obterDadosContratoCliente();
     const historico = lerHistoricoContratosGerados();
     const agoraIso = new Date().toISOString();
@@ -1303,11 +1297,39 @@ function limparNomeArquivo(nome) {
     .toLowerCase();
 }
 
-async function uploadArquivoCliente() {
-  if (supervisorEstaAtivo()) {
-    mostrarStatusUpload("Supervisor não envia arquivo por aqui.", "#ffb86b");
+function montarUrlContatoQrCodeCliente() {
+  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.value);
+
+  if (!codigo) return "";
+
+  return `${window.location.origin}/contato-qrcode.html?cliente=${encodeURIComponent(codigo)}`;
+}
+
+function baixarArquivoUrl(url, nomeArquivo) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function baixarQrCodeCliente() {
+  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.value);
+
+  if (!codigo) {
+    mostrarMensagem("Código do cliente não encontrado.", "#ff6b6b");
     return;
   }
+
+  const urlContato = montarUrlContatoQrCodeCliente();
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=900x900&margin=40&format=png&data=${encodeURIComponent(urlContato)}`;
+
+  baixarArquivoUrl(qrUrl, `qrcode-${codigo}.png`);
+  mostrarMensagem("QR Code gerado para download.", "#7CFC9A");
+}
+
+async function uploadArquivoCliente() {
 
   const file = arquivoInput?.files?.[0];
 
@@ -1495,6 +1517,7 @@ if (botaoExcluirCliente) botaoExcluirCliente.addEventListener("click", excluirCl
 if (botaoVoltar) botaoVoltar.addEventListener("click", () => { window.location.href = "/central-clientes.html"; });
 if (btnUploadCliente) btnUploadCliente.addEventListener("click", uploadArquivoCliente);
 if (btnBaixarContrato) btnBaixarContrato.addEventListener("click", gerarContratoClienteParaHistorico);
+if (btnBaixarQrCode) btnBaixarQrCode.addEventListener("click", baixarQrCodeCliente);
 
 async function iniciar() {
   try {
