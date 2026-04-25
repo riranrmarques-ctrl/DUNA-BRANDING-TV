@@ -240,7 +240,11 @@ function atualizarCamposCliente() {
     btnBaixarQrCode
   ].forEach((campo) => aplicarCampoDesativado(campo, false));
 
-  aplicarCampoDesativado(inputCodigo, true);
+  if (inputCodigo) {
+    inputCodigo.style.opacity = "1";
+    inputCodigo.style.cursor = "default";
+  }
+
   aplicarCampoDesativado(inputNome, false);
   aplicarCampoDesativado(botaoSalvar, false);
 
@@ -1235,8 +1239,6 @@ async function apagarVinculosCliente() {
 async function salvarCliente() {
   if (!validarDadosCliente()) return false;
 
-  const tipoAcesso = "cliente";
-  const tipoVinculo = "cliente";
   const statusReal = await calcularStatusClienteRealPorCodigoCliente();
   const statusBanco = statusReal === "Ativo" ? "ativo" : "inativo";
   const nomeCliente = inputNome.value.trim();
@@ -1248,12 +1250,10 @@ async function salvarCliente() {
     telefone: inputTelefone.value.trim(),
     email: inputEmail.value.trim(),
     cpf_cnpj: inputCpfCnpj.value.trim(),
-    vencimento_midia: inputVencimento.value || null,
     valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
-    data_postagem: inputDataPostagem.value || null,
     status: statusBanco,
     statuscliente: statusBanco,
-    tipo_acesso: tipoAcesso
+    tipo_acesso: "cliente"
   };
 
   try {
@@ -1273,22 +1273,7 @@ async function salvarCliente() {
       if (errorInsert) throw errorInsert;
     }
 
-    await apagarVinculosCliente();
-
-    const pontosSelecionados = obterPontosMarcados();
-
-    if (pontosSelecionados.length) {
-      const vinculos = pontosSelecionados.map((codigoPonto) => ({
-        cliente_codigo: codigoClienteAtual,
-        ponto_codigo: codigoPonto,
-        tipo_vinculo: tipoVinculo
-      }));
-
-      await inserirVinculosCliente(vinculos);
-    }
-
     atualizarStatusClienteVisual(statusReal);
-    await carregarHistoricoArquivos();
 
     gerarHistoricoContratoVisual();
     gerarContratoCliente();
