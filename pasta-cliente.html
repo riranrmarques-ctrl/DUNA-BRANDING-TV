@@ -335,7 +335,8 @@
       }
     }
   </style>
-</head>
+
+  </head>
 <body>
   <div class="container">
     <div class="topo">
@@ -435,8 +436,8 @@
                 color:#d5dbea;
                 font-size:0.9rem;
                 line-height:1.55;
-                max-height:520px;
-                min-height:430px;
+                max-height:360px;
+                min-height:280px;
                 overflow:auto;
                 padding:12px;
                 border:1px solid #2a3040;
@@ -452,13 +453,31 @@
           </div>
         </div>
 
+        <div class="campo" style="margin-top:18px;">
+          <div class="upload-box">
+            <strong>QR Code do cliente</strong>
+
+            <div class="upload-acoes">
+              <button id="btnBaixarQrCode" class="botao botao-salvar botao-upload-cheio" type="button">
+                Baixar QR Code
+              </button>
+
+              <div style="min-height:20px;font-size:0.92rem;color:#bfc7d5;">
+                Use este QR Code no material do cliente.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="campo" style="margin-top:28px;">
           <div class="upload-box">
             <strong>Espaço de upgrade de arquivo</strong>
 
             <div class="upload-acoes">
               <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
-              <button id="btnUploadCliente" class="botao botao-salvar botao-upload-cheio" type="button">Enviar</button>
+              <button id="btnUploadCliente" class="botao botao-salvar botao-upload-cheio" type="button">
+                Enviar
+              </button>
               <div id="statusUpload" class="status-upload"></div>
             </div>
           </div>
@@ -482,6 +501,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=701"></script>
+  <script src="pasta-cliente.js?v=702"></script>
 </body>
 </html>
