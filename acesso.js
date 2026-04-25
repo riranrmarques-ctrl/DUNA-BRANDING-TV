@@ -44,6 +44,7 @@ const previewMidia = document.getElementById("previewMidia");
 const listaMateriais = document.getElementById("listaMateriais");
 const historicoStatusPonto = document.getElementById("historicoStatusPonto");
 const nomeClienteTopo = document.getElementById("nomeClienteTopo");
+
 const totalReproducoesCliente = document.getElementById("totalReproducoesCliente");
 const totalQrCodeCliente = document.getElementById("totalQrCodeCliente");
 const graficoReproducoesCliente = document.getElementById("graficoReproducoesCliente");
@@ -227,6 +228,7 @@ function contratoEstaConcluido() {
   if (!contratoEstaDisponivel()) return false;
 
   const status = String(contratoAtualCliente.status || "").trim().toLowerCase();
+
   return Boolean(
     contratoAtualCliente.assinado_em ||
     status === "assinado" ||
@@ -395,9 +397,7 @@ function detectarTipo(url, tipoOriginal = "") {
 
   if (limpa.endsWith(".txt")) return "site";
 
-  if (limpa.match(/\.(mp4|mov|webm)$/)) {
-    return "video";
-  }
+  if (limpa.match(/\.(mp4|mov|webm)$/)) return "video";
 
   if (limpa.includes("youtube.com") || limpa.includes("youtu.be") || limpa.includes("http")) {
     return "site";
@@ -599,6 +599,23 @@ async function buscarReproducoesCliente(codigoCliente, dias) {
   return mesclarReproducoesVirtuais(normalizarSeriePorDia(dias, data || []));
 }
 
+function renderizarGraficoBarrasCliente(serie = []) {
+  if (!graficoReproducoesCliente) return;
+
+  const maior = Math.max(...serie.map((item) => item.total), 1);
+
+  graficoReproducoesCliente.innerHTML = serie.map((item) => {
+    const altura = Math.max((item.total / maior) * 100, item.total > 0 ? 8 : 4);
+
+    return `
+      <div class="barra-dia" title="${escapeHtml(`${item.rotulo}: ${item.total}`)}">
+        <div class="barra-coluna" style="--altura:${altura}%"></div>
+        <span>${escapeHtml(item.rotulo)}</span>
+      </div>
+    `;
+  }).join("");
+}
+
 function renderizarGraficoLinhaCliente(serie = []) {
   if (!graficoQrCodeCliente) return;
 
@@ -615,8 +632,13 @@ function renderizarGraficoLinhaCliente(serie = []) {
     return { ...item, x, y };
   });
 
+  if (!pontos.length) {
+    graficoQrCodeCliente.innerHTML = "";
+    return;
+  }
+
   const path = pontos.map((ponto, index) => `${index === 0 ? "M" : "L"} ${ponto.x} ${ponto.y}`).join(" ");
-  const area = `${path} L ${pontos[pontos.length - 1]?.x || margemX} ${altura - margemY} L ${margemX} ${altura - margemY} Z`;
+  const area = `${path} L ${pontos[pontos.length - 1].x} ${altura - margemY} L ${margemX} ${altura - margemY} Z`;
 
   graficoQrCodeCliente.innerHTML = `
     <path d="${area}" fill="rgba(124, 92, 255, 0.16)"></path>
@@ -954,6 +976,55 @@ function mesclarReproducoesVirtuais(serie = []) {
   }));
 }
 
+function calcularEstadoVirtualAtual(playlist, estadoSalvo) {
+  if (!playlist.length) {
+    return {
+      indice: 0,
+      restante: 0
+    };
+  }
+
+  const indiceSalvo = Number(estadoSalvo.indice || 0);
+  const iniciouEm = Number(estadoSalvo.iniciouEm || 0);
+  let indice = indiceSalvo >= playlist.length ? 0 : indiceSalvo;
+
+  if (!iniciouEm) {
+    const item = playlist[indice];
+    const url = normalizarUrl(obterUrlPlaylist(item));
+    const tipo = detectarTipo(url, item.tipo);
+    const duracao = obterDuracaoVirtualPreview(item, tipo);
+
+    return {
+      indice,
+      restante: duracao
+    };
+  }
+
+  let tempoPassado = Math.max(Date.now() - iniciouEm, 0);
+
+  while (tempoPassado >= 0) {
+    const item = playlist[indice];
+    const url = normalizarUrl(obterUrlPlaylist(item));
+    const tipo = detectarTipo(url, item.tipo);
+    const duracao = obterDuracaoVirtualPreview(item, tipo);
+
+    if (tempoPassado < duracao) {
+      return {
+        indice,
+        restante: duracao - tempoPassado
+      };
+    }
+
+    tempoPassado -= duracao;
+    indice = indice + 1 >= playlist.length ? 0 : indice + 1;
+  }
+
+  return {
+    indice,
+    restante: 8000
+  };
+}
+
 function renderizarPreview(lista, indice = null, statusPonto = null) {
   limparTimerPreview();
 
@@ -979,8 +1050,11 @@ function renderizarPreview(lista, indice = null, statusPonto = null) {
   }
 
   const estadoSalvo = lerEstadoPreviewVirtual();
-  const indiceBase = indice === null ? Number(estadoSalvo.indice || 0) : Number(indice || 0);
-  const indexSeguro = indiceBase >= playlist.length ? 0 : indiceBase;
+  const estadoVirtual = indice === null
+    ? calcularEstadoVirtualAtual(playlist, estadoSalvo)
+    : { indice: Number(indice || 0), restante: 0 };
+
+  const indexSeguro = estadoVirtual.indice >= playlist.length ? 0 : estadoVirtual.indice;
   const item = playlist[indexSeguro];
   const proximoIndex = indexSeguro + 1 >= playlist.length ? 0 : indexSeguro + 1;
 
@@ -989,6 +1063,7 @@ function renderizarPreview(lista, indice = null, statusPonto = null) {
   const arquivo = obterNomeArquivo(item);
   const agora = Date.now();
   const duracao = obterDuracaoVirtualPreview(item, tipo);
+  const restante = estadoVirtual.restante > 0 ? estadoVirtual.restante : duracao;
   const idMaterial = obterIdMaterialPreview(item);
 
   if (previewNome) previewNome.textContent = arquivo;
@@ -1006,8 +1081,8 @@ function renderizarPreview(lista, indice = null, statusPonto = null) {
   salvarEstadoPreviewVirtual({
     indice: indexSeguro,
     idMaterial,
-    iniciouEm: jaContado ? estadoSalvo.iniciouEm : agora,
-    expiraEm: jaContado ? estadoSalvo.expiraEm : agora + duracao
+    iniciouEm: jaContado ? Number(estadoSalvo.iniciouEm || agora) : agora,
+    expiraEm: jaContado ? Number(estadoSalvo.expiraEm || agora + restante) : agora + restante
   });
 
   if (!offline && !jaContado) {
@@ -1040,86 +1115,7 @@ function renderizarPreview(lista, indice = null, statusPonto = null) {
 
   timerPreviewPlaylist = setTimeout(() => {
     renderizarPreview(playlist, proximoIndex, statusPonto);
-  }, duracao);
-}
-
-  const indexSeguro = indice >= playlist.length ? 0 : indice;
-  const item = playlist[indexSeguro];
-  const proximoIndex = indexSeguro + 1 >= playlist.length ? 0 : indexSeguro + 1;
-
-  const url = normalizarUrl(obterUrlPlaylist(item));
-  const tipo = detectarTipo(url, item.tipo);
-  const arquivo = obterNomeArquivo(item);
-
-  if (previewNome) previewNome.textContent = arquivo;
-
-  previewMidia.classList.toggle("offline", offline);
-
-  const avisoOffline = offline
-    ? `<div class="preview-aviso-offline">Você está assistindo a playlist da TV offline.</div>`
-    : "";
-
-  if (!url) {
-    previewMidia.innerHTML = `
-      <div class="preview-vazio">Material sem URL disponível.</div>
-      ${avisoOffline}
-    `;
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 5000);
-
-    return;
-  }
-
-  if (tipo === "imagem") {
-    previewMidia.innerHTML = `
-      <img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">
-      ${avisoOffline}
-    `;
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 8000);
-
-    return;
-  }
-
-  if (tipo === "site") {
-    previewMidia.innerHTML = `
-      <iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen"></iframe>
-      ${avisoOffline}
-    `;
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 12000);
-
-    return;
-  }
-
-  previewMidia.innerHTML = `
-    <video src="${escapeHtml(url)}" autoplay muted playsinline></video>
-    ${avisoOffline}
-  `;
-
-  const video = previewMidia.querySelector("video");
-
-  if (video) {
-    video.onended = () => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    };
-
-    video.onerror = () => {
-      timerPreviewPlaylist = setTimeout(() => {
-        renderizarPreview(playlist, proximoIndex, statusPonto);
-      }, 3000);
-    };
-
-    timerPreviewPlaylist = setTimeout(() => {
-      renderizarPreview(playlist, proximoIndex, statusPonto);
-    }, 45000);
-  }
+  }, restante);
 }
 
 function renderizarMateriais(lista) {
@@ -1416,7 +1412,7 @@ async function abrirPonto(codigo) {
 
     const statusFinal = calcularStatusPonto(ponto, historico72h);
 
-    renderizarPreview(playlist, 0, statusFinal);
+    renderizarPreview(playlist, null, statusFinal);
     renderizarMateriais(materiaisCliente);
     renderizarHistorico(historico72h);
     renderizarListaPontos();
@@ -1425,7 +1421,7 @@ async function abrirPonto(codigo) {
   } catch (error) {
     console.error("Erro ao abrir ponto:", error);
 
-    renderizarPreview([], 0, statusAtual);
+    renderizarPreview([], null, statusAtual);
     renderizarMateriais([]);
     renderizarHistorico(historicoAtual);
 
@@ -1475,7 +1471,7 @@ async function carregarAreaCliente(codigo) {
 
     renderizarListaPontos();
     abrirAreaCliente();
- 
+
     await carregarMetricasCliente();
 
     if (pontosContratados.length) {
@@ -1486,10 +1482,10 @@ async function carregarAreaCliente(codigo) {
         estadoVazio.textContent = "Este cliente ainda não possui pontos contratados vinculados.";
       }
 
-    if (detalhePonto) {
-      detalhePonto.style.display = "none";
+      if (detalhePonto) {
+        detalhePonto.style.display = "none";
+      }
     }
-  }
 
     setMensagem("Área do cliente carregada.", "ok");
   } catch (error) {
