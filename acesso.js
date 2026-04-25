@@ -424,6 +424,28 @@ function obterNomeArquivo(item) {
   return "Sem nome";
 }
 
+function montarUrlContatoQrCode(codigoCliente) {
+  const codigo = normalizarCodigo(codigoCliente);
+  if (!codigo) return "";
+
+  return `${window.location.origin}/contato-qrcode.html?cliente=${encodeURIComponent(codigo)}`;
+}
+
+function montarQrOverlayMaterial(item) {
+  const codigoCliente = normalizarCodigo(item?.codigo_cliente);
+  if (!codigoCliente) return "";
+
+  const urlContato = montarUrlContatoQrCode(codigoCliente);
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(urlContato)}`;
+
+  return `
+    <div class="qr-material-overlay">
+      <img src="${escapeHtml(qrSrc)}" alt="QR Code de contato">
+      <span>Fale conosco</span>
+    </div>
+  `;
+}
+
 function filtrarMateriaisDoCliente(lista = []) {
   return (lista || [])
     .map((item, index) => ({
@@ -776,6 +798,7 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
   const url = normalizarUrl(obterUrlPlaylist(item));
   const tipo = detectarTipo(url, item.tipo);
   const arquivo = obterNomeArquivo(item);
+  const qrOverlay = montarQrOverlayMaterial(item);
 
   if (previewNome) previewNome.textContent = arquivo;
 
@@ -787,7 +810,8 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
 
   if (!url) {
     previewMidia.innerHTML = `
-      <div class="preview-vazio">Material sem URL disponível.</div>
+      <img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">
+      ${qrOverlay}
       ${avisoOffline}
     `;
 
@@ -801,6 +825,7 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
   if (tipo === "imagem") {
     previewMidia.innerHTML = `
       <img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}">
+      ${qrOverlay}
       ${avisoOffline}
     `;
 
@@ -814,6 +839,7 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
   if (tipo === "site") {
     previewMidia.innerHTML = `
       <iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen"></iframe>
+      ${qrOverlay}
       ${avisoOffline}
     `;
 
@@ -826,6 +852,7 @@ function renderizarPreview(lista, indice = 0, statusPonto = null) {
 
   previewMidia.innerHTML = `
     <video src="${escapeHtml(url)}" autoplay muted playsinline></video>
+    ${qrOverlay}
     ${avisoOffline}
   `;
 
