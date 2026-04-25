@@ -18,8 +18,7 @@ function montarLinkWhatsapp(telefone, nomeCliente) {
 
   const numeroFinal = numeroLimpo.startsWith("55") ? numeroLimpo : `55${numeroLimpo}`;
 
-  const mensagem = encodeURIComponent(
-    `Olá, vim pelo QR Code da Duna Branding e gostaria de mais informações sobre ${nomeCliente || "o anúncio"}.`
+  const mensagem = encodeURIComponent("Olá, vim pelo QR Code da Branding 💙✨");
   );
 
   return `https://wa.me/${numeroFinal}?text=${mensagem}`;
