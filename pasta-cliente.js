@@ -365,7 +365,7 @@ function preencherMarcadoresContrato(texto, dados) {
 
 function obterDadosContratoCliente() {
   return {
-    codigo: inputCodigo?.value || codigoClienteAtual || "-",
+    codigo: codigoClienteAtual || inputCodigo?.textContent || "-",
     nome: inputNome?.value?.trim() || "-",
     telefone: inputTelefone?.value?.trim() || "-",
     email: inputEmail?.value?.trim() || "-",
@@ -377,6 +377,7 @@ function obterDadosContratoCliente() {
     emissao: new Date().toLocaleDateString("pt-BR")
   };
 }
+
 
 function gerarContratoCliente() {
   if (!contratoPreview || !contratoStatus) return;
@@ -559,6 +560,8 @@ function baixarHtmlContrato(html, nomeArquivo) {
 
 async function gerarContratoClienteParaHistorico() {
   try {
+    if (!validarDadosParaMaterialOuContrato()) return;
+    
     const dados = obterDadosContratoCliente();
     const historico = lerHistoricoContratosGerados();
     const agoraIso = new Date().toISOString();
@@ -1069,9 +1072,10 @@ async function sincronizarStatusCliente() {
   if (error) console.error(error);
 }
 
-function validarCamposCliente() {
+function validarDadosCliente() {
   let valido = true;
-  const camposObrigatorios = [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento];
+
+  const camposObrigatorios = [inputNome, inputTelefone, inputEmail, inputCpfCnpj];
 
   [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento].forEach(limparErro);
 
@@ -1084,13 +1088,33 @@ function validarCamposCliente() {
     }
   });
 
-  if (!obterPontosMarcados().length) {
-    mostrarMensagem("Selecione ao menos um ponto.", "#ff6b6b");
+  if (!valido) {
+    mostrarMensagem("Preencha os dados obrigatórios do cliente.", "#ff6b6b");
     return false;
   }
 
+  return true;
+}
+
+function validarDadosParaMaterialOuContrato() {
+  if (!validarDadosCliente()) return false;
+
+  let valido = true;
+
+  if (!String(inputVencimento?.value || "").trim()) {
+    marcarErro(inputVencimento);
+    valido = false;
+  } else {
+    limparErro(inputVencimento);
+  }
+
+  if (!obterPontosMarcados().length) {
+    mostrarMensagem("Selecione ao menos um ponto.", "#ff6b6b");
+    valido = false;
+  }
+
   if (!valido) {
-    mostrarMensagem("Preencha os campos obrigatórios.", "#ff6b6b");
+    mostrarMensagem("Selecione os pontos e informe o vencimento da mídia.", "#ff6b6b");
     return false;
   }
 
@@ -1109,7 +1133,7 @@ async function carregarCliente() {
     throw error;
   }
 
-  if (inputCodigo) inputCodigo.value = codigoClienteAtual;
+  if (inputCodigo) inputCodigo.textContent = codigoClienteAtual;
 
   clienteAtual = data || null;
 
@@ -1209,7 +1233,7 @@ async function apagarVinculosCliente() {
 }
 
 async function salvarCliente() {
-  if (!validarCamposCliente()) return false;
+  if (!validarDadosCliente()) return false;
 
   const tipoAcesso = "cliente";
   const tipoVinculo = "cliente";
@@ -1299,7 +1323,7 @@ function limparNomeArquivo(nome) {
 }
 
 function montarUrlContatoQrCodeCliente() {
-  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.value);
+  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.textContent);
 
   if (!codigo) return "";
 
@@ -1316,7 +1340,7 @@ function baixarArquivoUrl(url, nomeArquivo) {
 }
 
 async function baixarQrCodeCliente() {
-  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.value);
+  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.textContent);
 
   if (!codigo) {
     mostrarMensagem("Código do cliente não encontrado.", "#ff6b6b");
@@ -1363,7 +1387,7 @@ async function uploadArquivoCliente() {
     return;
   }
 
-  if (!validarCamposCliente()) return;
+  if (!validarDadosParaMaterialOuContrato()) return;
 
   try {
     mostrarStatusUpload("Salvando cliente...", "#9fd2ff");
@@ -1541,12 +1565,12 @@ async function iniciar() {
     codigoClienteAtual = obterCodigoDaUrl();
 
     if (!codigoClienteAtual) {
-      if (inputCodigo) inputCodigo.value = "";
+      if (inputCodigo) inputCodigo.textContent = "";
       mostrarMensagem("Código do cliente não encontrado na URL.", "#ff6b6b");
       return;
     }
 
-    if (inputCodigo) inputCodigo.value = codigoClienteAtual;
+    if (inputCodigo) inputCodigo.textContent = codigoClienteAtual;
 
     mostrarMensagem(`Carregando cliente ${codigoClienteAtual}...`, "#9fd2ff");
 
