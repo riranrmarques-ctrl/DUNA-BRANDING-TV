@@ -40,7 +40,7 @@
       margin-bottom: 24px;
     }
 
-    .titulo-supervisor {
+    .titulo-cliente {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -56,32 +56,6 @@
     .topo p {
       color: #bfc7d5;
       line-height: 1.5;
-    }
-
-    .botao-supervisor {
-      width: fit-content;
-      min-width: 96px;
-      height: 30px;
-      border: 1px solid rgba(245, 158, 11, 0.75);
-      border-radius: 999px;
-      padding: 0 12px;
-      background: rgba(245, 158, 11, 0.16);
-      color: #fbbf24;
-      font-size: 0.72rem;
-      font-weight: 800;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .botao-supervisor.ativo {
-      background: #f59e0b;
-      border-color: #f59e0b;
-      color: #111827;
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
-    }
-
-    .botao-supervisor:hover {
-      transform: translateY(-1px);
     }
 
     .acoes-topo {
@@ -149,7 +123,42 @@
 
     .box h2 {
       font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .box-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
       margin-bottom: 16px;
+    }
+
+    .meta-cliente {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .meta-badge,
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      border: 1px solid #313847;
+      border-radius: 999px;
+      background: #0f1115;
+      padding: 8px 12px;
+      color: #c6cedd;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .meta-badge span {
+      margin-left: 6px;
+      color: #ffffff;
     }
 
     .campo {
@@ -175,33 +184,10 @@
       font-size: 1rem;
     }
 
-    .campo input[readonly] {
-      opacity: 0.9;
-      cursor: not-allowed;
-    }
-
     .linha-dupla {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
-    }
-
-    .linha-tripla {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 14px;
-    }
-
-    .status-badge {
-      display: flex;
-      align-items: center;
-      min-height: 46px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid #313847;
-      background: #0f1115;
-      color: #ffffff;
-      font-size: 1rem;
     }
 
     .upload-box,
@@ -290,14 +276,7 @@
       min-height: 120px;
     }
 
-    .historico-vazio {
-      color: #c6cedd;
-      background: #10131a;
-      border: 1px solid #2a3040;
-      border-radius: 12px;
-      padding: 16px;
-    }
-
+    .historico-vazio,
     .vazio {
       color: #c6cedd;
       background: #10131a;
@@ -313,8 +292,7 @@
     @media (max-width: 900px) {
       .grid,
       .grid-historicos,
-      .linha-dupla,
-      .linha-tripla {
+      .linha-dupla {
         grid-template-columns: 1fr;
       }
     }
@@ -335,16 +313,14 @@
       }
     }
   </style>
+</head>
 
-  </head>
 <body>
   <div class="container">
     <div class="topo">
       <div>
-        <div class="titulo-supervisor">
+        <div class="titulo-cliente">
           <h1>Pasta do Cliente</h1>
-          <button id="btnSupervisor" class="botao-supervisor" type="button">Supervisor</button>
-          <input id="tipoAcessoCliente" type="hidden" value="cliente">
         </div>
 
         <p>Edite os dados do cliente e escolha os pontos de exibição.</p>
@@ -361,34 +337,16 @@
 
     <div class="grid">
       <div class="box">
-        <h2>Dados do cliente</h2>
+        <div class="box-topo">
+          <h2>Dados do cliente</h2>
 
-        <div class="linha-tripla">
-          <div class="campo">
-            <label for="codigo">Código</label>
-            <input id="codigo" type="text" readonly>
-          </div>
+          <div class="meta-cliente">
+            <div class="meta-badge">
+              Código:
+              <span id="codigo">-</span>
+            </div>
 
-          <div class="campo">
-            <label for="statusCliente">Status do cliente</label>
             <div id="statusCliente" class="status-badge">Não ativo</div>
-          </div>
-
-          <div class="campo">
-            <label for="dataPostagem">Data de postagem</label>
-            <input type="date" id="dataPostagem">
-          </div>
-        </div>
-
-        <div class="linha-dupla">
-          <div class="campo">
-            <label for="valorContratado">Valor contratado</label>
-            <input id="valorContratado" type="text" placeholder="R$ 0,00" inputmode="numeric">
-          </div>
-
-          <div class="campo">
-            <label for="vencimentoExibicao">Vencimento da mídia</label>
-            <input type="date" id="vencimentoExibicao" required>
           </div>
         </div>
 
@@ -414,6 +372,11 @@
             <label for="cpfCnpj">CPF / CNPJ</label>
             <input id="cpfCnpj" type="text" placeholder="CPF ou CNPJ" required>
           </div>
+        </div>
+
+        <div class="campo">
+          <label for="valorContratado">Valor contratado</label>
+          <input id="valorContratado" type="text" placeholder="R$ 0,00" inputmode="numeric">
         </div>
 
         <div class="campo">
@@ -473,11 +436,25 @@
           <div class="upload-box">
             <strong>Espaço de upgrade de arquivo</strong>
 
+            <div class="linha-dupla" style="margin-bottom:14px;">
+              <div class="campo" style="margin-bottom:0;">
+                <label for="dataPostagem">Data de postagem</label>
+                <input type="date" id="dataPostagem">
+              </div>
+
+              <div class="campo" style="margin-bottom:0;">
+                <label for="vencimentoExibicao">Vencimento da mídia</label>
+                <input type="date" id="vencimentoExibicao">
+              </div>
+            </div>
+
             <div class="upload-acoes">
               <input type="file" id="arquivoInput" accept=".mp4,.jpg,.jpeg,.png,.webp,.txt">
+
               <button id="btnUploadCliente" class="botao botao-salvar botao-upload-cheio" type="button">
                 Enviar
               </button>
+
               <div id="statusUpload" class="status-upload"></div>
             </div>
           </div>
@@ -487,20 +464,20 @@
 
     <div class="grid-historicos">
       <div class="box">
-        <h2>Histórico de contrato</h2>
+        <h2 style="margin-bottom:16px;">Histórico de contrato</h2>
         <div id="historicoContratos" class="historico-lista">
           <div class="historico-vazio">Nenhum contrato gerado ainda.</div>
         </div>
       </div>
 
       <div class="box">
-        <h2>Histórico de arquivo</h2>
+        <h2 style="margin-bottom:16px;">Histórico de arquivo</h2>
         <div id="historicoArquivos" class="historico-lista"></div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="pasta-cliente.js?v=702"></script>
+  <script src="pasta-cliente.js?v=703"></script>
 </body>
 </html>
