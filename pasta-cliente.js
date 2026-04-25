@@ -1315,7 +1315,7 @@ function baixarArquivoUrl(url, nomeArquivo) {
   document.body.removeChild(link);
 }
 
-function baixarQrCodeCliente() {
+async function baixarQrCodeCliente() {
   const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.value);
 
   if (!codigo) {
@@ -1323,11 +1323,27 @@ function baixarQrCodeCliente() {
     return;
   }
 
-  const urlContato = montarUrlContatoQrCodeCliente();
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=900x900&margin=40&format=png&data=${encodeURIComponent(urlContato)}`;
+  try {
+    mostrarMensagem("Gerando QR Code...", "#9fd2ff");
 
-  baixarArquivoUrl(qrUrl, `qrcode-${codigo}.png`);
-  mostrarMensagem("QR Code gerado para download.", "#7CFC9A");
+    const urlContato = montarUrlContatoQrCodeCliente();
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=900x900&margin=40&format=png&data=${encodeURIComponent(urlContato)}`;
+
+    const resposta = await fetch(qrUrl);
+    if (!resposta.ok) throw new Error("Não foi possível gerar o QR Code.");
+
+    const blob = await resposta.blob();
+    const urlBlob = URL.createObjectURL(blob);
+
+    baixarArquivoUrl(urlBlob, `qrcode-${codigo}.png`);
+
+    setTimeout(() => URL.revokeObjectURL(urlBlob), 1000);
+
+    mostrarMensagem("QR Code baixado com sucesso.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem(`Erro ao baixar QR Code: ${error.message || "falha desconhecida"}`, "#ff6b6b");
+  }
 }
 
 async function uploadArquivoCliente() {
