@@ -7,6 +7,8 @@ const TABELA_PONTOS = "pontos";
 const TABELA_PLAYLIST = "playlists";
 const TABELA_HISTORICO = "statuspontos";
 const TABELA_CONTRATOS_CLIENTES = "contratos_clientes";
+const TABELA_QRCODE_CONTADORES = "qrcode_contadores";
+const TABELA_REPRODUCOES_CLIENTES = "reproducoes_diarias";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -42,6 +44,10 @@ const previewMidia = document.getElementById("previewMidia");
 const listaMateriais = document.getElementById("listaMateriais");
 const historicoStatusPonto = document.getElementById("historicoStatusPonto");
 const nomeClienteTopo = document.getElementById("nomeClienteTopo");
+const totalReproducoesCliente = document.getElementById("totalReproducoesCliente");
+const totalQrCodeCliente = document.getElementById("totalQrCodeCliente");
+const graficoReproducoesCliente = document.getElementById("graficoReproducoesCliente");
+const graficoQrCodeCliente = document.getElementById("graficoQrCodeCliente");
 
 let codigoClienteAtual = "";
 let clienteAtual = null;
@@ -519,6 +525,145 @@ function iniciarAtualizacaoEmTempoReal() {
       }
     )
     .subscribe();
+}
+
+function obterUltimosDiasGrafico(total = 7) {
+  return Array.from({ length: total }).map((_, index) => {
+    const data = new Date();
+    data.setDate(data.getDate() - (total - 1 - index));
+
+    return {
+      iso: data.toISOString().split("T")[0],
+      rotulo: data.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit"
+      })
+    };
+  });
+}
+
+function formatarNumeroMetrica(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR");
+}
+
+function normalizarSeriePorDia(dias, dados = []) {
+  const mapa = new Map();
+
+  (dados || []).forEach((item) => {
+    const data = String(item.data || item.dia || "").split("T")[0];
+    const total = Number(item.total || item.quantidade || item.reproducoes || 0);
+    mapa.set(data, (mapa.get(data) || 0) + total);
+  });
+
+  return dias.map((dia) => ({
+    ...dia,
+    total: mapa.get(dia.iso) || 0
+  }));
+}
+
+async function buscarQrCodeCliente(codigoCliente, dias) {
+  const inicio = dias[0]?.iso;
+  const fim = dias[dias.length - 1]?.iso;
+
+  const { data, error } = await supabaseClient
+    .from(TABELA_QRCODE_CONTADORES)
+    .select("data,total")
+    .eq("codigo_cliente", codigoCliente)
+    .gte("data", inicio)
+    .lte("data", fim);
+
+  if (error) {
+    console.warn("Erro ao buscar QR Code:", error);
+    return normalizarSeriePorDia(dias, []);
+  }
+
+  return normalizarSeriePorDia(dias, data || []);
+}
+
+async function buscarReproducoesCliente(codigoCliente, dias) {
+  const inicio = dias[0]?.iso;
+  const fim = dias[dias.length - 1]?.iso;
+
+  const { data, error } = await supabaseClient
+    .from(TABELA_REPRODUCOES_CLIENTES)
+    .select("data,total")
+    .eq("codigo_cliente", codigoCliente)
+    .gte("data", inicio)
+    .lte("data", fim);
+
+  if (error) {
+    console.warn("Erro ao buscar reproduções:", error);
+    return normalizarSeriePorDia(dias, []);
+  }
+
+  return normalizarSeriePorDia(dias, data || []);
+}
+
+function renderizarGraficoBarrasCliente(serie = []) {
+  if (!graficoReproducoesCliente) return;
+
+  const maior = Math.max(...serie.map((item) => item.total), 1);
+
+  graficoReproducoesCliente.innerHTML = serie.map((item) => {
+    const altura = Math.max((item.total / maior) * 100, item.total > 0 ? 8 : 4);
+
+    return `
+      <div class="barra-dia" title="${escapeHtml(`${item.rotulo}: ${item.total}`)}">
+        <div class="barra-coluna" style="--altura:${altura}%"></div>
+        <span>${escapeHtml(item.rotulo)}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderizarGraficoLinhaCliente(serie = []) {
+  if (!graficoQrCodeCliente) return;
+
+  const largura = 700;
+  const altura = 190;
+  const margemX = 28;
+  const margemY = 24;
+  const maior = Math.max(...serie.map((item) => item.total), 1);
+  const passoX = (largura - margemX * 2) / Math.max(serie.length - 1, 1);
+
+  const pontos = serie.map((item, index) => {
+    const x = margemX + index * passoX;
+    const y = altura - margemY - ((item.total / maior) * (altura - margemY * 2));
+    return { ...item, x, y };
+  });
+
+  const path = pontos.map((ponto, index) => `${index === 0 ? "M" : "L"} ${ponto.x} ${ponto.y}`).join(" ");
+  const area = `${path} L ${pontos[pontos.length - 1]?.x || margemX} ${altura - margemY} L ${margemX} ${altura - margemY} Z`;
+
+  graficoQrCodeCliente.innerHTML = `
+    <path d="${area}" fill="rgba(124, 92, 255, 0.16)"></path>
+    <path d="${path}" fill="none" stroke="#7c5cff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+
+    ${pontos.map((ponto) => `
+      <circle cx="${ponto.x}" cy="${ponto.y}" r="5" fill="#10131a" stroke="#7c5cff" stroke-width="4"></circle>
+      <text x="${ponto.x}" y="${altura - 4}" text-anchor="middle" fill="#cbd5e1" font-size="13" font-weight="700">${escapeHtml(ponto.rotulo)}</text>
+    `).join("")}
+  `;
+}
+
+async function carregarMetricasCliente() {
+  if (!codigoClienteAtual) return;
+
+  const dias = obterUltimosDiasGrafico(7);
+
+  const [serieReproducoes, serieQrCode] = await Promise.all([
+    buscarReproducoesCliente(codigoClienteAtual, dias),
+    buscarQrCodeCliente(codigoClienteAtual, dias)
+  ]);
+
+  const totalReproducoes = serieReproducoes.reduce((total, item) => total + item.total, 0);
+  const totalQrCode = serieQrCode.reduce((total, item) => total + item.total, 0);
+
+  if (totalReproducoesCliente) totalReproducoesCliente.textContent = formatarNumeroMetrica(totalReproducoes);
+  if (totalQrCodeCliente) totalQrCodeCliente.textContent = formatarNumeroMetrica(totalQrCode);
+
+  renderizarGraficoBarrasCliente(serieReproducoes);
+  renderizarGraficoLinhaCliente(serieQrCode);
 }
 
 function abrirAreaCliente() {
@@ -1201,6 +1346,8 @@ async function carregarAreaCliente(codigo) {
 
     renderizarListaPontos();
     abrirAreaCliente();
+ 
+    await carregarMetricasCliente();
 
     if (pontosContratados.length) {
       await abrirPonto(pontosContratados[0].codigo);
@@ -1210,10 +1357,10 @@ async function carregarAreaCliente(codigo) {
         estadoVazio.textContent = "Este cliente ainda não possui pontos contratados vinculados.";
       }
 
-      if (detalhePonto) {
-        detalhePonto.style.display = "none";
-      }
+    if (detalhePonto) {
+      detalhePonto.style.display = "none";
     }
+  }
 
     setMensagem("Área do cliente carregada.", "ok");
   } catch (error) {
