@@ -10,6 +10,8 @@ const TABELA_CONTRATOS_CLIENTES = "contratos_clientes";
 const TABELA_QRCODE_CONTADORES = "qrcode_contadores";
 const TABELA_REPRODUCOES_CLIENTES = "reproducoes_diarias";
 
+const JANELA_REPRODUCOES_VIRTUAIS_HORAS = 1;
+
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const loginScreen = document.getElementById("loginScreen");
