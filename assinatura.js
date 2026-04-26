@@ -37,8 +37,12 @@ function setMensagem(texto, tipo = "normal") {
 
   if (!mensagemAssinatura) return;
 
-  mensagemAssinatura.textContent = "";
+  mensagemAssinatura.textContent = texto || "";
   mensagemAssinatura.classList.remove("ok", "erro");
+
+  if (tipo === "ok" || tipo === "erro") {
+    mensagemAssinatura.classList.add(tipo);
+  }
 }
 
 function mostrarLoading() {
@@ -120,15 +124,6 @@ function contratoEstaConcluido(cliente) {
   );
 }
 
-function formatarDataHora(valor) {
-  if (!valor) return "-";
-
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return "-";
-
-  return data.toLocaleString("pt-BR");
-}
-
 function aplicarTituloVisual(concluido) {
   document.body.classList.toggle("contrato-pendente", !concluido);
   document.body.classList.toggle("contrato-assinado", concluido);
@@ -149,7 +144,7 @@ function atualizarBotaoConclusaoPorLeitura() {
 
   if (concluido) {
     btnConcluirDesenho.disabled = true;
-    btnConcluirDesenho.textContent = "Concluir com assinatura";
+    btnConcluirDesenho.textContent = "Contrato concluído";
     btnConcluirDesenho.classList.remove("leitura-pendente");
     return;
   }
@@ -174,13 +169,7 @@ function verificarLeituraContrato() {
     documento.documentElement.scrollHeight || 0
   );
 
-  if (alturaTotal <= alturaVisivel + 24) {
-    contratoFoiLidoAteOFim = true;
-    atualizarBotaoConclusaoPorLeitura();
-    return;
-  }
-
-  if (scrollTop + alturaVisivel >= alturaTotal - 24) {
+  if (alturaTotal <= alturaVisivel + 24 || scrollTop + alturaVisivel >= alturaTotal - 24) {
     contratoFoiLidoAteOFim = true;
     atualizarBotaoConclusaoPorLeitura();
   }
@@ -224,9 +213,13 @@ function atualizarEstadoVisual() {
 
   if (btnBaixarContrato) {
     btnBaixarContrato.disabled = !contratoFinalHtml && !contratoAtualHtml;
-    btnBaixarContrato.textContent = "Baixar contrato";
+    btnBaixarContrato.textContent = concluido ? "Baixar contrato assinado" : "Baixar contrato";
     btnBaixarContrato.classList.toggle("concluido", concluido);
     btnBaixarContrato.classList.toggle("pendente", !concluido);
+  }
+
+  if (btnBaixarContratoConcluido) {
+    btnBaixarContratoConcluido.disabled = !concluido || (!contratoFinalHtml && !contratoAtualHtml);
   }
 
   if (btnConcluirFotos) {
@@ -454,6 +447,13 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
   const assinadoEm = new Date().toISOString();
   let data = null;
 
+  const payloadCliente = {
+    contrato_status: "concluido",
+    contrato_texto: contratoFinalHtml,
+    contrato_assinado_html: contratoFinalHtml,
+    contrato_assinado_em: assinadoEm
+  };
+
   if (contratoOrigem === TABELA_CONTRATOS_CLIENTES && contratoAtualRegistro?.id) {
     const payloadContrato = {
       status: "concluido",
@@ -461,47 +461,55 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
       html_final: contratoFinalHtml
     };
 
-
-    const resposta = await supabaseClient
+    const respostaContrato = await supabaseClient
       .from(TABELA_CONTRATOS_CLIENTES)
       .update(payloadContrato)
       .eq("id", contratoAtualRegistro.id)
       .select("*")
       .maybeSingle();
 
-    if (resposta.error) throw resposta.error;
+    if (respostaContrato.error) throw respostaContrato.error;
 
-    data = normalizarContratoDaTabela(resposta.data || { ...contratoAtualRegistro, ...payloadContrato }, clienteAtual);
-  } else {
-    const payloadCliente = {
-      contrato_status: "concluido",
-      contrato_texto: contratoFinalHtml,
-      contrato_assinado_html: contratoFinalHtml,
-      contrato_assinado_em: assinadoEm
-   };
-
-    const resposta = await supabaseClient
+    const respostaCliente = await supabaseClient
       .from(TABELA_CLIENTES)
       .update(payloadCliente)
       .eq("codigo", codigoAtual)
       .select("*")
       .maybeSingle();
 
-    if (resposta.error) throw resposta.error;
+    if (respostaCliente.error) throw respostaCliente.error;
 
-    data = {
-      ...(resposta.data || clienteAtual),
-      contrato_status: "concluido",
-      contrato_html: contratoFinalHtml,
-      contrato_assinado_html: contratoFinalHtml,
-      contrato_assinado_em: assinadoEm
-    };
+    data = normalizarContratoDaTabela(
+      respostaContrato.data || { ...contratoAtualRegistro, ...payloadContrato },
+      respostaCliente.data || clienteAtual
+    );
+  } else {
+    const respostaCliente = await supabaseClient
+      .from(TABELA_CLIENTES)
+      .update(payloadCliente)
+      .eq("codigo", codigoAtual)
+      .select("*")
+      .maybeSingle();
+
+    if (respostaCliente.error) throw respostaCliente.error;
+
+    data = normalizarContratoDoCliente(respostaCliente.data || {
+      ...(clienteAtual || {}),
+      ...payloadCliente
+    });
   }
 
-  clienteAtual = data || clienteAtual;
+  clienteAtual = data || {
+    ...(clienteAtual || {}),
+    ...payloadCliente,
+    contrato_html: contratoFinalHtml
+  };
 
+  contratoAtualHtml = contratoFinalHtml;
   renderizarPreview(contratoFinalHtml);
   atualizarEstadoVisual();
+
+  setMensagem("Contrato concluído com sucesso.", "ok");
 }
 
 function obterPontoCanvas(event) {
@@ -649,15 +657,19 @@ function normalizarContratoDaTabela(contrato, cliente = {}) {
 }
 
 function normalizarContratoDoCliente(cliente) {
-  const html = cliente?.contrato_texto || cliente?.contrato_html || "";
+  const html =
+    cliente?.contrato_assinado_html ||
+    cliente?.contrato_texto ||
+    cliente?.contrato_html ||
+    "";
 
   if (!html) return null;
 
   return {
     ...cliente,
-    contrato_html: html,
-    contrato_assinado_html: "",
-    contrato_assinado_em: "",
+    contrato_html: cliente.contrato_texto || cliente.contrato_html || html,
+    contrato_assinado_html: cliente.contrato_assinado_html || "",
+    contrato_assinado_em: cliente.contrato_assinado_em || "",
     contrato_nome_arquivo: `contrato-${normalizarCodigo(cliente.codigo || codigoAtual)}.html`,
     contrato_status: cliente.contrato_status || "pendente"
   };
@@ -707,6 +719,7 @@ async function buscarContratoCliente(codigo, contratoId = "") {
 async function buscarDadosAssinatura(codigo) {
   const params = new URLSearchParams(window.location.search);
   const contratoId = String(params.get("contrato") || "").trim();
+
   const [cliente, contrato] = await Promise.all([
     buscarCliente(codigo),
     buscarContratoCliente(codigo, contratoId)
