@@ -225,6 +225,11 @@ function renderizarPontos(pontos) {
     lista.innerHTML += `
       <article class="point-card ${classeStatus(status)}" data-codigo="${escaparHtml(ponto.codigo_final)}" title="${escaparHtml(nome)}">
         <img src="${escaparHtml(imagem)}" alt="${escaparHtml(nome)}">
+
+        <div class="point-overlay">
+          <strong>${escaparHtml(nome)}</strong>
+          <span class="${classeStatus(status)}">● ${textoStatus(status)}</span>
+        </div>
       </article>
     `;
   });
