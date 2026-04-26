@@ -1802,25 +1802,19 @@ body.modo-detalhe .topo-esquerda {
   grid-column: 1 / -1;
 }
 
+/* Grade principal do modal */
 .modal-grid-edicao {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) 420px !important;
   gap: 18px !important;
 }
 
-/* Período à esquerda + parceria em cima + contrato pequeno ao lado */
-
-.modal-grid-edicao {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) 420px !important;
-  gap: 18px !important;
-}
-
+/* Período à esquerda */
 .modal-secao-contrato {
   grid-column: 1 / 2 !important;
   grid-row: 1 !important;
   display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-columns: 1fr !important;
   gap: 14px !important;
   align-content: start !important;
 }
@@ -1835,6 +1829,27 @@ body.modo-detalhe .topo-esquerda {
   gap: 14px !important;
 }
 
+/* Contrato à direita: parceria em cima, botão pequeno embaixo */
+.modal-secao-download {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+  align-content: start !important;
+}
+
+.modal-secao-download h4 {
+  margin: 0 !important;
+  font-size: 1.05rem !important;
+}
+
+.contrato-download-layout {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+}
+
 .contrato-parceria {
   display: grid !important;
   grid-template-columns: 1fr !important;
@@ -1843,41 +1858,59 @@ body.modo-detalhe .topo-esquerda {
 
 .parceria-titulo {
   color: #ffffff !important;
-  font-size: 13px !important;
+  font-size: 0.95rem !important;
   font-weight: 900 !important;
 }
 
 .parceria-opcoes {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
-  gap: 12px !important;
+  gap: 10px !important;
+}
+
+.parceria-opcoes label {
+  min-height: 44px !important;
+  padding: 9px 12px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+}
+
+.parceria-opcoes input {
+  width: 18px !important;
+  height: 18px !important;
+  accent-color: var(--primary);
+}
+
+.parceria-opcoes span {
+  color: #ffffff !important;
+  font-weight: 900 !important;
 }
 
 #editValorContrato {
   width: 100% !important;
-}
-
-.modal-secao-download {
-  grid-column: 2 / 3 !important;
-  grid-row: 1 !important;
-  display: grid !important;
-  align-content: start !important;
-  gap: 14px !important;
+  min-height: 46px !important;
 }
 
 .btn-baixar-contrato {
-  width: 220px !important;
-  min-height: 54px !important;
-  height: 54px !important;
+  width: 180px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  justify-self: start !important;
   border: none !important;
   border-radius: 12px !important;
   background: #ffffff !important;
   color: #111827 !important;
-  font-size: 0.95rem !important;
+  font-size: 0.9rem !important;
   font-weight: 900 !important;
   cursor: pointer !important;
   line-height: 1 !important;
-  padding: 0 18px !important;
+  padding: 0 14px !important;
+  white-space: nowrap !important;
 }
 
 /* Responsável: nome + cpf, telefone + email */
@@ -2028,113 +2061,8 @@ body.modo-detalhe .topo-esquerda {
   .edit-botoes {
     flex-direction: column;
   }
-}
-
-.modal-secao-download {
-  grid-column: 2 / 3 !important;
-  grid-row: 1 !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto !important;
-  grid-template-areas:
-    "titulo titulo"
-    "parceria botao" !important;
-  align-items: start !important;
-  gap: 16px 18px !important;
-}
-
-.modal-secao-download h4 {
-  grid-area: titulo !important;
-  margin: 0 !important;
-  font-size: 1.05rem !important;
-}
-
-.modal-secao-download .contrato-parceria {
-  grid-area: parceria !important;
-  display: grid !important;
-  gap: 12px !important;
-  min-width: 0 !important;
-}
-
-.parceria-titulo {
-  color: #ffffff !important;
-  font-size: 0.95rem !important;
-  font-weight: 900 !important;
-}
-
-.parceria-opcoes {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(86px, 1fr)) !important;
-  gap: 10px !important;
-}
-
-.parceria-opcoes label {
-  min-height: 44px !important;
-  padding: 9px 12px !important;
-  border-radius: 12px !important;
-}
-
-#editValorContrato {
-  width: 100% !important;
-  max-width: 280px !important;
-  min-height: 46px !important;
-}
-
-.btn-baixar-contrato {
-  grid-area: botao !important;
-  width: 170px !important;
-  height: 46px !important;
-  min-height: 46px !important;
-  align-self: end !important;
-  justify-self: end !important;
-  border-radius: 12px !important;
-  padding: 0 16px !important;
-  font-size: 0.9rem !important;
-  white-space: nowrap !important;
-}
-
-.contrato-download-layout {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 170px;
-  gap: 16px;
-  align-items: end;
-}
-
-.modal-secao-download .contrato-parceria {
-  display: grid !important;
-  gap: 12px !important;
-  min-width: 0 !important;
-}
-
-.modal-secao-download .parceria-opcoes {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 10px !important;
-}
-
-.modal-secao-download #editValorContrato {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-.btn-baixar-contrato {
-  width: 170px !important;
-  height: 48px !important;
-  min-height: 48px !important;
-  border-radius: 12px !important;
-  padding: 0 14px !important;
-  font-size: 0.88rem !important;
-  white-space: nowrap !important;
-  align-self: end !important;
-}
-
-@media (max-width: 760px) {
-  .contrato-download-layout {
-    grid-template-columns: 1fr;
-  }
 
   .btn-baixar-contrato {
     width: 100% !important;
   }
 }
-
