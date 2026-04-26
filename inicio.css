@@ -930,3 +930,48 @@ section {
     font-size: 0.9rem;
   }
 }
+
+/* HERO - foto limpa, sem segunda camada e sem quadrado */
+.hero-visual {
+  background: url("capainicial.jpg") center/cover no-repeat !important;
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
+
+.hero-visual::before,
+.hero-visual::after {
+  display: none !important;
+  content: none !important;
+  opacity: 0 !important;
+}
+
+/* Remove o quadrado/tela por cima da foto */
+.hero-screen {
+  display: none !important;
+}
+
+/* Garante que a imagem duplicada da tela não aparece */
+.screen-body {
+  display: none !important;
+  background: transparent !important;
+}
+
+/* Deixa o card de resultados sem escurecer a foto inteira */
+.realtime-card {
+  background: rgba(6, 12, 21, 0.92) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Se ainda existir alguma camada interna duplicada */
+.hero-visual > img:not(:first-child),
+.hero-visual .screen-body,
+.hero-visual .hero-screen,
+.hero-visual .reflection,
+.hero-visual .overlay,
+.hero-visual .camada,
+.hero-visual .camada-foto {
+  display: none !important;
+}
+
