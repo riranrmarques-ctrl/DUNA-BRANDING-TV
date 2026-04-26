@@ -3,7 +3,6 @@ const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
 const TABELA_CLIENTES = "dadosclientes";
 const TABELA_CONTRATOS_CLIENTES = "contratos_clientes";
-
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const btnVoltarCliente = document.getElementById("btnVoltarCliente");
@@ -444,20 +443,11 @@ function baixarHtmlContrato() {
 async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = [] }) {
   contratoFinalHtml = anexarConclusaoAoContrato({ metodo, assinaturaImagem, fotos });
 
-  const assinadoEm = new Date().toISOString();
   let data = null;
-
-  const payloadCliente = {
-    contrato_status: "concluido",
-    contrato_texto: contratoFinalHtml,
-    contrato_assinado_html: contratoFinalHtml,
-    contrato_assinado_em: assinadoEm
-  };
 
   if (contratoOrigem === TABELA_CONTRATOS_CLIENTES && contratoAtualRegistro?.id) {
     const payloadContrato = {
       status: "concluido",
-      assinado_em: assinadoEm,
       html_final: contratoFinalHtml
     };
 
@@ -469,6 +459,11 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
       .maybeSingle();
 
     if (respostaContrato.error) throw respostaContrato.error;
+
+    const payloadCliente = {
+      contrato_status: "concluido",
+      contrato_texto: contratoFinalHtml
+    };
 
     const respostaCliente = await supabaseClient
       .from(TABELA_CLIENTES)
@@ -484,6 +479,11 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
       respostaCliente.data || clienteAtual
     );
   } else {
+    const payloadCliente = {
+      contrato_status: "concluido",
+      contrato_texto: contratoFinalHtml
+    };
+
     const respostaCliente = await supabaseClient
       .from(TABELA_CLIENTES)
       .update(payloadCliente)
@@ -501,7 +501,8 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
 
   clienteAtual = data || {
     ...(clienteAtual || {}),
-    ...payloadCliente,
+    contrato_status: "concluido",
+    contrato_texto: contratoFinalHtml,
     contrato_html: contratoFinalHtml
   };
 
@@ -657,19 +658,18 @@ function normalizarContratoDaTabela(contrato, cliente = {}) {
 }
 
 function normalizarContratoDoCliente(cliente) {
-  const html =
-    cliente?.contrato_assinado_html ||
-    cliente?.contrato_texto ||
-    cliente?.contrato_html ||
-    "";
+  const html = cliente?.contrato_texto || cliente?.contrato_html || "";
 
   if (!html) return null;
 
+  const status = String(cliente.contrato_status || "pendente").trim().toLowerCase();
+  const concluido = status === "concluido" || status === "concluído" || status === "assinado";
+
   return {
     ...cliente,
-    contrato_html: cliente.contrato_texto || cliente.contrato_html || html,
-    contrato_assinado_html: cliente.contrato_assinado_html || "",
-    contrato_assinado_em: cliente.contrato_assinado_em || "",
+    contrato_html: html,
+    contrato_assinado_html: concluido ? html : "",
+    contrato_assinado_em: "",
     contrato_nome_arquivo: `contrato-${normalizarCodigo(cliente.codigo || codigoAtual)}.html`,
     contrato_status: cliente.contrato_status || "pendente"
   };
