@@ -686,22 +686,7 @@ function aplicarReproducoesVirtuaisNaSerie(serie = []) {
 }
 
 async function buscarReproducoesCliente(codigoCliente, dias) {
-  const inicio = dias[0]?.iso;
-  const fim = dias[dias.length - 1]?.iso;
-
-  const { data, error } = await supabaseClient
-    .from(TABELA_REPRODUCOES_CLIENTES)
-    .select("data,total")
-    .eq("codigo_cliente", codigoCliente)
-    .gte("data", inicio)
-    .lte("data", fim);
-
-  if (error) {
-    console.warn("Erro ao buscar reproduções:", error);
-    return aplicarReproducoesVirtuaisNaSerie(normalizarSeriePorDia(dias, []));
-  }
-
-  return aplicarReproducoesVirtuaisNaSerie(normalizarSeriePorDia(dias, data || []));
+  return aplicarReproducoesVirtuaisNaSerie(normalizarSeriePorDia(dias, []));
 }
 
 function renderizarGraficoBarrasCliente(serie = []) {
