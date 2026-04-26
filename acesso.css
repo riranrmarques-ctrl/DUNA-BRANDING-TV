@@ -2118,3 +2118,31 @@ body.loading-page {
   }
 }
 
+.login-screen {
+  align-items: flex-start !important;
+}
+
+.login-conteudo {
+  min-height: auto !important;
+  padding-top: clamp(120px, 18vh, 180px) !important;
+  justify-content: flex-start !important;
+}
+
+@media (max-width: 768px) {
+  .login-screen {
+    align-items: flex-start !important;
+    padding-top: 0 !important;
+  }
+
+  .login-conteudo {
+    min-height: auto !important;
+    padding-top: 96px !important;
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .login-conteudo {
+    padding-top: 76px !important;
+  }
+}
