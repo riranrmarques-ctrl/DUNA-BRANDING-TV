@@ -2192,3 +2192,124 @@ body.modo-detalhe .topo-esquerda {
   }
 }
 
+.modal-grid-edicao {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 420px !important;
+  gap: 18px !important;
+}
+
+.modal-secao-contrato {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+}
+
+.modal-secao-download {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+}
+
+.modal-secao-responsavel,
+.modal-secao-imagem,
+.edit-botoes {
+  grid-column: 1 / -1 !important;
+}
+
+.modal-secao-responsavel {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 18px !important;
+}
+
+.modal-secao-responsavel h4 {
+  grid-column: 1 / -1 !important;
+}
+
+#editResponsavelNome,
+#editResponsavelCpf,
+#editResponsavelTelefone,
+#editResponsavelEmail {
+  grid-column: auto !important;
+  width: 100% !important;
+}
+
+.modal-secao-contrato {
+  display: grid !important;
+  grid-template-columns: 210px minmax(0, 1fr) !important;
+  gap: 14px 18px !important;
+}
+
+.modal-secao-contrato h4 {
+  grid-column: 1 / -1 !important;
+}
+
+.contrato-periodo {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.contrato-parceria {
+  display: grid !important;
+  gap: 14px !important;
+  align-content: start !important;
+}
+
+.parceria-opcoes {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+#editValorContrato {
+  width: 100% !important;
+}
+
+.modal-secao-download {
+  display: grid !important;
+  align-content: start !important;
+  gap: 14px !important;
+}
+
+.btn-baixar-contrato {
+  width: 100% !important;
+  min-height: 150px !important;
+  border: none !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 1.15rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  line-height: 1.15 !important;
+}
+
+.modal-secao-imagem {
+  margin-top: 6px !important;
+}
+
+.modal-secao-imagem img,
+#previewImagem {
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  object-fit: cover !important;
+  border-radius: 18px !important;
+  display: block !important;
+}
+
+@media (max-width: 760px) {
+  .modal-grid-edicao,
+  .modal-secao-contrato,
+  .modal-secao-responsavel {
+    grid-template-columns: 1fr !important;
+  }
+
+  .modal-secao-contrato,
+  .modal-secao-download,
+  .modal-secao-responsavel,
+  .modal-secao-imagem,
+  .edit-botoes {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+}
+
+
