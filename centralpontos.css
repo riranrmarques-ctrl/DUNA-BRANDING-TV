@@ -1783,3 +1783,71 @@ body.modo-detalhe .topo-esquerda {
   }
 }
 
+.modal-secao-contrato {
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
+.contrato-periodo,
+.contrato-pagamento {
+  display: grid;
+  gap: 10px;
+}
+
+.contrato-periodo label,
+.contrato-pagamento label:first-child {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.modal-conteudo input[type="date"],
+.modal-conteudo input[type="email"] {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  outline: none;
+}
+
+.switch-parceria {
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.switch-parceria input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.switch-parceria span {
+  color: #fff;
+  font-weight: 900;
+}
+
+#editValorContrato:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.modal-secao-responsavel {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 720px) {
+  .modal-secao-contrato,
+  .modal-secao-responsavel {
+    grid-template-columns: 1fr;
+  }
+}
