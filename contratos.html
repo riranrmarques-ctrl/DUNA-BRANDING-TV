@@ -1146,10 +1146,10 @@ async function carregarContratoDaSupabase() {
       btnCancelarPagina.addEventListener("click", cancelarEdicoes);
     }
 
-    // document.addEventListener("DOMContentLoaded", () => {
-//   carregarContratoDaSupabase();
-// });
-    
+    document.addEventListener("DOMContentLoaded", () => {
+      mostrarAviso("Modelo local carregado. Clique em Editar e Salvar para atualizar a Supabase.", "info");
+ });
+
   </script>
 </body>
 </html>
