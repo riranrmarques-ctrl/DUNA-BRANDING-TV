@@ -1055,27 +1055,30 @@
     }
 
     function aplicarModeloNoHtml(modelo) {
-      if (!modelo) return;
+  if (!modelo) return;
 
-      const dados = typeof modelo.dados_contratada === "string"
-        ? JSON.parse(modelo.dados_contratada || "{}")
-        : modelo.dados_contratada || {};
+  const dados = typeof modelo.dados_contratada === "string"
+    ? JSON.parse(modelo.dados_contratada || "{}")
+    : modelo.dados_contratada || {};
 
-      aplicarTextoCampo("titulo_contrato", modelo.titulo || "");
-      aplicarTextoCampo("subtitulo_contrato", modelo.subtitulo || "");
-      aplicarTextoCampo("empresa", dados.empresa || "Duna Branding");
-      aplicarTextoCampo("cnpj", dados.cnpj || "");
-      aplicarTextoCampo("telefone", dados.telefone || "");
-      aplicarTextoCampo("email", dados.email || "");
-      aplicarTextoCampo("endereco", dados.endereco || "");
-      aplicarTextoCampo("responsavel", dados.responsavel || "");
+  aplicarTextoCampo("titulo_contrato", modelo.titulo || "");
+  aplicarTextoCampo("subtitulo_contrato", modelo.subtitulo || "");
+  aplicarTextoCampo("empresa", dados.empresa || "Duna Branding");
+  aplicarTextoCampo("cnpj", dados.cnpj || "");
+  aplicarTextoCampo("telefone", dados.telefone || "");
+  aplicarTextoCampo("email", dados.email || "");
+  aplicarTextoCampo("endereco", dados.endereco || "");
+  aplicarTextoCampo("responsavel", dados.responsavel || "");
 
-     // atualizarImagemAssinatura(dados.assinatura_url || "assinatura.png");
+  atualizarImagemAssinatura(dados.assinatura_url || "assinatura.png");
 
-     // if (modelo.html_modelo) {
-        renderizarClausulasDoHtmlModelo(modelo.html_modelo);
-     // }
-   // }
+  // TEMPORÁRIO:
+  // Deixe comentado enquanto você grava o modelo novo completo.
+  // Depois que salvar uma vez e recarregar certo, pode descomentar.
+  // if (modelo.html_modelo) {
+  //   renderizarClausulasDoHtmlModelo(modelo.html_modelo);
+  // }
+}
 
 async function carregarContratoDaSupabase() {
   const tipo = obterContratoTipoAtivo();
