@@ -1843,6 +1843,26 @@ function ativarDragPontos() {
       const inicioY = event.clientY;
       const rect = card.getBoundingClientRect();
 
+      const mover = (moveEvent) => {
+        if (!estadoDrag) return;
+
+        moveEvent.preventDefault();
+
+        const left = moveEvent.clientX - estadoDrag.offsetX;
+        const top = moveEvent.clientY - estadoDrag.offsetY;
+
+        estadoDrag.clone.style.left = `${left}px`;
+        estadoDrag.clone.style.top = `${top}px`;
+
+        const proximoCard = obterProximoCard(moveEvent.clientX, moveEvent.clientY);
+
+        if (proximoCard) {
+          pontosBox.insertBefore(estadoDrag.placeholder, proximoCard);
+        } else {
+          pontosBox.appendChild(estadoDrag.placeholder);
+        }
+      };
+
       const iniciar = (moveEvent) => {
         const distancia = Math.hypot(moveEvent.clientX - inicioX, moveEvent.clientY - inicioY);
         if (distancia < 8) return;
@@ -1879,26 +1899,6 @@ function ativarDragPontos() {
         };
 
         mover(moveEvent);
-      };
-
-      const mover = (moveEvent) => {
-        if (!estadoDrag) return;
-
-        moveEvent.preventDefault();
-
-        const left = moveEvent.clientX - estadoDrag.offsetX;
-        const top = moveEvent.clientY - estadoDrag.offsetY;
-
-        estadoDrag.clone.style.left = `${left}px`;
-        estadoDrag.clone.style.top = `${top}px`;
-
-        const proximoCard = obterProximoCard(moveEvent.clientX, moveEvent.clientY);
-
-        if (proximoCard) {
-          pontosBox.insertBefore(estadoDrag.placeholder, proximoCard);
-        } else {
-          pontosBox.appendChild(estadoDrag.placeholder);
-        }
       };
 
       const soltar = () => {
@@ -1950,10 +1950,6 @@ async function salvarOrdemPontos() {
   }
 
   setStatus("Ordem dos pontos salva", "ok");
-}
-
-  salvarCachePontos(Object.values(pontosMap));
-  setStatus("Ordem dos pontos atualizada", "ok");
 }
 
 async function carregarPontosRemoto() {
