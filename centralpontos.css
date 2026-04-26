@@ -1851,3 +1851,54 @@ body.modo-detalhe .topo-esquerda {
     grid-template-columns: 1fr;
   }
 }
+
+.parceria-opcoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.parceria-opcoes label {
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.parceria-opcoes input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.parceria-opcoes span {
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.campo-valor-contrato {
+  margin-top: 0;
+}
+
+.modal-secao-responsavel {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+#editResponsavelNome,
+#editResponsavelCpf,
+#editResponsavelTelefone,
+#editResponsavelEmail {
+  grid-column: auto !important;
+}
+
+@media (max-width: 720px) {
+  .modal-secao-responsavel {
+    grid-template-columns: 1fr !important;
+  }
+}
+
