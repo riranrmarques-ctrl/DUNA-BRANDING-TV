@@ -75,7 +75,8 @@ const editEndereco = document.getElementById("editEndereco");
 
 const editContratoInicio = document.getElementById("editContratoInicio");
 const editContratoFim = document.getElementById("editContratoFim");
-const editContratoParceria = document.getElementById("editContratoParceria");
+const editContratoParceriaSim = document.getElementById("editContratoParceriaSim");
+const editContratoParceriaNao = document.getElementById("editContratoParceriaNao");
 const editValorContrato = document.getElementById("editValorContrato");
 
 const editResponsavelNome = document.getElementById("editResponsavelNome");
@@ -1078,11 +1079,15 @@ function abrirModalEdicao() {
 
   if (editContratoInicio) editContratoInicio.value = ponto.contrato_data_inicio || "";
   if (editContratoFim) editContratoFim.value = ponto.contrato_data_fim || "";
-  if (editContratoParceria) editContratoParceria.checked = ponto.contrato_tipo === "parceria";
-  if (editValorContrato) editValorContrato.value = ponto.contrato_valor || "";
+  
+  const contratoEhParceria = ponto.contrato_tipo === "parceria";
 
-  if (editValorContrato && editContratoParceria) {
-    editValorContrato.style.display = editContratoParceria.checked ? "none" : "block";
+  if (editContratoParceriaSim) editContratoParceriaSim.checked = contratoEhParceria;
+  if (editContratoParceriaNao) editContratoParceriaNao.checked = !contratoEhParceria;
+
+  if (editValorContrato) {
+    editValorContrato.value = ponto.contrato_valor || "";
+    editValorContrato.style.display = contratoEhParceria ? "none" : "block";
   }
 
   if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
