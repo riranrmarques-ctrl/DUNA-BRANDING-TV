@@ -1755,3 +1755,83 @@ body.modo-detalhe .topo-esquerda {
   background: rgba(255, 255, 255, 0.24);
   border-radius: 999px;
 }
+
+/* Modal editar ampliado */
+
+.modal-conteudo-amplo {
+  max-width: 760px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 28px 30px;
+}
+
+.modal-conteudo-amplo::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-conteudo-amplo::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-conteudo-amplo::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+
+.modal-secao {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.modal-secao h4,
+.edit-imagem-box h4 {
+  grid-column: 1 / -1;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  margin-bottom: 2px;
+}
+
+.modal-secao input[type="text"]:nth-of-type(3),
+#editEndereco {
+  grid-column: 1 / -1;
+}
+
+.modal-conteudo-amplo .edit-imagem-box {
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.modal-conteudo-amplo #previewImagem {
+  max-height: 320px;
+}
+
+@media (max-width: 720px) {
+  .modal-conteudo-amplo {
+    max-width: 100%;
+    max-height: 92vh;
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .modal-secao {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-secao input[type="text"],
+  #editEndereco {
+    grid-column: 1;
+  }
+
+  .modal-conteudo-amplo .edit-botoes {
+    flex-direction: column;
+  }
+}
+
