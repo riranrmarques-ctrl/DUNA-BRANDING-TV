@@ -1425,44 +1425,29 @@ async function buscarPontos(codigos) {
 }
 
 async function buscarPlaylistPonto(codigo) {
-  const consultas = [
-    {
-      colunas: "id,nome,nome_cliente,cliente_nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,arquivo_url,url,storage_path,tipo,created_at,data_fim,ordem,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,codigo_cliente,titulo_arquivo,nome_arquivo,video_url,storage_path,tipo,created_at,data_fim,ordem,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,data_fim,ordem,codigo",
-      ordenarPor: "ordem"
-    },
-    {
-      colunas: "id,nome,codigo_cliente,video_url,storage_path,created_at,codigo",
-      ordenarPor: "created_at"
-    }
-  ];
+  const codigoNormalizado = normalizarCodigo(codigo);
 
-  let ultimoErro = null;
+  const { data, error } = await supabaseClient
+    .from(TABELA_PLAYLIST)
+    .select("*")
+    .eq("codigo", codigoNormalizado);
 
-  for (const consulta of consultas) {
-    let query = supabaseClient
-      .from(TABELA_PLAYLIST)
-      .select(consulta.colunas)
-      .eq("codigo", codigo);
-
-    query = query.order(consulta.ordenarPor, { ascending: true });
-
-    const { data, error } = await query;
-
-    if (!error) return data || [];
-
-    ultimoErro = error;
-    console.warn("Falha ao buscar playlist com colunas:", consulta.colunas, error);
+  if (error) {
+    console.warn("Falha ao buscar playlist do ponto:", codigoNormalizado, error);
+    return [];
   }
 
-  throw ultimoErro;
+  return (data || []).sort((a, b) => {
+    const ordemA = Number(a.ordem || 0);
+    const ordemB = Number(b.ordem || 0);
+
+    if (ordemA !== ordemB) return ordemA - ordemB;
+
+    const dataA = new Date(a.created_at || 0).getTime() || 0;
+    const dataB = new Date(b.created_at || 0).getTime() || 0;
+
+    return dataA - dataB;
+  });
 }
 
 async function buscarHistoricoPonto(codigo) {
