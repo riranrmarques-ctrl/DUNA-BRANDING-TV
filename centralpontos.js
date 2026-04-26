@@ -72,12 +72,17 @@ const modalEditar = document.getElementById("modalEditar");
 const editNome = document.getElementById("editNome");
 const editCidade = document.getElementById("editCidade");
 const editEndereco = document.getElementById("editEndereco");
-const editContratante = document.getElementById("editContratante");
+
+const editContratoInicio = document.getElementById("editContratoInicio");
+const editContratoFim = document.getElementById("editContratoFim");
+const editContratoParceria = document.getElementById("editContratoParceria");
 const editValorContrato = document.getElementById("editValorContrato");
+
 const editResponsavelNome = document.getElementById("editResponsavelNome");
 const editResponsavelCpf = document.getElementById("editResponsavelCpf");
 const editResponsavelTelefone = document.getElementById("editResponsavelTelefone");
 const editResponsavelEmail = document.getElementById("editResponsavelEmail");
+
 const previewImagem = document.getElementById("previewImagem");
 const inputImagem = document.getElementById("inputImagem");
 const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
