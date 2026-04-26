@@ -1792,49 +1792,50 @@ function ativarDragPontos() {
   let estadoDrag = null;
 
   function obterCardsOrdenaveis() {
-    return [...pontosBox.querySelectorAll(".card-ponto:not(.card-ponto-placeholder)")];
+    return [...pontosBox.querySelectorAll(".card-ponto")]
+      .filter((card) =>
+        card !== estadoDrag?.cardOriginal &&
+        card !== estadoDrag?.placeholder &&
+        !card.classList.contains("card-ponto-placeholder")
+      );
   }
 
-  function obterProximoCard(x, y) {
-  const cards = obterCardsOrdenaveis().filter((card) => card !== estadoDrag?.cardOriginal);
+  function obterReferenciaInsercao(x, y) {
+    const cards = obterCardsOrdenaveis();
 
-  let cardMaisProximo = null;
-  let menorDistancia = Infinity;
-  let inserirDepois = false;
+    let cardMaisProximo = null;
+    let menorDistancia = Infinity;
+    let inserirDepois = false;
 
-  cards.forEach((card) => {
-    const rect = card.getBoundingClientRect();
-    const centroX = rect.left + rect.width / 2;
-    const centroY = rect.top + rect.height / 2;
+    cards.forEach((card) => {
+      const rect = card.getBoundingClientRect();
+      const centroX = rect.left + rect.width / 2;
+      const centroY = rect.top + rect.height / 2;
+      const distancia = Math.hypot(x - centroX, y - centroY);
 
-    const distancia = Math.hypot(x - centroX, y - centroY);
+      if (distancia < menorDistancia) {
+        menorDistancia = distancia;
+        cardMaisProximo = card;
 
-    if (distancia < menorDistancia) {
-      menorDistancia = distancia;
-      cardMaisProximo = card;
+        const mesmaLinha = y >= rect.top && y <= rect.bottom;
+        const abaixoDoMeio = y > centroY;
+        const direitaDoMeio = x > centroX;
 
-      const estaMaisParaBaixo = y > centroY + rect.height * 0.2;
-      const estaMaisParaDireita = x > centroX;
+        inserirDepois = mesmaLinha ? direitaDoMeio : abaixoDoMeio;
+      }
+    });
 
-      inserirDepois = estaMaisParaBaixo || estaMaisParaDireita;
-    }
-  });
+    if (!cardMaisProximo) return null;
 
-  if (!cardMaisProximo) return null;
-
-  if (inserirDepois) {
-    return cardMaisProximo.nextElementSibling;
+    return inserirDepois ? cardMaisProximo.nextElementSibling : cardMaisProximo;
   }
-
-  return cardMaisProximo;
-}
 
   function finalizarDrag() {
     if (!estadoDrag) return;
 
     const { cardOriginal, clone, placeholder } = estadoDrag;
 
-    cardOriginal.style.visibility = "";
+    cardOriginal.style.display = "";
     cardOriginal.classList.remove("card-arrastando-original");
 
     if (placeholder?.parentNode) {
@@ -1867,17 +1868,14 @@ function ativarDragPontos() {
 
         moveEvent.preventDefault();
 
-        const left = moveEvent.clientX - estadoDrag.offsetX;
-        const top = moveEvent.clientY - estadoDrag.offsetY;
+        estadoDrag.clone.style.left = `${moveEvent.clientX - estadoDrag.offsetX}px`;
+        estadoDrag.clone.style.top = `${moveEvent.clientY - estadoDrag.offsetY}px`;
 
-        estadoDrag.clone.style.left = `${left}px`;
-        estadoDrag.clone.style.top = `${top}px`;
+        const referencia = obterReferenciaInsercao(moveEvent.clientX, moveEvent.clientY);
 
-        const proximoCard = obterProximoCard(moveEvent.clientX, moveEvent.clientY);
-
-        if (proximoCard && proximoCard !== estadoDrag.placeholder) {
-          pontosBox.insertBefore(estadoDrag.placeholder, proximoCard);
-        } else {
+        if (referencia && referencia !== estadoDrag.placeholder) {
+          pontosBox.insertBefore(estadoDrag.placeholder, referencia);
+        } else if (!referencia) {
           pontosBox.appendChild(estadoDrag.placeholder);
         }
       };
@@ -1888,6 +1886,11 @@ function ativarDragPontos() {
 
         window.removeEventListener("pointermove", iniciar);
 
+        const placeholder = document.createElement("div");
+        placeholder.className = "card-ponto card-ponto-placeholder";
+        placeholder.style.width = `${rect.width}px`;
+        placeholder.style.height = `${rect.height}px`;
+
         const clone = card.cloneNode(true);
         clone.classList.add("card-ponto-flutuante");
         clone.style.width = `${rect.width}px`;
@@ -1895,15 +1898,10 @@ function ativarDragPontos() {
         clone.style.left = `${rect.left}px`;
         clone.style.top = `${rect.top}px`;
 
-        const placeholder = document.createElement("div");
-        placeholder.className = "card-ponto card-ponto-placeholder";
-        placeholder.style.width = `${rect.width}px`;
-        placeholder.style.height = `${rect.height}px`;
-
+        pontosBox.insertBefore(placeholder, card);
         card.classList.add("card-arrastando-original");
-        card.style.visibility = "hidden";
+        card.style.display = "none";
 
-        pontosBox.insertBefore(placeholder, card.nextSibling);
         document.body.appendChild(clone);
 
         document.body.classList.add("arrastando-ponto");
