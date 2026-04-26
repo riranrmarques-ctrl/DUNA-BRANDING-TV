@@ -1501,6 +1501,22 @@ async function uploadArquivoCliente() {
   }
 }
 
+async function executarComAnimacaoBotao(botao, acao) {
+  if (!botao || botao.disabled) return;
+
+  botao.classList.add("carregando");
+  botao.disabled = true;
+
+  try {
+    await acao();
+  } finally {
+    setTimeout(() => {
+      botao.classList.remove("carregando");
+      botao.disabled = false;
+    }, 450);
+  }
+}
+
 async function excluirClienteAtual() {
   if (!codigoClienteAtual) return;
 
@@ -1582,13 +1598,45 @@ if (inputValorContratado) {
     inputValorContratado.value = formatarMoedaBR(0);
   }
 }
+if (botaoSalvar) {
+  botaoSalvar.addEventListener("click", () => {
+    executarComAnimacaoBotao(botaoSalvar, salvarCliente);
+  });
+}
 
-if (botaoSalvar) botaoSalvar.addEventListener("click", salvarCliente);
-if (botaoExcluirCliente) botaoExcluirCliente.addEventListener("click", excluirClienteAtual);
-if (botaoVoltar) botaoVoltar.addEventListener("click", () => { window.location.href = "/central-clientes.html"; });
-if (btnUploadCliente) btnUploadCliente.addEventListener("click", uploadArquivoCliente);
-if (btnBaixarContrato) btnBaixarContrato.addEventListener("click", gerarContratoClienteParaHistorico);
-if (btnBaixarQrCode) btnBaixarQrCode.addEventListener("click", baixarQrCodeCliente);
+if (botaoExcluirCliente) {
+  botaoExcluirCliente.addEventListener("click", () => {
+    executarComAnimacaoBotao(botaoExcluirCliente, excluirClienteAtual);
+  });
+}
+
+if (botaoVoltar) {
+  botaoVoltar.addEventListener("click", () => {
+    botaoVoltar.classList.add("carregando");
+
+    setTimeout(() => {
+      window.location.href = "/central-clientes.html";
+    }, 250);
+  });
+}
+
+if (btnUploadCliente) {
+  btnUploadCliente.addEventListener("click", () => {
+    executarComAnimacaoBotao(btnUploadCliente, uploadArquivoCliente);
+  });
+}
+
+if (btnBaixarContrato) {
+  btnBaixarContrato.addEventListener("click", () => {
+    executarComAnimacaoBotao(btnBaixarContrato, gerarContratoClienteParaHistorico);
+  });
+}
+
+if (btnBaixarQrCode) {
+  btnBaixarQrCode.addEventListener("click", () => {
+    executarComAnimacaoBotao(btnBaixarQrCode, baixarQrCodeCliente);
+  });
+}
 
 async function iniciar() {
   try {
