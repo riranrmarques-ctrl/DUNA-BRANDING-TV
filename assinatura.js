@@ -687,15 +687,15 @@ async function buscarCliente(codigo) {
 }
 
 async function buscarContratoCliente(codigo, contratoId = "") {
-  if (contratoId) {
-    const { data, error } = await supabaseClient
-      .from(TABELA_CONTRATOS_CLIENTES)
-      .select("*")
-      .eq("id", contratoId)
-      .maybeSingle();
+  if (contratoId && /^\d+$/.test(contratoId)) {
+  const { data, error } = await supabaseClient
+    .from(TABELA_CONTRATOS_CLIENTES)
+    .select("*")
+    .eq("id", Number(contratoId))
+    .maybeSingle();
 
-    if (!error && data) return data;
-  }
+  if (!error && data) return data;
+}
 
   const consultas = [
     { ordenarPor: "enviado_em" },
