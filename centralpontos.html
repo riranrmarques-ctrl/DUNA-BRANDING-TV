@@ -159,16 +159,22 @@
         </div>
 
         <div class="contrato-pagamento">
-          <label>Valor / custo</label>
+          <label>É parceria?</label>
 
-        <label class="switch-parceria">
-          <input type="checkbox" id="editContratoParceria">
-          <span>Parceria</span>
-        </label>
+        <div class="parceria-opcoes">
+           <label>
+             <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaSim" value="sim">
+             <span>Sim</span>
+           </label>
 
-        <input type="text" id="editValorContrato" placeholder="Valor / custo" required>
+          <label>
+            <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaNao" value="nao">
+            <span>Não</span>
+          </label>
+          
+          <input type="text" id="editValorContrato" class="campo-valor-contrato" placeholder="Valor / custo">
+        </div>
       </div>
-    </div>
 
       <div class="modal-secao modal-secao-responsavel">
         <h4>Dados do responsável pelo estabelecimento</h4>
