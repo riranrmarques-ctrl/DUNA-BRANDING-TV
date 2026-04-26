@@ -1295,16 +1295,109 @@ function extrairCodigoPontoVinculo(item) {
 }
 
 async function buscarVinculosCliente(codigo) {
+  const codigoNormalizado = normalizarCodigo(codigo);
+  const codigosEncontrados = new Set();
+
+  try {
+    const { data, error } = await supabaseClient
+      .from(TABELA_CLIENTE_PONTOS)
+      .select("*");
+
+    if (!error) {
+      (data || []).forEach((item) => {
+        const clienteDoVinculo = normalizarCodigo(
+          item?.cliente_codigo ||
+          item?.codigo_cliente ||
+          item?.cliente ||
+          ""
+        );
+
+        if (clienteDoVinculo !== codigoNormalizado) return;
+
+        const codigoPonto = normalizarCodigo(
+          item?.ponto_codigo ||
+          item?.codigo_ponto ||
+          item?.ponto ||
+          item?.codigo_tela ||
+          item?.codigo ||
+          ""
+        );
+
+        if (codigoPonto) codigosEncontrados.add(codigoPonto);
+      });
+    } else {
+      console.warn("Falha ao buscar vínculos em playercliente:", error);
+    }
+  } catch (error) {
+    console.warn("Erro ao buscar vínculos em playercliente:", error);
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from(TABELA_PLAYLIST)
+      .select("codigo,codigo_cliente")
+      .eq("codigo_cliente", codigoNormalizado);
+
+    if (!error) {
+      (data || []).forEach((item) => {
+        const codigoPonto = normalizarCodigo(item?.codigo || "");
+        if (codigoPonto) codigosEncontrados.add(codigoPonto);
+      });
+    } else {
+      console.warn("Falha ao buscar pontos pela playlist:", error);
+    }
+  } catch (error) {
+    console.warn("Erro ao buscar pontos pela playlist:", error);
+  }
+
+  return Array.from(codigosEncontrados);
+}
+
+async function buscarPontos(codigos) {
+  const codigosNormalizados = Array.from(
+    new Set((codigos || []).map(normalizarCodigo).filter(Boolean))
+  );
+
+  if (!codigosNormalizados.length) return [];
+
   const { data, error } = await supabaseClient
-    .from(TABELA_CLIENTE_PONTOS)
-    .select("*");
+    .from(TABELA_PONTOS)
+    .select("*")
+    .in("codigo", codigosNormalizados);
 
   if (error) throw error;
 
-  return (data || [])
-    .filter((item) => extrairCodigoClienteVinculo(item) === codigo)
-    .map(extrairCodigoPontoVinculo)
-    .filter(Boolean);
+  const encontrados = (data || []).map((ponto) => ({
+    ...ponto,
+    codigo: normalizarCodigo(ponto.codigo)
+  }));
+
+  const encontradosSet = new Set(encontrados.map((ponto) => normalizarCodigo(ponto.codigo)));
+
+  const faltantes = codigosNormalizados
+    .filter((codigo) => !encontradosSet.has(codigo))
+    .map((codigo) => ({
+      codigo,
+      nome: codigo,
+      nome_painel: codigo,
+      cidade: "",
+      endereco: "",
+      status: "ativo",
+      disponivel: true
+    }));
+
+  const todos = [...encontrados, ...faltantes];
+  const ordem = new Map(codigosNormalizados.map((codigo, index) => [codigo, index]));
+
+  return todos.sort((a, b) => {
+    const codigoA = normalizarCodigo(a.codigo);
+    const codigoB = normalizarCodigo(b.codigo);
+
+    const posA = ordem.has(codigoA) ? ordem.get(codigoA) : 9999;
+    const posB = ordem.has(codigoB) ? ordem.get(codigoB) : 9999;
+
+    return posA - posB;
+  });
 }
 
 async function buscarPontos(codigos) {
