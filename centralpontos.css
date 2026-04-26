@@ -2053,3 +2053,31 @@ body.modo-detalhe .topo-esquerda {
   }
 }
 
+.status-box,
+.status-topo.status-box {
+  position: fixed !important;
+  right: 24px !important;
+  bottom: 24px !important;
+  z-index: 999999 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border-radius: 14px !important;
+  padding: 14px 18px !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55) !important;
+}
+
+.status-box.ok {
+  background: #16a34a !important;
+}
+
+.status-box.erro {
+  background: #dc2626 !important;
+}
+
+.status-box.normal {
+  background: #334155 !important;
+}
+
