@@ -1088,8 +1088,9 @@ function abrirModalEdicao() {
 
   if (editValorContrato) {
     editValorContrato.value = ponto.contrato_valor || "";
-    editValorContrato.style.display = contratoEhParceria ? "none" : "block";
   }
+  
+  atualizarVisualParceria();
 
   if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
   if (editResponsavelCpf) editResponsavelCpf.value = ponto.responsavel_cpf || "";
@@ -1189,6 +1190,10 @@ if (btnFecharModal) {
   btnFecharModal.onclick = () => {
     fecharModalEdicao();
   };
+}
+
+if (btnBaixarContrato) {
+  btnBaixarContrato.onclick = baixarContratoAtual;
 }
 
 if (modalEditar) {
@@ -1438,6 +1443,57 @@ if (btnSalvarEdicao) {
       setStatus("Erro ao salvar edição", "erro");
     }
   };
+}
+
+function baixarContratoAtual() {
+  if (!codigoSelecionado) return;
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+
+  const nome = editNome ? editNome.value.trim() : obterNomePonto(ponto, codigoSelecionado);
+  const cidade = editCidade ? editCidade.value.trim() : obterCidadePonto(ponto);
+  const endereco = editEndereco ? editEndereco.value.trim() : obterEnderecoPonto(ponto);
+
+  const inicio = editContratoInicio ? editContratoInicio.value.trim() : "";
+  const fim = editContratoFim ? editContratoFim.value.trim() : "";
+  const parceria = editContratoParceriaSim?.checked ? "Sim" : "Não";
+  const valor = editValorContrato ? editValorContrato.value.trim() : "";
+
+  const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
+  const responsavelCpf = editResponsavelCpf ? editResponsavelCpf.value.trim() : "";
+  const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
+  const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
+
+  const texto = `
+CONTRATO - DUNA BRANDING
+
+PONTO
+Código: ${codigoSelecionado}
+Nome: ${nome}
+Cidade: ${cidade}
+Endereço: ${endereco}
+
+CONTRATO
+Período: ${inicio} até ${fim}
+É parceria?: ${parceria}
+Valor / custo: ${parceria === "Sim" ? "Parceria" : valor}
+
+RESPONSÁVEL PELO ESTABELECIMENTO
+Nome completo: ${responsavelNome}
+CPF / CNPJ: ${responsavelCpf}
+Telefone: ${responsavelTelefone}
+E-mail: ${responsavelEmail}
+`.trim();
+
+  const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `contrato-${codigoSelecionado}.txt`;
+  link.click();
+
+  URL.revokeObjectURL(url);
 }
 
 function obterNomeArquivoPlaylist(item) {
