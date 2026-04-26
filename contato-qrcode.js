@@ -1,7 +1,7 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function obterDataHoje() {
   return new Date().toISOString().split("T")[0];
@@ -11,15 +11,30 @@ function limparTelefone(valor) {
   return String(valor || "").replace(/\D/g, "");
 }
 
-function montarLinkWhatsapp(telefone, nomeCliente) {
+function obterTelefoneCliente(cliente) {
+  return (
+    cliente?.telefone ||
+    cliente?.celular ||
+    cliente?.whatsapp ||
+    cliente?.numero ||
+    cliente?.numero_whatsapp ||
+    ""
+  );
+}
+
+function montarLinkWhatsapp(telefone, nomeCliente = "") {
   const numeroLimpo = limparTelefone(telefone);
 
   if (!numeroLimpo) return null;
 
   const numeroFinal = numeroLimpo.startsWith("55") ? numeroLimpo : `55${numeroLimpo}`;
+  const nome = String(nomeCliente || "").trim();
 
-  const mensagem = encodeURIComponent("Olá, vim pelo QR Code da Branding 💙✨");
-  );
+  const textoMensagem = nome
+    ? `Olá, vim pelo QR Code da Branding. Cliente: ${nome}`
+    : "Olá, vim pelo QR Code da Branding.";
+
+  const mensagem = encodeURIComponent(textoMensagem);
 
   return `https://wa.me/${numeroFinal}?text=${mensagem}`;
 }
@@ -66,7 +81,7 @@ async function incrementarContador(codigoCliente) {
 
 async function iniciarContatoQrCode() {
   const params = new URLSearchParams(window.location.search);
-  const codigoCliente = String(params.get("cliente") || "").trim().toUpperCase();
+  const codigoCliente = String(params.get("cliente") || params.get("codigo") || "").trim().toUpperCase();
 
   if (!codigoCliente) {
     document.body.innerHTML = "<p>Cliente não informado.</p>";
@@ -84,17 +99,17 @@ async function iniciarContatoQrCode() {
     return;
   }
 
-  await incrementarContador(codigoCliente);
+  const telefone = obterTelefoneCliente(cliente);
+  const nomeCliente = cliente.nome_completo || cliente.nome || cliente.cliente || "";
 
-  const whatsappUrl = montarLinkWhatsapp(
-    cliente.telefone,
-    cliente.nome_completo || cliente.nome
-  );
+  const whatsappUrl = montarLinkWhatsapp(telefone, nomeCliente);
 
   if (!whatsappUrl) {
     document.body.innerHTML = "<p>Telefone do cliente não encontrado.</p>";
     return;
   }
+
+  await incrementarContador(codigoCliente);
 
   window.location.href = whatsappUrl;
 }
