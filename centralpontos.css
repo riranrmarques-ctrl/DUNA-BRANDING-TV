@@ -1706,6 +1706,31 @@ body.modo-detalhe .topo-esquerda {
 
 /* Modal editar ampliado */
 
+.modal-editar {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(1, 7, 18, 0.78);
+  backdrop-filter: blur(4px);
+}
+
+.modal-conteudo {
+  width: 100%;
+  max-width: 520px;
+  background: linear-gradient(180deg, rgba(20, 34, 68, 0.98) 0%, rgba(10, 20, 41, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .modal-conteudo-amplo {
   max-width: 760px;
   max-height: 88vh;
@@ -1726,14 +1751,25 @@ body.modo-detalhe .topo-esquerda {
   border-radius: 999px;
 }
 
-.modal-secao {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.modal-conteudo h3 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.modal-secao,
+.edit-imagem-box {
   padding: 14px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.modal-secao {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .modal-secao h4,
@@ -1745,64 +1781,9 @@ body.modo-detalhe .topo-esquerda {
   margin-bottom: 2px;
 }
 
-.modal-secao input[type="text"]:nth-of-type(3),
-#editEndereco {
-  grid-column: 1 / -1;
-}
-
-.modal-conteudo-amplo .edit-imagem-box {
-  padding: 14px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.modal-conteudo-amplo #previewImagem {
-  max-height: 320px;
-}
-
-@media (max-width: 720px) {
-  .modal-conteudo-amplo {
-    max-width: 100%;
-    max-height: 92vh;
-    padding: 18px;
-    border-radius: 20px;
-  }
-
-  .modal-secao {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-secao input[type="text"],
-  #editEndereco {
-    grid-column: 1;
-  }
-
-  .modal-conteudo-amplo .edit-botoes {
-    flex-direction: column;
-  }
-}
-
-.modal-secao-contrato {
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
-}
-
-.contrato-periodo,
-.contrato-pagamento {
-  display: grid;
-  gap: 10px;
-}
-
-.contrato-periodo label,
-.contrato-pagamento label:first-child {
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.modal-conteudo input[type="date"],
-.modal-conteudo input[type="email"] {
+.modal-conteudo input[type="text"],
+.modal-conteudo input[type="email"],
+.modal-conteudo input[type="file"] {
   width: 100%;
   min-height: 48px;
   padding: 10px 12px;
@@ -1813,49 +1794,59 @@ body.modo-detalhe .topo-esquerda {
   outline: none;
 }
 
-.switch-parceria {
-  min-height: 48px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
+.modal-conteudo input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.switch-parceria input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
+#editEndereco {
+  grid-column: 1 / -1;
 }
 
-.switch-parceria span {
-  color: #fff;
+.modal-grid-edicao {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 420px !important;
+  gap: 18px !important;
+}
+
+/* Período à esquerda */
+.modal-secao-contrato {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  display: grid !important;
+  grid-template-columns: 210px minmax(0, 1fr) !important;
+  gap: 14px 18px !important;
+  align-content: start !important;
+}
+
+.modal-secao-contrato h4 {
+  grid-column: 1 / -1 !important;
+}
+
+.contrato-periodo {
+  display: grid !important;
+  gap: 14px !important;
+  grid-column: 1 / 2 !important;
+}
+
+.contrato-parceria {
+  display: grid !important;
+  gap: 14px !important;
+  align-content: start !important;
+  grid-column: 2 / 3 !important;
+}
+
+.parceria-titulo,
+.contrato-periodo label,
+.contrato-parceria label:first-child {
+  color: #ffffff;
+  font-size: 13px;
   font-weight: 900;
 }
 
-#editValorContrato:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.modal-secao-responsavel {
-  grid-template-columns: 1fr 1fr;
-}
-
-@media (max-width: 720px) {
-  .modal-secao-contrato,
-  .modal-secao-responsavel {
-    grid-template-columns: 1fr;
-  }
-}
-
 .parceria-opcoes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
 }
 
 .parceria-opcoes label {
@@ -1881,178 +1872,123 @@ body.modo-detalhe .topo-esquerda {
   font-weight: 900;
 }
 
-.campo-valor-contrato {
-  margin-top: 0;
-}
-
-.modal-secao-responsavel {
-  grid-template-columns: 1fr 1fr !important;
-}
-
-#editResponsavelNome,
-#editResponsavelCpf,
-#editResponsavelTelefone,
-#editResponsavelEmail {
-  grid-column: auto !important;
-}
-
-@media (max-width: 720px) {
-  .modal-secao-responsavel {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-.modal-secao-responsavel {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 14px 16px !important;
-}
-
-.modal-secao-responsavel h3 {
-  grid-column: 1 / -1 !important;
-}
-
-#editResponsavelNome,
-#editResponsavelCpf,
-#editResponsavelTelefone,
-#editResponsavelEmail {
-  grid-column: auto !important;
+#editValorContrato {
   width: 100% !important;
 }
 
-@media (max-width: 720px) {
-  .modal-secao-responsavel {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-.status-box,
-.status-topo.status-box {
-  position: fixed !important;
-  right: 24px !important;
-  bottom: 24px !important;
-  z-index: 99999 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: none !important;
-  color: #ffffff !important;
-  font-weight: 900 !important;
-  border-radius: 14px !important;
-  padding: 14px 18px !important;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.48) !important;
-}
-
-.status-box.ok {
-  background: #16a34a !important;
-}
-
-.status-box.erro {
-  background: #dc2626 !important;
-}
-
-.status-box.normal {
-  background: #334155 !important;
-}
-
-.modal-grid-edicao {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-
-.modal-secao-responsavel,
-.modal-secao-contrato,
-.modal-secao-download,
-.modal-secao-imagem {
-  align-content: start;
-}
-
-.modal-secao-responsavel {
+/* Contrato / botão ao lado direito */
+.modal-secao-download {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 14px 16px !important;
-}
-
-.modal-secao-responsavel h3 {
-  grid-column: 1 / -1 !important;
-}
-
-#editResponsavelNome,
-#editResponsavelCpf,
-#editResponsavelTelefone,
-#editResponsavelEmail {
-  grid-column: auto !important;
-  width: 100% !important;
-}
-
-.modal-secao-contrato {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 14px 16px !important;
-}
-
-.modal-secao-contrato h3 {
-  grid-column: 1 / -1 !important;
-}
-
-.contrato-periodo {
-  display: grid;
-  gap: 14px;
-}
-
-.contrato-parceria {
-  display: grid;
-  gap: 14px;
-}
-
-.parceria-opcoes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.parceria-opcoes label {
-  min-height: 48px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.parceria-opcoes input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
+  align-content: start !important;
+  gap: 14px !important;
 }
 
 .btn-baixar-contrato {
-  width: 100%;
-  min-height: 76px;
-  border: none;
-  border-radius: 16px;
-  background: #ffffff;
-  color: #111827;
-  font-size: 1rem;
-  font-weight: 900;
-  cursor: pointer;
+  width: 100% !important;
+  min-height: 150px !important;
+  border: none !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  color: #111827 !important;
+  font-size: 1.15rem !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  line-height: 1.15 !important;
 }
 
+/* Responsável: nome + cpf, telefone + email */
+.modal-secao-responsavel {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 18px !important;
+}
+
+.modal-secao-responsavel h4 {
+  grid-column: 1 / -1 !important;
+}
+
+#editResponsavelNome,
+#editResponsavelCpf,
+#editResponsavelTelefone,
+#editResponsavelEmail {
+  grid-column: auto !important;
+  width: 100% !important;
+}
+
+/* Imagem grande no final */
 .modal-secao-imagem {
-  margin-top: 18px;
+  grid-column: 1 / -1 !important;
+  margin-top: 6px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-@media (max-width: 760px) {
-  .modal-grid-edicao,
-  .modal-secao-responsavel,
-  .modal-secao-contrato {
-    grid-template-columns: 1fr !important;
-  }
+.modal-secao-imagem img,
+#previewImagem {
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  object-fit: cover !important;
+  border-radius: 18px !important;
+  display: block !important;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.modal-secao-imagem input[type="file"] {
+  width: 100% !important;
+}
+
+/* Botões */
+.edit-botoes {
+  grid-column: 1 / -1 !important;
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.edit-botoes button {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+#btnSalvarEdicao {
+  background: var(--primary);
+  color: #fff;
+}
+
+#btnSalvarEdicao:hover {
+  background: var(--primary-hover);
+}
+
+#btnFecharModal {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+#btnFecharModal:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.btn-deletar-ponto {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.btn-deletar-ponto:hover {
+  background: #ef4444 !important;
+}
+
+/* Status em destaque */
 .status-box,
 .status-topo.status-box {
   position: fixed !important;
@@ -2081,102 +2017,15 @@ body.modo-detalhe .topo-esquerda {
   background: #334155 !important;
 }
 
-.modal-grid-edicao {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) 320px !important;
-  gap: 18px !important;
-}
-
-.modal-secao-contrato {
-  grid-column: 1 / 2 !important;
-}
-
-.modal-secao-download {
-  grid-column: 2 / 3 !important;
-}
-
-.modal-secao-responsavel,
-.modal-secao-imagem,
-.edit-botoes {
-  grid-column: 1 / -1 !important;
-}
-
-.modal-secao-responsavel {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 14px 16px !important;
-}
-
-.modal-secao-responsavel h4 {
-  grid-column: 1 / -1 !important;
-}
-
-#editResponsavelNome {
-  grid-column: 1 / -1 !important;
-  width: 100% !important;
-}
-
-#editResponsavelCpf,
-#editResponsavelTelefone,
-#editResponsavelEmail {
-  grid-column: auto !important;
-  width: 100% !important;
-}
-
-.modal-secao-contrato {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-  gap: 14px 18px !important;
-}
-
-.modal-secao-contrato h4 {
-  grid-column: 1 / -1 !important;
-}
-
-.contrato-periodo,
-.contrato-parceria {
-  display: grid !important;
-  gap: 14px !important;
-}
-
-.modal-secao-download {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 14px !important;
-}
-
-.btn-baixar-contrato {
-  width: 100% !important;
-  min-height: 110px !important;
-  border: none !important;
-  border-radius: 16px !important;
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-size: 1.05rem !important;
-  font-weight: 900 !important;
-  cursor: pointer !important;
-  line-height: 1.15 !important;
-}
-
-.modal-secao-imagem {
-  margin-top: 4px !important;
-}
-
-.modal-secao-imagem img,
-#previewImagem {
-  width: 100% !important;
-  max-height: none !important;
-  aspect-ratio: 16 / 9 !important;
-  object-fit: cover !important;
-  border-radius: 18px !important;
-  display: block !important;
-}
-
-.modal-secao-imagem input[type="file"] {
-  width: 100% !important;
-}
-
+/* Responsivo */
 @media (max-width: 760px) {
+  .modal-conteudo-amplo {
+    max-width: 100%;
+    max-height: 92vh;
+    padding: 18px;
+    border-radius: 20px;
+  }
+
   .modal-grid-edicao,
   .modal-secao-contrato,
   .modal-secao-responsavel {
@@ -2187,129 +2036,14 @@ body.modo-detalhe .topo-esquerda {
   .modal-secao-download,
   .modal-secao-responsavel,
   .modal-secao-imagem,
-  .edit-botoes {
-    grid-column: 1 / -1 !important;
-  }
-}
-
-.modal-grid-edicao {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) 420px !important;
-  gap: 18px !important;
-}
-
-.modal-secao-contrato {
-  grid-column: 1 / 2 !important;
-  grid-row: 1 !important;
-}
-
-.modal-secao-download {
-  grid-column: 2 / 3 !important;
-  grid-row: 1 !important;
-}
-
-.modal-secao-responsavel,
-.modal-secao-imagem,
-.edit-botoes {
-  grid-column: 1 / -1 !important;
-}
-
-.modal-secao-responsavel {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 14px 18px !important;
-}
-
-.modal-secao-responsavel h4 {
-  grid-column: 1 / -1 !important;
-}
-
-#editResponsavelNome,
-#editResponsavelCpf,
-#editResponsavelTelefone,
-#editResponsavelEmail {
-  grid-column: auto !important;
-  width: 100% !important;
-}
-
-.modal-secao-contrato {
-  display: grid !important;
-  grid-template-columns: 210px minmax(0, 1fr) !important;
-  gap: 14px 18px !important;
-}
-
-.modal-secao-contrato h4 {
-  grid-column: 1 / -1 !important;
-}
-
-.contrato-periodo {
-  display: grid !important;
-  gap: 14px !important;
-}
-
-.contrato-parceria {
-  display: grid !important;
-  gap: 14px !important;
-  align-content: start !important;
-}
-
-.parceria-opcoes {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 12px !important;
-}
-
-#editValorContrato {
-  width: 100% !important;
-}
-
-.modal-secao-download {
-  display: grid !important;
-  align-content: start !important;
-  gap: 14px !important;
-}
-
-.btn-baixar-contrato {
-  width: 100% !important;
-  min-height: 150px !important;
-  border: none !important;
-  border-radius: 18px !important;
-  background: #ffffff !important;
-  color: #111827 !important;
-  font-size: 1.15rem !important;
-  font-weight: 900 !important;
-  cursor: pointer !important;
-  line-height: 1.15 !important;
-}
-
-.modal-secao-imagem {
-  margin-top: 6px !important;
-}
-
-.modal-secao-imagem img,
-#previewImagem {
-  width: 100% !important;
-  aspect-ratio: 16 / 9 !important;
-  object-fit: cover !important;
-  border-radius: 18px !important;
-  display: block !important;
-}
-
-@media (max-width: 760px) {
-  .modal-grid-edicao,
-  .modal-secao-contrato,
-  .modal-secao-responsavel {
-    grid-template-columns: 1fr !important;
-  }
-
-  .modal-secao-contrato,
-  .modal-secao-download,
-  .modal-secao-responsavel,
-  .modal-secao-imagem,
-  .edit-botoes {
+  .edit-botoes,
+  .contrato-periodo,
+  .contrato-parceria {
     grid-column: 1 / -1 !important;
     grid-row: auto !important;
   }
+
+  .edit-botoes {
+    flex-direction: column;
+  }
 }
-
-
