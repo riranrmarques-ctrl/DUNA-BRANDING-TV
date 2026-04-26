@@ -149,22 +149,29 @@
         <input type="text" id="editEndereco" placeholder="Endereço completo">
       </div>
 
-      <div class="modal-secao">
+      <div class="modal-secao modal-secao-contrato">
         <h4>Contrato</h4>
 
-        <input type="text" id="editContratante" placeholder="Contratante">
-        <input type="text" id="editValorContrato" placeholder="Valor / custo">
-      </div>
+        <input type="date" id="editContratoInicio" title="Data inicial">
+        <input type="date" id="editContratoFim" title="Data final">
 
-      <div class="modal-secao">
-        <h4>Dados do responsável</h4>
+        <label class="campo-parceria">
+          <input type="checkbox" id="editContratoParceria">
+          <span>Parceria</span>
+       </label>
 
-        <input type="text" id="editResponsavelNome" placeholder="Nome do responsável">
-        <input type="text" id="editResponsavelCpf" placeholder="CPF">
+       <input type="text" id="editValorContrato" placeholder="Valor / custo">
+     </div>
+
+      <div class="modal-secao modal-secao-responsavel">
+        <h4>Dados do responsável pelo estabelecimento</h4>
+
+        <input type="text" id="editResponsavelNome" placeholder="Nome completo">
+        <input type="text" id="editResponsavelCpf" placeholder="CPF / CNPJ">
         <input type="text" id="editResponsavelTelefone" placeholder="Telefone">
         <input type="text" id="editResponsavelEmail" placeholder="E-mail">
       </div>
-
+ 
       <div class="edit-imagem-box">
         <h4>Imagem do ponto</h4>
         <img id="previewImagem">
