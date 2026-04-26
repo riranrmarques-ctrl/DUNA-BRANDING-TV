@@ -1836,6 +1836,43 @@ async function deletarPontoAtual() {
   }
 }
 
+if (editContratoInicio) {
+  editContratoInicio.addEventListener("input", () => {
+    editContratoInicio.value = formatarDataBr(editContratoInicio.value);
+  });
+}
+
+if (editContratoFim) {
+  editContratoFim.addEventListener("input", () => {
+    editContratoFim.value = formatarDataBr(editContratoFim.value);
+  });
+}
+
+if (editResponsavelTelefone) {
+  editResponsavelTelefone.addEventListener("input", () => {
+    editResponsavelTelefone.value = formatarTelefone(editResponsavelTelefone.value);
+  });
+}
+
+if (editResponsavelCpf) {
+  editResponsavelCpf.addEventListener("input", () => {
+    editResponsavelCpf.value = formatarCpfCnpj(editResponsavelCpf.value);
+  });
+}
+
+if (editContratoParceria && editValorContrato) {
+  editContratoParceria.onchange = () => {
+    editValorContrato.disabled = editContratoParceria.checked;
+
+    if (editContratoParceria.checked) {
+      editValorContrato.value = "";
+      editValorContrato.placeholder = "Parceria ativada";
+    } else {
+      editValorContrato.placeholder = "Valor / custo";
+    }
+  };
+}
+
 if (editContratoParceria && editValorContrato) {
   editContratoParceria.onchange = () => {
     editValorContrato.style.display = editContratoParceria.checked ? "none" : "block";
@@ -2063,6 +2100,68 @@ async function iniciarPainel() {
 
   setStatus("Carregando pontos...", "normal");
   await carregarPontosRemoto();
+}
+
+function somenteNumeros(valor) {
+  return String(valor || "").replace(/\D/g, "");
+}
+
+function formatarTelefone(valor) {
+  const n = somenteNumeros(valor).slice(0, 11);
+
+  if (n.length <= 2) return n;
+  if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
+
+  return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
+}
+
+function formatarCpfCnpj(valor) {
+  const n = somenteNumeros(valor).slice(0, 14);
+
+  if (n.length <= 11) {
+    return n
+      .replace(/^(\d{3})(\d)/, "$1.$2")
+      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  }
+
+  return n
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+function formatarDataBr(valor) {
+  const n = somenteNumeros(valor).slice(0, 8);
+
+  if (n.length <= 2) return n;
+  if (n.length <= 4) return `${n.slice(0, 2)}/${n.slice(2)}`;
+
+  return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
+}
+
+function dataBrParaIso(valor) {
+  const partes = String(valor || "").split("/");
+  if (partes.length !== 3) return "";
+
+  const [dia, mes, ano] = partes;
+  if (!dia || !mes || !ano || ano.length !== 4) return "";
+
+  return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+}
+
+function dataIsoParaBr(valor) {
+  if (!valor) return "";
+
+  const partes = String(valor).split("-");
+  if (partes.length !== 3) return "";
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function emailValido(valor) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor || "").trim());
 }
 
 setStatus("Painel Ativo", "ok");
