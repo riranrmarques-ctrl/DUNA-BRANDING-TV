@@ -219,25 +219,12 @@ function renderizarPontos(pontos) {
 
   pontos.forEach(ponto => {
     const nome = ponto.nome || ponto.nome_ponto || ponto.nome_local || ponto.titulo || ponto.codigo_final || "Ponto sem nome";
-    const endereco = ponto.endereco || ponto.endereco_completo || ponto.localizacao || ponto.rua || "Endereço não informado";
     const status = ponto.status_final;
-    const ultimoPing = ponto.ultimo_ping_final;
-    const uptime = calcularUptimeIndividual(ultimoPing, status);
     const imagem = ponto.imagem_url || ponto.foto_url || ponto.imagem || ponto.banner_url || "https://placehold.co/600x300/020617/ffffff?text=Indoor+Midia";
 
     lista.innerHTML += `
-      <article class="point-card" data-codigo="${escaparHtml(ponto.codigo_final)}">
+      <article class="point-card ${classeStatus(status)}" data-codigo="${escaparHtml(ponto.codigo_final)}" title="${escaparHtml(nome)}">
         <img src="${escaparHtml(imagem)}" alt="${escaparHtml(nome)}">
-        <div class="point-body">
-          <h4>${escaparHtml(nome)}</h4>
-          <p>${escaparHtml(endereco)}</p>
-          <span class="status ${classeStatus(status)}">● ${textoStatus(status)}</span>
-          <p>Último ping: ${formatarPing(ultimoPing)}</p>
-          <strong>${uptime}% uptime</strong>
-          <div class="progress ${barraStatus(status)}">
-            <i style="width:${uptime}%"></i>
-          </div>
-        </div>
       </article>
     `;
   });
