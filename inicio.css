@@ -244,29 +244,9 @@ img {
   content: none;
 }
 
-.hero-screen {
-  display: none;
-}
-
+.hero-screen,
 .screen-body {
   display: none;
-  background: transparent;
-}
-
-.screen-body small {
-  align-self: flex-end;
-  font-size: 1.55rem;
-  font-weight: 800;
-  line-height: 0.95;
-  text-align: right;
-}
-
-.screen-body h2 {
-  font-size: clamp(2.6rem, 5vw, 4.3rem);
-  line-height: 0.92;
-  letter-spacing: -0.06em;
-  max-width: 280px;
-  text-transform: uppercase;
 }
 
 .realtime-card {
@@ -840,25 +820,24 @@ section {
 
   .section-head h3,
   .titulo-pontos {
-    font-size: 1.4rem;
+    font-size: 1.16rem;
     line-height: 1.02;
     letter-spacing: -0.045em;
   }
 
   .section-head p {
-    font-size: 0.76rem;
+    font-size: 0.72rem;
     line-height: 1.35;
   }
 
   .hero {
-    min-height: calc(100vh - 72px);
-    padding: 22px 0 28px;
-    display: flex;
-    align-items: stretch;
+    min-height: auto;
+    padding: 28px 0 26px;
+    display: block;
   }
 
   .hero .container {
-    display: flex;
+    display: block;
   }
 
   .hero-grid {
@@ -869,29 +848,35 @@ section {
   }
 
   .hero-copy {
+    width: 100%;
     padding: 0;
     transform: none;
+    align-items: center;
+    text-align: left;
   }
 
   .eyebrow {
-    padding: 8px 12px;
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    margin-bottom: 18px;
+    display: none;
   }
 
   .hero h1 {
-    font-size: clamp(2.45rem, 10.8vw, 3.35rem);
-    line-height: 0.91;
-    letter-spacing: -0.06em;
-    margin-bottom: 20px;
+    width: fit-content;
+    max-width: 350px;
+    margin: 0 auto 18px;
+    font-size: clamp(2.7rem, 11vw, 3.35rem);
+    line-height: 0.9;
+    letter-spacing: -0.065em;
+    text-align: left;
   }
 
   .hero p {
-    font-size: 1.02rem;
-    line-height: 1.55;
-    margin-bottom: 0;
-    max-width: 100%;
+    width: fit-content;
+    max-width: 350px;
+    margin: 0 auto;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    text-align: left;
+    white-space: nowrap;
   }
 
   .hero-actions {
@@ -899,6 +884,7 @@ section {
   }
 
   .hero-visual {
+    margin-top: 6px;
     background: transparent;
     border: none;
     box-shadow: none;
@@ -915,7 +901,7 @@ section {
     left: auto;
     bottom: auto;
     width: 100%;
-    margin-top: 2px;
+    margin-top: 0;
     border-radius: 18px;
     padding: 12px;
     background: rgba(6, 12, 21, 0.92);
@@ -1022,7 +1008,7 @@ section {
 
   #pontos {
     padding-top: 42px;
-    padding-bottom: 64px;
+    padding-bottom: 18px;
   }
 
   #pontos .section-head {
@@ -1032,7 +1018,7 @@ section {
 
   .locations-grid,
   #gridAmbientes {
-    padding: 18px 18px 30px !important;
+    padding: 18px 18px 18px !important;
     gap: 16px;
   }
 
@@ -1160,16 +1146,18 @@ section {
   }
 
   .hero {
-    min-height: calc(100vh - 70px);
-    padding-top: 22px;
+    padding: 26px 0 24px;
   }
 
   .hero h1 {
-    font-size: 2.55rem;
+    max-width: 350px;
+    font-size: 2.85rem;
+    line-height: 0.9;
   }
 
   .hero p {
-    font-size: 1rem;
+    max-width: 330px;
+    font-size: 0.76rem;
   }
 
   .button-primary,
@@ -1201,11 +1189,11 @@ section {
 
   .section-head h3,
   .titulo-pontos {
-    font-size: 1.25rem;
+    font-size: 1.08rem;
   }
 
   .section-head p {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
   }
 
   .how-wrap {
@@ -1314,11 +1302,13 @@ section {
   }
 
   .hero h1 {
-    font-size: 2.42rem;
+    max-width: 340px;
+    font-size: 2.72rem;
   }
 
   .hero p {
-    font-size: 0.98rem;
+    max-width: 340px;
+    font-size: 0.72rem;
   }
 
   .realtime-card {
@@ -1339,12 +1329,12 @@ section {
 
   .section-head h3,
   .titulo-pontos {
-    font-size: 1.16rem;
+    font-size: 1rem;
   }
 
   .locations-grid,
   #gridAmbientes {
-    padding: 16px 14px 28px !important;
+    padding: 16px 14px 18px !important;
   }
 
   .location-card,
@@ -1353,111 +1343,3 @@ section {
     min-width: 198px !important;
   }
 }
-
-@media (max-width: 860px) {
-  .hero {
-    min-height: auto;
-    padding: 28px 0 26px;
-    display: block;
-  }
-
-  .hero .container {
-    display: block;
-  }
-
-  .hero-grid {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .hero-copy {
-    padding: 0;
-    transform: none;
-    text-align: center;
-    align-items: center;
-  }
-
-  .eyebrow {
-    margin: 0 auto 18px;
-    padding: 8px 14px;
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-  }
-
-  .hero h1 {
-    max-width: 360px;
-    margin: 0 auto 20px;
-    font-size: clamp(2.7rem, 11vw, 3.35rem);
-    line-height: 0.9;
-    letter-spacing: -0.065em;
-    text-align: center;
-  }
-
-  .hero p {
-    max-width: 340px;
-    margin: 0 auto;
-    font-size: 1.08rem;
-    line-height: 1.5;
-    text-align: center;
-  }
-
-  .hero-visual {
-    margin-top: 6px;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    border-radius: 0;
-    aspect-ratio: auto;
-    min-height: auto;
-    transform: none;
-    overflow: visible;
-  }
-
-  .realtime-card {
-    position: relative;
-    right: auto;
-    left: auto;
-    bottom: auto;
-    width: 100%;
-    margin-top: 0;
-    border-radius: 18px;
-    padding: 12px;
-  }
-}
-
-@media (max-width: 560px) {
-  .hero {
-    min-height: auto;
-    padding: 26px 0 24px;
-  }
-
-  .hero h1 {
-    max-width: 350px;
-    font-size: 2.85rem;
-    line-height: 0.9;
-  }
-
-  .hero p {
-    max-width: 330px;
-    font-size: 1.06rem;
-  }
-}
-
-@media (max-width: 430px) {
-  .hero {
-    padding: 24px 0 22px;
-  }
-
-  .hero h1 {
-    max-width: 340px;
-    font-size: 2.72rem;
-  }
-
-  .hero p {
-    max-width: 320px;
-    font-size: 1.02rem;
-  }
-}
-
