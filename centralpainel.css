@@ -25,6 +25,8 @@ body {
   color: #fff;
 }
 
+/* LOGIN */
+
 .login-screen {
   min-height: 100vh;
   display: flex;
@@ -91,6 +93,8 @@ body {
   font-size: 14px;
   color: #ff7a7a;
 }
+
+/* ESTRUTURA */
 
 #conteudoPainel {
   height: 100vh;
@@ -198,6 +202,8 @@ select {
   border-radius: 10px;
 }
 
+/* MÉTRICAS */
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -225,10 +231,21 @@ select {
   flex-shrink: 0;
 }
 
-.purple { background: var(--primary); }
-.cyan { background: #06b6d4; }
-.orange { background: #f59e0b; }
-.green { background: #22c55e; }
+.purple {
+  background: var(--primary);
+}
+
+.cyan {
+  background: #06b6d4;
+}
+
+.orange {
+  background: #f59e0b;
+}
+
+.green {
+  background: #22c55e;
+}
 
 .metric-card span {
   font-size: 11px;
@@ -248,6 +265,8 @@ select {
   color: #22c55e;
   font-size: 12px;
 }
+
+/* PAINÉIS SUPERIORES */
 
 .grid {
   display: grid;
@@ -279,6 +298,8 @@ select {
   color: var(--primary-hover);
   text-decoration: underline;
 }
+
+/* GRÁFICO COMERCIAL */
 
 .contract-content {
   display: flex;
@@ -333,6 +354,8 @@ circle {
   color: #6b7280;
 }
 
+/* DONUT */
+
 .status-content {
   display: flex;
   align-items: center;
@@ -376,14 +399,27 @@ circle {
   margin-right: 6px;
 }
 
-.green-dot { background: #22c55e; }
-.yellow-dot { background: #f59e0b; }
-.red-dot { background: #ef4444; }
-.gray-dot { background: #6b7280; }
+.green-dot {
+  background: #22c55e;
+}
+
+.yellow-dot {
+  background: #f59e0b;
+}
+
+.red-dot {
+  background: #ef4444;
+}
+
+.gray-dot {
+  background: #6b7280;
+}
+
+/* STATUS DOS PONTOS COM ROLAGEM INTERNA */
 
 .points {
   min-height: 0;
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -395,7 +431,7 @@ circle {
 
 .points .point-list {
   min-height: 0;
-  flex: 1;
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 15px;
@@ -403,6 +439,7 @@ circle {
   overflow-x: hidden;
   padding-right: 8px;
   align-content: start;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 140, 255, 0.42) transparent;
 }
@@ -420,12 +457,15 @@ circle {
   background: transparent;
 }
 
+/* CARDS DOS PONTOS */
+
 .point-card {
+  min-height: 0;
   background: #020617;
   border: 1px solid #111827;
   border-radius: 15px;
   overflow: hidden;
-  transition: 0.2s;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .point-card:hover {
@@ -437,6 +477,7 @@ circle {
   width: 100%;
   height: 120px;
   object-fit: cover;
+  display: block;
 }
 
 .point-body {
@@ -445,23 +486,38 @@ circle {
 
 .point-body h4 {
   font-size: 14px;
+  line-height: 1.2;
+  margin-bottom: 4px;
 }
 
 .point-body p {
   font-size: 11px;
   color: #9ca3af;
+  line-height: 1.25;
 }
 
 .status {
   display: block;
   font-size: 11px;
   margin: 5px 0;
+  font-weight: 700;
 }
 
-.active { color: #22c55e; }
-.warning { color: #f59e0b; }
-.inactive { color: #ef4444; }
-.offline { color: #6b7280; }
+.active {
+  color: #22c55e;
+}
+
+.warning {
+  color: #f59e0b;
+}
+
+.inactive {
+  color: #ef4444;
+}
+
+.offline {
+  color: #6b7280;
+}
 
 .progress {
   height: 5px;
@@ -477,14 +533,21 @@ circle {
   border-radius: 10px;
 }
 
-.warning-bar i { background: #f59e0b; }
-.inactive-bar i { background: #ef4444; }
+.warning-bar i {
+  background: #f59e0b;
+}
+
+.inactive-bar i {
+  background: #ef4444;
+}
 
 .empty-state {
   text-align: center;
   padding: 40px;
   color: #6b7280;
 }
+
+/* RESPONSIVO */
 
 @media (max-width: 1100px) {
   .metrics {
@@ -531,6 +594,8 @@ circle {
   }
 
   .points {
+    height: auto;
+    max-height: none;
     overflow: visible;
   }
 
