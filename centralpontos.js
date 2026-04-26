@@ -1260,15 +1260,61 @@ if (btnSalvarEdicao) {
     const nome = editNome ? editNome.value.trim() : "";
     const cidade = editCidade ? editCidade.value.trim() : "";
     const endereco = editEndereco ? editEndereco.value.trim() : "";
+
+    const contratoInicioBr = editContratoInicio ? editContratoInicio.value.trim() : "";
+    const contratoFimBr = editContratoFim ? editContratoFim.value.trim() : "";
+    const contratoInicio = dataBrParaIso(contratoInicioBr);
+    const contratoFim = dataBrParaIso(contratoFimBr);
+    const contratoParceria = editContratoParceria ? editContratoParceria.checked : false;
+    const valorContrato = contratoParceria ? "" : (editValorContrato ? editValorContrato.value.trim() : "");
+    const contratoTipo = contratoParceria ? "parceria" : "valor";
+
     const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
     const responsavelCpf = editResponsavelCpf ? editResponsavelCpf.value.trim() : "";
     const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
     const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
 
+    if (
+      !nome ||
+      !cidade ||
+      !endereco ||
+      !contratoInicio ||
+      !contratoFim ||
+      !responsavelNome ||
+      !responsavelCpf ||
+      !responsavelTelefone ||
+      !responsavelEmail
+    ) {
+      setStatus("Preencha todos os campos obrigatórios", "erro");
+      return;
+    }
+
+    if (!contratoParceria && !valorContrato) {
+      setStatus("Informe o valor/custo ou marque parceria", "erro");
+      return;
+    }
+
+    if (!emailValido(responsavelEmail)) {
+      setStatus("Digite um e-mail válido", "erro");
+      return;
+    }
+
     try {
       setStatus("Salvando informações...", "normal");
 
- payloadCompleto
+      const payloadCompleto = {
+        nome,
+        cidade,
+        endereco,
+        contrato_data_inicio: contratoInicio,
+        contrato_data_fim: contratoFim,
+        contrato_tipo: contratoTipo,
+        contrato_valor: valorContrato,
+        responsavel_nome: responsavelNome,
+        responsavel_cpf: responsavelCpf,
+        responsavel_telefone: responsavelTelefone,
+        responsavel_email: responsavelEmail
+      };
 
       const payloadBasico = {
         nome,
@@ -1869,16 +1915,6 @@ if (editContratoParceria && editValorContrato) {
       editValorContrato.placeholder = "Parceria ativada";
     } else {
       editValorContrato.placeholder = "Valor / custo";
-    }
-  };
-}
-
-if (editContratoParceria && editValorContrato) {
-  editContratoParceria.onchange = () => {
-    editValorContrato.style.display = editContratoParceria.checked ? "none" : "block";
-
-    if (editContratoParceria.checked) {
-      editValorContrato.value = "";
     }
   };
 }
