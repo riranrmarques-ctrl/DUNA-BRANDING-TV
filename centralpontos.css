@@ -1637,26 +1637,13 @@ body.loading-page {
 
 .card-ponto {
   cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .card-ponto:active {
   cursor: grabbing;
-}
-
-.card-arrastando {
-  opacity: 0.42;
-  transform: scale(0.96);
-  border-color: rgba(86, 103, 241, 0.9);
-  box-shadow: 0 0 0 2px rgba(86, 103, 241, 0.35);
-}
-
-.card-drag-over {
-  transform: translateX(10px) scale(1.02);
-  border-color: rgba(86, 103, 241, 0.75);
-}
-
-.arrastando-ponto .card-ponto {
-  transition: transform 0.22s ease, opacity 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
 }
 
 .card-ponto,
@@ -1668,6 +1655,48 @@ body.loading-page {
 .card-imagem-box img {
   pointer-events: none;
   user-select: none;
+  -webkit-user-select: none;
+}
+
+.card-arrastando-original {
+  opacity: 0;
+}
+
+.card-ponto-flutuante {
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+  margin: 0 !important;
+  opacity: 1 !important;
+  transform: scale(1.018);
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.46),
+    0 0 0 2px rgba(86, 103, 241, 0.24);
+  transition: none !important;
+}
+
+.card-ponto-placeholder {
+  border: 2px dashed rgba(86, 103, 241, 0.55) !important;
+  background: rgba(86, 103, 241, 0.12) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.card-ponto-placeholder * {
+  visibility: hidden !important;
+}
+
+.drag-pontos-ativo .card-ponto:not(.card-ponto-flutuante) {
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+body.arrastando-ponto {
+  cursor: grabbing;
+}
+
+body.arrastando-ponto .card-ponto:hover {
+  transform: none;
 }
 
 body.modo-detalhe .topo-esquerda {
