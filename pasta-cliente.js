@@ -1287,7 +1287,6 @@ async function salvarCliente() {
   const statusReal = await calcularStatusClienteRealPorCodigoCliente();
   const statusBanco = statusReal === "Ativo" ? "ativo" : "inativo";
   const nomeCliente = inputNome.value.trim();
-  const pontosSelecionados = obterCodigosDestinoSelecionados();
 
   const payload = {
     codigo: codigoClienteAtual,
@@ -1303,49 +1302,29 @@ async function salvarCliente() {
   };
 
   try {
-    mostrarMensagem("Salvando cliente e pontos...", "#9fd2ff");
-
     const { data: clienteAtualizado, error: errorUpdate } = await supabaseClient
       .from(TABELA_CLIENTES)
       .update(payload)
       .eq("codigo", codigoClienteAtual)
-      .select("*");
+      .select("codigo");
 
     if (errorUpdate) throw errorUpdate;
 
     if (!clienteAtualizado || !clienteAtualizado.length) {
-      const { data: clienteInserido, error: errorInsert } = await supabaseClient
+      const { error: errorInsert } = await supabaseClient
         .from(TABELA_CLIENTES)
-        .insert([payload])
-        .select("*")
-        .maybeSingle();
+        .insert([payload]);
 
       if (errorInsert) throw errorInsert;
-
-      clienteAtual = clienteInserido || payload;
-    } else {
-      clienteAtual = clienteAtualizado[0];
     }
 
-    await apagarVinculosCliente();
-
-    const vinculos = pontosSelecionados.map((codigoPonto) => ({
-      cliente_codigo: codigoClienteAtual,
-      ponto_codigo: codigoPonto,
-      tipo_vinculo: "cliente"
-    }));
-
-    await inserirVinculosCliente(vinculos);
-
     atualizarStatusClienteVisual(statusReal);
-    renderizarPontosSelecionaveis(pontosSelecionados);
 
     gerarHistoricoContratoVisual();
     gerarContratoCliente();
 
-    mostrarMensagem("Cliente e pontos salvos com sucesso.", "#7CFC9A");
+    mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
     desativarBotaoSalvar();
-
     return true;
   } catch (error) {
     console.error("Erro ao salvar cliente:", error);
