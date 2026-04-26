@@ -1089,6 +1089,26 @@ function abrirModalEdicao() {
   modalEditar.style.display = "flex";
 }
 
+function fecharModalEdicao() {
+  if (!modalEditar) return;
+
+  modalEditar.style.display = "none";
+  arquivoImagemEdicao = null;
+  arrastandoPreview = false;
+
+  if (inputImagem) inputImagem.value = "";
+}
+
+if (btnVoltar) {
+  btnVoltar.onclick = () => {
+    if (listaPontos) listaPontos.style.display = "block";
+    if (pontoDetalhe) pontoDetalhe.style.display = "none";
+
+    codigoSelecionado = null;
+    document.body.classList.remove("modo-detalhe");
+  };
+}
+
 if (btnCopiarCodigo) {
   btnCopiarCodigo.style.display = "none";
 
