@@ -2136,13 +2136,14 @@ body.loading-page {
 
   .login-conteudo {
     min-height: auto !important;
-    padding-top: 96px !important;
+    padding-top: 135px !important;
     justify-content: flex-start !important;
   }
 }
 
 @media (max-width: 430px) {
   .login-conteudo {
-    padding-top: 76px !important;
+    padding-top: 120px !important;
   }
 }
+
