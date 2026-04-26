@@ -1390,3 +1390,75 @@ section {
     line-height: 1.04 !important;
   }
 }
+
+/* Botões menos arredondados - PC e mobile */
+.nav-login,
+.button-primary,
+.button-secondary,
+.cta-actions .button-primary,
+.cta-actions .button-secondary {
+  border-radius: 18px !important;
+}
+
+.nav-login {
+  min-height: 46px !important;
+  padding: 0 24px !important;
+}
+
+.button-primary,
+.button-secondary {
+  min-height: 56px !important;
+  padding: 0 28px !important;
+}
+
+.cta-actions .button-primary,
+.cta-actions .button-secondary {
+  min-height: 48px !important;
+  padding: 0 24px !important;
+}
+
+/* Menos espaço depois dos cards de pontos */
+#pontos {
+  padding-bottom: 34px !important;
+}
+
+.locations-grid,
+#gridAmbientes {
+  padding-bottom: 28px !important;
+}
+
+@media (max-width: 860px) {
+  .nav-login,
+  .button-primary,
+  .button-secondary,
+  .cta-actions .button-primary,
+  .cta-actions .button-secondary {
+    border-radius: 14px !important;
+  }
+
+  .nav-login {
+    min-height: 36px !important;
+    padding: 0 15px !important;
+  }
+
+  .button-primary,
+  .button-secondary {
+    min-height: 46px !important;
+    padding: 0 18px !important;
+  }
+
+  .cta-actions .button-primary,
+  .cta-actions .button-secondary {
+    min-height: 38px !important;
+    padding: 0 14px !important;
+  }
+
+  #pontos {
+    padding-bottom: 18px !important;
+  }
+
+  .locations-grid,
+  #gridAmbientes {
+    padding-bottom: 18px !important;
+  }
+}
