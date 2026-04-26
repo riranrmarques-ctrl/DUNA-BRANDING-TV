@@ -174,7 +174,7 @@ function atualizarPainel(pontos) {
     return new Date(b.ultimo_ping_final || 0) - new Date(a.ultimo_ping_final || 0);
   });
 
-  renderizarPontos(pontosOrdenados.slice(0, 8));
+  renderizarPontos(pontosOrdenados);
 }
 
 function atualizarDonut(pontos) {
