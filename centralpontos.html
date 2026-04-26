@@ -152,24 +152,31 @@
       <div class="modal-secao modal-secao-contrato">
         <h4>Contrato</h4>
 
-        <input type="date" id="editContratoInicio" title="Data inicial">
-        <input type="date" id="editContratoFim" title="Data final">
+        <div class="contrato-periodo">
+          <label>Período</label>
+          <input type="text" id="editContratoInicio" placeholder="Data inicial" inputmode="numeric" required>
+          <input type="text" id="editContratoFim" placeholder="Data final" inputmode="numeric" required>
+        </div>
 
-        <label class="campo-parceria">
+        <div class="contrato-pagamento">
+          <label>Valor / custo</label>
+
+        <label class="switch-parceria">
           <input type="checkbox" id="editContratoParceria">
           <span>Parceria</span>
-       </label>
+        </label>
 
-       <input type="text" id="editValorContrato" placeholder="Valor / custo">
-     </div>
+        <input type="text" id="editValorContrato" placeholder="Valor / custo" required>
+      </div>
+    </div>
 
       <div class="modal-secao modal-secao-responsavel">
         <h4>Dados do responsável pelo estabelecimento</h4>
 
-        <input type="text" id="editResponsavelNome" placeholder="Nome completo">
-        <input type="text" id="editResponsavelCpf" placeholder="CPF / CNPJ">
-        <input type="text" id="editResponsavelTelefone" placeholder="Telefone">
-        <input type="text" id="editResponsavelEmail" placeholder="E-mail">
+        <input type="text" id="editResponsavelNome" placeholder="Nome completo" required>
+        <input type="text" id="editResponsavelCpf" placeholder="CPF / CNPJ" inputmode="numeric" required>
+        <input type="text" id="editResponsavelTelefone" placeholder="Telefone" inputmode="numeric" required>
+        <input type="email" id="editResponsavelEmail" placeholder="E-mail" required>
       </div>
  
       <div class="edit-imagem-box">
