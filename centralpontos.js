@@ -1787,77 +1787,170 @@ if (btnDeletarPonto) {
 }
 
 function ativarDragPontos() {
-  const cards = document.querySelectorAll(".card-ponto");
+  if (!pontosBox) return;
 
-  cards.forEach((card) => {
-    card.setAttribute("draggable", "true");
+  let estadoDrag = null;
 
-    card.addEventListener("dragstart", () => {
-      card.classList.add("card-arrastando");
-      document.body.classList.add("arrastando-ponto");
+  function obterCardsOrdenaveis() {
+    return [...pontosBox.querySelectorAll(".card-ponto:not(.card-ponto-placeholder)")];
+  }
+
+  function obterProximoCard(x, y) {
+    const cards = obterCardsOrdenaveis().filter((card) => card !== estadoDrag?.cardOriginal);
+
+    return cards.find((card) => {
+      const rect = card.getBoundingClientRect();
+      const meioY = rect.top + rect.height / 2;
+      const meioX = rect.left + rect.width / 2;
+
+      if (y < meioY - 12) return true;
+      if (Math.abs(y - meioY) <= rect.height / 2 && x < meioX) return true;
+
+      return false;
     });
+  }
 
-    card.addEventListener("dragend", () => {
-      card.classList.remove("card-arrastando");
-      document.body.classList.remove("arrastando-ponto");
+  function finalizarDrag() {
+    if (!estadoDrag) return;
 
-      document.querySelectorAll(".card-ponto").forEach((el) => {
-        el.classList.remove("card-drag-over");
-      });
-    });
+    const { cardOriginal, clone, placeholder } = estadoDrag;
 
-    card.addEventListener("dragover", (event) => {
-      event.preventDefault();
+    cardOriginal.style.visibility = "";
+    cardOriginal.classList.remove("card-arrastando-original");
 
-      const cardArrastando = document.querySelector(".card-arrastando");
+    if (placeholder?.parentNode) {
+      placeholder.parentNode.insertBefore(cardOriginal, placeholder);
+      placeholder.remove();
+    }
 
-      if (!cardArrastando || cardArrastando === card) return;
+    clone?.remove();
 
-      card.classList.add("card-drag-over");
+    document.body.classList.remove("arrastando-ponto");
+    pontosBox.classList.remove("drag-pontos-ativo");
 
-      const box = card.parentElement;
-      const cardsArray = [...box.querySelectorAll(".card-ponto:not(.card-arrastando)")];
+    estadoDrag = null;
+    salvarOrdemPontos();
+  }
 
-      const proximoCard = cardsArray.find((item) => {
-        const rect = item.getBoundingClientRect();
-        return event.clientY < rect.top + rect.height / 2;
-      });
+  pontosBox.querySelectorAll(".card-ponto").forEach((card) => {
+    card.setAttribute("draggable", "false");
 
-      if (proximoCard) {
-        box.insertBefore(cardArrastando, proximoCard);
-      } else {
-        box.appendChild(cardArrastando);
-      }
-    });
+    card.onpointerdown = (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (event.target.closest("button, a, input, textarea, select, .card-codigo")) return;
 
-    card.addEventListener("dragleave", () => {
-      card.classList.remove("card-drag-over");
-    });
+      const inicioX = event.clientX;
+      const inicioY = event.clientY;
+      const rect = card.getBoundingClientRect();
 
-    card.addEventListener("drop", async () => {
-      await salvarOrdemPontos();
-    });
+      const iniciar = (moveEvent) => {
+        const distancia = Math.hypot(moveEvent.clientX - inicioX, moveEvent.clientY - inicioY);
+        if (distancia < 8) return;
+
+        window.removeEventListener("pointermove", iniciar);
+
+        const clone = card.cloneNode(true);
+        clone.classList.add("card-ponto-flutuante");
+        clone.style.width = `${rect.width}px`;
+        clone.style.height = `${rect.height}px`;
+        clone.style.left = `${rect.left}px`;
+        clone.style.top = `${rect.top}px`;
+
+        const placeholder = document.createElement("div");
+        placeholder.className = "card-ponto card-ponto-placeholder";
+        placeholder.style.width = `${rect.width}px`;
+        placeholder.style.height = `${rect.height}px`;
+
+        card.classList.add("card-arrastando-original");
+        card.style.visibility = "hidden";
+
+        pontosBox.insertBefore(placeholder, card.nextSibling);
+        document.body.appendChild(clone);
+
+        document.body.classList.add("arrastando-ponto");
+        pontosBox.classList.add("drag-pontos-ativo");
+
+        estadoDrag = {
+          cardOriginal: card,
+          clone,
+          placeholder,
+          offsetX: moveEvent.clientX - rect.left,
+          offsetY: moveEvent.clientY - rect.top
+        };
+
+        mover(moveEvent);
+      };
+
+      const mover = (moveEvent) => {
+        if (!estadoDrag) return;
+
+        moveEvent.preventDefault();
+
+        const left = moveEvent.clientX - estadoDrag.offsetX;
+        const top = moveEvent.clientY - estadoDrag.offsetY;
+
+        estadoDrag.clone.style.left = `${left}px`;
+        estadoDrag.clone.style.top = `${top}px`;
+
+        const proximoCard = obterProximoCard(moveEvent.clientX, moveEvent.clientY);
+
+        if (proximoCard) {
+          pontosBox.insertBefore(estadoDrag.placeholder, proximoCard);
+        } else {
+          pontosBox.appendChild(estadoDrag.placeholder);
+        }
+      };
+
+      const soltar = () => {
+        window.removeEventListener("pointermove", iniciar);
+        window.removeEventListener("pointermove", mover);
+        window.removeEventListener("pointerup", soltar);
+        window.removeEventListener("pointercancel", soltar);
+        finalizarDrag();
+      };
+
+      window.addEventListener("pointermove", iniciar);
+      window.addEventListener("pointermove", mover);
+      window.addEventListener("pointerup", soltar);
+      window.addEventListener("pointercancel", soltar);
+    };
   });
 }
 
 async function salvarOrdemPontos() {
-  const cards = [...document.querySelectorAll(".card-ponto")];
+  const cards = [...document.querySelectorAll(".pontos-box .card-ponto:not(.card-ponto-placeholder)")];
 
-  for (let index = 0; index < cards.length; index++) {
-    const codigo = cards[index].dataset.codigo;
-    const ordem = index + 1;
+  const atualizacoes = cards
+    .map((card, index) => ({
+      codigo: String(card.dataset.codigo || "").trim(),
+      ordem: index + 1
+    }))
+    .filter((item) => item.codigo);
 
-    if (!codigo) continue;
+  atualizacoes.forEach((item) => {
+    if (pontosMap[item.codigo]) {
+      pontosMap[item.codigo].ordem = item.ordem;
+    }
+  });
 
-    await supabaseClient
+  salvarCachePontos(Object.values(pontosMap));
+  setStatus("Salvando ordem dos pontos...", "normal");
+
+  for (const item of atualizacoes) {
+    const { error } = await supabaseClient
       .from(TABELA_PONTOS)
-      .update({ ordem })
-      .eq("codigo", codigo);
+      .update({ ordem: item.ordem })
+      .eq("codigo", item.codigo);
 
-    if (pontosMap[codigo]) {
-      pontosMap[codigo].ordem = ordem;
+    if (error) {
+      console.error(error);
+      setStatus("Erro ao salvar ordem dos pontos", "erro");
+      return;
     }
   }
+
+  setStatus("Ordem dos pontos salva", "ok");
+}
 
   salvarCachePontos(Object.values(pontosMap));
   setStatus("Ordem dos pontos atualizada", "ok");
