@@ -1343,3 +1343,50 @@ section {
     min-width: 198px !important;
   }
 }
+
+@media (max-width: 860px) {
+  .how-wrap .overline,
+  .how-wrap .section-head p {
+    display: none !important;
+  }
+
+  .step-pill {
+    display: none !important;
+  }
+
+  .step-title {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    min-height: 2.3em !important;
+  }
+
+  .hero h1 {
+    line-height: 1 !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .step-title {
+    font-size: 0.52rem !important;
+    line-height: 1.08 !important;
+    min-height: 2.16em !important;
+  }
+
+  .hero h1 {
+    line-height: 1.02 !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .step-title {
+    font-size: 0.48rem !important;
+    line-height: 1.05 !important;
+    min-height: 2.1em !important;
+  }
+
+  .hero h1 {
+    line-height: 1.04 !important;
+  }
+}
