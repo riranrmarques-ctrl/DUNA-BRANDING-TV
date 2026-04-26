@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0">
 
   <title>Duna Branding | Pontos</title>
-  <link rel="stylesheet" href="centralpontos.css?v=101">
+  <link rel="stylesheet" href="centralpontos.css?v=200">
 </head>
 
 <body>
@@ -135,23 +135,42 @@
     </div>
 
   </div>
-
   <!-- MODAL EDITAR -->
   <div id="modalEditar" class="modal-editar" style="display:none;">
-    <div class="modal-conteudo">
+    <div class="modal-conteudo modal-conteudo-amplo">
 
       <h3>Editar Informações</h3>
 
-      <input type="text" id="editNome">
-      <input type="text" id="editCidade">
-      <input type="text" id="editEndereco">
+      <div class="modal-secao">
+        <h4>Dados do ponto</h4>
+
+        <input type="text" id="editNome" placeholder="Nome do ponto">
+        <input type="text" id="editCidade" placeholder="Cidade / região">
+        <input type="text" id="editEndereco" placeholder="Endereço completo">
+      </div>
+
+      <div class="modal-secao">
+        <h4>Contrato</h4>
+
+        <input type="text" id="editContratante" placeholder="Contratante">
+        <input type="text" id="editValorContrato" placeholder="Valor / custo">
+      </div>
+
+      <div class="modal-secao">
+        <h4>Dados do responsável</h4>
+
+        <input type="text" id="editResponsavelNome" placeholder="Nome do responsável">
+        <input type="text" id="editResponsavelCpf" placeholder="CPF">
+        <input type="text" id="editResponsavelTelefone" placeholder="Telefone">
+        <input type="text" id="editResponsavelEmail" placeholder="E-mail">
+      </div>
 
       <div class="edit-imagem-box">
+        <h4>Imagem do ponto</h4>
         <img id="previewImagem">
         <input type="file" id="inputImagem">
       </div>
 
-      <!-- BOTÃO DELETAR AQUI (COMO VOCÊ PEDIU) -->
       <div class="edit-botoes">
         <button id="btnSalvarEdicao">Salvar</button>
         <button id="btnDeletarPonto" class="btn-deletar-ponto">Deletar ponto</button>
@@ -164,7 +183,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="centralpontos.js?v=120"></script>
+<script src="centralpontos.js?v=121"></script>
 
 </body>
 </html>
