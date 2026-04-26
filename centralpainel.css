@@ -4,6 +4,20 @@
   box-sizing: border-box;
 }
 
+:root {
+  --primary: #008cff;
+  --primary-hover: #1aa3ff;
+  --primary-dark: #005be8;
+  --primary-soft: rgba(0, 140, 255, 0.14);
+  --primary-border: rgba(0, 140, 255, 0.48);
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
 body {
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -18,7 +32,7 @@ body {
   justify-content: center;
   padding: 28px 18px;
   background:
-    radial-gradient(circle at top center, rgba(52, 91, 180, 0.2), transparent 34%),
+    radial-gradient(circle at top center, rgba(0, 140, 255, 0.22), transparent 34%),
     linear-gradient(180deg, #07122a 0%, #060b18 58%, #05070d 100%);
 }
 
@@ -60,7 +74,7 @@ body {
   height: 52px;
   border: none;
   border-radius: 14px;
-  background: #5667f1;
+  background: var(--primary);
   color: #fff;
   font-size: 16px;
   font-weight: 700;
@@ -68,7 +82,7 @@ body {
 }
 
 .login-card button:hover {
-  background: #6576ff;
+  background: var(--primary-hover);
 }
 
 .login-erro {
@@ -79,9 +93,12 @@ body {
 }
 
 #conteudoPainel {
+  height: 100vh;
   min-height: 100vh;
   background: #020617;
   color: #fff;
+  overflow: hidden;
+  display: flex;
 }
 
 .sidebar {
@@ -95,6 +112,7 @@ body {
   justify-content: space-between;
   position: sticky;
   top: 0;
+  flex-shrink: 0;
 }
 
 .brand {
@@ -104,14 +122,14 @@ body {
 }
 
 .logo-img {
-  width: 42px;
-  height: 42px;
+  width: 160px;
+  height: auto;
   object-fit: contain;
   border-radius: 10px;
 }
 
 .brand span {
-  color: #6c5cff;
+  color: var(--primary);
   font-size: 12px;
 }
 
@@ -132,7 +150,7 @@ body {
 }
 
 .menu a.active {
-  background: #6c5cff;
+  background: var(--primary);
   color: #fff;
 }
 
@@ -157,13 +175,19 @@ body {
 
 .main {
   flex: 1;
+  min-width: 0;
+  height: 100vh;
   padding: 25px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .topbar {
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 select {
@@ -179,6 +203,7 @@ select {
   grid-template-columns: repeat(4, 1fr);
   gap: 15px;
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .metric-card {
@@ -200,7 +225,7 @@ select {
   flex-shrink: 0;
 }
 
-.purple { background: #6c5cff; }
+.purple { background: var(--primary); }
 .cyan { background: #06b6d4; }
 .orange { background: #f59e0b; }
 .green { background: #22c55e; }
@@ -229,6 +254,7 @@ select {
   grid-template-columns: 2fr 1fr;
   gap: 15px;
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .panel {
@@ -245,11 +271,12 @@ select {
 }
 
 .panel-head a {
-  color: #8b5cf6;
+  color: var(--primary);
   text-decoration: none;
 }
 
 .panel-head a:hover {
+  color: var(--primary-hover);
   text-decoration: underline;
 }
 
@@ -290,13 +317,13 @@ svg line {
 }
 
 .line {
-  stroke: #6c5cff;
+  stroke: var(--primary);
   stroke-width: 3;
   fill: none;
 }
 
 circle {
-  fill: #6c5cff;
+  fill: var(--primary);
 }
 
 .chart-labels {
@@ -354,10 +381,43 @@ circle {
 .red-dot { background: #ef4444; }
 .gray-dot { background: #6b7280; }
 
+.points {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.points .panel-head {
+  flex-shrink: 0;
+}
+
 .points .point-list {
+  min-height: 0;
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+  align-content: start;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 140, 255, 0.42) transparent;
+}
+
+.points .point-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.points .point-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 140, 255, 0.42);
+  border-radius: 999px;
+}
+
+.points .point-list::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .point-card {
@@ -370,7 +430,7 @@ circle {
 
 .point-card:hover {
   transform: translateY(-4px);
-  border-color: #6c5cff;
+  border-color: var(--primary-border);
 }
 
 .point-card img {
@@ -441,8 +501,15 @@ circle {
 }
 
 @media (max-width: 760px) {
+  body {
+    overflow: auto;
+  }
+
   #conteudoPainel {
     display: block !important;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
 
   .sidebar {
@@ -452,7 +519,10 @@ circle {
   }
 
   .main {
+    height: auto;
     padding: 16px;
+    overflow: visible;
+    display: block;
   }
 
   .metrics,
@@ -460,13 +530,17 @@ circle {
     grid-template-columns: 1fr;
   }
 
+  .points {
+    overflow: visible;
+  }
+
+  .points .point-list {
+    overflow: visible;
+    padding-right: 0;
+  }
+
   .contract-content,
   .status-content {
     flex-direction: column;
   }
-}
-
-.logo-img {
-  width: 160px;
-  height: auto;
 }
