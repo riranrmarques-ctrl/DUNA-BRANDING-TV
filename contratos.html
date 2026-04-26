@@ -305,6 +305,59 @@
       display: inline;
     }
 
+    .texto-contrato p[data-clausula] {
+      position: relative;
+      padding-right: 44px;
+    }
+
+    .btn-adicionar-clausula {
+      display: none;
+      margin-top: 12px;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .editando .btn-adicionar-clausula {
+      display: inline-block;
+    }
+
+    .btn-adicionar-clausula:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-remover-clausula {
+      display: none;
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 8px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .editando .btn-remover-clausula {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-remover-clausula:hover {
+      background: #dc2626;
+    }
+
     .assinaturas {
       display: grid;
       grid-template-columns: repeat(2, minmax(220px, 1fr));
@@ -380,7 +433,9 @@
       .sidebar,
       .acoes,
       .aviso-edicao,
-      .aviso-status {
+      .aviso-status,
+      .btn-adicionar-clausula,
+      .btn-remover-clausula {
         display: none !important;
       }
 
@@ -529,76 +584,25 @@
             <h3>Termos do Contrato</h3>
 
             <div data-clausulas-container>
-              <p data-clausula>
-                <strong data-clausula-titulo>PARTES</strong>
-                <span data-clausula-texto>Pelo presente instrumento particular, de um lado {{empresa}}, doravante denominada CONTRATADA, e de outro lado {{cliente_nome}}, doravante denominado CONTRATANTE, têm entre si justo e contratado o presente acordo de prestação de serviços de publicidade em telas digitais, mediante as cláusulas e condições seguintes.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>OBJETO DO CONTRATO</strong>
-                <span data-clausula-texto>O presente contrato tem por objeto a prestação de serviços de veiculação de publicidade em telas digitais, instaladas em pontos estratégicos operados pela CONTRATADA.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>ESPECIFICAÇÕES DO SERVIÇO</strong>
-                <span data-clausula-texto>A publicidade será exibida nos pontos contratados: {{pontos}}. O período de veiculação será de {{data_inicio}} até {{data_vencimento}}. A exibição será diária, durante o horário de funcionamento dos locais, em sistema de exibição rotativa, com duração de anúncio de até 20 segundos.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>LIMITE DE ANUNCIANTES SIMULTÂNEOS</strong>
-                <span data-clausula-texto>A CONTRATADA poderá operar as telas com limite de até 10 empresas anunciantes simultâneas por ponto de exibição, respeitando a organização comercial e operacional da mídia.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>EXCLUSIVIDADE E CONCORRÊNCIA</strong>
-                <span data-clausula-texto>A CONTRATADA compromete-se a não veicular anúncios de concorrentes diretos da CONTRATANTE nas mesmas telas durante a vigência do contrato, quando aplicável ao segmento informado e previamente acordado entre as partes.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>ENTREGA E RESPONSABILIDADE DO CONTEÚDO</strong>
-                <span data-clausula-texto>O CONTRATANTE é integralmente responsável pelo conteúdo enviado, incluindo imagens, vídeos, textos, marcas, ofertas, promoções e demais materiais, garantindo possuir direitos de uso e que o conteúdo não infringe normas legais, direitos de terceiros ou regras comerciais aplicáveis.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>RECUSA OU ADEQUAÇÃO DE MATERIAL</strong>
-                <span data-clausula-texto>A CONTRATADA poderá recusar materiais que sejam ilegais, contenham conteúdo ofensivo, prejudiquem a imagem da empresa ou do local de exibição, ou que não atendam aos padrões mínimos de qualidade técnica e profissional exigidos para veiculação, incluindo materiais considerados amadores. A CONTRATADA poderá orientar ajustes ou sugerir adequações no material, sem obrigação de edição, criação ou refação.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>PRAZO E VIGÊNCIA</strong>
-                <span data-clausula-texto>O contrato entra em vigor na data de início acordada, permanecendo válido até o término estipulado, podendo ser renovado mediante novo acordo entre as partes.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>VALOR E CONDIÇÕES DE PAGAMENTO</strong>
-                <span data-clausula-texto>Pelos serviços contratados, o CONTRATANTE pagará à CONTRATADA o valor total de {{valor}}. A forma de pagamento poderá ser PIX ou outro meio acordado entre as partes. O vencimento seguirá a data ou condição combinada entre CONTRATADA e CONTRATANTE.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>INADIMPLÊNCIA</strong>
-                <span data-clausula-texto>Nos casos em que houver acordo de pagamento parcelado, mensal ou com vencimento futuro, o não pagamento de qualquer parcela poderá resultar na suspensão da veiculação da publicidade após o prazo de 5 (cinco) dias úteis do vencimento, permanecendo suspensa até a regularização.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>GARANTIA DE VEICULAÇÃO</strong>
-                <span data-clausula-texto>A CONTRATADA garante a exibição do anúncio conforme contratado. Em caso de falha técnica ou interrupção superior a 48 horas consecutivas, poderá ser concedida compensação proporcional no tempo de exibição ou extensão do período contratado, conforme avaliação da CONTRATADA.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>CANCELAMENTO E RESCISÃO</strong>
-                <span data-clausula-texto>O contrato poderá ser encerrado por qualquer uma das partes a qualquer momento. Em caso de cancelamento, será considerado apenas o período em que a publicidade foi efetivamente exibida, com ajuste proporcional ao tempo utilizado. Havendo valor pago antecipadamente, poderá ser devolvida a diferença proporcional. Havendo valor pendente, será cobrado apenas o período já utilizado.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>LIMITAÇÃO DE RESPONSABILIDADE</strong>
-                <span data-clausula-texto>A CONTRATADA não se responsabiliza por resultados comerciais da campanha, variações de público, desempenho financeiro do CONTRATANTE ou fatores externos como queda de energia, falhas de internet, problemas estruturais do local, limitações técnicas de terceiros ou eventos de força maior.</span>
-              </p>
-
-              <p data-clausula>
-                <strong data-clausula-titulo>DISPOSIÇÕES GERAIS</strong>
-                <span data-clausula-texto>Este contrato representa o acordo entre as partes quanto à veiculação de publicidade em telas digitais operadas pela CONTRATADA, obrigando ambas ao cumprimento das condições aqui estabelecidas.</span>
-              </p>
+              <p data-clausula><strong data-clausula-titulo>PARTES</strong> <span data-clausula-texto>Pelo presente instrumento particular, de um lado {{empresa}}, doravante denominada CONTRATADA, e de outro lado {{cliente_nome}}, doravante denominado CONTRATANTE, têm entre si justo e contratado o presente acordo de prestação de serviços de publicidade em telas digitais, mediante as cláusulas e condições seguintes.</span></p>
+              <p data-clausula><strong data-clausula-titulo>OBJETO DO CONTRATO</strong> <span data-clausula-texto>O presente contrato tem por objeto a prestação de serviços de veiculação de publicidade em telas digitais, instaladas em pontos estratégicos operados pela CONTRATADA.</span></p>
+              <p data-clausula><strong data-clausula-titulo>ESPECIFICAÇÕES DO SERVIÇO</strong> <span data-clausula-texto>A publicidade será exibida nos pontos contratados: {{pontos}}. O período de veiculação será de {{data_inicio}} até {{data_vencimento}}. A exibição será diária, durante o horário de funcionamento dos locais, em sistema de exibição rotativa, com duração de anúncio de até 20 segundos.</span></p>
+              <p data-clausula><strong data-clausula-titulo>LIMITE DE ANUNCIANTES SIMULTÂNEOS</strong> <span data-clausula-texto>A CONTRATADA poderá operar as telas com limite de até 10 empresas anunciantes simultâneas por ponto de exibição, respeitando a organização comercial e operacional da mídia.</span></p>
+              <p data-clausula><strong data-clausula-titulo>EXCLUSIVIDADE E CONCORRÊNCIA</strong> <span data-clausula-texto>A CONTRATADA compromete-se a não veicular anúncios de concorrentes diretos da CONTRATANTE nas mesmas telas durante a vigência do contrato, quando aplicável ao segmento informado e previamente acordado entre as partes.</span></p>
+              <p data-clausula><strong data-clausula-titulo>ENTREGA E RESPONSABILIDADE DO CONTEÚDO</strong> <span data-clausula-texto>O CONTRATANTE é integralmente responsável pelo conteúdo enviado, incluindo imagens, vídeos, textos, marcas, ofertas, promoções e demais materiais, garantindo possuir direitos de uso e que o conteúdo não infringe normas legais, direitos de terceiros ou regras comerciais aplicáveis.</span></p>
+              <p data-clausula><strong data-clausula-titulo>RECUSA OU ADEQUAÇÃO DE MATERIAL</strong> <span data-clausula-texto>A CONTRATADA poderá recusar materiais que sejam ilegais, contenham conteúdo ofensivo, prejudiquem a imagem da empresa ou do local de exibição, ou que não atendam aos padrões mínimos de qualidade técnica e profissional exigidos para veiculação, incluindo materiais considerados amadores. A CONTRATADA poderá orientar ajustes ou sugerir adequações no material, sem obrigação de edição, criação ou refação.</span></p>
+              <p data-clausula><strong data-clausula-titulo>PRAZO E VIGÊNCIA</strong> <span data-clausula-texto>O contrato entra em vigor na data de início acordada, permanecendo válido até o término estipulado, podendo ser renovado mediante novo acordo entre as partes.</span></p>
+              <p data-clausula><strong data-clausula-titulo>VALOR E CONDIÇÕES DE PAGAMENTO</strong> <span data-clausula-texto>Pelos serviços contratados, o CONTRATANTE pagará à CONTRATADA o valor total de {{valor}}. A forma de pagamento poderá ser PIX ou outro meio acordado entre as partes. O vencimento seguirá a data ou condição combinada entre CONTRATADA e CONTRATANTE.</span></p>
+              <p data-clausula><strong data-clausula-titulo>INADIMPLÊNCIA</strong> <span data-clausula-texto>Nos casos em que houver acordo de pagamento parcelado, mensal ou com vencimento futuro, o não pagamento de qualquer parcela poderá resultar na suspensão da veiculação da publicidade após o prazo de 5 (cinco) dias úteis do vencimento, permanecendo suspensa até a regularização.</span></p>
+              <p data-clausula><strong data-clausula-titulo>GARANTIA DE VEICULAÇÃO</strong> <span data-clausula-texto>A CONTRATADA garante a exibição do anúncio conforme contratado. Em caso de falha técnica ou interrupção superior a 48 horas consecutivas, poderá ser concedida compensação proporcional no tempo de exibição ou extensão do período contratado, conforme avaliação da CONTRATADA.</span></p>
+              <p data-clausula><strong data-clausula-titulo>CANCELAMENTO E RESCISÃO</strong> <span data-clausula-texto>O contrato poderá ser encerrado por qualquer uma das partes a qualquer momento. Em caso de cancelamento, será considerado apenas o período em que a publicidade foi efetivamente exibida, com ajuste proporcional ao tempo utilizado. Havendo valor pago antecipadamente, poderá ser devolvida a diferença proporcional. Havendo valor pendente, será cobrado apenas o período já utilizado.</span></p>
+              <p data-clausula><strong data-clausula-titulo>LIMITAÇÃO DE RESPONSABILIDADE</strong> <span data-clausula-texto>A CONTRATADA não se responsabiliza por resultados comerciais da campanha, variações de público, desempenho financeiro do CONTRATANTE ou fatores externos como queda de energia, falhas de internet, problemas estruturais do local, limitações técnicas de terceiros ou eventos de força maior.</span></p>
+              <p data-clausula><strong data-clausula-titulo>DISPOSIÇÕES GERAIS</strong> <span data-clausula-texto>Este contrato representa o acordo entre as partes quanto à veiculação de publicidade em telas digitais operadas pela CONTRATADA, obrigando ambas ao cumprimento das condições aqui estabelecidas.</span></p>
             </div>
+
+            <button class="btn-adicionar-clausula" type="button" onclick="adicionarClausula()">
+              + Adicionar cláusula
+            </button>
           </div>
 
           <div class="assinaturas">
@@ -664,6 +668,10 @@
               <p data-clausula><strong data-clausula-titulo>CANCELAMENTO OU RESCISÃO</strong> <span data-clausula-texto>O encerramento da parceria poderá ocorrer por iniciativa de qualquer das partes, mediante comunicação prévia.</span></p>
               <p data-clausula><strong data-clausula-titulo>DISPOSIÇÕES GERAIS</strong> <span data-clausula-texto>Este contrato formaliza a parceria operacional de mídia indoor entre as partes, obrigando ambas ao cumprimento das responsabilidades aqui previstas.</span></p>
             </div>
+
+            <button class="btn-adicionar-clausula" type="button" onclick="adicionarClausula()">
+              + Adicionar cláusula
+            </button>
           </div>
 
           <div class="assinaturas">
@@ -685,7 +693,6 @@
       </main>
     </div>
   </div>
-</body>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -707,7 +714,7 @@
     const btnCancelarPagina = document.getElementById("btnCancelarPagina");
     const avisoStatus = document.getElementById("avisoStatus");
 
-    let backupEdicao = {};
+    let backupEdicao = null;
 
     function escaparHtml(texto) {
       return String(texto ?? "")
@@ -777,10 +784,72 @@
     }
 
     function criarBackupEdicao() {
-      backupEdicao = {};
+      const contrato = obterContratoAtivo();
 
-      obterElementosEditaveis().forEach((elemento, index) => {
-        backupEdicao[index] = elemento.innerHTML;
+      backupEdicao = contrato
+        ? { id: contrato.id, html: contrato.innerHTML }
+        : null;
+    }
+
+    function adicionarClausula() {
+      if (!document.body.classList.contains("editando")) {
+        mostrarAviso("Entre no modo edição para adicionar cláusulas.", "erro");
+        return;
+      }
+
+      const contrato = obterContratoAtivo();
+      const container = contrato?.querySelector("[data-clausulas-container]");
+
+      if (!container) return;
+
+      const p = document.createElement("p");
+      p.setAttribute("data-clausula", "");
+
+      p.innerHTML = `
+        <strong data-clausula-titulo contenteditable="true">NOVA CLÁUSULA</strong>
+        <span data-clausula-texto contenteditable="true">Digite o texto da nova cláusula aqui.</span>
+      `;
+
+      container.appendChild(p);
+      prepararBotoesRemoverClausulas();
+
+      p.querySelector("[data-clausula-titulo]")?.focus();
+      mostrarAviso("Cláusula adicionada. Clique em Salvar para gravar.", "info");
+    }
+
+    function removerClausula(botao) {
+      const clausula = botao.closest("[data-clausula]");
+
+      if (!document.body.classList.contains("editando")) {
+        mostrarAviso("Entre no modo edição para remover cláusulas.", "erro");
+        return;
+      }
+
+      if (!clausula) return;
+
+      const confirmar = window.confirm("Remover esta cláusula do contrato?");
+
+      if (!confirmar) return;
+
+      clausula.remove();
+      mostrarAviso("Cláusula removida. Clique em Salvar para gravar.", "info");
+    }
+
+    function prepararBotoesRemoverClausulas() {
+      const contrato = obterContratoAtivo();
+      if (!contrato) return;
+
+      contrato.querySelectorAll("[data-clausula]").forEach((clausula) => {
+        if (clausula.querySelector(".btn-remover-clausula")) return;
+
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.className = "btn-remover-clausula";
+        botao.textContent = "×";
+        botao.setAttribute("aria-label", "Remover cláusula");
+        botao.addEventListener("click", () => removerClausula(botao));
+
+        clausula.appendChild(botao);
       });
     }
 
@@ -792,6 +861,8 @@
       obterElementosEditaveis().forEach((elemento) => {
         elemento.setAttribute("contenteditable", "true");
       });
+
+      prepararBotoesRemoverClausulas();
 
       btnEditarPagina.style.display = "none";
       btnSalvarPagina.style.display = "inline-block";
@@ -813,11 +884,13 @@
     }
 
     function cancelarEdicoes() {
-      obterElementosEditaveis().forEach((elemento, index) => {
-        if (backupEdicao[index] !== undefined) {
-          elemento.innerHTML = backupEdicao[index];
+      if (backupEdicao?.id && backupEdicao?.html) {
+        const contrato = document.getElementById(backupEdicao.id);
+
+        if (contrato) {
+          contrato.innerHTML = backupEdicao.html;
         }
-      });
+      }
 
       sairModoEdicao();
       mostrarAviso("Edição cancelada.", "info");
@@ -884,8 +957,6 @@
 
     function coletarHtmlModelo() {
       const dados = coletarDadosContratada();
-      const titulo = obterTextoCampo("titulo_contrato");
-      const subtitulo = obterTextoCampo("subtitulo_contrato");
       const tipo = obterContratoTipoAtivo();
       const assinaturaLabel = tipo === "estabelecimento" ? "ESTABELECIMENTO" : "CONTRATANTE";
 
@@ -948,7 +1019,19 @@
       const paragrafos = Array.from(temp.querySelectorAll("p"))
         .filter((p) => {
           const texto = p.textContent.trim();
-          return texto && !texto.startsWith("Empresa:") && !texto.startsWith("CNPJ:") && !texto.startsWith("Telefone:") && !texto.startsWith("Email:") && !texto.startsWith("Endereço:") && !texto.startsWith("Responsável:") && !texto.startsWith("Nome:") && !texto.startsWith("Valor:") && !texto.startsWith("Período:") && !texto.startsWith("Pontos:");
+
+          return texto &&
+            !texto.startsWith("Empresa:") &&
+            !texto.startsWith("CNPJ:") &&
+            !texto.startsWith("Telefone:") &&
+            !texto.startsWith("Email:") &&
+            !texto.startsWith("Endereço:") &&
+            !texto.startsWith("Responsável:") &&
+            !texto.startsWith("Nome:") &&
+            !texto.startsWith("CPF/CNPJ:") &&
+            !texto.startsWith("Valor:") &&
+            !texto.startsWith("Período:") &&
+            !texto.startsWith("Pontos:");
         });
 
       if (!paragrafos.length) return;
@@ -974,7 +1057,9 @@
     function aplicarModeloNoHtml(modelo) {
       if (!modelo) return;
 
-      const dados = modelo.dados_contratada || {};
+      const dados = typeof modelo.dados_contratada === "string"
+        ? JSON.parse(modelo.dados_contratada || "{}")
+        : modelo.dados_contratada || {};
 
       aplicarTextoCampo("titulo_contrato", modelo.titulo || "");
       aplicarTextoCampo("subtitulo_contrato", modelo.subtitulo || "");
@@ -992,43 +1077,43 @@
       }
     }
 
-   async function carregarContratoDaSupabase() {
-  const tipo = obterContratoTipoAtivo();
+    async function carregarContratoDaSupabase() {
+      const tipo = obterContratoTipoAtivo();
 
-  try {
-    mostrarAviso("Carregando contrato da Supabase...", "info");
+      try {
+        mostrarAviso("Carregando contrato da Supabase...", "info");
 
-    let { data, error } = await supabaseClient
-      .from(TABELA_CONTRATOS_MODELOS)
-      .select("*")
-      .eq("tipo", tipo)
-      .maybeSingle();
+        let { data, error } = await supabaseClient
+          .from(TABELA_CONTRATOS_MODELOS)
+          .select("*")
+          .eq("tipo", tipo)
+          .maybeSingle();
 
-    if (error) throw error;
+        if (error) throw error;
 
-    if (!data) {
-      const fallback = await supabaseClient
-        .from(TABELA_CONTRATOS_MODELOS)
-        .select("*")
-        .in("tipo", ["padrao", "contrato_padrao", "modelo_padrao", "contratante_padrao"])
-        .maybeSingle();
+        if (!data) {
+          const fallback = await supabaseClient
+            .from(TABELA_CONTRATOS_MODELOS)
+            .select("*")
+            .in("tipo", ["padrao", "contrato_padrao", "modelo_padrao", "contratante_padrao"])
+            .maybeSingle();
 
-      if (fallback.error) throw fallback.error;
+          if (fallback.error) throw fallback.error;
 
-      data = fallback.data;
+          data = fallback.data;
+        }
+
+        if (data) {
+          aplicarModeloNoHtml(data);
+          mostrarAviso("Contrato carregado da Supabase.", "ok");
+        } else {
+          mostrarAviso("Nenhum modelo encontrado na Supabase.", "erro");
+        }
+      } catch (error) {
+        console.error(error);
+        mostrarAviso(`Erro ao carregar contrato: ${error.message || "falha desconhecida"}`, "erro");
+      }
     }
-
-    if (data) {
-      aplicarModeloNoHtml(data);
-      mostrarAviso("Contrato carregado da Supabase.", "ok");
-    } else {
-      mostrarAviso("Nenhum modelo encontrado na Supabase.", "erro");
-    }
-  } catch (error) {
-    console.error(error);
-    mostrarAviso(`Erro ao carregar contrato: ${error.message || "falha desconhecida"}`, "erro");
-  }
-}
 
     async function salvarEdicoes() {
       try {
