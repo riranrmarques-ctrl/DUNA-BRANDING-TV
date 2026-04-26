@@ -936,31 +936,43 @@
       }
     }
 
-    async function carregarContratoDaSupabase() {
-      const tipo = obterContratoTipoAtivo();
+   async function carregarContratoDaSupabase() {
+  const tipo = obterContratoTipoAtivo();
 
-      try {
-        mostrarAviso("Carregando contrato da Supabase...", "info");
+  try {
+    mostrarAviso("Carregando contrato da Supabase...", "info");
 
-        const { data, error } = await supabaseClient
-          .from(TABELA_CONTRATOS_MODELOS)
-          .select("*")
-          .eq("tipo", tipo)
-          .maybeSingle();
+    let { data, error } = await supabaseClient
+      .from(TABELA_CONTRATOS_MODELOS)
+      .select("*")
+      .eq("tipo", tipo)
+      .maybeSingle();
 
-        if (error) throw error;
+    if (error) throw error;
 
-        if (data) {
-          aplicarModeloNoHtml(data);
-          mostrarAviso("Contrato carregado da Supabase.", "ok");
-        } else {
-          mostrarAviso("Modelo ainda não existe. Edite e clique em Salvar para criar.", "info");
-        }
-      } catch (error) {
-        console.error(error);
-        mostrarAviso(`Erro ao carregar contrato: ${error.message || "falha desconhecida"}`, "erro");
-      }
+    if (!data) {
+      const fallback = await supabaseClient
+        .from(TABELA_CONTRATOS_MODELOS)
+        .select("*")
+        .in("tipo", ["padrao", "contrato_padrao", "modelo_padrao", "contratante_padrao"])
+        .maybeSingle();
+
+      if (fallback.error) throw fallback.error;
+
+      data = fallback.data;
     }
+
+    if (data) {
+      aplicarModeloNoHtml(data);
+      mostrarAviso("Contrato carregado da Supabase.", "ok");
+    } else {
+      mostrarAviso("Nenhum modelo encontrado na Supabase.", "erro");
+    }
+  } catch (error) {
+    console.error(error);
+    mostrarAviso(`Erro ao carregar contrato: ${error.message || "falha desconhecida"}`, "erro");
+  }
+}
 
     async function salvarEdicoes() {
       try {
