@@ -1796,19 +1796,38 @@ function ativarDragPontos() {
   }
 
   function obterProximoCard(x, y) {
-    const cards = obterCardsOrdenaveis().filter((card) => card !== estadoDrag?.cardOriginal);
+  const cards = obterCardsOrdenaveis().filter((card) => card !== estadoDrag?.cardOriginal);
 
-    return cards.find((card) => {
-      const rect = card.getBoundingClientRect();
-      const meioY = rect.top + rect.height / 2;
-      const meioX = rect.left + rect.width / 2;
+  let cardMaisProximo = null;
+  let menorDistancia = Infinity;
+  let inserirDepois = false;
 
-      if (y < meioY - 12) return true;
-      if (Math.abs(y - meioY) <= rect.height / 2 && x < meioX) return true;
+  cards.forEach((card) => {
+    const rect = card.getBoundingClientRect();
+    const centroX = rect.left + rect.width / 2;
+    const centroY = rect.top + rect.height / 2;
 
-      return false;
-    });
+    const distancia = Math.hypot(x - centroX, y - centroY);
+
+    if (distancia < menorDistancia) {
+      menorDistancia = distancia;
+      cardMaisProximo = card;
+
+      const estaMaisParaBaixo = y > centroY + rect.height * 0.2;
+      const estaMaisParaDireita = x > centroX;
+
+      inserirDepois = estaMaisParaBaixo || estaMaisParaDireita;
+    }
+  });
+
+  if (!cardMaisProximo) return null;
+
+  if (inserirDepois) {
+    return cardMaisProximo.nextElementSibling;
   }
+
+  return cardMaisProximo;
+}
 
   function finalizarDrag() {
     if (!estadoDrag) return;
@@ -1856,7 +1875,7 @@ function ativarDragPontos() {
 
         const proximoCard = obterProximoCard(moveEvent.clientX, moveEvent.clientY);
 
-        if (proximoCard) {
+        if (proximoCard && proximoCard !== estadoDrag.placeholder) {
           pontosBox.insertBefore(estadoDrag.placeholder, proximoCard);
         } else {
           pontosBox.appendChild(estadoDrag.placeholder);
