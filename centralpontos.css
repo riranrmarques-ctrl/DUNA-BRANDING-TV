@@ -2092,3 +2092,49 @@ body.modo-detalhe .topo-esquerda {
   white-space: nowrap !important;
 }
 
+.contrato-download-layout {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px;
+  gap: 16px;
+  align-items: end;
+}
+
+.modal-secao-download .contrato-parceria {
+  display: grid !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+.modal-secao-download .parceria-opcoes {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+
+.modal-secao-download #editValorContrato {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.btn-baixar-contrato {
+  width: 170px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  border-radius: 12px !important;
+  padding: 0 14px !important;
+  font-size: 0.88rem !important;
+  white-space: nowrap !important;
+  align-self: end !important;
+}
+
+@media (max-width: 760px) {
+  .contrato-download-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-baixar-contrato {
+    width: 100% !important;
+  }
+}
+
