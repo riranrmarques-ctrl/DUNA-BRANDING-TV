@@ -1791,45 +1791,26 @@ function ativarDragPontos() {
 
   let estadoDrag = null;
 
-  function obterCardsOrdenaveis() {
-    return [...pontosBox.querySelectorAll(".card-ponto")]
-      .filter((card) => !card.classList.contains("card-ponto-placeholder"));
-  }
+  function obterCardSobMouse(x, y) {
+    if (!estadoDrag) return null;
 
- function obterReferenciaInsercao(x, y) {
-  const cards = obterCardsOrdenaveis();
-  const total = cards.length;
+    const elementos = document.elementsFromPoint(x, y);
 
-  if (!total) {
+    for (const el of elementos) {
+      const card = el.closest?.(".card-ponto");
+
+      if (
+        card &&
+        pontosBox.contains(card) &&
+        card !== estadoDrag.placeholder &&
+        !card.classList.contains("card-ponto-placeholder")
+      ) {
+        return card;
+      }
+    }
+
     return null;
   }
-
-  const primeiro = cards[0].getBoundingClientRect();
-  const boxRect = pontosBox.getBoundingClientRect();
-
-  const larguraCard = primeiro.width;
-  const alturaCard = primeiro.height;
-
-  const estilos = window.getComputedStyle(pontosBox);
-  const gapX = parseFloat(estilos.columnGap || estilos.gap || "0") || 0;
-  const gapY = parseFloat(estilos.rowGap || estilos.gap || "0") || 0;
-
-  const larguraSlot = larguraCard + gapX;
-  const alturaSlot = alturaCard + gapY;
-
-  const colunas = Math.max(1, Math.round((boxRect.width + gapX) / larguraSlot));
-
-  const xRelativo = Math.max(0, x - boxRect.left);
-  const yRelativo = Math.max(0, y - boxRect.top);
-
-  const coluna = Math.max(0, Math.min(colunas - 1, Math.floor(xRelativo / larguraSlot)));
-  const linha = Math.max(0, Math.floor(yRelativo / alturaSlot));
-
-  const indice = Math.max(0, Math.min(total, linha * colunas + coluna));
-
-  return cards[indice] || null;
-}
-
 
   function finalizarDrag() {
     if (!estadoDrag) return;
@@ -1840,6 +1821,8 @@ function ativarDragPontos() {
 
     if (placeholder?.parentNode) {
       placeholder.replaceWith(cardOriginal);
+    } else {
+      pontosBox.appendChild(cardOriginal);
     }
 
     clone?.remove();
@@ -1870,13 +1853,24 @@ function ativarDragPontos() {
         estadoDrag.clone.style.left = `${moveEvent.clientX - estadoDrag.offsetX}px`;
         estadoDrag.clone.style.top = `${moveEvent.clientY - estadoDrag.offsetY}px`;
 
-        const referencia = obterReferenciaInsercao(moveEvent.clientX, moveEvent.clientY);
+        const cardAlvo = obterCardSobMouse(moveEvent.clientX, moveEvent.clientY);
 
-        if (referencia) {
-          pontosBox.insertBefore(estadoDrag.placeholder, referencia);
+        if (!cardAlvo) return;
+
+        const alvoRect = cardAlvo.getBoundingClientRect();
+        const meioX = alvoRect.left + alvoRect.width / 2;
+        const meioY = alvoRect.top + alvoRect.height / 2;
+        const mesmaLinha = moveEvent.clientY >= alvoRect.top && moveEvent.clientY <= alvoRect.bottom;
+        const inserirDepois = mesmaLinha
+          ? moveEvent.clientX > meioX
+          : moveEvent.clientY > meioY;
+
+        if (inserirDepois) {
+          pontosBox.insertBefore(estadoDrag.placeholder, cardAlvo.nextSibling);
         } else {
-          pontosBox.appendChild(estadoDrag.placeholder);
+          pontosBox.insertBefore(estadoDrag.placeholder, cardAlvo);
         }
+      };
 
       const iniciar = (moveEvent) => {
         const distancia = Math.hypot(moveEvent.clientX - inicioX, moveEvent.clientY - inicioY);
@@ -1896,9 +1890,8 @@ function ativarDragPontos() {
         clone.style.left = `${rect.left}px`;
         clone.style.top = `${rect.top}px`;
 
-        card.classList.add("card-arrastando-original");
-
         pontosBox.insertBefore(placeholder, card);
+        card.classList.add("card-arrastando-original");
         card.remove();
 
         document.body.appendChild(clone);
