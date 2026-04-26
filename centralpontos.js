@@ -53,6 +53,7 @@ if (sessionStorage.getItem("painelLiberado") !== "1") {
 
 const statusEl = document.querySelector(".status-topo") || document.getElementById("status");
 const listaPontos = document.getElementById("listaPontos");
+const btnBaixarContrato = document.getElementById("btnBaixarContrato");
 const pontoDetalhe = document.getElementById("pontoDetalhe");
 const pontosBox = document.querySelector(".pontos-box");
 
