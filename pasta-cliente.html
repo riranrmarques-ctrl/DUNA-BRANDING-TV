@@ -72,20 +72,58 @@
       font-size: 0.95rem;
       cursor: pointer;
       color: #fff;
-      transition: 0.2s ease;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease,
+        background-color 0.16s ease,
+        border-color 0.16s ease;
     }
 
     .botao:hover {
-      opacity: 0.92;
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 14px 30px rgba(45, 140, 255, 0.28);
+    }
+
+    .botao:active {
+      transform: translateY(1px) scale(0.98);
+      filter: brightness(0.92);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .botao:focus-visible {
+      outline: 3px solid rgba(45, 140, 255, 0.85);
+      outline-offset: 3px;
+    }
+
+    .botao:disabled,
+    button:disabled,
+    button[disabled] {
+      cursor: not-allowed;
+      opacity: 0.58;
+      transform: none !important;
+      filter: grayscale(0.2) brightness(0.82);
+      box-shadow: none !important;
     }
 
     .botao-voltar {
       background: #2a2f3a;
+      box-shadow: 0 10px 22px rgba(148, 163, 184, 0.12);
+    }
+
+    .botao-voltar:hover {
+      box-shadow: 0 14px 30px rgba(148, 163, 184, 0.22);
     }
 
     .botao-salvar {
       background: #2d8cff;
       font-weight: bold;
+      box-shadow: 0 10px 24px rgba(45, 140, 255, 0.22);
+    }
+
+    .botao-salvar:hover {
+      box-shadow: 0 15px 34px rgba(45, 140, 255, 0.38);
     }
 
     .botao-excluir-cliente {
@@ -94,10 +132,39 @@
       padding: 9px 14px;
       font-size: 0.86rem;
       border-radius: 10px;
+      box-shadow: 0 10px 24px rgba(217, 83, 79, 0.24);
     }
 
     .botao-excluir-cliente:hover {
       background: #c2413d;
+      box-shadow: 0 15px 34px rgba(217, 83, 79, 0.38);
+    }
+
+    .botao.carregando,
+    button.carregando {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.86;
+    }
+
+    .botao.carregando::after,
+    button.carregando::after {
+      content: "";
+      width: 15px;
+      height: 15px;
+      margin-left: 10px;
+      display: inline-block;
+      vertical-align: -2px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: #fff;
+      animation: girarBotao 0.75s linear infinite;
+    }
+
+    @keyframes girarBotao {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .grid {
@@ -269,6 +336,49 @@
       gap: 14px;
     }
 
+    .pontos-grid label,
+    .pontos-grid .ponto-item,
+    .pontos-grid button {
+      cursor: pointer;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        filter 0.16s ease,
+        border-color 0.16s ease;
+    }
+
+    .pontos-grid label:hover,
+    .pontos-grid .ponto-item:hover,
+    .pontos-grid button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      border-color: rgba(159, 210, 255, 0.9);
+      box-shadow: 0 14px 30px rgba(45, 140, 255, 0.24);
+    }
+
+    .pontos-grid label:active,
+    .pontos-grid .ponto-item:active,
+    .pontos-grid button:active {
+      transform: translateY(1px) scale(0.98);
+      filter: brightness(0.94);
+    }
+
+    .pontos-grid input[type="checkbox"] {
+      cursor: pointer;
+      transition:
+        transform 0.14s ease,
+        box-shadow 0.14s ease;
+    }
+
+    .pontos-grid input[type="checkbox"]:hover {
+      transform: scale(1.12);
+      box-shadow: 0 0 0 4px rgba(45, 140, 255, 0.18);
+    }
+
+    .pontos-grid input[type="checkbox"]:active {
+      transform: scale(0.94);
+    }
+
     .historico-lista {
       display: flex;
       flex-direction: column;
@@ -310,6 +420,31 @@
 
       .topo h1 {
         font-size: 1.65rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .botao,
+      button,
+      .ponto-item,
+      .ponto-card,
+      label,
+      .pontos-grid input[type="checkbox"] {
+        transition: none !important;
+        animation: none !important;
+      }
+
+      .botao:hover,
+      button:hover,
+      .ponto-item:hover,
+      .ponto-card:hover,
+      label:hover,
+      .botao:active,
+      button:active,
+      .ponto-item:active,
+      .ponto-card:active,
+      label:active {
+        transform: none !important;
       }
     }
   </style>
@@ -479,5 +614,19 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="pasta-cliente.js?v=703"></script>
+
+  <script>
+    document.addEventListener("click", (event) => {
+      const botao = event.target.closest("button");
+
+      if (!botao || botao.disabled) return;
+
+      botao.classList.add("carregando");
+
+      setTimeout(() => {
+        botao.classList.remove("carregando");
+      }, 850);
+    });
+  </script>
 </body>
 </html>
