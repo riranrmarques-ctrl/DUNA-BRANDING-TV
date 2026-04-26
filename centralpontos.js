@@ -72,6 +72,12 @@ const modalEditar = document.getElementById("modalEditar");
 const editNome = document.getElementById("editNome");
 const editCidade = document.getElementById("editCidade");
 const editEndereco = document.getElementById("editEndereco");
+const editContratante = document.getElementById("editContratante");
+const editValorContrato = document.getElementById("editValorContrato");
+const editResponsavelNome = document.getElementById("editResponsavelNome");
+const editResponsavelCpf = document.getElementById("editResponsavelCpf");
+const editResponsavelTelefone = document.getElementById("editResponsavelTelefone");
+const editResponsavelEmail = document.getElementById("editResponsavelEmail");
 const previewImagem = document.getElementById("previewImagem");
 const inputImagem = document.getElementById("inputImagem");
 const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
@@ -1065,6 +1071,13 @@ function abrirModalEdicao() {
   if (editCidade) editCidade.value = obterCidadePonto(ponto) || "";
   if (editEndereco) editEndereco.value = obterEnderecoPonto(ponto) || "";
 
+  if (editContratante) editContratante.value = ponto.contrato_contratante || "";
+  if (editValorContrato) editValorContrato.value = ponto.contrato_valor || "";
+  if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
+  if (editResponsavelCpf) editResponsavelCpf.value = ponto.responsavel_cpf || "";
+  if (editResponsavelTelefone) editResponsavelTelefone.value = ponto.responsavel_telefone || "";
+  if (editResponsavelEmail) editResponsavelEmail.value = ponto.responsavel_email || "";
+
   if (previewImagem) {
     previewImagem.src = obterImagemPonto(ponto);
     aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
@@ -1074,27 +1087,6 @@ function abrirModalEdicao() {
 
   arquivoImagemEdicao = null;
   modalEditar.style.display = "flex";
-}
-
-function fecharModalEdicao() {
-  if (!modalEditar) return;
-
-  modalEditar.style.display = "none";
-  arquivoImagemEdicao = null;
-  arrastandoPreview = false;
-
-  if (inputImagem) inputImagem.value = "";
-}
-
-if (btnVoltar) {
-  btnVoltar.onclick = () => {
-    if (listaPontos) listaPontos.style.display = "block";
-    if (pontoDetalhe) pontoDetalhe.style.display = "none";
-    codigoSelecionado = null;
-
-    document.body.classList.remove("modo-detalhe");
-    
-  };
 }
 
 if (btnCopiarCodigo) {
@@ -1236,42 +1228,76 @@ if (btnSalvarEdicao) {
     const nome = editNome ? editNome.value.trim() : "";
     const cidade = editCidade ? editCidade.value.trim() : "";
     const endereco = editEndereco ? editEndereco.value.trim() : "";
+    const contratante = editContratante ? editContratante.value.trim() : "";
+    const valorContrato = editValorContrato ? editValorContrato.value.trim() : "";
+    const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
+    const responsavelCpf = editResponsavelCpf ? editResponsavelCpf.value.trim() : "";
+    const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
+    const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
 
     try {
       setStatus("Salvando informações...", "normal");
 
-      const payloadsInfo = [
-        {
-          nome,
-          cidade,
-          endereco
-        },
-        {
-          nome_local: nome,
-          cidade_regiao: cidade,
-          endereco_completo: endereco
-        }
-      ];
+      const payloadCompleto = {
+        nome,
+        cidade,
+        endereco,
+        contrato_contratante: contratante,
+        contrato_valor: valorContrato,
+        responsavel_nome: responsavelNome,
+        responsavel_cpf: responsavelCpf,
+        responsavel_telefone: responsavelTelefone,
+        responsavel_email: responsavelEmail
+      };
 
-      let erroInfoFinal = null;
+      const payloadBasico = {
+        nome,
+        cidade,
+        endereco
+      };
 
-      for (const payload of payloadsInfo) {
-        const { error } = await supabaseClient
+      const payloadAlternativo = {
+        nome_local: nome,
+        cidade_regiao: cidade,
+        endereco_completo: endereco
+      };
+
+      let salvouInfo = false;
+
+      const tentativaCompleta = await supabaseClient
+        .from(TABELA_PONTOS)
+        .update(payloadCompleto)
+        .eq("codigo", codigoSelecionado);
+
+      if (!tentativaCompleta.error) {
+        salvouInfo = true;
+      } else {
+        console.warn("Falha ao salvar payload completo:", tentativaCompleta.error);
+
+        const tentativaBasica = await supabaseClient
           .from(TABELA_PONTOS)
-          .update(payload)
+          .update(payloadBasico)
           .eq("codigo", codigoSelecionado);
 
-        if (!error) {
-          erroInfoFinal = null;
-          break;
-        }
+        if (!tentativaBasica.error) {
+          salvouInfo = true;
+        } else {
+          console.warn("Falha ao salvar payload básico:", tentativaBasica.error);
 
-        erroInfoFinal = error;
-        console.warn("Erro ao salvar textos com payload:", payload, error);
+          const tentativaAlternativa = await supabaseClient
+            .from(TABELA_PONTOS)
+            .update(payloadAlternativo)
+            .eq("codigo", codigoSelecionado);
+
+          if (!tentativaAlternativa.error) {
+            salvouInfo = true;
+          } else {
+            console.error("Erro ao salvar textos:", tentativaAlternativa.error);
+          }
+        }
       }
 
-      if (erroInfoFinal) {
-        console.error("Erro ao salvar textos:", erroInfoFinal);
+      if (!salvouInfo) {
         setStatus("Erro ao atualizar informações", "erro");
         return;
       }
@@ -1282,6 +1308,12 @@ if (btnSalvarEdicao) {
       ponto.cidade_regiao = cidade;
       ponto.endereco = endereco;
       ponto.endereco_completo = endereco;
+      ponto.contrato_contratante = contratante;
+      ponto.contrato_valor = valorContrato;
+      ponto.responsavel_nome = responsavelNome;
+      ponto.responsavel_cpf = responsavelCpf;
+      ponto.responsavel_telefone = responsavelTelefone;
+      ponto.responsavel_email = responsavelEmail;
 
       if (arquivoImagemEdicao) {
         setStatus("Enviando imagem...", "normal");
