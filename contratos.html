@@ -1072,12 +1072,9 @@
 
   atualizarImagemAssinatura(dados.assinatura_url || "assinatura.png");
 
-  // TEMPORÁRIO:
-  // Deixe comentado enquanto você grava o modelo novo completo.
-  // Depois que salvar uma vez e recarregar certo, pode descomentar.
-  // if (modelo.html_modelo) {
-  //   renderizarClausulasDoHtmlModelo(modelo.html_modelo);
-  // }
+  if (modelo.html_modelo) {
+  renderizarClausulasDoHtmlModelo(modelo.html_modelo);
+ }
 }
 
 async function carregarContratoDaSupabase() {
