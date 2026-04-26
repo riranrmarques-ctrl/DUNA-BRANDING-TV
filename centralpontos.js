@@ -1076,8 +1076,15 @@ function abrirModalEdicao() {
   if (editCidade) editCidade.value = obterCidadePonto(ponto) || "";
   if (editEndereco) editEndereco.value = obterEnderecoPonto(ponto) || "";
 
-  if (editContratante) editContratante.value = ponto.contrato_contratante || "";
+  if (editContratoInicio) editContratoInicio.value = ponto.contrato_data_inicio || "";
+  if (editContratoFim) editContratoFim.value = ponto.contrato_data_fim || "";
+  if (editContratoParceria) editContratoParceria.checked = ponto.contrato_tipo === "parceria";
   if (editValorContrato) editValorContrato.value = ponto.contrato_valor || "";
+
+  if (editValorContrato && editContratoParceria) {
+    editValorContrato.style.display = editContratoParceria.checked ? "none" : "block";
+  }
+
   if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
   if (editResponsavelCpf) editResponsavelCpf.value = ponto.responsavel_cpf || "";
   if (editResponsavelTelefone) editResponsavelTelefone.value = ponto.responsavel_telefone || "";
