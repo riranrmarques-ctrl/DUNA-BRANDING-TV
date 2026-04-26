@@ -649,3 +649,59 @@ circle {
 .point-body {
   display: none !important;
 }
+
+.point-card {
+  position: relative !important;
+  height: 75px !important;
+  min-height: 75px !important;
+  border-radius: 15px !important;
+  overflow: hidden !important;
+  background: #020617 !important;
+}
+
+.point-card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  filter: brightness(0.68) saturate(1.05) !important;
+}
+
+.point-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 3px;
+  padding: 10px 12px;
+  background: linear-gradient(
+    180deg,
+    rgba(2, 6, 23, 0.05) 0%,
+    rgba(2, 6, 23, 0.42) 45%,
+    rgba(2, 6, 23, 0.88) 100%
+  );
+}
+
+.point-overlay strong {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.point-overlay span {
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+
+.point-body {
+  display: none !important;
+}
+
