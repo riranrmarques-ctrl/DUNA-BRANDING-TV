@@ -1796,40 +1796,40 @@ function ativarDragPontos() {
       .filter((card) => !card.classList.contains("card-ponto-placeholder"));
   }
 
-  function obterReferenciaInsercao(x, y) {
-    const cards = obterCardsOrdenaveis();
+ function obterReferenciaInsercao(x, y) {
+  const cards = obterCardsOrdenaveis();
+  const total = cards.length;
 
-    if (!cards.length) {
-      return {
-        card: null,
-        depois: false
-      };
-    }
-
-    let cardMaisProximo = null;
-    let menorDistancia = Infinity;
-    let depois = false;
-
-    cards.forEach((card) => {
-      const rect = card.getBoundingClientRect();
-      const centroX = rect.left + rect.width / 2;
-      const centroY = rect.top + rect.height / 2;
-      const distancia = Math.hypot(x - centroX, y - centroY);
-
-      if (distancia < menorDistancia) {
-        menorDistancia = distancia;
-        cardMaisProximo = card;
-
-        const estaNaMesmaLinha = y >= rect.top && y <= rect.bottom;
-        depois = estaNaMesmaLinha ? x > centroX : y > centroY;
-      }
-    });
-
-    return {
-      card: cardMaisProximo,
-      depois
-    };
+  if (!total) {
+    return null;
   }
+
+  const primeiro = cards[0].getBoundingClientRect();
+  const boxRect = pontosBox.getBoundingClientRect();
+
+  const larguraCard = primeiro.width;
+  const alturaCard = primeiro.height;
+
+  const estilos = window.getComputedStyle(pontosBox);
+  const gapX = parseFloat(estilos.columnGap || estilos.gap || "0") || 0;
+  const gapY = parseFloat(estilos.rowGap || estilos.gap || "0") || 0;
+
+  const larguraSlot = larguraCard + gapX;
+  const alturaSlot = alturaCard + gapY;
+
+  const colunas = Math.max(1, Math.round((boxRect.width + gapX) / larguraSlot));
+
+  const xRelativo = Math.max(0, x - boxRect.left);
+  const yRelativo = Math.max(0, y - boxRect.top);
+
+  const coluna = Math.max(0, Math.min(colunas - 1, Math.floor(xRelativo / larguraSlot)));
+  const linha = Math.max(0, Math.floor(yRelativo / alturaSlot));
+
+  const indice = Math.max(0, Math.min(total, linha * colunas + coluna));
+
+  return cards[indice] || null;
+}
+
 
   function finalizarDrag() {
     if (!estadoDrag) return;
@@ -1872,17 +1872,11 @@ function ativarDragPontos() {
 
         const referencia = obterReferenciaInsercao(moveEvent.clientX, moveEvent.clientY);
 
-        if (!referencia.card) {
-          pontosBox.appendChild(estadoDrag.placeholder);
-          return;
-        }
-
-        if (referencia.depois) {
-          pontosBox.insertBefore(estadoDrag.placeholder, referencia.card.nextSibling);
+        if (referencia) {
+          pontosBox.insertBefore(estadoDrag.placeholder, referencia);
         } else {
-          pontosBox.insertBefore(estadoDrag.placeholder, referencia.card);
+          pontosBox.appendChild(estadoDrag.placeholder);
         }
-      };
 
       const iniciar = (moveEvent) => {
         const distancia = Math.hypot(moveEvent.clientX - inicioX, moveEvent.clientY - inicioY);
