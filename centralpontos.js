@@ -1270,7 +1270,7 @@ if (btnSalvarEdicao) {
     const contratoFimBr = editContratoFim ? editContratoFim.value.trim() : "";
     const contratoInicio = dataBrParaIso(contratoInicioBr);
     const contratoFim = dataBrParaIso(contratoFimBr);
-    const contratoParceria = editContratoParceria ? editContratoParceria.checked : false;
+    const contratoParceria = editContratoParceriaSim ? editContratoParceriaSim.checked : false;
     const valorContrato = contratoParceria ? "" : (editValorContrato ? editValorContrato.value.trim() : "");
     const contratoTipo = contratoParceria ? "parceria" : "valor";
 
