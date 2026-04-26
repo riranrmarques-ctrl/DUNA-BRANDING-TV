@@ -1808,13 +1808,20 @@ body.modo-detalhe .topo-esquerda {
   gap: 18px !important;
 }
 
-/* Período à esquerda */
+/* Período à esquerda + parceria em cima + contrato pequeno ao lado */
+
+.modal-grid-edicao {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 420px !important;
+  gap: 18px !important;
+}
+
 .modal-secao-contrato {
   grid-column: 1 / 2 !important;
   grid-row: 1 !important;
   display: grid !important;
-  grid-template-columns: 210px minmax(0, 1fr) !important;
-  gap: 14px 18px !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 14px !important;
   align-content: start !important;
 }
 
@@ -1824,23 +1831,20 @@ body.modo-detalhe .topo-esquerda {
 
 .contrato-periodo {
   display: grid !important;
+  grid-template-columns: 1fr !important;
   gap: 14px !important;
-  grid-column: 1 / 2 !important;
 }
 
 .contrato-parceria {
   display: grid !important;
-  gap: 14px !important;
-  align-content: start !important;
-  grid-column: 2 / 3 !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
 }
 
-.parceria-titulo,
-.contrato-periodo label,
-.contrato-parceria label:first-child {
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 900;
+.parceria-titulo {
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
 }
 
 .parceria-opcoes {
@@ -1849,34 +1853,10 @@ body.modo-detalhe .topo-esquerda {
   gap: 12px !important;
 }
 
-.parceria-opcoes label {
-  min-height: 48px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.parceria-opcoes input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--primary);
-}
-
-.parceria-opcoes span {
-  color: #ffffff;
-  font-weight: 900;
-}
-
 #editValorContrato {
   width: 100% !important;
 }
 
-/* Contrato / botão ao lado direito */
 .modal-secao-download {
   grid-column: 2 / 3 !important;
   grid-row: 1 !important;
@@ -1886,16 +1866,18 @@ body.modo-detalhe .topo-esquerda {
 }
 
 .btn-baixar-contrato {
-  width: 100% !important;
-  min-height: 150px !important;
+  width: 220px !important;
+  min-height: 54px !important;
+  height: 54px !important;
   border: none !important;
-  border-radius: 18px !important;
+  border-radius: 12px !important;
   background: #ffffff !important;
   color: #111827 !important;
-  font-size: 1.15rem !important;
+  font-size: 0.95rem !important;
   font-weight: 900 !important;
   cursor: pointer !important;
-  line-height: 1.15 !important;
+  line-height: 1 !important;
+  padding: 0 18px !important;
 }
 
 /* Responsável: nome + cpf, telefone + email */
