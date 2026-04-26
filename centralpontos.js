@@ -1996,5 +1996,5 @@ async function iniciarPainel() {
   await carregarPontosRemoto();
 }
 
-  setStatus("Painel Ativo", "ok");
-  iniciarPainel();
+setStatus("Painel Ativo", "ok");
+iniciarPainel();
