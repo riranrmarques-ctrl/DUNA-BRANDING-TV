@@ -1077,9 +1077,9 @@ function abrirModalEdicao() {
   if (editCidade) editCidade.value = obterCidadePonto(ponto) || "";
   if (editEndereco) editEndereco.value = obterEnderecoPonto(ponto) || "";
 
-  if (editContratoInicio) editContratoInicio.value = ponto.contrato_data_inicio || "";
-  if (editContratoFim) editContratoFim.value = ponto.contrato_data_fim || "";
-  
+  if (editContratoInicio) editContratoInicio.value = dataIsoParaBr(ponto.contrato_data_inicio) || "";
+  if (editContratoFim) editContratoFim.value = dataIsoParaBr(ponto.contrato_data_fim) || "";
+
   const contratoEhParceria = ponto.contrato_tipo === "parceria";
 
   if (editContratoParceriaSim) editContratoParceriaSim.checked = contratoEhParceria;
@@ -1911,17 +1911,24 @@ if (editResponsavelCpf) {
   });
 }
 
-if (editContratoParceria && editValorContrato) {
-  editContratoParceria.onchange = () => {
-    editValorContrato.disabled = editContratoParceria.checked;
+function atualizarVisualParceria() {
+  if (!editValorContrato || !editContratoParceriaSim || !editContratoParceriaNao) return;
 
-    if (editContratoParceria.checked) {
-      editValorContrato.value = "";
-      editValorContrato.placeholder = "Parceria ativada";
-    } else {
-      editValorContrato.placeholder = "Valor / custo";
-    }
-  };
+  const parceriaAtiva = editContratoParceriaSim.checked;
+
+  editValorContrato.style.display = parceriaAtiva ? "none" : "block";
+
+  if (parceriaAtiva) {
+    editValorContrato.value = "";
+  }
+}
+
+if (editContratoParceriaSim) {
+  editContratoParceriaSim.onchange = atualizarVisualParceria;
+}
+
+if (editContratoParceriaNao) {
+  editContratoParceriaNao.onchange = atualizarVisualParceria;
 }
 
 if (btnDeletarPonto) {
