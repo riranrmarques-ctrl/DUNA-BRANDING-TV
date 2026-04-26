@@ -135,102 +135,80 @@
     </div>
 
   </div>
+  
   <!-- MODAL EDITAR -->
-  <div id="modalEditar" class="modal-editar" style="display:none;">
-    <div class="modal-conteudo modal-conteudo-amplo">
+  <!-- MODAL EDITAR -->
+<div id="modalEditar" class="modal-editar" style="display:none;">
+  <div class="modal-conteudo modal-conteudo-amplo">
 
-      <h3>Editar Informações</h3>
+    <h3>Editar Informações</h3>
 
-      <div class="modal-secao">
-        <h4>Dados do ponto</h4>
+    <div class="modal-secao">
+      <h4>Dados do ponto</h4>
 
-        <input type="text" id="editNome" placeholder="Nome do ponto">
-        <input type="text" id="editCidade" placeholder="Cidade / região">
-        <input type="text" id="editEndereco" placeholder="Endereço completo">
+      <input type="text" id="editNome" placeholder="Nome do ponto">
+      <input type="text" id="editCidade" placeholder="Cidade / região">
+      <input type="text" id="editEndereco" placeholder="Endereço completo">
+    </div>
+
+    <div class="modal-grid-edicao">
+      <div class="modal-secao modal-secao-responsavel">
+        <h4>Dados do responsável pelo estabelecimento</h4>
+
+        <input type="text" id="editResponsavelNome" placeholder="Nome completo" required>
+        <input type="text" id="editResponsavelCpf" placeholder="CPF / CNPJ" inputmode="numeric" required>
+        <input type="text" id="editResponsavelTelefone" placeholder="Telefone" inputmode="numeric" required>
+        <input type="email" id="editResponsavelEmail" placeholder="E-mail" required>
+      </div>
+
+      <div class="modal-secao modal-secao-download">
+        <h4>Contrato</h4>
+
+        <button id="btnBaixarContrato" class="btn-baixar-contrato" type="button">
+          Baixar contrato
+        </button>
       </div>
 
       <div class="modal-secao modal-secao-contrato">
-        <h4>Contrato</h4>
+        <h4>Período e parceria</h4>
 
         <div class="contrato-periodo">
-          <label>Período</label>
           <input type="text" id="editContratoInicio" placeholder="Data inicial" inputmode="numeric" required>
           <input type="text" id="editContratoFim" placeholder="Data final" inputmode="numeric" required>
         </div>
 
-        <div class="contrato-pagamento">
-          <label>É parceria?</label>
+        <div class="contrato-parceria">
+          <label class="parceria-titulo">É parceria?</label>
 
-        <div class="parceria-opcoes">
-           <label>
-             <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaSim" value="sim">
-             <span>Sim</span>
-           </label>
+          <div class="parceria-opcoes">
+            <label>
+              <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaSim" value="sim">
+              <span>Sim</span>
+            </label>
 
-          <label>
-            <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaNao" value="nao">
-            <span>Não</span>
-          </label>
-          
-          <input type="text" id="editValorContrato" class="campo-valor-contrato" placeholder="Valor / custo">
+            <label>
+              <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaNao" value="nao">
+              <span>Não</span>
+            </label>
+          </div>
+
+          <input type="text" id="editValorContrato" placeholder="Valor / custo">
         </div>
       </div>
 
-      <div class="modal-grid-edicao">
-  <div class="modal-secao modal-secao-responsavel">
-    <h4>Dados do responsável pelo estabelecimento</h4>
-
-    <input type="text" id="editResponsavelNome" placeholder="Nome completo" required>
-    <input type="text" id="editResponsavelCpf" placeholder="CPF / CNPJ" inputmode="numeric" required>
-    <input type="text" id="editResponsavelTelefone" placeholder="Telefone" inputmode="numeric" required>
-    <input type="email" id="editResponsavelEmail" placeholder="E-mail" required>
-  </div>
-
-  <div class="modal-secao modal-secao-download">
-    <h4>Contrato</h4>
-
-    <button id="btnBaixarContrato" class="btn-baixar-contrato" type="button">
-      Baixar contrato
-    </button>
-  </div>
-
-  <div class="modal-secao modal-secao-contrato">
-    <h4>Período e parceria</h4>
-
-    <div class="contrato-periodo">
-      <input type="text" id="editContratoInicio" placeholder="Data inicial" inputmode="numeric" required>
-      <input type="text" id="editContratoFim" placeholder="Data final" inputmode="numeric" required>
-    </div>
-
-    <div class="contrato-parceria">
-      <label class="parceria-titulo">É parceria?</label>
-
-      <div class="parceria-opcoes">
-        <label>
-          <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaSim" value="sim">
-          <span>Sim</span>
-        </label>
-
-        <label>
-          <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaNao" value="nao">
-          <span>Não</span>
-        </label>
+      <div class="edit-imagem-box modal-secao-imagem">
+        <h4>Imagem do ponto</h4>
+        <img id="previewImagem">
+        <input type="file" id="inputImagem" accept="image/*">
       </div>
 
-      <input type="text" id="editValorContrato" placeholder="Valor / custo">
+      <div class="edit-botoes">
+        <button id="btnSalvarEdicao">Salvar</button>
+        <button id="btnDeletarPonto" class="btn-deletar-ponto">Deletar ponto</button>
+        <button id="btnFecharModal">Cancelar</button>
+      </div>
     </div>
-  </div>
 
-  <div class="edit-imagem-box modal-secao-imagem">
-    <h4>Imagem do ponto</h4>
-    <img id="previewImagem">
-    <input type="file" id="inputImagem" accept="image/*">
-  </div>
-
-  <div class="edit-botoes">
-    <button id="btnSalvarEdicao">Salvar</button>
-    <button id="btnDeletarPonto" class="btn-deletar-ponto">Deletar ponto</button>
-    <button id="btnFecharModal">Cancelar</button>
   </div>
 </div>
 
