@@ -224,14 +224,16 @@ img {
   border-radius: var(--radius-xl);
   overflow: hidden;
   border: 1px solid rgba(135, 170, 217, 0.14);
-  background:
-    linear-gradient(180deg, rgba(4, 7, 13, 0.08), rgba(4, 7, 13, 0.58)),
-    url("capainicial.jpg") center/cover no-repeat,
-    linear-gradient(135deg, #0c1a2b, #162f4d);
+  background: url("capainicial.jpg") center/cover no-repeat;
   aspect-ratio: 1 / 1;
   min-height: unset;
   box-shadow: var(--shadow);
   transform: translateY(20px);
+}
+
+.screen-body {
+  aspect-ratio: 16 / 9;
+  background: transparent;
 }
 
 .hero-screen {
@@ -247,13 +249,6 @@ img {
     0 0 34px rgba(117, 163, 219, 0.18),
     0 30px 80px rgba(0, 0, 0, 0.45);
   overflow: hidden;
-}
-
-.screen-body {
-  aspect-ratio: 16 / 9;
-  background:
-    url("capainicial.jpg") center/cover no-repeat,
-    linear-gradient(135deg, #0d2239, #24496f);
 }
 
 .screen-body small {
