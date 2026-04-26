@@ -1902,3 +1902,27 @@ body.modo-detalhe .topo-esquerda {
   }
 }
 
+.modal-secao-responsavel {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 16px !important;
+}
+
+.modal-secao-responsavel h3 {
+  grid-column: 1 / -1 !important;
+}
+
+#editResponsavelNome,
+#editResponsavelCpf,
+#editResponsavelTelefone,
+#editResponsavelEmail {
+  grid-column: auto !important;
+  width: 100% !important;
+}
+
+@media (max-width: 720px) {
+  .modal-secao-responsavel {
+    grid-template-columns: 1fr !important;
+  }
+}
+
