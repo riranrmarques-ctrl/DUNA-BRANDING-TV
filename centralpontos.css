@@ -1704,58 +1704,6 @@ body.modo-detalhe .topo-esquerda {
   pointer-events: none;
 }
 
-/* Card Status dos Pontos - rolagem interna */
-.status-dos-pontos-card,
-.status-pontos-card,
-.card-status-pontos,
-.pontos-status-card {
-  max-height: 360px;
-  overflow: hidden;
-}
-
-.status-dos-pontos-lista,
-.status-pontos-lista,
-.status-pontos-grid,
-.pontos-status-grid,
-#statusDosPontos,
-#listaStatusPontos {
-  max-height: 235px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 8px;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
-}
-
-.status-dos-pontos-lista::-webkit-scrollbar,
-.status-pontos-lista::-webkit-scrollbar,
-.status-pontos-grid::-webkit-scrollbar,
-.pontos-status-grid::-webkit-scrollbar,
-#statusDosPontos::-webkit-scrollbar,
-#listaStatusPontos::-webkit-scrollbar {
-  width: 6px;
-}
-
-.status-dos-pontos-lista::-webkit-scrollbar-track,
-.status-pontos-lista::-webkit-scrollbar-track,
-.status-pontos-grid::-webkit-scrollbar-track,
-.pontos-status-grid::-webkit-scrollbar-track,
-#statusDosPontos::-webkit-scrollbar-track,
-#listaStatusPontos::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.status-dos-pontos-lista::-webkit-scrollbar-thumb,
-.status-pontos-lista::-webkit-scrollbar-thumb,
-.status-pontos-grid::-webkit-scrollbar-thumb,
-.pontos-status-grid::-webkit-scrollbar-thumb,
-#statusDosPontos::-webkit-scrollbar-thumb,
-#listaStatusPontos::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.24);
-  border-radius: 999px;
-}
-
 /* Modal editar ampliado */
 
 .modal-conteudo-amplo {
