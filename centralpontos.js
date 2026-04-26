@@ -1793,19 +1793,22 @@ function ativarDragPontos() {
 
   function obterCardsOrdenaveis() {
     return [...pontosBox.querySelectorAll(".card-ponto")]
-      .filter((card) =>
-        card !== estadoDrag?.cardOriginal &&
-        card !== estadoDrag?.placeholder &&
-        !card.classList.contains("card-ponto-placeholder")
-      );
+      .filter((card) => !card.classList.contains("card-ponto-placeholder"));
   }
 
   function obterReferenciaInsercao(x, y) {
     const cards = obterCardsOrdenaveis();
 
+    if (!cards.length) {
+      return {
+        card: null,
+        depois: false
+      };
+    }
+
     let cardMaisProximo = null;
     let menorDistancia = Infinity;
-    let inserirDepois = false;
+    let depois = false;
 
     cards.forEach((card) => {
       const rect = card.getBoundingClientRect();
@@ -1817,17 +1820,15 @@ function ativarDragPontos() {
         menorDistancia = distancia;
         cardMaisProximo = card;
 
-        const mesmaLinha = y >= rect.top && y <= rect.bottom;
-        const abaixoDoMeio = y > centroY;
-        const direitaDoMeio = x > centroX;
-
-        inserirDepois = mesmaLinha ? direitaDoMeio : abaixoDoMeio;
+        const estaNaMesmaLinha = y >= rect.top && y <= rect.bottom;
+        depois = estaNaMesmaLinha ? x > centroX : y > centroY;
       }
     });
 
-    if (!cardMaisProximo) return null;
-
-    return inserirDepois ? cardMaisProximo.nextElementSibling : cardMaisProximo;
+    return {
+      card: cardMaisProximo,
+      depois
+    };
   }
 
   function finalizarDrag() {
@@ -1835,12 +1836,10 @@ function ativarDragPontos() {
 
     const { cardOriginal, clone, placeholder } = estadoDrag;
 
-    cardOriginal.style.display = "";
     cardOriginal.classList.remove("card-arrastando-original");
 
     if (placeholder?.parentNode) {
-      placeholder.parentNode.insertBefore(cardOriginal, placeholder);
-      placeholder.remove();
+      placeholder.replaceWith(cardOriginal);
     }
 
     clone?.remove();
@@ -1873,10 +1872,15 @@ function ativarDragPontos() {
 
         const referencia = obterReferenciaInsercao(moveEvent.clientX, moveEvent.clientY);
 
-        if (referencia && referencia !== estadoDrag.placeholder) {
-          pontosBox.insertBefore(estadoDrag.placeholder, referencia);
-        } else if (!referencia) {
+        if (!referencia.card) {
           pontosBox.appendChild(estadoDrag.placeholder);
+          return;
+        }
+
+        if (referencia.depois) {
+          pontosBox.insertBefore(estadoDrag.placeholder, referencia.card.nextSibling);
+        } else {
+          pontosBox.insertBefore(estadoDrag.placeholder, referencia.card);
         }
       };
 
@@ -1898,9 +1902,10 @@ function ativarDragPontos() {
         clone.style.left = `${rect.left}px`;
         clone.style.top = `${rect.top}px`;
 
-        pontosBox.insertBefore(placeholder, card);
         card.classList.add("card-arrastando-original");
-        card.style.display = "none";
+
+        pontosBox.insertBefore(placeholder, card);
+        card.remove();
 
         document.body.appendChild(clone);
 
