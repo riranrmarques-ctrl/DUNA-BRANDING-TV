@@ -102,32 +102,22 @@ function clienteEhSupervisor(cliente) {
 function contratoEstaConcluido(cliente) {
   if (!cliente) return false;
 
-  const status = String(cliente.status || cliente.contrato_status || "").trim().toLowerCase();
+  const status = String(
+    cliente.contrato_status ||
+    cliente.status_contrato ||
+    cliente.status ||
+    ""
+  ).trim().toLowerCase();
 
   if (status === "assinado" || status === "concluido" || status === "concluído") {
     return true;
   }
 
-  const temAssinatura = Boolean(cliente.assinado_em || cliente.contrato_assinado_em || cliente.contrato_assinado_html);
-  if (!temAssinatura) return false;
-
-  const dataAssinatura = new Date(cliente.assinado_em || cliente.contrato_assinado_em || cliente.updated_at || 0);
-  const dataContrato = new Date(
-    cliente.enviado_em ||
-    cliente.contrato_enviado_em ||
-    cliente.updated_at ||
-    0
+  return Boolean(
+    cliente.contrato_assinado_em ||
+    cliente.assinado_em ||
+    cliente.contrato_assinado_html
   );
-
-  if (Number.isNaN(dataAssinatura.getTime())) {
-    return Boolean(cliente.contrato_assinado_html);
-  }
-
-  if (!Number.isNaN(dataContrato.getTime()) && dataContrato > dataAssinatura) {
-    return false;
-  }
-
-  return true;
 }
 
 function formatarDataHora(valor) {
@@ -471,6 +461,7 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
       html_final: contratoFinalHtml
     };
 
+
     const resposta = await supabaseClient
       .from(TABELA_CONTRATOS_CLIENTES)
       .update(payloadContrato)
@@ -484,8 +475,10 @@ async function salvarContratoConcluido({ metodo, assinaturaImagem = "", fotos = 
   } else {
     const payloadCliente = {
       contrato_status: "concluido",
-      contrato_texto: contratoFinalHtml
-    };
+      contrato_texto: contratoFinalHtml,
+      contrato_assinado_html: contratoFinalHtml,
+      contrato_assinado_em: assinadoEm
+   };
 
     const resposta = await supabaseClient
       .from(TABELA_CLIENTES)
