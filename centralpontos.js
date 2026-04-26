@@ -1260,8 +1260,6 @@ if (btnSalvarEdicao) {
     const nome = editNome ? editNome.value.trim() : "";
     const cidade = editCidade ? editCidade.value.trim() : "";
     const endereco = editEndereco ? editEndereco.value.trim() : "";
-    const contratante = editContratante ? editContratante.value.trim() : "";
-    const valorContrato = editValorContrato ? editValorContrato.value.trim() : "";
     const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
     const responsavelCpf = editResponsavelCpf ? editResponsavelCpf.value.trim() : "";
     const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
@@ -1270,17 +1268,7 @@ if (btnSalvarEdicao) {
     try {
       setStatus("Salvando informações...", "normal");
 
-      const payloadCompleto = {
-        nome,
-        cidade,
-        endereco,
-        contrato_contratante: contratante,
-        contrato_valor: valorContrato,
-        responsavel_nome: responsavelNome,
-        responsavel_cpf: responsavelCpf,
-        responsavel_telefone: responsavelTelefone,
-        responsavel_email: responsavelEmail
-      };
+ payloadCompleto
 
       const payloadBasico = {
         nome,
@@ -1340,7 +1328,9 @@ if (btnSalvarEdicao) {
       ponto.cidade_regiao = cidade;
       ponto.endereco = endereco;
       ponto.endereco_completo = endereco;
-      ponto.contrato_contratante = contratante;
+      ponto.contrato_data_inicio = contratoInicio;
+      ponto.contrato_data_fim = contratoFim;
+      ponto.contrato_tipo = contratoTipo;
       ponto.contrato_valor = valorContrato;
       ponto.responsavel_nome = responsavelNome;
       ponto.responsavel_cpf = responsavelCpf;
@@ -1844,6 +1834,16 @@ async function deletarPontoAtual() {
     console.error("Erro ao deletar ponto:", error);
     setStatus("Erro ao deletar ponto", "erro");
   }
+}
+
+if (editContratoParceria && editValorContrato) {
+  editContratoParceria.onchange = () => {
+    editValorContrato.style.display = editContratoParceria.checked ? "none" : "block";
+
+    if (editContratoParceria.checked) {
+      editValorContrato.value = "";
+    }
+  };
 }
 
 if (btnDeletarPonto) {
