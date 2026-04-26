@@ -7,17 +7,14 @@ if (!codigo) {
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-const SUPABASE_CONTRATO_URL = "https://yiyaxxnewjvmnusfxzom.supabase.co";
-const SUPABASE_CONTRATO_KEY = "sb_publishable_EjuRWhlusDG2RLTAHFREQQ_-qZjxm3g";
-
 const BUCKET = "midias";
 const TABELA_CLIENTES = "dadosclientes";
 const TABELA_VINCULOS = "playercliente";
 const TABELA_PLAYLISTS = "playlists";
 const TABELA_PONTOS = "pontos";
+const TABELA_CONTRATOS_MODELOS = "contratos_modelos";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const supabaseContratoClient = window.supabase.createClient(SUPABASE_CONTRATO_URL, SUPABASE_CONTRATO_KEY);
 
 const inputCodigo = document.getElementById("codigo");
 const inputNome = document.getElementById("nome");
@@ -281,47 +278,81 @@ async function carregarPontos() {
   });
 }
 
-async function carregarConfigContrato() {
+function extrairClausulasDoHtmlModelo(htmlModelo) {
+  const temp = document.createElement("div");
+  temp.innerHTML = htmlModelo || "";
+
+  const ignorar = [
+    "Empresa:",
+    "CNPJ:",
+    "Telefone:",
+    "Email:",
+    "Endereço:",
+    "Responsável:",
+    "Nome:",
+    "CPF/CNPJ:",
+    "Valor:",
+    "Período:",
+    "Pontos:"
+  ];
+
+  return Array.from(temp.querySelectorAll("p"))
+    .filter((p) => {
+      const texto = p.textContent.trim();
+      return texto && !ignorar.some((prefixo) => texto.startsWith(prefixo));
+    })
+    .map((p) => {
+      const strong = p.querySelector("strong");
+      const titulo = strong ? strong.textContent.replace(":", "").trim() : "CLÁUSULA";
+
+      let texto = p.textContent.trim();
+
+      if (strong) {
+        texto = texto.replace(strong.textContent, "").trim();
+      }
+
+      return {
+        titulo,
+        texto,
+        ativo: true
+      };
+    });
+}
+
+async function carregarModeloContrato() {
   try {
-    const { data, error } = await supabaseContratoClient
-      .from("config_contrato")
+    const { data, error } = await supabaseClient
+      .from(TABELA_CONTRATOS_MODELOS)
       .select("*")
-      .eq("id", "duna")
+      .eq("tipo", "contratante")
       .maybeSingle();
 
     if (error) throw error;
 
-    if (data) {
-      dadosDunaContrato = {
-        empresa: data.empresa || "Duna Branding",
-        cnpj: data.cnpj || "",
-        telefone: data.telefone || "",
-        email: data.email || "",
-        endereco: data.endereco || "",
-        responsavel: data.responsavel || "",
-        titulo_contrato: data.titulo_contrato || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
-        subtitulo_contrato: data.subtitulo_contrato || "Contrato de prestação de serviços de publicidade em telas digitais."
-      };
+    if (!data) {
+      console.warn("Nenhum modelo contratante encontrado em contratos_modelos.");
+      clausulasContrato = [];
+      return;
     }
+
+    const dados = typeof data.dados_contratada === "string"
+      ? JSON.parse(data.dados_contratada || "{}")
+      : data.dados_contratada || {};
+
+    dadosDunaContrato = {
+      empresa: dados.empresa || "Duna Branding",
+      cnpj: dados.cnpj || "",
+      telefone: dados.telefone || "",
+      email: dados.email || "",
+      endereco: dados.endereco || "",
+      responsavel: dados.responsavel || "",
+      titulo_contrato: data.titulo || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
+      subtitulo_contrato: data.subtitulo || "Contrato de prestação de serviços de publicidade em telas digitais."
+    };
+
+    clausulasContrato = extrairClausulasDoHtmlModelo(data.html_modelo);
   } catch (error) {
-    console.error("Erro ao carregar config do contrato:", error);
-  }
-}
-
-async function carregarClausulasContrato() {
-  try {
-    const { data, error } = await supabaseContratoClient
-      .from("contrato_clausulas")
-      .select("*")
-      .eq("contrato_id", "duna")
-      .eq("ativo", true)
-      .order("ordem", { ascending: true });
-
-    if (error) throw error;
-
-    clausulasContrato = Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error("Erro ao carregar clausulas:", error);
+    console.error("Erro ao carregar modelo do contrato:", error);
     clausulasContrato = [];
   }
 }
@@ -351,18 +382,32 @@ function preencherMarcadoresContrato(texto, dados) {
   return String(texto || "")
     .replaceAll("{{empresa}}", dadosDunaContrato.empresa || "")
     .replaceAll("{{cnpj}}", dadosDunaContrato.cnpj || "")
+    .replaceAll("{{telefone_empresa}}", dadosDunaContrato.telefone || "")
+    .replaceAll("{{email_empresa}}", dadosDunaContrato.email || "")
+    .replaceAll("{{endereco_empresa}}", dadosDunaContrato.endereco || "")
+    .replaceAll("{{responsavel}}", dadosDunaContrato.responsavel || "")
+
     .replaceAll("{{telefoneEmpresa}}", dadosDunaContrato.telefone || "")
     .replaceAll("{{emailEmpresa}}", dadosDunaContrato.email || "")
     .replaceAll("{{enderecoEmpresa}}", dadosDunaContrato.endereco || "")
-    .replaceAll("{{responsavel}}", dadosDunaContrato.responsavel || "")
+
+    .replaceAll("{{cliente_nome}}", dados.nome || "")
+    .replaceAll("{{cliente_cpf_cnpj}}", dados.cpfCnpj || "")
+    .replaceAll("{{cliente_telefone}}", dados.telefone || "")
+    .replaceAll("{{cliente_email}}", dados.email || "")
+
     .replaceAll("{{cliente}}", dados.nome || "")
     .replaceAll("{{codigo}}", dados.codigo || "")
     .replaceAll("{{cpfCnpj}}", dados.cpfCnpj || "")
     .replaceAll("{{telefone}}", dados.telefone || "")
     .replaceAll("{{email}}", dados.email || "")
+
     .replaceAll("{{valor}}", dados.valor || "")
+    .replaceAll("{{data_inicio}}", dados.dataInicio || "")
+    .replaceAll("{{data_vencimento}}", dados.dataVencimento || "")
     .replaceAll("{{dataInicio}}", dados.dataInicio || "")
     .replaceAll("{{dataVencimento}}", dados.dataVencimento || "")
+
     .replaceAll("{{pontos}}", dados.pontos || "")
     .replaceAll("{{emissao}}", dados.emissao || "");
 }
@@ -1560,8 +1605,7 @@ async function iniciar() {
     mostrarMensagem(`Carregando cliente ${codigoClienteAtual}...`, "#9fd2ff");
 
     await carregarPontos();
-    await carregarConfigContrato();
-    await carregarClausulasContrato();
+    await carregarModeloContrato();
     await carregarCliente();
 
     gerarContratoCliente();
