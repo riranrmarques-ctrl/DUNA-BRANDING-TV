@@ -1095,7 +1095,7 @@ async function carregarContratoDaSupabase() {
       aplicarModeloNoHtml(data);
       mostrarAviso("Contrato carregado da Supabase.", "ok");
     } else {
-      mostrarAviso("Nenhum modelo encontrado para esta pasta. Edite e clique em Salvar para criar.", "info");
+      mostrarAviso("Nenhum modelo encontrado. Clique em Editar e Salvar para criar.", "info");
     }
   } catch (error) {
     console.error(error);
@@ -1104,35 +1104,56 @@ async function carregarContratoDaSupabase() {
 }
 
     async function salvarEdicoes() {
-      try {
-        mostrarAviso("Salvando contrato na Supabase...", "info");
+  try {
+    mostrarAviso("Salvando contrato na Supabase...", "info");
 
-        const tipo = obterContratoTipoAtivo();
-        const dadosContratada = coletarDadosContratada();
+    const tipo = obterContratoTipoAtivo();
+    const dadosContratada = coletarDadosContratada();
 
-        const payload = {
-          tipo,
-          titulo: obterTextoCampo("titulo_contrato") || "Contrato",
-          subtitulo: obterTextoCampo("subtitulo_contrato") || "",
-          html_modelo: coletarHtmlModelo(),
-          dados_contratada: dadosContratada,
-          ativo: true,
-          updated_at: new Date().toISOString()
-        };
+    const payload = {
+      tipo,
+      titulo: obterTextoCampo("titulo_contrato") || "Contrato",
+      subtitulo: obterTextoCampo("subtitulo_contrato") || "",
+      html_modelo: coletarHtmlModelo(),
+      dados_contratada: dadosContratada,
+      ativo: true,
+      updated_at: new Date().toISOString()
+    };
 
-        const { error } = await supabaseClient
-          .from(TABELA_CONTRATOS_MODELOS)
-          .upsert(payload, { onConflict: "tipo" });
+    const { data: existente, error: erroBusca } = await supabaseClient
+      .from(TABELA_CONTRATOS_MODELOS)
+      .select("id")
+      .eq("tipo", tipo)
+      .maybeSingle();
 
-        if (error) throw error;
+    if (erroBusca) throw erroBusca;
 
-        sairModoEdicao();
-        mostrarAviso("Contrato salvo na Supabase com sucesso.", "ok");
-      } catch (error) {
-        console.error(error);
-        mostrarAviso(`Erro ao salvar contrato: ${error.message || "falha desconhecida"}`, "erro");
-      }
+    let error;
+
+    if (existente?.id) {
+      const resposta = await supabaseClient
+        .from(TABELA_CONTRATOS_MODELOS)
+        .update(payload)
+        .eq("id", existente.id);
+
+      error = resposta.error;
+    } else {
+      const resposta = await supabaseClient
+        .from(TABELA_CONTRATOS_MODELOS)
+        .insert(payload);
+
+      error = resposta.error;
     }
+
+    if (error) throw error;
+
+    sairModoEdicao();
+    mostrarAviso("Contrato salvo na Supabase com sucesso.", "ok");
+  } catch (error) {
+    console.error(error);
+    mostrarAviso(`Erro ao salvar contrato: ${error.message || "falha desconhecida"}`, "erro");
+  }
+}
 
     if (btnEditarPagina) {
       btnEditarPagina.addEventListener("click", entrarModoEdicao);
