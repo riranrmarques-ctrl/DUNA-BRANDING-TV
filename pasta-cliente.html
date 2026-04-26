@@ -616,17 +616,6 @@
   <script src="pasta-cliente.js?v=703"></script>
 
   <script>
-    document.addEventListener("click", (event) => {
-      const botao = event.target.closest("button");
-
-      if (!botao || botao.disabled) return;
-
-      botao.classList.add("carregando");
-
-      setTimeout(() => {
-        botao.classList.remove("carregando");
-      }, 850);
-    });
   </script>
 </body>
 </html>
