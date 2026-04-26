@@ -622,7 +622,12 @@ function obterInicioPeriodoAtivo(ponto, historico = []) {
 function calcularTempoAtivoMs(ponto, historico = []) {
   const inicio = obterInicioPeriodoAtivo(ponto, historico);
   if (!inicio) return 0;
-  return Math.max(Date.now() - inicio.getTime(), 0);
+
+  const agora = Date.now();
+  const janelaMs = JANELA_REPRODUCOES_VIRTUAIS_HORAS * 60 * 60 * 1000;
+  const inicioJanela = Math.max(inicio.getTime(), agora - janelaMs);
+
+  return Math.max(agora - inicioJanela, 0);
 }
 
 function calcularReproducoesVirtuaisDoCliente(playlist = [], ponto, historico = []) {
