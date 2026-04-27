@@ -829,3 +829,47 @@ circle {
   margin: 0;
   flex: 0 0 auto;
 }
+
+/* GRAFICO COMERCIAL OCUPANDO A AREA TODA */
+
+.grid .panel:first-child {
+  min-height: 390px;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid .panel:first-child .contract-content {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 26px;
+}
+
+.contract-number {
+  padding-top: 10px;
+}
+
+.chart {
+  height: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+}
+
+.chart svg {
+  flex: 1;
+  width: 100%;
+  height: auto !important;
+  min-height: 270px;
+}
+
+.chart-labels {
+  margin-top: 10px;
+  padding: 0 8px;
+  font-size: 12px !important;
+  opacity: 0.68;
+}
+
