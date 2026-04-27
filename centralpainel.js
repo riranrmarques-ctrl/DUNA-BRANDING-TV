@@ -109,6 +109,36 @@ function salvarCacheCentral(dados) {
   }
 }
 
+async function lerCacheCentral() {
+  try {
+    const bruto = sessionStorage.getItem(CACHE_CENTRAL_KEY);
+
+    if (!bruto) {
+      return {
+        dados: null,
+        fresco: false
+      };
+    }
+
+    const cache = JSON.parse(bruto);
+    const criadoEm = Number(cache.criadoEm || 0);
+    const fresco = Date.now() - criadoEm < CACHE_CENTRAL_TTL;
+
+    return {
+      dados: cache.dados || null,
+      fresco
+    };
+  } catch (erro) {
+    console.warn("Erro ao ler cache central:", erro);
+    sessionStorage.removeItem(CACHE_CENTRAL_KEY);
+
+    return {
+      dados: null,
+      fresco: false
+    };
+  }
+}
+
 function obterPeriodoSelecionado() {
   const fim = new Date();
   const inicio = new Date();
