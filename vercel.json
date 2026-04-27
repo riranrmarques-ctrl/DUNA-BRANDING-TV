@@ -1,23 +1,17 @@
 {
-  "routes": [
+  "cleanUrls": true,
+  "rewrites": [
     {
-      "src": "^/$",
-      "dest": "/inicio.html"
+      "source": "/",
+      "destination": "/inicio.html"
     },
     {
-      "src": "^/i$",
-      "dest": "/index.html"
+      "source": "/i",
+      "destination": "/index.html"
     },
     {
-      "src": "^/player$",
-      "dest": "/player.html"
-    },
-    {
-      "handle": "filesystem"
+      "source": "/player",
+      "destination": "/player.html"
     }
   ]
-}
-
-{
-  "cleanUrls": true
 }
