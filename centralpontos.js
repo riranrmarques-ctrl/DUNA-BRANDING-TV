@@ -1428,3 +1428,975 @@ function ativarDrag(lista) {
     });
   });
 }
+
+function abrirModalEdicao() {
+  if (!codigoSelecionado || !modalEditar) return;
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+  posicaoImagemAtual = lerPosicaoImagem(codigoSelecionado);
+
+  if (editNome) editNome.value = obterNomePonto(ponto, codigoSelecionado) || "";
+  if (editCidade) editCidade.value = obterCidadePonto(ponto) || "";
+  if (editEndereco) editEndereco.value = obterEnderecoPonto(ponto) || "";
+
+  if (editContratoInicio) editContratoInicio.value = dataIsoParaBr(ponto.contrato_data_inicio) || "";
+  if (editContratoFim) editContratoFim.value = dataIsoParaBr(ponto.contrato_data_fim) || "";
+
+  const contratoEhParceria = ponto.contrato_tipo === "parceria";
+
+  if (editContratoParceriaSim) editContratoParceriaSim.checked = contratoEhParceria;
+  if (editContratoParceriaNao) editContratoParceriaNao.checked = !contratoEhParceria;
+
+  if (editValorContrato) {
+    editValorContrato.value = ponto.contrato_valor || "";
+    editValorContrato.style.display = "block";
+  }
+
+  atualizarVisualParceria();
+
+  if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
+  if (editResponsavelCpf) editResponsavelCpf.value = ponto.responsavel_cpf || "";
+  if (editResponsavelTelefone) editResponsavelTelefone.value = ponto.responsavel_telefone || "";
+  if (editResponsavelEmail) editResponsavelEmail.value = ponto.responsavel_email || "";
+
+  if (previewImagem) {
+    previewImagem.src = obterImagemPonto(ponto);
+    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+  }
+
+  if (inputImagem) inputImagem.value = "";
+
+  arquivoImagemEdicao = null;
+  modalEditar.style.display = "flex";
+}
+
+function fecharModalEdicao() {
+  if (!modalEditar) return;
+
+  modalEditar.style.display = "none";
+  arquivoImagemEdicao = null;
+  arrastandoPreview = false;
+
+  if (inputImagem) inputImagem.value = "";
+}
+
+async function deletarPontoAtual() {
+  if (!codigoSelecionado) return;
+
+  const confirmar = window.confirm(`Deseja deletar o ponto ${codigoSelecionado}?`);
+  if (!confirmar) return;
+
+  try {
+    setStatus("Deletando ponto...", "normal");
+
+    await supabaseClient
+      .from(TABELA)
+      .delete()
+      .eq("codigo", codigoSelecionado);
+
+    await supabaseClient
+      .from(TABELA_STATUS_PONTOS)
+      .delete()
+      .eq("ponto_codigo", codigoSelecionado);
+
+    const { error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .delete()
+      .eq("codigo", codigoSelecionado);
+
+    if (error) throw error;
+
+    limparCachePlaylist(codigoSelecionado);
+    sessionStorage.removeItem(CACHE_PONTOS_KEY);
+
+    codigoSelecionado = null;
+
+    if (modalEditar) modalEditar.style.display = "none";
+    if (pontoDetalhe) pontoDetalhe.style.display = "none";
+    if (listaPontos) listaPontos.style.display = "block";
+
+    await carregarPontosRemoto();
+
+    setStatus("Ponto deletado", "ok");
+  } catch (error) {
+    console.error("Erro ao deletar ponto:", error);
+    setStatus("Erro ao deletar ponto", "erro");
+  }
+}
+
+async function baixarContratoAtual() {
+  if (!codigoSelecionado) return;
+
+  const janela = window.open("", "_blank");
+
+  if (!janela) {
+    setStatus("Permita pop-ups para abrir o contrato", "erro");
+    return;
+  }
+
+  janela.document.open();
+  janela.document.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Gerando contrato...</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 40px;
+          color: #111827;
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Gerando contrato...</h2>
+      <p>Aguarde um instante.</p>
+    </body>
+    </html>
+  `);
+  janela.document.close();
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const parceriaAtiva = editContratoParceriaSim ? editContratoParceriaSim.checked : false;
+
+  const nome = editNome ? editNome.value.trim() : obterNomePonto(ponto, codigoSelecionado);
+  const cidade = editCidade ? editCidade.value.trim() : obterCidadePonto(ponto);
+  const endereco = editEndereco ? editEndereco.value.trim() : obterEnderecoPonto(ponto);
+
+  const dataInicio = editContratoInicio ? editContratoInicio.value.trim() : "";
+  const dataFim = editContratoFim ? editContratoFim.value.trim() : "";
+  const valorContrato = editValorContrato ? editValorContrato.value.trim() : "";
+
+  const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
+  const responsavelCpf = editResponsavelCpf ? editResponsCpfValor(editResponsavelCpf) : "";
+  const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
+  const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
+
+  const modeloComercial = parceriaAtiva
+    ? `Parceria - ${valorContrato || "___"}% por venda`
+    : `Valor fixo mensal - R$ ${valorContrato || "___"}`;
+
+  const clausulaRemuneracao = parceriaAtiva
+    ? `O CONTRATADO receberá participação de ${valorContrato || "___"}% sobre cada venda realizada pela CONTRATANTE relacionada ao espaço objeto deste contrato. A forma de apuração, periodicidade e pagamento serão definidos entre as partes.`
+    : `A CONTRATANTE pagará ao CONTRATADO o valor mensal de R$ ${valorContrato || "___"} pela cessão do espaço publicitário objeto deste contrato.`;
+
+  try {
+    setStatus("Gerando contrato...", "normal");
+
+    const { data: modelo, error } = await supabaseClient
+      .from("contratos_modelos")
+      .select("*")
+      .eq("tipo", "estabelecimento")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!modelo || !modelo.html_modelo) {
+      janela.document.body.innerHTML = "<h2>Modelo de estabelecimento não encontrado.</h2>";
+      setStatus("Modelo de estabelecimento não encontrado", "erro");
+      return;
+    }
+
+    const dadosContratada = typeof modelo.dados_contratada === "string"
+      ? JSON.parse(modelo.dados_contratada || "{}")
+      : modelo.dados_contratada || {};
+
+    const substituicoes = {
+      "{{titulo}}": modelo.titulo || "Contrato de Parceria com Estabelecimento",
+      "{{subtitulo}}": modelo.subtitulo || "Contrato de cessão de espaço publicitário para mídia digital.",
+      "{{empresa}}": dadosContratada.empresa || "Duna Branding",
+      "{{cnpj}}": dadosContratada.cnpj || "",
+      "{{telefone_empresa}}": dadosContratada.telefone || "",
+      "{{email_empresa}}": dadosContratada.email || "",
+      "{{endereco_empresa}}": dadosContratada.endereco || "",
+      "{{responsavel}}": dadosContratada.responsavel || "",
+      "{{assinatura_url}}": dadosContratada.assinatura_url || "assinatura.png",
+
+      "{{estabelecimento_nome}}": nome,
+      "{{estabelecimento_cpf_cnpj}}": responsavelCpf,
+      "{{estabelecimento_responsavel}}": responsavelNome,
+      "{{estabelecimento_telefone}}": responsavelTelefone,
+      "{{estabelecimento_email}}": responsavelEmail,
+      "{{estabelecimento_cidade}}": cidade,
+      "{{estabelecimento_endereco}}": endereco,
+      "{{data_inicio}}": dataInicio,
+      "{{data_fim}}": dataFim,
+      "{{modelo_comercial}}": modeloComercial,
+      "{{clausula_remuneracao}}": clausulaRemuneracao,
+
+      "{{cliente_nome}}": nome,
+      "{{cliente_cpf_cnpj}}": responsavelCpf,
+      "{{cliente_telefone}}": responsavelTelefone,
+      "{{cliente_email}}": responsavelEmail,
+      "{{ambiente}}": nome,
+      "{{pontos}}": nome,
+      "{{valor}}": valorContrato
+    };
+
+    let htmlContrato = modelo.html_modelo;
+
+    Object.entries(substituicoes).forEach(([chave, valor]) => {
+      htmlContrato = htmlContrato.split(chave).join(escapeHtml(valor || ""));
+    });
+
+    janela.document.open();
+    janela.document.write(`
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>Contrato ${escapeHtml(nome)}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background: #eef3fb;
+            color: #111827;
+            margin: 0;
+            padding: 32px;
+          }
+
+          .pagina-contrato {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 44px;
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.14);
+          }
+
+          .topo-contrato h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+          }
+
+          .topo-contrato p {
+            color: #64748b;
+            margin-bottom: 24px;
+          }
+
+          .bloco {
+            margin-bottom: 24px;
+          }
+
+          .bloco h2 {
+            font-size: 17px;
+            margin-bottom: 12px;
+            padding-left: 10px;
+            border-left: 4px solid #2563eb;
+          }
+
+          .bloco p {
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 10px;
+            text-align: justify;
+          }
+
+          .assinaturas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-top: 70px;
+            align-items: end;
+          }
+
+          .assinatura-box {
+            text-align: center;
+          }
+
+          .assinatura-img {
+            width: 260px;
+            max-width: 100%;
+            height: 90px;
+            object-fit: contain;
+            object-position: center bottom;
+            display: block;
+            margin: 0 auto -10px;
+          }
+
+          .linha-assinatura {
+            border-top: 1px solid #111827;
+            padding-top: 8px;
+            font-weight: 700;
+            font-size: 14px;
+          }
+
+          .acoes-contrato {
+            max-width: 900px;
+            margin: 18px auto 0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+          }
+
+          .acoes-contrato button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+
+          .btn-imprimir {
+            background: #2563eb;
+            color: #fff;
+          }
+
+          .btn-fechar {
+            background: #111827;
+            color: #fff;
+          }
+
+          @media print {
+            body {
+              background: #fff;
+              padding: 0;
+            }
+
+            .pagina-contrato {
+              box-shadow: none;
+              border-radius: 0;
+              max-width: none;
+              padding: 24px;
+            }
+
+            .acoes-contrato {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="pagina-contrato">
+          ${htmlContrato}
+        </div>
+
+        <div class="acoes-contrato">
+          <button class="btn-imprimir" onclick="window.print()">Imprimir / PDF</button>
+          <button class="btn-fechar" onclick="window.close()">Fechar</button>
+        </div>
+      </body>
+      </html>
+    `);
+    janela.document.close();
+
+    setStatus("Contrato gerado", "ok");
+  } catch (error) {
+    console.error("Erro ao gerar contrato:", error);
+    janela.document.body.innerHTML = "<h2>Erro ao gerar contrato.</h2>";
+    setStatus("Erro ao gerar contrato", "erro");
+  }
+}
+
+function editResponsCpfValor(input) {
+  return input ? input.value.trim() : "";
+}
+
+async function salvarEdicaoPonto() {
+  if (!codigoSelecionado) return;
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const nome = editNome ? editNome.value.trim() : "";
+  const cidade = editCidade ? editCidade.value.trim() : "";
+  const endereco = editEndereco ? editEndereco.value.trim() : "";
+
+  const contratoInicioBr = editContratoInicio ? editContratoInicio.value.trim() : "";
+  const contratoFimBr = editContratoFim ? editContratoFim.value.trim() : "";
+  const contratoInicio = dataBrParaIso(contratoInicioBr);
+  const contratoFim = dataBrParaIso(contratoFimBr);
+  const contratoParceria = editContratoParceriaSim ? editContratoParceriaSim.checked : false;
+  const valorContrato = contratoParceria ? "" : (editValorContrato ? editValorContrato.value.trim() : "");
+  const contratoTipo = contratoParceria ? "parceria" : "valor";
+
+  const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
+  const responsavelCpf = editResponsavelCpf ? editResponsavelCpf.value.trim() : "";
+  const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
+  const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
+
+  if (
+    !nome ||
+    !cidade ||
+    !endereco ||
+    !contratoInicio ||
+    !contratoFim ||
+    !responsavelNome ||
+    !responsavelCpf ||
+    !responsavelTelefone ||
+    !responsavelEmail
+  ) {
+    setStatus("Preencha todos os campos obrigatórios", "erro");
+    return;
+  }
+
+  if (!contratoParceria && !valorContrato) {
+    setStatus("Informe o valor/custo ou marque parceria", "erro");
+    return;
+  }
+
+  if (!emailValido(responsavelEmail)) {
+    setStatus("Digite um e-mail válido", "erro");
+    return;
+  }
+
+  try {
+    setStatus("Salvando informações...", "normal");
+
+    const payloadCompleto = {
+      nome,
+      cidade,
+      endereco,
+      contrato_data_inicio: contratoInicio,
+      contrato_data_fim: contratoFim,
+      contrato_tipo: contratoTipo,
+      contrato_valor: valorContrato,
+      responsavel_nome: responsavelNome,
+      responsavel_cpf: responsavelCpf,
+      responsavel_telefone: responsavelTelefone,
+      responsavel_email: responsavelEmail
+    };
+
+    const tentativaCompleta = await supabaseClient
+      .from(TABELA_PONTOS)
+      .update(payloadCompleto)
+      .eq("codigo", codigoSelecionado);
+
+    if (tentativaCompleta.error) {
+      console.error("Erro ao salvar dados completos do ponto:", tentativaCompleta.error);
+      setStatus("Erro ao salvar contrato/responsável. Verifique as colunas da tabela pontos.", "erro");
+      return;
+    }
+
+    ponto.nome = nome;
+    ponto.nome_local = nome;
+    ponto.cidade = cidade;
+    ponto.cidade_regiao = cidade;
+    ponto.endereco = endereco;
+    ponto.endereco_completo = endereco;
+    ponto.contrato_data_inicio = contratoInicio;
+    ponto.contrato_data_fim = contratoFim;
+    ponto.contrato_tipo = contratoTipo;
+    ponto.contrato_valor = valorContrato;
+    ponto.responsavel_nome = responsavelNome;
+    ponto.responsavel_cpf = responsavelCpf;
+    ponto.responsavel_telefone = responsavelTelefone;
+    ponto.responsavel_email = responsavelEmail;
+
+    if (arquivoImagemEdicao) {
+      setStatus("Enviando imagem...", "normal");
+
+      const imagemUrlFinal = await uploadImagemPonto(arquivoImagemEdicao, codigoSelecionado);
+
+      const payloadsImagem = [
+        { imagem_url: imagemUrlFinal },
+        { imagem: imagemUrlFinal }
+      ];
+
+      let erroImagemFinal = null;
+
+      for (const payload of payloadsImagem) {
+        const { error } = await supabaseClient
+          .from(TABELA_PONTOS)
+          .update(payload)
+          .eq("codigo", codigoSelecionado);
+
+        if (!error) {
+          erroImagemFinal = null;
+          break;
+        }
+
+        erroImagemFinal = error;
+        console.warn("Erro ao salvar imagem com payload:", payload, error);
+      }
+
+      if (erroImagemFinal) {
+        console.error("Erro ao salvar imagem:", erroImagemFinal);
+        setStatus("Erro ao salvar imagem", "erro");
+        return;
+      }
+
+      ponto.imagem_url = imagemUrlFinal;
+    }
+
+    pontosMap[codigoSelecionado] = ponto;
+    salvarPosicaoImagem(codigoSelecionado, posicaoImagemAtual);
+    salvarCachePontos(Object.values(pontosMap));
+
+    fecharModalEdicao();
+    abrirPonto(codigoSelecionado);
+    renderizarCardsPontos(Object.values(pontosMap));
+    setStatus("Atualizado com sucesso", "ok");
+  } catch (error) {
+    console.error("Erro geral ao salvar edição:", error);
+    setStatus("Erro ao salvar edição", "erro");
+  }
+}
+
+function ativarDragPontos() {
+  if (!pontosBox) return;
+
+  let estadoDrag = null;
+
+  function obterCardSobMouse(x, y) {
+    if (!estadoDrag) return null;
+
+    const elementos = document.elementsFromPoint(x, y);
+
+    for (const el of elementos) {
+      const card = el.closest?.(".card-ponto");
+
+      if (
+        card &&
+        pontosBox.contains(card) &&
+        card !== estadoDrag.placeholder &&
+        !card.classList.contains("card-ponto-placeholder")
+      ) {
+        return card;
+      }
+    }
+
+    return null;
+  }
+
+  function finalizarDrag() {
+    if (!estadoDrag) return;
+
+    const { cardOriginal, clone, placeholder } = estadoDrag;
+
+    cardOriginal.classList.remove("card-arrastando-original");
+
+    if (placeholder?.parentNode) {
+      placeholder.replaceWith(cardOriginal);
+    } else {
+      pontosBox.appendChild(cardOriginal);
+    }
+
+    clone?.remove();
+
+    document.body.classList.remove("arrastando-ponto");
+    pontosBox.classList.remove("drag-pontos-ativo");
+
+    estadoDrag = null;
+    salvarOrdemPontos();
+  }
+
+  pontosBox.querySelectorAll(".card-ponto").forEach((card) => {
+    card.setAttribute("draggable", "false");
+
+    card.onpointerdown = (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (event.target.closest("button, a, input, textarea, select, .card-codigo")) return;
+
+      const inicioX = event.clientX;
+      const inicioY = event.clientY;
+      const rect = card.getBoundingClientRect();
+
+      const mover = (moveEvent) => {
+        if (!estadoDrag) return;
+
+        moveEvent.preventDefault();
+
+        estadoDrag.clone.style.left = `${moveEvent.clientX - estadoDrag.offsetX}px`;
+        estadoDrag.clone.style.top = `${moveEvent.clientY - estadoDrag.offsetY}px`;
+
+        const cardAlvo = obterCardSobMouse(moveEvent.clientX, moveEvent.clientY);
+
+        if (!cardAlvo) return;
+
+        const alvoRect = cardAlvo.getBoundingClientRect();
+        const meioX = alvoRect.left + alvoRect.width / 2;
+        const meioY = alvoRect.top + alvoRect.height / 2;
+        const mesmaLinha = moveEvent.clientY >= alvoRect.top && moveEvent.clientY <= alvoRect.bottom;
+        const inserirDepois = mesmaLinha
+          ? moveEvent.clientX > meioX
+          : moveEvent.clientY > meioY;
+
+        if (inserirDepois) {
+          pontosBox.insertBefore(estadoDrag.placeholder, cardAlvo.nextSibling);
+        } else {
+          pontosBox.insertBefore(estadoDrag.placeholder, cardAlvo);
+        }
+      };
+
+      const iniciar = (moveEvent) => {
+        const distancia = Math.hypot(moveEvent.clientX - inicioX, moveEvent.clientY - inicioY);
+        if (distancia < 8) return;
+
+        window.removeEventListener("pointermove", iniciar);
+
+        const placeholder = document.createElement("div");
+        placeholder.className = "card-ponto card-ponto-placeholder";
+        placeholder.style.width = `${rect.width}px`;
+        placeholder.style.height = `${rect.height}px`;
+
+        const clone = card.cloneNode(true);
+        clone.classList.add("card-ponto-flutuante");
+        clone.style.width = `${rect.width}px`;
+        clone.style.height = `${rect.height}px`;
+        clone.style.left = `${rect.left}px`;
+        clone.style.top = `${rect.top}px`;
+
+        pontosBox.insertBefore(placeholder, card);
+        card.classList.add("card-arrastando-original");
+        card.remove();
+
+        document.body.appendChild(clone);
+
+        document.body.classList.add("arrastando-ponto");
+        pontosBox.classList.add("drag-pontos-ativo");
+
+        estadoDrag = {
+          cardOriginal: card,
+          clone,
+          placeholder,
+          offsetX: moveEvent.clientX - rect.left,
+          offsetY: moveEvent.clientY - rect.top
+        };
+
+        mover(moveEvent);
+      };
+
+      const soltar = () => {
+        window.removeEventListener("pointermove", iniciar);
+        window.removeEventListener("pointermove", mover);
+        window.removeEventListener("pointerup", soltar);
+        window.removeEventListener("pointercancel", soltar);
+        finalizarDrag();
+      };
+
+      window.addEventListener("pointermove", iniciar);
+      window.addEventListener("pointermove", mover);
+      window.addEventListener("pointerup", soltar);
+      window.addEventListener("pointercancel", soltar);
+    };
+  });
+}
+
+async function salvarOrdemPontos() {
+  const cards = [...document.querySelectorAll(".pontos-box .card-ponto:not(.card-ponto-placeholder)")];
+
+  const atualizacoes = cards
+    .map((card, index) => ({
+      codigo: String(card.dataset.codigo || "").trim(),
+      ordem: index + 1
+    }))
+    .filter((item) => item.codigo);
+
+  atualizacoes.forEach((item) => {
+    if (pontosMap[item.codigo]) {
+      pontosMap[item.codigo].ordem = item.ordem;
+    }
+  });
+
+  salvarCachePontos(Object.values(pontosMap));
+  setStatus("Salvando ordem dos pontos...", "normal");
+
+  for (const item of atualizacoes) {
+    const { error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .update({ ordem: item.ordem })
+      .eq("codigo", item.codigo);
+
+    if (error) {
+      console.error(error);
+      setStatus("Erro ao salvar ordem dos pontos", "erro");
+      return;
+    }
+  }
+
+  setStatus("Ordem dos pontos salva", "ok");
+}
+
+async function carregarPontosRemoto() {
+  if (carregandoPontos) return;
+  carregandoPontos = true;
+
+  try {
+    const pontos = await buscarPontosRemoto();
+
+    salvarCachePontos(pontos);
+    renderizarCardsPontos(pontos);
+    setStatus("Painel Ativo", "ok");
+  } catch (error) {
+    console.error(error);
+    setStatus("Erro ao carregar pontos", "erro");
+  } finally {
+    carregandoPontos = false;
+  }
+}
+
+async function iniciarPainel() {
+  if (painelIniciado) return;
+  painelIniciado = true;
+
+  const cache = lerCachePontos();
+
+  if (cache?.pontos?.length) {
+    renderizarCardsPontos(cache.pontos);
+    setStatus(cache.fresco ? "Painel Ativo" : "Atualizando painel...", cache.fresco ? "ok" : "normal");
+
+    if (cache.fresco) return;
+
+    carregarPontosRemoto();
+    return;
+  }
+
+  setStatus("Carregando pontos...", "normal");
+  await carregarPontosRemoto();
+}
+
+function somenteNumeros(valor) {
+  return String(valor || "").replace(/\D/g, "");
+}
+
+function formatarTelefone(valor) {
+  const n = somenteNumeros(valor).slice(0, 11);
+
+  if (n.length <= 2) return n;
+  if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
+
+  return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
+}
+
+function formatarCpfCnpj(valor) {
+  const n = somenteNumeros(valor).slice(0, 14);
+
+  if (n.length <= 11) {
+    return n
+      .replace(/^(\d{3})(\d)/, "$1.$2")
+      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  }
+
+  return n
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+function formatarDataBr(valor) {
+  const n = somenteNumeros(valor).slice(0, 8);
+
+  if (n.length <= 2) return n;
+  if (n.length <= 4) return `${n.slice(0, 2)}/${n.slice(2)}`;
+
+  return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
+}
+
+function dataBrParaIso(valor) {
+  const partes = String(valor || "").split("/");
+  if (partes.length !== 3) return "";
+
+  const [dia, mes, ano] = partes;
+  if (!dia || !mes || !ano || ano.length !== 4) return "";
+
+  return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+}
+
+function dataIsoParaBr(valor) {
+  if (!valor) return "";
+
+  const partes = String(valor).split("-");
+  if (partes.length !== 3) return "";
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function emailValido(valor) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor || "").trim());
+}
+
+function atualizarVisualParceria() {
+  if (!editValorContrato || !editContratoParceriaSim || !editContratoParceriaNao) return;
+
+  const parceriaAtiva = editContratoParceriaSim.checked;
+
+  editValorContrato.disabled = parceriaAtiva;
+  editValorContrato.placeholder = parceriaAtiva ? "Parceria ativada" : "Valor / custo";
+
+  if (parceriaAtiva) {
+    editValorContrato.value = "";
+  }
+}
+
+if (btnVoltar) {
+  btnVoltar.onclick = () => {
+    if (listaPontos) listaPontos.style.display = "block";
+    if (pontoDetalhe) pontoDetalhe.style.display = "none";
+
+    codigoSelecionado = null;
+    document.body.classList.remove("modo-detalhe");
+  };
+}
+
+if (btnCopiarCodigo) {
+  btnCopiarCodigo.style.display = "none";
+
+  btnCopiarCodigo.onclick = async () => {
+    if (!codigoSelecionado) return;
+
+    try {
+      await navigator.clipboard.writeText(codigoSelecionado);
+      setStatus("Código copiado", "ok");
+    } catch {
+      setStatus("Erro ao copiar código", "erro");
+    }
+  };
+}
+
+if (codigoAtual) {
+  codigoAtual.onclick = async () => {
+    if (!codigoSelecionado) return;
+
+    try {
+      await navigator.clipboard.writeText(codigoSelecionado);
+      setStatus("Código copiado", "ok");
+    } catch {
+      setStatus("Erro ao copiar código", "erro");
+    }
+  };
+}
+
+if (btnEditarInfo) {
+  btnEditarInfo.onclick = () => abrirModalEdicao();
+}
+
+if (btnToggleDisponibilidade) {
+  btnToggleDisponibilidade.onclick = () => alternarDisponibilidadePonto();
+}
+
+if (btnUpgradePlaylist && inputUpgradePlaylist) {
+  btnUpgradePlaylist.onclick = () => {
+    inputUpgradePlaylist.click();
+  };
+
+  inputUpgradePlaylist.onchange = async (event) => {
+    const file = event.target.files?.[0];
+    await enviarMaterialDiretoPlaylist(file);
+    inputUpgradePlaylist.value = "";
+  };
+}
+
+if (btnNovoPonto) {
+  btnNovoPonto.onclick = () => criarNovoPonto();
+}
+
+if (btnFecharModal) {
+  btnFecharModal.onclick = () => fecharModalEdicao();
+}
+
+if (btnBaixarContrato) {
+  btnBaixarContrato.onclick = baixarContratoAtual;
+}
+
+if (btnDeletarPonto) {
+  btnDeletarPonto.onclick = deletarPontoAtual;
+}
+
+if (modalEditar) {
+  modalEditar.addEventListener("click", (event) => {
+    if (event.target === modalEditar) {
+      fecharModalEdicao();
+    }
+  });
+}
+
+if (inputImagem) {
+  inputImagem.addEventListener("change", (event) => {
+    const arquivo = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+    if (!arquivo) return;
+
+    arquivoImagemEdicao = arquivo;
+    posicaoImagemAtual = { x: 50, y: 50 };
+
+    const reader = new FileReader();
+
+    reader.onload = (evento) => {
+      if (previewImagem) {
+        previewImagem.src = evento.target.result;
+        aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+      }
+    };
+
+    reader.readAsDataURL(arquivo);
+  });
+}
+
+if (previewImagem) {
+  previewImagem.style.cursor = "grab";
+
+  previewImagem.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    arrastandoPreview = true;
+    previewImagem.style.cursor = "grabbing";
+  });
+
+  window.addEventListener("mouseup", () => {
+    arrastandoPreview = false;
+
+    if (previewImagem) {
+      previewImagem.style.cursor = "grab";
+    }
+  });
+
+  previewImagem.addEventListener("mousemove", (event) => {
+    if (!arrastandoPreview) return;
+
+    const rect = previewImagem.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    let x = ((event.clientX - rect.left) / rect.width) * 100;
+    let y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+
+    posicaoImagemAtual = { x, y };
+    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+  });
+
+  previewImagem.addEventListener("dragstart", (event) => {
+    event.preventDefault();
+  });
+}
+
+if (btnSalvarEdicao) {
+  btnSalvarEdicao.onclick = salvarEdicaoPonto;
+}
+
+if (editContratoInicio) {
+  editContratoInicio.addEventListener("input", () => {
+    editContratoInicio.value = formatarDataBr(editContratoInicio.value);
+  });
+}
+
+if (editContratoFim) {
+  editContratoFim.addEventListener("input", () => {
+    editContratoFim.value = formatarDataBr(editContratoFim.value);
+  });
+}
+
+if (editResponsavelTelefone) {
+  editResponsavelTelefone.addEventListener("input", () => {
+    editResponsavelTelefone.value = formatarTelefone(editResponsavelTelefone.value);
+  });
+}
+
+if (editResponsavelCpf) {
+  editResponsavelCpf.addEventListener("input", () => {
+    editResponsavelCpf.value = formatarCpfCnpj(editResponsavelCpf.value);
+  });
+}
+
+if (editContratoParceriaSim) {
+  editContratoParceriaSim.onchange = atualizarVisualParceria;
+}
+
+if (editContratoParceriaNao) {
+  editContratoParceriaNao.onchange = atualizarVisualParceria;
+}
+
+setStatus("Painel Ativo", "ok");
+iniciarPainel();
+
