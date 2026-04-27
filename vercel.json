@@ -1,16 +1,19 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/",
-      "destination": "/inicio.html"
+      "src": "^/$",
+      "dest": "/inicio.html"
     },
     {
-      "source": "/i",
-      "destination": "/index.html"
+      "src": "^/i$",
+      "dest": "/index.html"
     },
     {
-      "source": "/player",
-      "destination": "/player.html"
+      "src": "^/player$",
+      "dest": "/player.html"
+    },
+    {
+      "handle": "filesystem"
     }
   ]
 }
