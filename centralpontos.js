@@ -1328,55 +1328,14 @@ if (btnSalvarEdicao) {
         responsavel_email: responsavelEmail
       };
 
-      const payloadBasico = {
-        nome,
-        cidade,
-        endereco
-      };
-
-      const payloadAlternativo = {
-        nome_local: nome,
-        cidade_regiao: cidade,
-        endereco_completo: endereco
-      };
-
-      let salvouInfo = false;
-
       const tentativaCompleta = await supabaseClient
         .from(TABELA_PONTOS)
         .update(payloadCompleto)
         .eq("codigo", codigoSelecionado);
 
-      if (!tentativaCompleta.error) {
-        salvouInfo = true;
-      } else {
-        console.warn("Falha ao salvar payload completo:", tentativaCompleta.error);
-
-        const tentativaBasica = await supabaseClient
-          .from(TABELA_PONTOS)
-          .update(payloadBasico)
-          .eq("codigo", codigoSelecionado);
-
-        if (!tentativaBasica.error) {
-          salvouInfo = true;
-        } else {
-          console.warn("Falha ao salvar payload básico:", tentativaBasica.error);
-
-          const tentativaAlternativa = await supabaseClient
-            .from(TABELA_PONTOS)
-            .update(payloadAlternativo)
-            .eq("codigo", codigoSelecionado);
-
-          if (!tentativaAlternativa.error) {
-            salvouInfo = true;
-          } else {
-            console.error("Erro ao salvar textos:", tentativaAlternativa.error);
-          }
-        }
-      }
-
-      if (!salvouInfo) {
-        setStatus("Erro ao atualizar informações", "erro");
+      if (tentativaCompleta.error) {
+        console.error("Erro ao salvar dados completos do ponto:", tentativaCompleta.error);
+        setStatus("Erro ao salvar contrato/responsável. Verifique as colunas da tabela pontos.", "erro");
         return;
       }
 
