@@ -858,3 +858,62 @@ circle {
   height: 7px !important;
   margin-right: 3px !important;
 }
+
+/* DONUT REALMENTE MENOR E NO CANTO DIREITO */
+
+.status-panel {
+  min-height: 390px !important;
+  align-items: stretch !important;
+}
+
+.status-panel .panel-head {
+  margin-bottom: 8px !important;
+}
+
+.status-content {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  padding-right: 26px !important;
+  gap: 8px !important;
+}
+
+.donut {
+  width: 150px !important;
+  height: 150px !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+.donut div {
+  width: 62px !important;
+  height: 62px !important;
+}
+
+.donut div strong,
+.donut div span {
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+
+.legend {
+  width: auto !important;
+  max-width: 100% !important;
+  justify-content: flex-end !important;
+  align-self: flex-end !important;
+  gap: 10px !important;
+  flex-wrap: nowrap !important;
+  font-size: 9px !important;
+}
+
+.legend li {
+  font-size: 9px !important;
+  gap: 4px !important;
+}
+
+.legend i {
+  width: 7px !important;
+  height: 7px !important;
+  margin-right: 2px !important;
+}
