@@ -975,56 +975,75 @@
     }
 
     function coletarHtmlModelo() {
-      const dados = coletarDadosContratada();
-      const tipo = obterContratoTipoAtivo();
-      const assinaturaLabel = tipo === "estabelecimento" ? "ESTABELECIMENTO" : "CONTRATANTE";
+  const dados = coletarDadosContratada();
+  const tipo = obterContratoTipoAtivo();
+  const assinaturaLabel = tipo === "estabelecimento" ? "ESTABELECIMENTO" : "CONTRATANTE";
 
-      return `
-        <div class="contrato-final">
-          <div class="topo-contrato">
-            <h1>{{titulo}}</h1>
-            <p>{{subtitulo}}</p>
-          </div>
+  const blocoPessoa = tipo === "estabelecimento"
+    ? `
+      <div class="bloco">
+        <h2>Dados do Estabelecimento</h2>
+        <p><strong>Estabelecimento:</strong> {{estabelecimento_nome}}</p>
+        <p><strong>CPF/CNPJ:</strong> {{estabelecimento_cpf_cnpj}}</p>
+        <p><strong>Responsável:</strong> {{estabelecimento_responsavel}}</p>
+        <p><strong>Telefone:</strong> {{estabelecimento_telefone}}</p>
+        <p><strong>Email:</strong> {{estabelecimento_email}}</p>
+        <p><strong>Cidade:</strong> {{estabelecimento_cidade}}</p>
+        <p><strong>Endereço:</strong> {{estabelecimento_endereco}}</p>
+        <p><strong>Período:</strong> {{data_inicio}} até {{data_fim}}</p>
+        <p><strong>Modelo comercial:</strong> {{modelo_comercial}}</p>
+      </div>
+    `
+    : `
+      <div class="bloco">
+        <h2>Dados do Contratante</h2>
+        <p><strong>Nome:</strong> {{cliente_nome}}</p>
+        <p><strong>CPF/CNPJ:</strong> {{cliente_cpf_cnpj}}</p>
+        <p><strong>Telefone:</strong> {{cliente_telefone}}</p>
+        <p><strong>Email:</strong> {{cliente_email}}</p>
+        <p><strong>Valor:</strong> {{valor}}</p>
+        <p><strong>Período:</strong> {{data_inicio}} até {{data_vencimento}}</p>
+        <p><strong>Pontos:</strong> {{pontos}}</p>
+      </div>
+    `;
 
-          <div class="bloco">
-            <h2>Dados da Contratada</h2>
-            <p><strong>Empresa:</strong> {{empresa}}</p>
-            <p><strong>CNPJ:</strong> {{cnpj}}</p>
-            <p><strong>Telefone:</strong> {{telefone_empresa}}</p>
-            <p><strong>Email:</strong> {{email_empresa}}</p>
-            <p><strong>Endereço:</strong> {{endereco_empresa}}</p>
-            <p><strong>Responsável:</strong> {{responsavel}}</p>
-          </div>
+  return `
+    <div class="contrato-final">
+      <div class="topo-contrato">
+        <h1>{{titulo}}</h1>
+        <p>{{subtitulo}}</p>
+      </div>
 
-          <div class="bloco">
-            <h2>Dados do Contratante</h2>
-            <p><strong>Nome:</strong> {{cliente_nome}}</p>
-            <p><strong>CPF/CNPJ:</strong> {{cliente_cpf_cnpj}}</p>
-            <p><strong>Telefone:</strong> {{cliente_telefone}}</p>
-            <p><strong>Email:</strong> {{cliente_email}}</p>
-            <p><strong>Valor:</strong> {{valor}}</p>
-            <p><strong>Período:</strong> {{data_inicio}} até {{data_vencimento}}</p>
-            <p><strong>Pontos:</strong> {{pontos}}</p>
-          </div>
+      <div class="bloco">
+        <h2>Dados da Contratada</h2>
+        <p><strong>Empresa:</strong> {{empresa}}</p>
+        <p><strong>CNPJ:</strong> {{cnpj}}</p>
+        <p><strong>Telefone:</strong> {{telefone_empresa}}</p>
+        <p><strong>Email:</strong> {{email_empresa}}</p>
+        <p><strong>Endereço:</strong> {{endereco_empresa}}</p>
+        <p><strong>Responsável:</strong> {{responsavel}}</p>
+      </div>
 
-          <div class="bloco">
-            <h2>Termos do Contrato</h2>
-            ${montarClausulasHtml()}
-          </div>
+      ${blocoPessoa}
 
-          <div class="assinaturas">
-            <div class="assinatura-box">
-              <div class="linha-assinatura">${assinaturaLabel}</div>
-            </div>
+      <div class="bloco">
+        <h2>Termos do Contrato</h2>
+        ${montarClausulasHtml()}
+      </div>
 
-            <div class="assinatura-box">
-              <img src="{{assinatura_url}}" alt="Assinatura Duna Branding" class="assinatura-img">
-              <div class="linha-assinatura">${escaparHtml(dados.empresa || "Duna Branding")}</div>
-            </div>
-          </div>
+      <div class="assinaturas">
+        <div class="assinatura-box">
+          <div class="linha-assinatura">${assinaturaLabel}</div>
         </div>
-      `;
-    }
+
+        <div class="assinatura-box">
+          <img src="{{assinatura_url}}" alt="Assinatura Duna Branding" class="assinatura-img">
+          <div class="linha-assinatura">${escaparHtml(dados.empresa || "Duna Branding")}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
     function renderizarClausulasDoHtmlModelo(htmlModelo) {
       const contrato = obterContratoAtivo();
