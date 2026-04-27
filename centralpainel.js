@@ -2,16 +2,35 @@ const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const SENHA_PAINEL = "@helena";
 
-const CACHE_CENTRAL_KEY = "central_painel_cache_v2";
+const CACHE_CENTRAL_KEY = "central_painel_cache_v3";
 const CACHE_CENTRAL_TTL = 30 * 60 * 1000;
+
+const TABELA_REPRODUCOES = "reproducoes_diarias";
+const TABELA_QRCODE_CONTADORES = "qrcode_contadores";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let todosOsPontos = [];
 
 document.addEventListener("DOMContentLoaded", () => {
+  configurarLinksCentral();
   iniciarLoginCentral();
 });
+
+function configurarLinksCentral() {
+  const botoes = Array.from(document.querySelectorAll("a, button"));
+
+  botoes.forEach((botao) => {
+    const texto = String(botao.textContent || "").toLowerCase().trim();
+
+    if (texto.includes("qr code") || texto.includes("qrcode")) {
+      botao.onclick = (event) => {
+        event.preventDefault();
+        window.location.href = "/qrcode.html";
+      };
+    }
+  });
+}
 
 function iniciarLoginCentral() {
   const loginBox = document.getElementById("loginBox");
@@ -90,6 +109,78 @@ function salvarCacheCentral(dados) {
   }
 }
 
+function obterPeriodoPadrao() {
+  const fim = new Date();
+  const inicio = new Date();
+
+  inicio.setDate(fim.getDate() - 29);
+
+  return {
+    inicio: inicio.toISOString().split("T")[0],
+    fim: fim.toISOString().split("T")[0]
+  };
+}
+
+function obterPeriodoSelecionado() {
+  const select =
+    document.getElementById("periodoMetricas") ||
+    document.getElementById("filtroPeriodo") ||
+    document.querySelector("[data-periodo-central]");
+
+  const valor = String(select?.value || "30").trim();
+  const dias = Number(valor.replace(/\D/g, "")) || 30;
+
+  const fim = new Date();
+  const inicio = new Date();
+
+  inicio.setDate(fim.getDate() - Math.max(dias - 1, 0));
+
+  return {
+    inicio: inicio.toISOString().split("T")[0],
+    fim: fim.toISOString().split("T")[0]
+  };
+}
+
+async function buscarMetricasGeraisPeriodo() {
+  const periodo = obterPeriodoSelecionado();
+
+  const [respostaReproducoes, respostaQrCode] = await Promise.all([
+    supabaseClient
+      .from(TABELA_REPRODUCOES)
+      .select("data,total_reproducoes")
+      .gte("data", periodo.inicio)
+      .lte("data", periodo.fim),
+
+    supabaseClient
+      .from(TABELA_QRCODE_CONTADORES)
+      .select("data,total")
+      .gte("data", periodo.inicio)
+      .lte("data", periodo.fim)
+  ]);
+
+  if (respostaReproducoes.error) {
+    console.warn("Reproduções não carregaram:", respostaReproducoes.error);
+  }
+
+  if (respostaQrCode.error) {
+    console.warn("QR Codes não carregaram:", respostaQrCode.error);
+  }
+
+  const totalReproducoes = (respostaReproducoes.data || []).reduce((soma, item) => {
+    return soma + Number(item.total_reproducoes || item.reproducoes || item.total || 0);
+  }, 0);
+
+  const totalQrCode = (respostaQrCode.data || []).reduce((soma, item) => {
+    return soma + Number(item.total || item.quantidade || 0);
+  }, 0);
+
+  return {
+    periodo,
+    totalReproducoes,
+    totalQrCode
+  };
+}
+
 async function carregarcentralpainel(opcoes = {}) {
   try {
     const cache = lerCacheCentral();
@@ -107,7 +198,10 @@ async function carregarcentralpainel(opcoes = {}) {
 
     if (erroPontos) throw erroPontos;
 
-    const status = await buscarStatusPontos();
+    const [status, metricasGerais] = await Promise.all([
+      buscarStatusPontos(),
+      buscarMetricasGeraisPeriodo()
+    ]);
 
     let clientes = [];
     let playlists = [];
@@ -136,7 +230,8 @@ async function carregarcentralpainel(opcoes = {}) {
       pontos: pontos || [],
       status: status || [],
       clientes,
-      playlists
+      playlists,
+      metricasGerais
     };
 
     salvarCacheCentral(dados);
@@ -151,12 +246,16 @@ function aplicarDadosCentral(dados) {
   const status = dados?.status || [];
   const clientes = dados?.clientes || [];
   const playlists = dados?.playlists || [];
+  const metricasGerais = dados?.metricasGerais || {
+    totalReproducoes: 0,
+    totalQrCode: 0
+  };
 
   const clientesComStatusReal = calcularStatusRealClientes(clientes, playlists);
   const contratos = clientesComStatusReal.filter(cliente => clienteTemContrato(cliente));
 
   todosOsPontos = combinarPontosComStatus(pontos, status);
-  atualizarPainel(todosOsPontos);
+  atualizarPainel(todosOsPontos, metricasGerais);
   atualizarGraficoComercial(clientesComStatusReal, contratos);
 }
 
@@ -219,20 +318,22 @@ function combinarPontosComStatus(pontos, status) {
   });
 }
 
-function atualizarMetricas(pontos) {
+function atualizarMetricas(pontos, metricasGerais = {}) {
   const total = pontos.length;
   const ativos = pontos.filter(p => p.status_final === "ativo").length;
   const uptime = calcularUptimeMedio(pontos);
+  const totalReproducoes = Number(metricasGerais.totalReproducoes || 0);
+  const totalQrCode = Number(metricasGerais.totalQrCode || 0);
 
-  setTexto("totalReproducoes", "0");
-  setTexto("totalQrCode", "0");
+  setTexto("totalReproducoes", formatarNumero(totalReproducoes));
+  setTexto("totalQrCode", formatarNumero(totalQrCode));
   setHtml("pontosAtivos", `${ativos} <small>+0</small>`);
   setTexto("totalPontosTexto", `De um total de ${total} pontos`);
   setTexto("uptimeMedio", `${uptime}%`);
 }
 
-function atualizarPainel(pontos) {
-  atualizarMetricas(pontos);
+function atualizarPainel(pontos, metricasGerais = {}) {
+  atualizarMetricas(pontos, metricasGerais);
   atualizarDonut(pontos);
 
   const ordem = {
@@ -514,6 +615,10 @@ function barraStatus(status) {
 function percentual(valor, total) {
   if (!total) return "0%";
   return ((valor / total) * 100).toFixed(1).replace(".", ",") + "%";
+}
+
+function formatarNumero(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR");
 }
 
 function formatarPing(data) {
