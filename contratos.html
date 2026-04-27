@@ -517,7 +517,6 @@
         <button id="btnEditarPagina" class="btn-voltar btn-editar" type="button">Editar</button>
         <button id="btnSalvarPagina" class="btn-voltar btn-salvar" type="button" style="display:none;">Salvar</button>
         <button id="btnCancelarPagina" class="btn-voltar btn-cancelar" type="button" style="display:none;">Cancelar</button>
-        <button id="btnModeloEstabelecimento" class="btn-voltar btn-editar" type="button">Modelo Estabelecimento</button>
         <button class="btn-voltar" type="button" onclick="history.back()">Voltar</button>
       </div>
     </div>
@@ -624,94 +623,83 @@
         </section>
 
         <section id="estabelecimento" class="contrato" data-contrato-id="estabelecimento">
-  <div class="cabecalho-contrato">
-    <h2 data-edit-key="titulo_contrato">Contrato de Parceria com Estabelecimento</h2>
-    <p data-edit-key="subtitulo_contrato">Contrato de cessão de espaço publicitário para mídia digital.</p>
-  </div>
+          <div class="cabecalho-contrato">
+            <h2 data-edit-key="titulo_contrato">Contrato de Parceria com Estabelecimento</h2>
+            <p data-edit-key="subtitulo_contrato">Contrato de cessão de espaço publicitário para mídia digital.</p>
+          </div>
 
-  <div class="bloco">
-    <h3>Dados da Duna Branding</h3>
-    <div class="linha-info">
-      <div class="campo"><strong>Empresa</strong><span data-edit-key="empresa">Duna Branding</span></div>
-      <div class="campo"><strong>CNPJ</strong><span data-edit-key="cnpj">[SEU CNPJ]</span></div>
-      <div class="campo"><strong>Telefone</strong><span data-edit-key="telefone">[SEU TELEFONE]</span></div>
-      <div class="campo"><strong>Email</strong><span data-edit-key="email">[SEU EMAIL]</span></div>
-      <div class="campo"><strong>Endereço</strong><span data-edit-key="endereco">[SEU ENDEREÇO]</span></div>
-      <div class="campo"><strong>Responsável</strong><span data-edit-key="responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+          <div class="bloco">
+            <h3>Dados da Duna Branding</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Empresa</strong><span data-edit-key="empresa">Duna Branding</span></div>
+              <div class="campo"><strong>CNPJ</strong><span data-edit-key="cnpj">[SEU CNPJ]</span></div>
+              <div class="campo"><strong>Telefone</strong><span data-edit-key="telefone">[SEU TELEFONE]</span></div>
+              <div class="campo"><strong>Email</strong><span data-edit-key="email">[SEU EMAIL]</span></div>
+              <div class="campo"><strong>Endereço</strong><span data-edit-key="endereco">[SEU ENDEREÇO]</span></div>
+              <div class="campo"><strong>Responsável</strong><span data-edit-key="responsavel">[SEU NOME / RESPONSÁVEL LEGAL]</span></div>
+            </div>
+          </div>
+
+          <div class="bloco">
+            <h3>Dados do Estabelecimento</h3>
+            <div class="linha-info">
+              <div class="campo"><strong>Estabelecimento</strong><span>{{estabelecimento_nome}}</span></div>
+              <div class="campo"><strong>CPF / CNPJ</strong><span>{{estabelecimento_cpf_cnpj}}</span></div>
+              <div class="campo"><strong>Responsável</strong><span>{{estabelecimento_responsavel}}</span></div>
+              <div class="campo"><strong>Telefone</strong><span>{{estabelecimento_telefone}}</span></div>
+              <div class="campo"><strong>Email</strong><span>{{estabelecimento_email}}</span></div>
+              <div class="campo"><strong>Cidade</strong><span>{{estabelecimento_cidade}}</span></div>
+              <div class="campo"><strong>Endereço</strong><span>{{estabelecimento_endereco}}</span></div>
+              <div class="campo"><strong>Período</strong><span>{{data_inicio}} até {{data_fim}}</span></div>
+              <div class="campo"><strong>Modelo comercial</strong><span>{{modelo_comercial}}</span></div>
+            </div>
+          </div>
+
+          <div class="bloco texto-contrato">
+            <h3>Termos do Contrato</h3>
+
+            <div data-clausulas-container>
+              <p data-clausula><strong data-clausula-titulo>OBJETO</strong> <span data-clausula-texto>O presente contrato tem como objeto a cessão de espaço publicitário em televisão de propriedade do CONTRATADO, para veiculação de conteúdo digital por meio de dispositivo TV Box ou player fornecido e operado pela CONTRATANTE.</span></p>
+              <p data-clausula><strong data-clausula-titulo>ESTRUTURA DA OPERAÇÃO</strong> <span data-clausula-texto>A operação será composta por televisão de propriedade do CONTRATADO, dispositivo TV Box ou player de propriedade da CONTRATANTE e internet disponibilizada pelo CONTRATADO, utilizada pela CONTRATANTE em baixo consumo exclusivamente para operação do sistema de mídia digital, sem caracterizar uso intensivo nem comprometer a performance da rede do estabelecimento.</span></p>
+              <p data-clausula><strong data-clausula-titulo>INSTALAÇÃO E ACESSO</strong> <span data-clausula-texto>O CONTRATADO autoriza a instalação do TV Box na televisão e compromete-se a permitir acesso para instalação, manutenção, retirada ou substituição dos equipamentos, disponibilizando energia elétrica e acesso técnico sempre que necessário.</span></p>
+              <p data-clausula><strong data-clausula-titulo>CONTROLE DE EXIBIÇÃO</strong> <span data-clausula-texto>A CONTRATANTE detém controle sobre o conteúdo exibido, programação e frequência de exibição. Fica vedado ao CONTRATADO alterar a entrada HDMI da TV, desconectar o dispositivo ou interferir na programação sem autorização da CONTRATANTE.</span></p>
+              <p data-clausula><strong data-clausula-titulo>DISPONIBILIDADE OPERACIONAL</strong> <span data-clausula-texto>O CONTRATADO compromete-se a manter a TV ligada durante o horário de funcionamento, manter a televisão na entrada correta do sistema da CONTRATANTE e não interromper a exibição sem autorização.</span></p>
+              <p data-clausula><strong data-clausula-titulo>POSICIONAMENTO E VISIBILIDADE</strong> <span data-clausula-texto>A televisão deverá permanecer em local visível ao público, em área de circulação e sem obstruções que prejudiquem a visualização do conteúdo exibido.</span></p>
+              <p data-clausula><strong data-clausula-titulo>EXCLUSIVIDADE</strong> <span data-clausula-texto>O CONTRATADO não poderá instalar sistemas concorrentes de mídia digital ou exibir publicidade de terceiros na mesma TV sem autorização prévia da CONTRATANTE.</span></p>
+              <p data-clausula><strong data-clausula-titulo>RESPONSABILIDADE PELOS EQUIPAMENTOS</strong> <span data-clausula-texto>O TV Box ou player é de propriedade da CONTRATANTE. O CONTRATADO será responsável por danos causados por mau uso, remoção indevida, negligência ou interferência não autorizada nos equipamentos.</span></p>
+              <p data-clausula><strong data-clausula-titulo>MONITORAMENTO</strong> <span data-clausula-texto>A CONTRATANTE poderá monitorar remotamente o funcionamento da tela, tempo de exibição, relatórios de reprodução e demais informações técnicas relacionadas à operação da mídia digital.</span></p>
+              <p data-clausula><strong data-clausula-titulo>INTERRUPÇÕES</strong> <span data-clausula-texto>Caso a operação seja interrompida por TV desligada, alteração de entrada, desconexão do dispositivo ou falhas recorrentes de operação por período superior ao limite acordado entre as partes, poderá ser considerado descumprimento contratual.</span></p>
+              <p data-clausula><strong data-clausula-titulo>REMUNERAÇÃO</strong> <span data-clausula-texto>{{clausula_remuneracao}}</span></p>
+              <p data-clausula><strong data-clausula-titulo>PRAZO</strong> <span data-clausula-texto>O contrato terá vigência conforme período definido entre as partes, podendo ser renovado automaticamente salvo manifestação contrária de uma das partes.</span></p>
+              <p data-clausula><strong data-clausula-titulo>RESCISÃO</strong> <span data-clausula-texto>O contrato poderá ser rescindido mediante aviso prévio entre as partes ou imediatamente em caso de interferência no sistema, recorrência de falhas operacionais, descumprimento das obrigações ou uso indevido dos equipamentos.</span></p>
+              <p data-clausula><strong data-clausula-titulo>RETIRADA DO EQUIPAMENTO</strong> <span data-clausula-texto>Ao término do contrato, a CONTRATANTE poderá retirar o TV Box ou player, devendo o CONTRATADO permitir acesso ao local para retirada imediata dos equipamentos.</span></p>
+              <p data-clausula><strong data-clausula-titulo>NATUREZA DA RELAÇÃO</strong> <span data-clausula-texto>Este contrato não gera vínculo empregatício, sociedade ou exclusividade comercial ampla entre as partes, limitando-se à parceria operacional de mídia digital em tela, conforme as condições aqui estabelecidas.</span></p>
+            </div>
+
+            <button class="btn-adicionar-clausula" type="button" onclick="adicionarClausula()">
+              + Adicionar cláusula
+            </button>
+          </div>
+
+          <div class="assinaturas">
+            <div class="assinatura-box">
+              <div class="linha-assinatura">ESTABELECIMENTO</div>
+            </div>
+
+            <div class="assinatura-box assinatura-box-duna">
+              <img src="assinatura.png" alt="Assinatura Duna Branding" class="assinatura-img">
+              <div class="linha-assinatura">Duna Branding</div>
+            </div>
+          </div>
+
+          <div class="acoes">
+            <button class="btn-acao btn-primario" type="button" onclick="window.print()">Imprimir</button>
+            <button class="btn-acao btn-secundario" type="button" onclick="window.print()">Baixar PDF</button>
+          </div>
+        </section>
+      </main>
     </div>
   </div>
-
-  <div class="bloco">
-    <h3>Dados do Estabelecimento</h3>
-    <div class="linha-info">
-      <div class="campo"><strong>Estabelecimento</strong><span>{{estabelecimento_nome}}</span></div>
-      <div class="campo"><strong>CPF / CNPJ</strong><span>{{estabelecimento_cpf_cnpj}}</span></div>
-      <div class="campo"><strong>Responsável</strong><span>{{estabelecimento_responsavel}}</span></div>
-      <div class="campo"><strong>Telefone</strong><span>{{estabelecimento_telefone}}</span></div>
-      <div class="campo"><strong>Email</strong><span>{{estabelecimento_email}}</span></div>
-      <div class="campo"><strong>Cidade</strong><span>{{estabelecimento_cidade}}</span></div>
-      <div class="campo"><strong>Endereço</strong><span>{{estabelecimento_endereco}}</span></div>
-      <div class="campo"><strong>Período</strong><span>{{data_inicio}} até {{data_fim}}</span></div>
-      <div class="campo"><strong>Modelo comercial</strong><span>{{modelo_comercial}}</span></div>
-    </div>
-  </div>
-
-  <div class="bloco texto-contrato">
-    <h3>Termos do Contrato</h3>
-
-    <div data-clausulas-container>
-      <p data-clausula><strong data-clausula-titulo>OBJETO</strong> <span data-clausula-texto>O presente contrato tem como objeto a cessão de espaço publicitário em televisão de propriedade do CONTRATADO, para veiculação de conteúdo digital por meio de dispositivo TV Box ou player fornecido e operado pela CONTRATANTE.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>ESTRUTURA DA OPERAÇÃO</strong> <span data-clausula-texto>A operação será composta por televisão de propriedade do CONTRATADO, dispositivo TV Box ou player de propriedade da CONTRATANTE e internet disponibilizada pelo CONTRATADO, utilizada pela CONTRATANTE em baixo consumo exclusivamente para operação do sistema de mídia digital, sem caracterizar uso intensivo nem comprometer a performance da rede do estabelecimento.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>INSTALAÇÃO E ACESSO</strong> <span data-clausula-texto>O CONTRATADO autoriza a instalação do TV Box na televisão e compromete-se a permitir acesso para instalação, manutenção, retirada ou substituição dos equipamentos, disponibilizando energia elétrica e acesso técnico sempre que necessário.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>CONTROLE DE EXIBIÇÃO</strong> <span data-clausula-texto>A CONTRATANTE detém controle sobre o conteúdo exibido, programação e frequência de exibição. Fica vedado ao CONTRATADO alterar a entrada HDMI da TV, desconectar o dispositivo ou interferir na programação sem autorização da CONTRATANTE.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>DISPONIBILIDADE OPERACIONAL</strong> <span data-clausula-texto>O CONTRATADO compromete-se a manter a TV ligada durante o horário de funcionamento, manter a televisão na entrada correta do sistema da CONTRATANTE e não interromper a exibição sem autorização.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>POSICIONAMENTO E VISIBILIDADE</strong> <span data-clausula-texto>A televisão deverá permanecer em local visível ao público, em área de circulação e sem obstruções que prejudiquem a visualização do conteúdo exibido.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>EXCLUSIVIDADE</strong> <span data-clausula-texto>O CONTRATADO não poderá instalar sistemas concorrentes de mídia digital ou exibir publicidade de terceiros na mesma TV sem autorização prévia da CONTRATANTE.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>RESPONSABILIDADE PELOS EQUIPAMENTOS</strong> <span data-clausula-texto>O TV Box ou player é de propriedade da CONTRATANTE. O CONTRATADO será responsável por danos causados por mau uso, remoção indevida, negligência ou interferência não autorizada nos equipamentos.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>MONITORAMENTO</strong> <span data-clausula-texto>A CONTRATANTE poderá monitorar remotamente o funcionamento da tela, tempo de exibição, relatórios de reprodução e demais informações técnicas relacionadas à operação da mídia digital.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>INTERRUPÇÕES</strong> <span data-clausula-texto>Caso a operação seja interrompida por TV desligada, alteração de entrada, desconexão do dispositivo ou falhas recorrentes de operação por período superior ao limite acordado entre as partes, poderá ser considerado descumprimento contratual.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>REMUNERAÇÃO</strong> <span data-clausula-texto>{{clausula_remuneracao}}</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>PRAZO</strong> <span data-clausula-texto>O contrato terá vigência conforme período definido entre as partes, podendo ser renovado automaticamente salvo manifestação contrária de uma das partes.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>RESCISÃO</strong> <span data-clausula-texto>O contrato poderá ser rescindido mediante aviso prévio entre as partes ou imediatamente em caso de interferência no sistema, recorrência de falhas operacionais, descumprimento das obrigações ou uso indevido dos equipamentos.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>RETIRADA DO EQUIPAMENTO</strong> <span data-clausula-texto>Ao término do contrato, a CONTRATANTE poderá retirar o TV Box ou player, devendo o CONTRATADO permitir acesso ao local para retirada imediata dos equipamentos.</span></p>
-
-      <p data-clausula><strong data-clausula-titulo>NATUREZA DA RELAÇÃO</strong> <span data-clausula-texto>Este contrato não gera vínculo empregatício, sociedade ou exclusividade comercial ampla entre as partes, limitando-se à parceria operacional de mídia digital em tela, conforme as condições aqui estabelecidas.</span></p>
-    </div>
-
-    <button class="btn-adicionar-clausula" type="button" onclick="adicionarClausula()">
-      + Adicionar cláusula
-    </button>
-  </div>
-
-  <div class="assinaturas">
-    <div class="assinatura-box">
-      <div class="linha-assinatura">ESTABELECIMENTO</div>
-    </div>
-
-    <div class="assinatura-box assinatura-box-duna">
-      <img src="assinatura.png" alt="Assinatura Duna Branding" class="assinatura-img">
-      <div class="linha-assinatura">Duna Branding</div>
-    </div>
-  </div>
-
-  <div class="acoes">
-    <button class="btn-acao btn-primario" type="button" onclick="window.print()">Imprimir</button>
-    <button class="btn-acao btn-secundario" type="button" onclick="window.print()">Baixar PDF</button>
-  </div>
-</section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -975,75 +963,75 @@
     }
 
     function coletarHtmlModelo() {
-  const dados = coletarDadosContratada();
-  const tipo = obterContratoTipoAtivo();
-  const assinaturaLabel = tipo === "estabelecimento" ? "ESTABELECIMENTO" : "CONTRATANTE";
+      const dados = coletarDadosContratada();
+      const tipo = obterContratoTipoAtivo();
+      const assinaturaLabel = tipo === "estabelecimento" ? "ESTABELECIMENTO" : "CONTRATANTE";
 
-  const blocoPessoa = tipo === "estabelecimento"
-    ? `
-      <div class="bloco">
-        <h2>Dados do Estabelecimento</h2>
-        <p><strong>Estabelecimento:</strong> {{estabelecimento_nome}}</p>
-        <p><strong>CPF/CNPJ:</strong> {{estabelecimento_cpf_cnpj}}</p>
-        <p><strong>Responsável:</strong> {{estabelecimento_responsavel}}</p>
-        <p><strong>Telefone:</strong> {{estabelecimento_telefone}}</p>
-        <p><strong>Email:</strong> {{estabelecimento_email}}</p>
-        <p><strong>Cidade:</strong> {{estabelecimento_cidade}}</p>
-        <p><strong>Endereço:</strong> {{estabelecimento_endereco}}</p>
-        <p><strong>Período:</strong> {{data_inicio}} até {{data_fim}}</p>
-        <p><strong>Modelo comercial:</strong> {{modelo_comercial}}</p>
-      </div>
-    `
-    : `
-      <div class="bloco">
-        <h2>Dados do Contratante</h2>
-        <p><strong>Nome:</strong> {{cliente_nome}}</p>
-        <p><strong>CPF/CNPJ:</strong> {{cliente_cpf_cnpj}}</p>
-        <p><strong>Telefone:</strong> {{cliente_telefone}}</p>
-        <p><strong>Email:</strong> {{cliente_email}}</p>
-        <p><strong>Valor:</strong> {{valor}}</p>
-        <p><strong>Período:</strong> {{data_inicio}} até {{data_vencimento}}</p>
-        <p><strong>Pontos:</strong> {{pontos}}</p>
-      </div>
-    `;
+      const blocoPessoa = tipo === "estabelecimento"
+        ? `
+          <div class="bloco">
+            <h2>Dados do Estabelecimento</h2>
+            <p><strong>Estabelecimento:</strong> {{estabelecimento_nome}}</p>
+            <p><strong>CPF/CNPJ:</strong> {{estabelecimento_cpf_cnpj}}</p>
+            <p><strong>Responsável:</strong> {{estabelecimento_responsavel}}</p>
+            <p><strong>Telefone:</strong> {{estabelecimento_telefone}}</p>
+            <p><strong>Email:</strong> {{estabelecimento_email}}</p>
+            <p><strong>Cidade:</strong> {{estabelecimento_cidade}}</p>
+            <p><strong>Endereço:</strong> {{estabelecimento_endereco}}</p>
+            <p><strong>Período:</strong> {{data_inicio}} até {{data_fim}}</p>
+            <p><strong>Modelo comercial:</strong> {{modelo_comercial}}</p>
+          </div>
+        `
+        : `
+          <div class="bloco">
+            <h2>Dados do Contratante</h2>
+            <p><strong>Nome:</strong> {{cliente_nome}}</p>
+            <p><strong>CPF/CNPJ:</strong> {{cliente_cpf_cnpj}}</p>
+            <p><strong>Telefone:</strong> {{cliente_telefone}}</p>
+            <p><strong>Email:</strong> {{cliente_email}}</p>
+            <p><strong>Valor:</strong> {{valor}}</p>
+            <p><strong>Período:</strong> {{data_inicio}} até {{data_vencimento}}</p>
+            <p><strong>Pontos:</strong> {{pontos}}</p>
+          </div>
+        `;
 
-  return `
-    <div class="contrato-final">
-      <div class="topo-contrato">
-        <h1>{{titulo}}</h1>
-        <p>{{subtitulo}}</p>
-      </div>
+      return `
+        <div class="contrato-final">
+          <div class="topo-contrato">
+            <h1>{{titulo}}</h1>
+            <p>{{subtitulo}}</p>
+          </div>
 
-      <div class="bloco">
-        <h2>Dados da Contratada</h2>
-        <p><strong>Empresa:</strong> {{empresa}}</p>
-        <p><strong>CNPJ:</strong> {{cnpj}}</p>
-        <p><strong>Telefone:</strong> {{telefone_empresa}}</p>
-        <p><strong>Email:</strong> {{email_empresa}}</p>
-        <p><strong>Endereço:</strong> {{endereco_empresa}}</p>
-        <p><strong>Responsável:</strong> {{responsavel}}</p>
-      </div>
+          <div class="bloco">
+            <h2>Dados da Contratada</h2>
+            <p><strong>Empresa:</strong> {{empresa}}</p>
+            <p><strong>CNPJ:</strong> {{cnpj}}</p>
+            <p><strong>Telefone:</strong> {{telefone_empresa}}</p>
+            <p><strong>Email:</strong> {{email_empresa}}</p>
+            <p><strong>Endereço:</strong> {{endereco_empresa}}</p>
+            <p><strong>Responsável:</strong> {{responsavel}}</p>
+          </div>
 
-      ${blocoPessoa}
+          ${blocoPessoa}
 
-      <div class="bloco">
-        <h2>Termos do Contrato</h2>
-        ${montarClausulasHtml()}
-      </div>
+          <div class="bloco">
+            <h2>Termos do Contrato</h2>
+            ${montarClausulasHtml()}
+          </div>
 
-      <div class="assinaturas">
-        <div class="assinatura-box">
-          <div class="linha-assinatura">${assinaturaLabel}</div>
+          <div class="assinaturas">
+            <div class="assinatura-box">
+              <div class="linha-assinatura">${assinaturaLabel}</div>
+            </div>
+
+            <div class="assinatura-box">
+              <img src="{{assinatura_url}}" alt="Assinatura Duna Branding" class="assinatura-img">
+              <div class="linha-assinatura">${escaparHtml(dados.empresa || "Duna Branding")}</div>
+            </div>
+          </div>
         </div>
-
-        <div class="assinatura-box">
-          <img src="{{assinatura_url}}" alt="Assinatura Duna Branding" class="assinatura-img">
-          <div class="linha-assinatura">${escaparHtml(dados.empresa || "Duna Branding")}</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
+      `;
+    }
 
     function renderizarClausulasDoHtmlModelo(htmlModelo) {
       const contrato = obterContratoAtivo();
@@ -1054,23 +1042,28 @@
       const temp = document.createElement("div");
       temp.innerHTML = htmlModelo;
 
-      const paragrafos = Array.from(temp.querySelectorAll("p"))
-        .filter((p) => {
-          const texto = p.textContent.trim();
+      const prefixosIgnorados = [
+        "Empresa:",
+        "CNPJ:",
+        "Telefone:",
+        "Email:",
+        "Endereço:",
+        "Responsável:",
+        "Nome:",
+        "CPF/CNPJ:",
+        "Valor:",
+        "Período:",
+        "Pontos:",
+        "Estabelecimento:",
+        "Cidade:",
+        "Modelo comercial:"
+      ];
 
-          return texto &&
-            !texto.startsWith("Empresa:") &&
-            !texto.startsWith("CNPJ:") &&
-            !texto.startsWith("Telefone:") &&
-            !texto.startsWith("Email:") &&
-            !texto.startsWith("Endereço:") &&
-            !texto.startsWith("Responsável:") &&
-            !texto.startsWith("Nome:") &&
-            !texto.startsWith("CPF/CNPJ:") &&
-            !texto.startsWith("Valor:") &&
-            !texto.startsWith("Período:") &&
-            !texto.startsWith("Pontos:");
-        });
+      const paragrafos = Array.from(temp.querySelectorAll("p")).filter((p) => {
+        const texto = p.textContent.trim();
+
+        return texto && !prefixosIgnorados.some((prefixo) => texto.startsWith(prefixo));
+      });
 
       if (!paragrafos.length) return;
 
@@ -1092,106 +1085,123 @@
       }).join("");
     }
 
-    function aplicarModeloNoHtml(modelo) {
-  if (!modelo) return;
+    function modeloEstabelecimentoEstaAntigo(modelo) {
+      if (!modelo || !modelo.html_modelo) return false;
 
-  const dados = typeof modelo.dados_contratada === "string"
-    ? JSON.parse(modelo.dados_contratada || "{}")
-    : modelo.dados_contratada || {};
+      const html = String(modelo.html_modelo);
 
-  aplicarTextoCampo("titulo_contrato", modelo.titulo || "");
-  aplicarTextoCampo("subtitulo_contrato", modelo.subtitulo || "");
-  aplicarTextoCampo("empresa", dados.empresa || "Duna Branding");
-  aplicarTextoCampo("cnpj", dados.cnpj || "");
-  aplicarTextoCampo("telefone", dados.telefone || "");
-  aplicarTextoCampo("email", dados.email || "");
-  aplicarTextoCampo("endereco", dados.endereco || "");
-  aplicarTextoCampo("responsavel", dados.responsavel || "");
-
-  atualizarImagemAssinatura(dados.assinatura_url || "assinatura.png");
-
-  if (modelo.html_modelo) {
-  renderizarClausulasDoHtmlModelo(modelo.html_modelo);
- }
-}
-
-async function carregarContratoDaSupabase() {
-  const tipo = obterContratoTipoAtivo();
-
-  try {
-    mostrarAviso("Carregando contrato da Supabase...", "info");
-
-    const { data, error } = await supabaseClient
-      .from(TABELA_CONTRATOS_MODELOS)
-      .select("*")
-      .eq("tipo", tipo)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    if (data) {
-      aplicarModeloNoHtml(data);
-      mostrarAviso("Contrato carregado da Supabase.", "ok");
-    } else {
-      mostrarAviso("Nenhum modelo encontrado. Clique em Editar e Salvar para criar.", "info");
+      return (
+        !html.includes("ESTRUTURA DA OPERAÇÃO") ||
+        !html.includes("{{clausula_remuneracao}}") ||
+        html.includes("parceria operacional de mídia indoor")
+      );
     }
-  } catch (error) {
-    console.error(error);
-    mostrarAviso(`Erro ao carregar contrato: ${error.message || "falha desconhecida"}`, "erro");
-  }
-}
+
+    function aplicarModeloNoHtml(modelo) {
+      if (!modelo) return;
+
+      const dados = typeof modelo.dados_contratada === "string"
+        ? JSON.parse(modelo.dados_contratada || "{}")
+        : modelo.dados_contratada || {};
+
+      aplicarTextoCampo("titulo_contrato", modelo.titulo || "");
+      aplicarTextoCampo("subtitulo_contrato", modelo.subtitulo || "");
+      aplicarTextoCampo("empresa", dados.empresa || "Duna Branding");
+      aplicarTextoCampo("cnpj", dados.cnpj || "");
+      aplicarTextoCampo("telefone", dados.telefone || "");
+      aplicarTextoCampo("email", dados.email || "");
+      aplicarTextoCampo("endereco", dados.endereco || "");
+      aplicarTextoCampo("responsavel", dados.responsavel || "");
+
+      atualizarImagemAssinatura(dados.assinatura_url || "assinatura.png");
+
+      if (modelo.html_modelo) {
+        renderizarClausulasDoHtmlModelo(modelo.html_modelo);
+      }
+    }
+
+    async function carregarContratoDaSupabase() {
+      const tipo = obterContratoTipoAtivo();
+
+      try {
+        mostrarAviso("Carregando contrato da Supabase...", "info");
+
+        const { data, error } = await supabaseClient
+          .from(TABELA_CONTRATOS_MODELOS)
+          .select("*")
+          .eq("tipo", tipo)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          if (tipo === "estabelecimento" && modeloEstabelecimentoEstaAntigo(data)) {
+            mostrarAviso("Modelo Estabelecimento atualizado localmente. Clique em Editar e Salvar para gravar na Supabase.", "info");
+            return;
+          }
+
+          aplicarModeloNoHtml(data);
+          mostrarAviso("Contrato carregado da Supabase.", "ok");
+        } else {
+          mostrarAviso("Nenhum modelo encontrado. Clique em Editar e Salvar para criar.", "info");
+        }
+      } catch (error) {
+        console.error(error);
+        mostrarAviso(`Erro ao carregar contrato: ${error.message || "falha desconhecida"}`, "erro");
+      }
+    }
 
     async function salvarEdicoes() {
-  try {
-    mostrarAviso("Salvando contrato na Supabase...", "info");
+      try {
+        mostrarAviso("Salvando contrato na Supabase...", "info");
 
-    const tipo = obterContratoTipoAtivo();
-    const dadosContratada = coletarDadosContratada();
+        const tipo = obterContratoTipoAtivo();
+        const dadosContratada = coletarDadosContratada();
 
-    const payload = {
-      tipo,
-      titulo: obterTextoCampo("titulo_contrato") || "Contrato",
-      subtitulo: obterTextoCampo("subtitulo_contrato") || "",
-      html_modelo: coletarHtmlModelo(),
-      dados_contratada: dadosContratada,
-      ativo: true,
-      updated_at: new Date().toISOString()
-    };
+        const payload = {
+          tipo,
+          titulo: obterTextoCampo("titulo_contrato") || "Contrato",
+          subtitulo: obterTextoCampo("subtitulo_contrato") || "",
+          html_modelo: coletarHtmlModelo(),
+          dados_contratada: dadosContratada,
+          ativo: true,
+          updated_at: new Date().toISOString()
+        };
 
-    const { data: existente, error: erroBusca } = await supabaseClient
-      .from(TABELA_CONTRATOS_MODELOS)
-      .select("id")
-      .eq("tipo", tipo)
-      .maybeSingle();
+        const { data: existente, error: erroBusca } = await supabaseClient
+          .from(TABELA_CONTRATOS_MODELOS)
+          .select("id")
+          .eq("tipo", tipo)
+          .maybeSingle();
 
-    if (erroBusca) throw erroBusca;
+        if (erroBusca) throw erroBusca;
 
-    let error;
+        let error;
 
-    if (existente?.id) {
-      const resposta = await supabaseClient
-        .from(TABELA_CONTRATOS_MODELOS)
-        .update(payload)
-        .eq("id", existente.id);
+        if (existente?.id) {
+          const resposta = await supabaseClient
+            .from(TABELA_CONTRATOS_MODELOS)
+            .update(payload)
+            .eq("id", existente.id);
 
-      error = resposta.error;
-    } else {
-      const resposta = await supabaseClient
-        .from(TABELA_CONTRATOS_MODELOS)
-        .insert(payload);
+          error = resposta.error;
+        } else {
+          const resposta = await supabaseClient
+            .from(TABELA_CONTRATOS_MODELOS)
+            .insert(payload);
 
-      error = resposta.error;
+          error = resposta.error;
+        }
+
+        if (error) throw error;
+
+        sairModoEdicao();
+        mostrarAviso("Contrato salvo na Supabase com sucesso.", "ok");
+      } catch (error) {
+        console.error(error);
+        mostrarAviso(`Erro ao salvar contrato: ${error.message || "falha desconhecida"}`, "erro");
+      }
     }
-
-    if (error) throw error;
-
-    sairModoEdicao();
-    mostrarAviso("Contrato salvo na Supabase com sucesso.", "ok");
-  } catch (error) {
-    console.error(error);
-    mostrarAviso(`Erro ao salvar contrato: ${error.message || "falha desconhecida"}`, "erro");
-  }
-}
 
     if (btnEditarPagina) {
       btnEditarPagina.addEventListener("click", entrarModoEdicao);
@@ -1205,63 +1215,9 @@ async function carregarContratoDaSupabase() {
       btnCancelarPagina.addEventListener("click", cancelarEdicoes);
     }
 
-    const btnModeloEstabelecimento = document.getElementById("btnModeloEstabelecimento");
-
-    if (btnModeloEstabelecimento) {
-      btnModeloEstabelecimento.addEventListener("click", () => {
-      abrirContrato("estabelecimento", document.querySelector('[onclick*="estabelecimento"]'));
-      aplicarModeloPadraoEstabelecimento();
-   });
- }
-
-    function aplicarModeloPadraoEstabelecimento() {
-  const contrato = document.getElementById("estabelecimento");
-  if (!contrato) return;
-
-  contrato.querySelector("[data-edit-key='titulo_contrato']").textContent = "Contrato de Parceria com Estabelecimento";
-  contrato.querySelector("[data-edit-key='subtitulo_contrato']").textContent = "Contrato de cessão de espaço publicitário para mídia digital.";
-
-  const container = contrato.querySelector("[data-clausulas-container]");
-  if (!container) return;
-
-  container.innerHTML = `
-    <p data-clausula><strong data-clausula-titulo>OBJETO</strong> <span data-clausula-texto>O presente contrato tem como objeto a cessão de espaço publicitário em televisão de propriedade do CONTRATADO, para veiculação de conteúdo digital por meio de dispositivo TV Box ou player fornecido e operado pela CONTRATANTE.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>ESTRUTURA DA OPERAÇÃO</strong> <span data-clausula-texto>A operação será composta por televisão de propriedade do CONTRATADO, dispositivo TV Box ou player de propriedade da CONTRATANTE e internet disponibilizada pelo CONTRATADO, utilizada pela CONTRATANTE em baixo consumo exclusivamente para operação do sistema de mídia digital, sem caracterizar uso intensivo nem comprometer a performance da rede do estabelecimento.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>INSTALAÇÃO E ACESSO</strong> <span data-clausula-texto>O CONTRATADO autoriza a instalação do TV Box na televisão e compromete-se a permitir acesso para instalação, manutenção, retirada ou substituição dos equipamentos, disponibilizando energia elétrica e acesso técnico sempre que necessário.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>CONTROLE DE EXIBIÇÃO</strong> <span data-clausula-texto>A CONTRATANTE detém controle sobre o conteúdo exibido, programação e frequência de exibição. Fica vedado ao CONTRATADO alterar a entrada HDMI da TV, desconectar o dispositivo ou interferir na programação sem autorização da CONTRATANTE.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>DISPONIBILIDADE OPERACIONAL</strong> <span data-clausula-texto>O CONTRATADO compromete-se a manter a TV ligada durante o horário de funcionamento, manter a televisão na entrada correta do sistema da CONTRATANTE e não interromper a exibição sem autorização.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>POSICIONAMENTO E VISIBILIDADE</strong> <span data-clausula-texto>A televisão deverá permanecer em local visível ao público, em área de circulação e sem obstruções que prejudiquem a visualização do conteúdo exibido.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>EXCLUSIVIDADE</strong> <span data-clausula-texto>O CONTRATADO não poderá instalar sistemas concorrentes de mídia digital ou exibir publicidade de terceiros na mesma TV sem autorização prévia da CONTRATANTE.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>RESPONSABILIDADE PELOS EQUIPAMENTOS</strong> <span data-clausula-texto>O TV Box ou player é de propriedade da CONTRATANTE. O CONTRATADO será responsável por danos causados por mau uso, remoção indevida, negligência ou interferência não autorizada nos equipamentos.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>MONITORAMENTO</strong> <span data-clausula-texto>A CONTRATANTE poderá monitorar remotamente o funcionamento da tela, tempo de exibição, relatórios de reprodução e demais informações técnicas relacionadas à operação da mídia digital.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>INTERRUPÇÕES</strong> <span data-clausula-texto>Caso a operação seja interrompida por TV desligada, alteração de entrada, desconexão do dispositivo ou falhas recorrentes de operação por período superior ao limite acordado entre as partes, poderá ser considerado descumprimento contratual.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>REMUNERAÇÃO</strong> <span data-clausula-texto>{{clausula_remuneracao}}</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>PRAZO</strong> <span data-clausula-texto>O contrato terá vigência conforme período definido entre as partes, podendo ser renovado automaticamente salvo manifestação contrária de uma das partes.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>RESCISÃO</strong> <span data-clausula-texto>O contrato poderá ser rescindido mediante aviso prévio entre as partes ou imediatamente em caso de interferência no sistema, recorrência de falhas operacionais, descumprimento das obrigações ou uso indevido dos equipamentos.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>RETIRADA DO EQUIPAMENTO</strong> <span data-clausula-texto>Ao término do contrato, a CONTRATANTE poderá retirar o TV Box ou player, devendo o CONTRATADO permitir acesso ao local para retirada imediata dos equipamentos.</span></p>
-
-    <p data-clausula><strong data-clausula-titulo>NATUREZA DA RELAÇÃO</strong> <span data-clausula-texto>Este contrato não gera vínculo empregatício, sociedade ou exclusividade comercial ampla entre as partes, limitando-se à parceria operacional de mídia digital em tela.</span></p>
-  `;
-
-  mostrarAviso("Modelo novo aplicado. Clique em Editar e depois Salvar para gravar na Supabase.", "info");
-}
     document.addEventListener("DOMContentLoaded", () => {
       carregarContratoDaSupabase();
     });
-
   </script>
 </body>
 </html>
