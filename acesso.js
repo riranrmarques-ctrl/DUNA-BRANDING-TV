@@ -47,8 +47,8 @@ const listaMateriais = document.getElementById("listaMateriais");
 const historicoStatusPonto = document.getElementById("historicoStatusPonto");
 const nomeClienteTopo = document.getElementById("nomeClienteTopo");
 
-document.getElementById("totalReproducoesCliente").textContent = "292";
-document.getElementById("totalQrCodeCliente").textContent = "13";
+const totalReproducoesCliente = document.getElementById("totalReproducoesCliente");
+const totalQrCodeCliente = document.getElementById("totalQrCodeCliente");
 const graficoReproducoesCliente = document.getElementById("graficoReproducoesCliente");
 const graficoQrCodeCliente = document.getElementById("graficoQrCodeCliente");
 
