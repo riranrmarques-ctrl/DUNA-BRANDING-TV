@@ -2,6 +2,9 @@ const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const SENHA_PAINEL = "@helena";
 
+const CACHE_CENTRAL_KEY = "central_painel_cache_v2";
+const CACHE_CENTRAL_TTL = 30 * 60 * 1000;
+
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let todosOsPontos = [];
@@ -59,8 +62,44 @@ function iniciarLoginCentral() {
   }
 }
 
-async function carregarcentralpainel() {
+function lerCacheCentral() {
   try {
+    const bruto = sessionStorage.getItem(CACHE_CENTRAL_KEY);
+    if (!bruto) return null;
+
+    const cache = JSON.parse(bruto);
+    const fresco = Date.now() - Number(cache.criadoEm || 0) < CACHE_CENTRAL_TTL;
+
+    return {
+      fresco,
+      dados: cache.dados || null
+    };
+  } catch {
+    return null;
+  }
+}
+
+function salvarCacheCentral(dados) {
+  try {
+    sessionStorage.setItem(CACHE_CENTRAL_KEY, JSON.stringify({
+      criadoEm: Date.now(),
+      dados
+    }));
+  } catch {
+    return;
+  }
+}
+
+async function carregarcentralpainel(opcoes = {}) {
+  try {
+    const cache = lerCacheCentral();
+
+    if (!opcoes.forcarAtualizacao && cache?.dados) {
+      aplicarDadosCentral(cache.dados);
+
+      if (cache.fresco) return;
+    }
+
     const { data: pontos, error: erroPontos } = await supabaseClient
       .from("pontos")
       .select("*")
@@ -68,13 +107,7 @@ async function carregarcentralpainel() {
 
     if (erroPontos) throw erroPontos;
 
-    const { data: status, error: erroStatus } = await supabaseClient
-      .from("statuspontos")
-      .select("*");
-
-    if (erroStatus) {
-      console.warn("Status não carregou, usando pontos sem status:", erroStatus);
-    }
+    const status = await buscarStatusPontos();
 
     let clientes = [];
     let playlists = [];
@@ -91,7 +124,7 @@ async function carregarcentralpainel() {
 
     const respostaPlaylists = await supabaseClient
       .from("playlists")
-      .select("*")
+      .select("codigo_cliente,data_fim,status,created_at");
 
     if (respostaPlaylists.error) {
       console.warn("Playlists não carregaram:", respostaPlaylists.error);
@@ -99,30 +132,74 @@ async function carregarcentralpainel() {
       playlists = respostaPlaylists.data || [];
     }
 
-    console.log("pontos:", pontos);
-    console.log("status:", status);
-    console.log("clientes:", clientes);
-    console.log("playlists:", playlists);
+    const dados = {
+      pontos: pontos || [],
+      status: status || [],
+      clientes,
+      playlists
+    };
 
-    const clientesComStatusReal = calcularStatusRealClientes(clientes, playlists);
-    const contratos = clientesComStatusReal.filter(cliente => clienteTemContrato(cliente));
-
-    todosOsPontos = combinarPontosComStatus(pontos || [], status || []);
-    atualizarPainel(todosOsPontos);
-    atualizarGraficoComercial(clientesComStatusReal, contratos);
+    salvarCacheCentral(dados);
+    aplicarDadosCentral(dados);
   } catch (erro) {
     console.error("Erro ao carregar central painel:", erro);
   }
 }
 
-function combinarPontosComStatus(pontos, status) {
-  return pontos.map(ponto => {
-    const codigoPonto = String(ponto.codigo || ponto.codigo_ponto || ponto.ponto_codigo || "").trim();
+function aplicarDadosCentral(dados) {
+  const pontos = dados?.pontos || [];
+  const status = dados?.status || [];
+  const clientes = dados?.clientes || [];
+  const playlists = dados?.playlists || [];
 
-    const statusEncontrado = status.find(item => {
-      const codigoStatus = String(item.codigo || item.codigo_ponto || item.ponto_codigo || "").trim();
-      return codigoStatus === codigoPonto;
-    });
+  const clientesComStatusReal = calcularStatusRealClientes(clientes, playlists);
+  const contratos = clientesComStatusReal.filter(cliente => clienteTemContrato(cliente));
+
+  todosOsPontos = combinarPontosComStatus(pontos, status);
+  atualizarPainel(todosOsPontos);
+  atualizarGraficoComercial(clientesComStatusReal, contratos);
+}
+
+async function buscarStatusPontos() {
+  const consultas = [
+    { ordem: "ultimo_ping" },
+    { ordem: "data_hora" },
+    { ordem: "created_at" }
+  ];
+
+  for (const consulta of consultas) {
+    const { data, error } = await supabaseClient
+      .from("statuspontos")
+      .select("*")
+      .order(consulta.ordem, { ascending: false });
+
+    if (!error) return data || [];
+
+    console.warn(`Status não carregou usando ${consulta.ordem}:`, error);
+  }
+
+  return [];
+}
+
+function combinarPontosComStatus(pontos, status) {
+  const statusPorCodigo = {};
+
+  (status || []).forEach(item => {
+    const codigoStatus = normalizarCodigo(
+      item.codigo ||
+      item.codigo_ponto ||
+      item.ponto_codigo ||
+      ""
+    );
+
+    if (!codigoStatus || statusPorCodigo[codigoStatus]) return;
+
+    statusPorCodigo[codigoStatus] = item;
+  });
+
+  return pontos.map(ponto => {
+    const codigoPonto = normalizarCodigo(ponto.codigo || ponto.codigo_ponto || ponto.ponto_codigo || "");
+    const statusEncontrado = statusPorCodigo[codigoPonto];
 
     const pontoIndisponivel =
       ponto.disponivel === false ||
@@ -131,17 +208,16 @@ function combinarPontosComStatus(pontos, status) {
       String(ponto.status_disponibilidade || "").toLowerCase().includes("indispon");
 
     const statusCadastro = normalizarStatus(ponto.status || "");
-    const statusAtual = normalizarStatus(statusEncontrado?.status || "");
+    const statusAtual = normalizarStatus(statusEncontrado?.status || statusEncontrado?.evento || "");
 
     return {
       ...ponto,
       codigo_final: codigoPonto,
       status_final: pontoIndisponivel || statusCadastro === "desativado" ? "desativado" : statusAtual,
-      ultimo_ping_final: statusEncontrado?.ultimo_ping || ponto.ultimo_ping || ponto.updated_at || null
+      ultimo_ping_final: statusEncontrado?.ultimo_ping || statusEncontrado?.data_hora || ponto.ultimo_ping || ponto.updated_at || null
     };
   });
 }
-
 
 function atualizarMetricas(pontos) {
   const total = pontos.length;
@@ -224,7 +300,7 @@ function renderizarPontos(pontos) {
 
     lista.innerHTML += `
       <article class="point-card ${classeStatus(status)}" data-codigo="${escaparHtml(ponto.codigo_final)}" title="${escaparHtml(nome)}">
-        <img src="${escaparHtml(imagem)}" alt="${escaparHtml(nome)}">
+        <img src="${escaparHtml(imagem)}" alt="${escaparHtml(nome)}" loading="lazy">
 
         <div class="point-overlay">
           <strong>${escaparHtml(nome)}</strong>
@@ -325,7 +401,7 @@ function calcularStatusRealClientes(clientes, playlists) {
   const clientesAtivosPorPlaylist = new Set();
 
   playlists.forEach(item => {
-    const codigo = String(item.codigo_cliente || "").trim().toUpperCase();
+    const codigo = normalizarCodigo(item.codigo_cliente || "");
     if (!codigo) return;
 
     const dataFimValor = item.data_fim;
@@ -342,7 +418,7 @@ function calcularStatusRealClientes(clientes, playlists) {
   });
 
   return clientes.map(cliente => {
-    const codigo = String(cliente.codigo || "").trim().toUpperCase();
+    const codigo = normalizarCodigo(cliente.codigo || "");
     const statusBanco = String(cliente.statuscliente || cliente.status || "").toLowerCase().trim();
     const supervisor = String(cliente.tipo_acesso || "").toLowerCase().trim() === "supervisor";
 
@@ -366,36 +442,32 @@ function clienteTemContrato(cliente) {
 function calcularUptimeMedio(pontos) {
   if (!pontos.length) return "0,0";
 
-  const soma = pontos.reduce((total, ponto) => {
-    return total + calcularUptimeIndividual(ponto.ultimo_ping_final, ponto.status_final);
-  }, 0);
-
-  return (soma / pontos.length).toFixed(1).replace(".", ",");
+  const ativos = pontos.filter(ponto => ponto.status_final === "ativo").length;
+  return ((ativos / pontos.length) * 100).toFixed(1).replace(".", ",");
 }
 
 function calcularUptimeIndividual(ultimoPing, status) {
-  if (status === "inativo" || status === "desativado") return 0;
-  if (!ultimoPing) return status === "ativo" ? 80 : 0;
-
-  const agora = new Date();
-  const ultimo = new Date(ultimoPing);
-
-  if (Number.isNaN(ultimo.getTime())) return 0;
-
-  const segundos = (agora - ultimo) / 1000;
-
-  if (segundos <= 90) return 100;
-  if (segundos <= 300) return 95;
-  if (segundos <= 600) return 80;
-  if (segundos <= 1200) return 50;
-
+  if (status === "ativo") return 100;
   return 0;
+}
+
+function normalizarCodigo(codigo) {
+  return String(codigo || "").trim().toUpperCase();
 }
 
 function normalizarStatus(status) {
   const s = String(status || "").toLowerCase().trim();
 
-  if (s === "ativo" || s === "online" || s === "rodando" || s === "reproduzindo") return "ativo";
+  if (
+    s === "ativo" ||
+    s === "online" ||
+    s === "rodando" ||
+    s === "reproduzindo" ||
+    s === "conectou"
+  ) {
+    return "ativo";
+  }
+
   if (s.includes("desativ") || s.includes("indispon")) return "desativado";
 
   if (
@@ -403,6 +475,7 @@ function normalizarStatus(status) {
     s === "parado" ||
     s === "offline" ||
     s === "desconectado" ||
+    s === "desconectou" ||
     s === "sem material" ||
     s === "sem_material" ||
     s === "sem-material"
