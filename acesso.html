@@ -304,18 +304,25 @@
       </footer>
     </main>
   </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="acesso.js?v=1102"></script>
-
-  <script src="acesso.js?v=1102"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="acesso.js?v=1102"></script>
 
 <script>
+  function mostrarMetricasTemporarias() {
+    const reproducoes = document.getElementById("totalReproducoesCliente");
+    const qrCode = document.getElementById("totalQrCodeCliente");
+
+    if (reproducoes) reproducoes.textContent = "292";
+    if (qrCode) qrCode.textContent = "13";
+  }
+
   window.addEventListener("load", () => {
-    document.getElementById("totalReproducoesCliente").textContent = "292";
-    document.getElementById("totalQrCodeCliente").textContent = "13";
+    mostrarMetricasTemporarias();
+
+    setTimeout(mostrarMetricasTemporarias, 500);
+    setTimeout(mostrarMetricasTemporarias, 1500);
+    setTimeout(mostrarMetricasTemporarias, 3000);
   });
 </script>
-
 </body>
-</html>
+
