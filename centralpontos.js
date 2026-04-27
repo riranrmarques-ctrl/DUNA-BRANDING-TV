@@ -1516,6 +1516,8 @@ async function deletarPontoAtual() {
     sessionStorage.removeItem(CACHE_PONTOS_KEY);
 
     codigoSelecionado = null;
+     };
+   }
 
     if (modalEditar) modalEditar.style.display = "none";
     if (pontoDetalhe) pontoDetalhe.style.display = "none";
