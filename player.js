@@ -5,15 +5,19 @@ const BUCKET = "midias";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "statuspontos";
+const TABELA_REPRODUCOES = "reproducoes_diarias";
 
 const DURACAO_IMAGEM = 10000;
 const DURACAO_SITE = 10000;
-const INTERVALO_PING = 60000;
-const INTERVALO_ATUALIZAR_PLAYLIST = 5 * 60 * 1000;
-const INTERVALO_HISTORICO_STATUS = 5 * 60 * 1000;
+const DURACAO_VIDEO_FALLBACK = 20000;
 
-const CACHE_PLAYLIST_PREFIX = "player_playlist_cache_v3_";
-const CACHE_PLAYLIST_TTL = 5 * 60 * 1000;
+const INTERVALO_STATUS_ATIVO = 20 * 60 * 1000;
+const INTERVALO_ATUALIZAR_PLAYLIST = 5 * 60 * 1000;
+const INTERVALO_CLIMA = 30 * 60 * 1000;
+const INTERVALO_FLUSH_REPRODUCOES = 60 * 60 * 1000;
+
+const CACHE_PLAYLIST_PREFIX = "player_playlist_cache_v4_";
+const CACHE_PLAYLIST_TTL = 24 * 60 * 60 * 1000;
 
 const WEATHER_LAT = -14.84167;
 const WEATHER_LON = -39.98667;
@@ -25,11 +29,15 @@ let playlistAtual = [];
 let indiceAtual = 0;
 let timeoutMidia = null;
 let cacheMidia = new Map();
-let intervaloPing = null;
+
+let intervaloStatus = null;
 let intervaloPlaylist = null;
 let intervaloClima = null;
-let desligamentoRegistrado = false;
-let ultimoHistoricoStatus = 0;
+let intervaloReproducoes = null;
+
+let statusAtualRegistrado = null;
+let ultimoStatusEnviadoEm = 0;
+let reproducoesPendentes = new Map();
 
 function renderizarNoPlayer(html) {
   const playerMain = document.getElementById("playerMain");
@@ -41,8 +49,8 @@ function mostrarMensagem(texto, detalhe = "") {
   renderizarNoPlayer(`
     <div class="player-container">
       <div class="mensagem">
-        ${texto}
-        ${detalhe ? `<small>${detalhe}</small>` : ""}
+        ${escapeHtml(texto)}
+        ${detalhe ? `<small>${escapeHtml(detalhe)}</small>` : ""}
       </div>
     </div>
   `);
@@ -74,9 +82,13 @@ function escapeHtml(texto) {
     .replace(/'/g, "&#039;");
 }
 
+function normalizarCodigo(codigo) {
+  return String(codigo || "").trim().toUpperCase();
+}
+
 function obterCodigoDaUrl() {
   const params = new URLSearchParams(window.location.search);
-  return String(params.get("codigo") || "").trim().toUpperCase();
+  return normalizarCodigo(params.get("codigo"));
 }
 
 function obterChaveCachePlaylist() {
@@ -87,18 +99,19 @@ function lerCachePlaylist() {
   if (!codigoAtual) return null;
 
   try {
-    const bruto = sessionStorage.getItem(obterChaveCachePlaylist());
+    const bruto = localStorage.getItem(obterChaveCachePlaylist());
     if (!bruto) return null;
 
     const cache = JSON.parse(bruto);
-    const criadoEm = Number(cache.criadoEm || 0);
     const playlist = Array.isArray(cache.playlist) ? cache.playlist : [];
 
     if (!playlist.length) return null;
 
     return {
       playlist,
-      fresco: Date.now() - criadoEm < CACHE_PLAYLIST_TTL
+      criadoEm: Number(cache.criadoEm || 0),
+      assinatura: cache.assinatura || "",
+      fresco: Date.now() - Number(cache.criadoEm || 0) < CACHE_PLAYLIST_TTL
     };
   } catch {
     return null;
@@ -109,8 +122,9 @@ function salvarCachePlaylist(playlist) {
   if (!codigoAtual) return;
 
   try {
-    sessionStorage.setItem(obterChaveCachePlaylist(), JSON.stringify({
+    localStorage.setItem(obterChaveCachePlaylist(), JSON.stringify({
       criadoEm: Date.now(),
+      assinatura: assinaturaPlaylist(playlist),
       playlist
     }));
   } catch {
@@ -122,7 +136,7 @@ function limparCachePlaylist() {
   if (!codigoAtual) return;
 
   try {
-    sessionStorage.removeItem(obterChaveCachePlaylist());
+    localStorage.removeItem(obterChaveCachePlaylist());
   } catch {
     return;
   }
@@ -133,27 +147,24 @@ function detectarTipo(url, tipoOriginal = "") {
   const limpa = String(url || "").toLowerCase().split("?")[0];
 
   if (tipo === "imagem" || tipo === "image") return "imagem";
-  if (tipo === "video") return "video";
+  if (tipo === "video" || tipo === "vídeo") return "video";
   if (tipo === "site" || tipo === "url" || tipo === "texto" || tipo === "text") return "site";
 
   if (
     limpa.endsWith(".jpg") ||
     limpa.endsWith(".jpeg") ||
     limpa.endsWith(".png") ||
-    limpa.endsWith(".webp")
+    limpa.endsWith(".webp") ||
+    limpa.endsWith(".gif")
   ) {
     return "imagem";
   }
 
-  if (limpa.endsWith(".txt")) return "site";
+  if (limpa.endsWith(".txt") || limpa.endsWith(".html") || limpa.endsWith(".htm")) return "site";
 
-  if (limpa.match(/\.(mp4|mov|webm)$/)) {
-    return "video";
-  }
+  if (limpa.match(/\.(mp4|mov|webm|m4v|m3u8)$/)) return "video";
 
-  if (limpa.includes("youtube.com") || limpa.includes("youtu.be")) {
-    return "site";
-  }
+  if (limpa.includes("youtube.com") || limpa.includes("youtu.be")) return "site";
 
   return "video";
 }
@@ -215,6 +226,10 @@ function itemEstaAtivo(item) {
   return fim >= new Date();
 }
 
+function obterUrlItem(item) {
+  return item.video_url || item.arquivo_url || item.url || "";
+}
+
 async function buscarPontoAtual(codigo) {
   const consultas = [
     "codigo,nome,nome_painel,titulo,ambiente,status,disponivel,ultimo_ping,updated_at",
@@ -231,9 +246,7 @@ async function buscarPontoAtual(codigo) {
       .eq("codigo", codigo)
       .maybeSingle();
 
-    if (!error) {
-      return data || null;
-    }
+    if (!error) return data || null;
 
     ultimoErro = error;
     console.warn("Falha ao buscar ponto com colunas:", colunas, error);
@@ -242,14 +255,21 @@ async function buscarPontoAtual(codigo) {
   throw ultimoErro;
 }
 
-async function atualizarPingPonto() {
-  if (!codigoAtual || !supabaseClient) return;
+function pontoPodeRodar(ponto) {
+  if (!ponto) return false;
 
-  const agora = new Date().toISOString();
+  const status = String(ponto.status || "").trim().toLowerCase();
 
+  if (ponto.disponivel === false) return false;
+  if (status === "inativo") return false;
+
+  return true;
+}
+
+async function atualizarPontoAtivo(agoraIso) {
   const tentativas = [
-    { ultimo_ping: agora, status: "ativo" },
-    { ultimo_ping: agora },
+    { ultimo_ping: agoraIso, status: "ativo" },
+    { ultimo_ping: agoraIso },
     { status: "ativo" }
   ];
 
@@ -259,80 +279,110 @@ async function atualizarPingPonto() {
       .update(payload)
       .eq("codigo", codigoAtual);
 
-    if (!error) return;
+    if (!error) return true;
+
+    console.warn("Falha ao atualizar ponto ativo:", error.message || error);
   }
+
+  return false;
 }
 
-async function registrarEventoConexao(evento = "ping", forcarHistorico = false) {
-  if (!codigoAtual || !supabaseClient) return;
+async function buscarUltimoStatusRegistrado() {
+  const consultas = [
+    { filtro: "ponto_codigo", ordem: "ultimo_ping" },
+    { filtro: "codigo", ordem: "data_hora" },
+    { filtro: "ponto_codigo", ordem: "created_at" }
+  ];
 
-  const agoraMs = Date.now();
-  const agoraIso = new Date().toISOString();
+  for (const consulta of consultas) {
+    const { data, error } = await supabaseClient
+      .from(TABELA_HISTORICO_CONEXAO)
+      .select("*")
+      .eq(consulta.filtro, codigoAtual)
+      .order(consulta.ordem, { ascending: false })
+      .limit(1);
 
-  if (evento === "ping") {
-    await atualizarPingPonto();
-
-    if (!forcarHistorico && agoraMs - ultimoHistoricoStatus < INTERVALO_HISTORICO_STATUS) {
-      return;
+    if (!error) {
+      const item = data?.[0] || null;
+      return String(item?.status || item?.evento || "").trim().toLowerCase() || null;
     }
 
-    ultimoHistoricoStatus = agoraMs;
+    console.warn("Falha ao buscar último status:", error.message || error);
   }
+
+  return null;
+}
+
+async function registrarStatusHistorico(status) {
+  if (!codigoAtual || !supabaseClient) return false;
+
+  const statusFinal = String(status || "").trim().toLowerCase();
+  if (statusFinal !== "ativo" && statusFinal !== "inativo") return false;
+
+  const agoraIso = new Date().toISOString();
 
   const payloads = [
     {
       ponto_codigo: codigoAtual,
-      status: evento === "ping" ? "ativo" : evento,
+      status: statusFinal,
       ultimo_ping: agoraIso
     },
     {
       codigo: codigoAtual,
-      evento,
+      evento: statusFinal,
       data_hora: agoraIso
     }
   ];
 
   for (const payload of payloads) {
-    try {
-      const { error } = await supabaseClient
-        .from(TABELA_HISTORICO_CONEXAO)
-        .insert(payload);
+    const { error } = await supabaseClient
+      .from(TABELA_HISTORICO_CONEXAO)
+      .insert(payload);
 
-      if (!error) return;
-
-      console.warn(`Erro ao registrar evento ${evento}:`, error.message || error);
-    } catch (error) {
-      console.warn(`Erro ao registrar evento ${evento}:`, error);
+    if (!error) {
+      statusAtualRegistrado = statusFinal;
+      ultimoStatusEnviadoEm = Date.now();
+      return true;
     }
+
+    console.warn("Falha ao registrar status:", error.message || error);
+  }
+
+  return false;
+}
+
+async function registrarAtivoSeNecessario({ forcar = false } = {}) {
+  if (!codigoAtual || !supabaseClient) return;
+
+  const agoraIso = new Date().toISOString();
+  const atualizouPonto = await atualizarPontoAtivo(agoraIso);
+
+  if (!atualizouPonto) return;
+
+  if (!statusAtualRegistrado) {
+    statusAtualRegistrado = await buscarUltimoStatusRegistrado();
+  }
+
+  const deveRegistrar =
+    forcar ||
+    statusAtualRegistrado !== "ativo" ||
+    Date.now() - ultimoStatusEnviadoEm > 24 * 60 * 60 * 1000;
+
+  if (deveRegistrar) {
+    await registrarStatusHistorico("ativo");
   }
 }
 
-function registrarDesconexaoKeepAlive() {
-  if (!codigoAtual || desligamentoRegistrado) return;
+function iniciarMonitoramentoStatus() {
+  registrarAtivoSeNecessario({ forcar: true });
 
-  desligamentoRegistrado = true;
-
-  const payload = JSON.stringify({
-    ponto_codigo: codigoAtual,
-    status: "desconectou",
-    ultimo_ping: new Date().toISOString()
-  });
-
-  fetch(`${SUPABASE_URL}/rest/v1/${TABELA_HISTORICO_CONEXAO}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      Prefer: "return=minimal"
-    },
-    body: payload,
-    keepalive: true
-  }).catch(() => {});
+  intervaloStatus = setInterval(() => {
+    registrarAtivoSeNecessario();
+  }, INTERVALO_STATUS_ATIVO);
 }
 
 async function resolverItem(item) {
-  let url = item.video_url || item.url || "";
+  let url = obterUrlItem(item);
   let tipo = detectarTipo(url, item.tipo);
 
   if (tipo === "site" && String(url).toLowerCase().split("?")[0].endsWith(".txt")) {
@@ -356,14 +406,68 @@ async function resolverItem(item) {
 
   return {
     id: item.id,
-    nome: item.titulo_arquivo || item.nome || "Arquivo",
+    nome: item.titulo_arquivo || item.nome || item.nome_arquivo || "Arquivo",
+    codigo_cliente: item.codigo_cliente || null,
     url,
-    tipo
+    tipo,
+    ordem: Number(item.ordem || 0),
+    data_fim: item.data_fim || null,
+    created_at: item.created_at || null,
+    updated_at: item.updated_at || null
   };
 }
 
 function assinaturaPlaylist(lista) {
-  return lista.map((item) => `${item.id}:${item.url}:${item.tipo}`).join("|");
+  return (lista || [])
+    .map((item) => [
+      item.id,
+      item.url,
+      item.tipo,
+      item.ordem,
+      item.data_fim || "",
+      item.updated_at || ""
+    ].join(":"))
+    .join("|");
+}
+
+function assinaturaMetadados(lista) {
+  return (lista || [])
+    .map((item) => [
+      item.id,
+      obterUrlItem(item),
+      item.tipo || "",
+      item.ordem || "",
+      item.data_fim || "",
+      item.updated_at || ""
+    ].join(":"))
+    .join("|");
+}
+
+async function buscarMetadadosPlaylist() {
+  const consultas = [
+    "id,nome,titulo_arquivo,video_url,arquivo_url,url,storage_path,tipo,data_fim,ordem,codigo,codigo_cliente,created_at,updated_at,ativo",
+    "id,nome,titulo_arquivo,video_url,storage_path,tipo,data_fim,ordem,codigo,codigo_cliente,created_at,ativo",
+    "*"
+  ];
+
+  let ultimoErro = null;
+
+  for (const colunas of consultas) {
+    const { data, error } = await supabaseClient
+      .from(TABELA)
+      .select(colunas)
+      .eq("codigo", codigoAtual)
+      .order("ordem", { ascending: true });
+
+    if (!error) {
+      return (data || []).filter(itemEstaAtivo).filter((item) => obterUrlItem(item));
+    }
+
+    ultimoErro = error;
+    console.warn("Falha ao buscar playlist com colunas:", colunas, error);
+  }
+
+  throw ultimoErro;
 }
 
 async function buscarPlaylistRemota({ silencioso = false } = {}) {
@@ -371,13 +475,11 @@ async function buscarPlaylistRemota({ silencioso = false } = {}) {
     mostrarMensagem("Buscando conteudo...", `Codigo: ${codigoAtual}`);
   }
 
-  const { data, error } = await supabaseClient
-    .from(TABELA)
-    .select("id,nome,titulo_arquivo,video_url,storage_path,tipo,data_fim,ordem,codigo,codigo_cliente,created_at")
-    .eq("codigo", codigoAtual)
-    .order("ordem", { ascending: true });
+  let lista = [];
 
-  if (error) {
+  try {
+    lista = await buscarMetadadosPlaylist();
+  } catch (error) {
     console.error("Erro Supabase:", error);
 
     if (!silencioso) {
@@ -387,10 +489,6 @@ async function buscarPlaylistRemota({ silencioso = false } = {}) {
     return false;
   }
 
-  const lista = (data || [])
-    .filter(itemEstaAtivo)
-    .filter((item) => item.video_url);
-
   if (!lista.length) {
     if (!silencioso) {
       mostrarMensagem("Sem conteudo para este codigo.", `Codigo: ${codigoAtual}`);
@@ -399,6 +497,13 @@ async function buscarPlaylistRemota({ silencioso = false } = {}) {
     playlistAtual = [];
     limparCachePlaylist();
     return false;
+  }
+
+  const assinaturaRemota = assinaturaMetadados(lista);
+  const assinaturaAtual = assinaturaPlaylist(playlistAtual);
+
+  if (silencioso && playlistAtual.length && assinaturaRemota === assinaturaAtual) {
+    return true;
   }
 
   const novaPlaylist = await Promise.all(lista.map(resolverItem));
@@ -414,21 +519,45 @@ async function buscarPlaylistRemota({ silencioso = false } = {}) {
     return false;
   }
 
-  aplicarPlaylist(limpa);
-  salvarCachePlaylist(limpa);
+  aplicarPlaylistIncremental(limpa);
+  salvarCachePlaylist(playlistAtual);
 
   return true;
 }
 
-function aplicarPlaylist(lista) {
+function aplicarPlaylistIncremental(listaNova) {
   const assinaturaAntiga = assinaturaPlaylist(playlistAtual);
-  const assinaturaNova = assinaturaPlaylist(lista);
+  const itemAtual = playlistAtual[indiceAtual] || null;
+  const mapaAtual = new Map(playlistAtual.map((item) => [String(item.id), item]));
 
-  playlistAtual = lista;
+  playlistAtual = listaNova.map((itemNovo) => {
+    const itemExistente = mapaAtual.get(String(itemNovo.id));
 
-  if (indiceAtual >= playlistAtual.length) {
+    if (
+      itemExistente &&
+      itemExistente.url === itemNovo.url &&
+      itemExistente.tipo === itemNovo.tipo
+    ) {
+      return {
+        ...itemExistente,
+        ...itemNovo
+      };
+    }
+
+    preCarregarItem(itemNovo);
+    return itemNovo;
+  });
+
+  if (itemAtual) {
+    const novoIndice = playlistAtual.findIndex((item) => String(item.id) === String(itemAtual.id));
+    indiceAtual = novoIndice >= 0 ? novoIndice : Math.min(indiceAtual, playlistAtual.length - 1);
+  }
+
+  if (indiceAtual < 0 || indiceAtual >= playlistAtual.length) {
     indiceAtual = 0;
   }
+
+  const assinaturaNova = assinaturaPlaylist(playlistAtual);
 
   if (assinaturaAntiga !== assinaturaNova) {
     limparCacheObsoleto();
@@ -441,7 +570,7 @@ async function buscarPlaylist({ silencioso = false, usarCache = true } = {}) {
     const cache = lerCachePlaylist();
 
     if (cache?.playlist?.length) {
-      aplicarPlaylist(cache.playlist);
+      aplicarPlaylistIncremental(cache.playlist);
 
       if (cache.fresco) {
         return true;
@@ -458,7 +587,7 @@ async function buscarPlaylist({ silencioso = false, usarCache = true } = {}) {
   const cache = lerCachePlaylist();
 
   if (cache?.playlist?.length) {
-    aplicarPlaylist(cache.playlist);
+    aplicarPlaylistIncremental(cache.playlist);
     return true;
   }
 
@@ -492,7 +621,7 @@ function preCarregarItem(item) {
 
   if (item.tipo === "video") {
     const video = document.createElement("video");
-    video.preload = "auto";
+    video.preload = "metadata";
     video.muted = true;
     video.playsInline = true;
     video.src = item.url;
@@ -508,6 +637,122 @@ function preCarregarProximos(quantidade = 2) {
     const index = obterIndiceCircular(indiceAtual, i);
     preCarregarItem(playlistAtual[index]);
   }
+}
+
+function pontoEstaOnlineParaContagem() {
+  return statusAtualRegistrado === "ativo" && navigator.onLine !== false;
+}
+
+function chaveReproducao(item) {
+  return [
+    codigoAtual,
+    item.codigo_cliente || "",
+    item.id
+  ].join("|");
+}
+
+function registrarReproducaoLocal(item) {
+  if (!item || !item.id) return;
+  if (!item.codigo_cliente) return;
+  if (!pontoEstaOnlineParaContagem()) return;
+
+  const chave = chaveReproducao(item);
+  const atual = reproducoesPendentes.get(chave) || {
+    ponto_codigo: codigoAtual,
+    codigo_cliente: item.codigo_cliente,
+    playlist_item_id: item.id,
+    material_nome: item.nome || "Arquivo",
+    total: 0
+  };
+
+  atual.total += 1;
+  reproducoesPendentes.set(chave, atual);
+}
+
+function obterHojeISO() {
+  return new Date().toISOString().split("T")[0];
+}
+
+async function enviarReproducoesPendentes() {
+  if (!supabaseClient || !reproducoesPendentes.size) return;
+  if (!pontoEstaOnlineParaContagem()) return;
+
+  const pendentes = Array.from(reproducoesPendentes.values());
+  reproducoesPendentes.clear();
+
+  for (const item of pendentes) {
+    const dataHoje = obterHojeISO();
+
+    try {
+      const { data: existente, error: erroBusca } = await supabaseClient
+        .from(TABELA_REPRODUCOES)
+        .select("id,total_reproducoes")
+        .eq("data", dataHoje)
+        .eq("ponto_codigo", item.ponto_codigo)
+        .eq("codigo_cliente", item.codigo_cliente)
+        .eq("playlist_item_id", item.playlist_item_id)
+        .maybeSingle();
+
+      if (erroBusca) {
+        throw erroBusca;
+      }
+
+      if (existente?.id) {
+        const totalAtualizado = Number(existente.total_reproducoes || 0) + Number(item.total || 0);
+
+        const { error } = await supabaseClient
+          .from(TABELA_REPRODUCOES)
+          .update({
+            total_reproducoes: totalAtualizado,
+            material_nome: item.material_nome,
+            ultimo_calculo_em: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existente.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabaseClient
+          .from(TABELA_REPRODUCOES)
+          .insert([{
+            data: dataHoje,
+            ponto_codigo: item.ponto_codigo,
+            codigo_cliente: item.codigo_cliente,
+            playlist_item_id: item.playlist_item_id,
+            material_nome: item.material_nome,
+            total_reproducoes: Number(item.total || 0),
+            ultimo_calculo_em: new Date().toISOString()
+          }]);
+
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.warn("Falha ao enviar reproduções. Tentará novamente depois:", error);
+      const chave = [
+        item.ponto_codigo,
+        item.codigo_cliente,
+        item.playlist_item_id
+      ].join("|");
+
+      const atual = reproducoesPendentes.get(chave) || item;
+      atual.total = Number(atual.total || 0) + Number(item.total || 0);
+      reproducoesPendentes.set(chave, atual);
+    }
+  }
+}
+
+function iniciarContagemReproducoes() {
+  intervaloReproducoes = setInterval(() => {
+    enviarReproducoesPendentes();
+  }, INTERVALO_FLUSH_REPRODUCOES);
+
+  window.addEventListener("beforeunload", () => {
+    enviarReproducoesPendentes();
+  });
+
+  window.addEventListener("pagehide", () => {
+    enviarReproducoesPendentes();
+  });
 }
 
 function proximo() {
@@ -533,7 +778,11 @@ function tocarImagem(item) {
   `);
 
   preCarregarProximos(2);
-  timeoutMidia = setTimeout(proximo, DURACAO_IMAGEM);
+
+  timeoutMidia = setTimeout(() => {
+    registrarReproducaoLocal(item);
+    proximo();
+  }, DURACAO_IMAGEM);
 }
 
 function tocarVideo(item) {
@@ -546,18 +795,43 @@ function tocarVideo(item) {
   const video = document.getElementById("videoPlayer");
   if (!video) return;
 
+  let contabilizado = false;
+
+  function contabilizarUmaVez() {
+    if (contabilizado) return;
+    contabilizado = true;
+    registrarReproducaoLocal(item);
+  }
+
   video.src = item.url;
 
-  video.onended = proximo;
+  video.onended = () => {
+    contabilizarUmaVez();
+    proximo();
+  };
 
   video.onerror = () => {
     mostrarMensagem("Erro ao carregar video.", item.nome);
     timeoutMidia = setTimeout(proximo, 3000);
   };
 
+  video.ontimeupdate = () => {
+    if (!video.duration || Number.isNaN(video.duration)) return;
+
+    const percentual = video.currentTime / video.duration;
+    if (percentual >= 0.8) {
+      contabilizarUmaVez();
+    }
+  };
+
   video.play().catch(() => {
     timeoutMidia = setTimeout(proximo, 3000);
   });
+
+  timeoutMidia = setTimeout(() => {
+    contabilizarUmaVez();
+    proximo();
+  }, Math.max(DURACAO_VIDEO_FALLBACK, 3000));
 
   preCarregarProximos(2);
 }
@@ -578,7 +852,11 @@ function tocarSite(item) {
   `);
 
   preCarregarProximos(2);
-  timeoutMidia = setTimeout(proximo, DURACAO_SITE);
+
+  timeoutMidia = setTimeout(() => {
+    registrarReproducaoLocal(item);
+    proximo();
+  }, DURACAO_SITE);
 }
 
 function tocarMidia() {
@@ -671,7 +949,7 @@ async function atualizarClima() {
 
         return `
           <div class="weather-dia">
-            <span>${nomeDia(dia)}</span>
+            <span>${escapeHtml(nomeDia(dia))}</span>
             <span>${max}° / ${min}°</span>
           </div>
         `;
@@ -684,21 +962,18 @@ async function atualizarClima() {
   }
 }
 
-function iniciarMonitoramentoConexao() {
-  registrarEventoConexao("conectou", true);
+function pararTudo() {
+  limparTimeout();
 
-  intervaloPing = setInterval(() => {
-    registrarEventoConexao("ping");
-  }, INTERVALO_PING);
+  if (intervaloStatus) clearInterval(intervaloStatus);
+  if (intervaloPlaylist) clearInterval(intervaloPlaylist);
+  if (intervaloClima) clearInterval(intervaloClima);
+  if (intervaloReproducoes) clearInterval(intervaloReproducoes);
 
-  window.addEventListener("beforeunload", registrarDesconexaoKeepAlive);
-  window.addEventListener("pagehide", registrarDesconexaoKeepAlive);
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") {
-      registrarDesconexaoKeepAlive();
-    }
-  });
+  intervaloStatus = null;
+  intervaloPlaylist = null;
+  intervaloClima = null;
+  intervaloReproducoes = null;
 }
 
 async function iniciar() {
@@ -729,10 +1004,19 @@ async function iniciar() {
       return;
     }
 
-    iniciarMonitoramentoConexao();
+    if (!pontoPodeRodar(pontoAtual)) {
+      mostrarMensagem(
+        "Ponto indisponivel.",
+        `O codigo ${codigoAtual} esta marcado como indisponivel.`
+      );
+      return;
+    }
+
+    iniciarMonitoramentoStatus();
+    iniciarContagemReproducoes();
 
     await atualizarClima();
-    intervaloClima = setInterval(atualizarClima, 30 * 60 * 1000);
+    intervaloClima = setInterval(atualizarClima, INTERVALO_CLIMA);
 
     const encontrou = await buscarPlaylist({ usarCache: true });
 
@@ -743,13 +1027,22 @@ async function iniciar() {
 
     intervaloPlaylist = setInterval(async () => {
       const tinhaConteudo = playlistAtual.length > 0;
+      const assinaturaAntes = assinaturaPlaylist(playlistAtual);
+
       const encontrouAtualizacao = await buscarPlaylist({
         silencioso: true,
         usarCache: false
       });
 
+      const assinaturaDepois = assinaturaPlaylist(playlistAtual);
+
       if (!tinhaConteudo && encontrouAtualizacao) {
         tocarMidia();
+        return;
+      }
+
+      if (assinaturaAntes !== assinaturaDepois && playlistAtual.length) {
+        salvarCachePlaylist(playlistAtual);
       }
     }, INTERVALO_ATUALIZAR_PLAYLIST);
   } catch (error) {
@@ -759,3 +1052,12 @@ async function iniciar() {
 }
 
 window.addEventListener("load", iniciar);
+
+window.addEventListener("beforeunload", () => {
+  enviarReproducoesPendentes();
+  pararTudo();
+});
+
+window.addEventListener("pagehide", () => {
+  enviarReproducoesPendentes();
+});
