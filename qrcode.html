@@ -21,81 +21,72 @@ body {
 
 .qr-page {
   max-width: 1360px;
-  margin: 0 auto;
+  margin: auto;
 }
 
 /* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 28px;
-  margin-bottom: 28px;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .btn-voltar {
-  display: inline-flex;
-  align-items: center;
-  height: 38px;
-  padding: 0 16px;
-  margin-bottom: 14px;
-  border-radius: 10px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 12px;
   background: #06152c;
   border: 1px solid #1c345e;
   color: #c8d7f2;
   text-decoration: none;
-  font-size: 13px;
+  display: flex;
+  align-items: center;
   font-weight: 700;
 }
 
-.btn-voltar:hover {
-  background: #08204a;
-  color: #fff;
-}
-
-h1 {
-  font-size: 34px;
+.title-group h1 {
+  font-size: 32px;
   font-weight: 800;
 }
 
 .subtitle {
-  color: #b9c8e6;
-  margin-top: 8px;
-  font-size: 15px;
+  font-size: 14px;
+  color: #9fb2d7;
+  margin-top: 4px;
 }
 
 /* CONTROLES */
 .header-right {
   display: flex;
   align-items: center;
-}
-
-.top-controls {
-  display: flex;
   gap: 10px;
-  align-items: center;
 }
 
-.top-controls select {
-  height: 42px;
+.header-right select {
+  height: 44px;
   min-width: 170px;
   border: 1px solid #1c345e;
   background: #061126;
   color: #c8d7f2;
-  border-radius: 9px;
+  border-radius: 10px;
   padding: 0 12px;
   font-size: 13px;
 }
 
 .primary {
-  height: 42px;
-  padding: 0 20px;
+  height: 44px;
+  padding: 0 22px;
   border-radius: 10px;
+  background: linear-gradient(135deg, #0094ff, #005dff);
   border: none;
   font-weight: 700;
-  background: linear-gradient(135deg, #0094ff, #005dff);
-  box-shadow: 0 0 20px rgba(0,132,255,.35);
-  cursor: pointer;
 }
 
 /* CARDS */
@@ -133,7 +124,6 @@ h1 {
   background: #086044;
   padding: 5px 10px;
   border-radius: 999px;
-  margin-left: 6px;
 }
 
 .small {
@@ -151,7 +141,7 @@ h1 {
 
 .bottom-grid {
   display: grid;
-  grid-template-columns: 1.1fr .8fr .9fr;
+  grid-template-columns: 1.1fr .78fr .9fr;
   gap: 18px;
 }
 
@@ -167,9 +157,9 @@ h1 {
 /* CHART */
 .chart {
   height: 240px;
-  position: relative;
   border-left: 1px solid #17345f;
   border-bottom: 1px solid #17345f;
+  position: relative;
 }
 
 .line {
@@ -183,7 +173,7 @@ h1 {
   );
 }
 
-/* RANKING */
+/* RANKING TOP */
 .ranking-row {
   display: grid;
   grid-template-columns: 1fr 50px 120px 50px;
@@ -203,22 +193,21 @@ h1 {
   display: block;
   height: 100%;
   background: linear-gradient(90deg, #00a2ff, #005dff);
-  border-radius: 999px;
 }
 
 /* MAPA */
 .map {
-  height: 250px;
-  background: #06152d;
-  border-radius: 12px;
+  height: 280px;
+  border-radius: 14px;
   position: relative;
+  background: #06152d;
 }
 
 .pin {
   position: absolute;
+  width: 58px;
+  height: 58px;
   background: #0077ff;
-  width: 50px;
-  height: 50px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   display: flex;
@@ -230,28 +219,45 @@ h1 {
   transform: rotate(45deg);
 }
 
-.p1 { left: 20%; top: 36%; }
-.p2 { left: 55%; top: 20%; }
-.p3 { left: 70%; top: 40%; }
-.p4 { left: 40%; top: 60%; }
-.p5 { left: 80%; top: 70%; }
+.p1 { left: 22%; top: 36%; }
+.p2 { left: 56%; top: 18%; }
+.p3 { left: 70%; top: 42%; }
+.p4 { left: 42%; top: 64%; }
+.p5 { left: 82%; top: 68%; }
+
+/* RANKING BAIXO */
+.rank-line {
+  display: grid;
+  grid-template-columns: 20px 1fr 44px;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rank-line .bar {
+  grid-column: 2 / 4;
+  height: 8px;
+}
+
+.rank-line .bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #00a2ff, #005dff);
+}
 
 /* HEATMAP */
 .heatmap {
   display: grid;
   grid-template-columns: repeat(7,1fr);
-  gap: 4px;
+  gap: 5px;
 }
 
 .heatmap div {
-  height: 30px;
+  height: 34px;
   background: #062352;
-  border-radius: 5px;
 }
 
-.heatmap .h {
-  background: #00a2ff;
-}
+.heatmap .m { background: #0054c9; }
+.heatmap .h { background: #00a2ff; }
 
 .days {
   display: grid;
@@ -274,14 +280,16 @@ h1 {
 
   .header {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
   }
 
-  .top-controls {
+  .header-right {
     flex-direction: column;
     width: 100%;
   }
 
-  .top-controls select,
+  .header-right select,
   .primary {
     width: 100%;
   }
@@ -293,130 +301,117 @@ h1 {
 
 <main class="qr-page">
 
-  <section class="header">
-    <div>
-      <a href="centralpainel.html" class="btn-voltar">← Voltar</a>
+<section class="header">
+  <div class="header-left">
+    <a href="centralpainel.html" class="btn-voltar">← Voltar</a>
+
+    <div class="title-group">
       <h1>Relatórios de Escaneamentos</h1>
       <p class="subtitle">Acompanhe o desempenho dos seus QR Codes em tempo real.</p>
     </div>
+  </div>
 
-    <div class="header-right">
-      <div class="top-controls">
-        <select>
-          <option>Todos os QR Codes</option>
-          <option>Smart Fit Ilhéus</option>
-          <option>Aeroshake</option>
-          <option>Smart Fit Shopping</option>
-          <option>Aeroshake - Praça</option>
-          <option>Jacques Janine</option>
-        </select>
+  <div class="header-right">
+    <select>
+      <option>Todos os QR Codes</option>
+      <option>Smart Fit Ilhéus</option>
+      <option>Aeroshake</option>
+    </select>
 
-        <select>
-          <option>Últimos 30 dias</option>
-          <option>Últimos 7 dias</option>
-          <option>Últimos 90 dias</option>
-        </select>
+    <select>
+      <option>Últimos 30 dias</option>
+      <option>Últimos 7 dias</option>
+    </select>
 
-        <button class="primary">Gerar relatório</button>
-      </div>
-    </div>
-  </section>
+    <button class="primary">Gerar relatório</button>
+  </div>
+</section>
 
-  <section class="cards">
-    <div class="card">
-      <div class="card-title">Escaneamentos totais</div>
-      <div class="card-number">347 <span class="up">↑ 18,6%</span></div>
-      <div class="small">vs período anterior</div>
-    </div>
+<section class="cards">
+  <div class="card">
+    <div class="card-title">Escaneamentos totais</div>
+    <div class="card-number">347 <span class="up">↑ 18%</span></div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Escaneamentos únicos</div>
-      <div class="card-number">213 <span class="up">↑ 15,4%</span></div>
-      <div class="small">vs período anterior</div>
-    </div>
+  <div class="card">
+    <div class="card-title">Escaneamentos únicos</div>
+    <div class="card-number">213 <span class="up">↑ 15%</span></div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Média por dia</div>
-      <div class="card-number">12 <span class="up">↑ 9,1%</span></div>
-      <div class="small">vs período anterior</div>
-    </div>
+  <div class="card">
+    <div class="card-title">Média por dia</div>
+    <div class="card-number">12 <span class="up">↑ 9%</span></div>
+  </div>
 
-    <div class="card">
-      <div class="card-title">Locais que escanearam</div>
-      <div class="card-number">5</div>
-      <div class="small">pontos de mídia</div>
-    </div>
-  </section>
+  <div class="card">
+    <div class="card-title">Locais</div>
+    <div class="card-number">5</div>
+  </div>
+</section>
 
-  <section class="main-grid">
-    <div class="panel">
-      <h2>Escaneamentos ao longo do tempo</h2>
-      <div class="chart"><div class="line"></div></div>
-    </div>
+<section class="main-grid">
+  <div class="panel">
+    <h2>Escaneamentos ao longo do tempo</h2>
+    <div class="chart"><div class="line"></div></div>
+  </div>
 
-    <div class="panel">
-      <h2>Escaneamentos por ponto</h2>
+  <div class="panel">
+    <h2>Escaneamentos por ponto</h2>
 
-      <div class="ranking-row">
-        <span>Smart Fit Ilhéus</span><b>112</b>
-        <div class="bar"><span style="width:90%"></span></div><span>32%</span>
-      </div>
-
-      <div class="ranking-row">
-        <span>Aeroshake</span><b>98</b>
-        <div class="bar"><span style="width:78%"></span></div><span>28%</span>
-      </div>
-
-      <div class="ranking-row">
-        <span>Smart Fit Shopping</span><b>67</b>
-        <div class="bar"><span style="width:55%"></span></div><span>19%</span>
-      </div>
-
-      <div class="ranking-row">
-        <span>Aeroshake - Praça</span><b>44</b>
-        <div class="bar"><span style="width:38%"></span></div><span>12%</span>
-      </div>
-
-      <div class="ranking-row">
-        <span>Jacques Janine</span><b>26</b>
-        <div class="bar"><span style="width:25%"></span></div><span>7%</span>
-      </div>
-
-    </div>
-  </section>
-
-  <section class="bottom-grid">
-    <div class="panel">
-      <h2>Mapa</h2>
-      <div class="map">
-        <div class="pin p1"><span>98</span></div>
-        <div class="pin p2"><span>67</span></div>
-        <div class="pin p3"><span>44</span></div>
-        <div class="pin p4"><span>112</span></div>
-        <div class="pin p5"><span>26</span></div>
-      </div>
+    <div class="ranking-row">
+      <span>Smart Fit Ilhéus</span><b>112</b>
+      <div class="bar"><span style="width:90%"></span></div><span>32%</span>
     </div>
 
-    <div class="panel">
-      <h2>Ranking</h2>
-      <p>Smart Fit Ilhéus - 112</p>
-      <p>Aeroshake - 98</p>
-      <p>Smart Fit Shopping - 67</p>
-      <p>Aeroshake - Praça - 44</p>
-      <p>Jacques Janine - 26</p>
+    <div class="ranking-row">
+      <span>Aeroshake</span><b>98</b>
+      <div class="bar"><span style="width:78%"></span></div><span>28%</span>
+    </div>
+  </div>
+</section>
+
+<section class="bottom-grid">
+
+  <div class="panel">
+    <h2>Mapa</h2>
+    <div class="map">
+      <div class="pin p1"><span>98</span></div>
+      <div class="pin p2"><span>67</span></div>
+      <div class="pin p3"><span>44</span></div>
+      <div class="pin p4"><span>112</span></div>
+      <div class="pin p5"><span>26</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Ranking</h2>
+
+    <div class="rank-line">
+      <span>1</span><p>Smart Fit</p><strong>112</strong>
+      <div class="bar"><i style="width:90%"></i></div>
     </div>
 
-    <div class="panel">
-      <h2>Horários de pico</h2>
-      <div class="heatmap">
-        <div></div><div class="h"></div><div></div><div class="h"></div><div></div><div class="h"></div><div></div>
-      </div>
-      <div class="days">
-        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
-      </div>
-      <div class="note">Maior concentração: 12h - 14h</div>
+    <div class="rank-line">
+      <span>2</span><p>Aeroshake</p><strong>98</strong>
+      <div class="bar"><i style="width:78%"></i></div>
     </div>
-  </section>
+  </div>
+
+  <div class="panel">
+    <h2>Horários de pico</h2>
+
+    <div class="heatmap">
+      <div></div><div class="m"></div><div></div><div class="h"></div><div></div><div class="m"></div><div></div>
+    </div>
+
+    <div class="days">
+      <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+    </div>
+
+    <div class="note">Maior concentração: 12h - 14h</div>
+  </div>
+
+</section>
 
 </main>
 
