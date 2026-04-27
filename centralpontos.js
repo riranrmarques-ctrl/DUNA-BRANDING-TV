@@ -1405,55 +1405,277 @@ if (btnSalvarEdicao) {
   };
 }
 
-function baixarContratoAtual() {
+async function baixarContratoAtual() {
   if (!codigoSelecionado) return;
 
   const ponto = pontosMap[codigoSelecionado] || {};
+  const parceriaAtiva = editContratoParceriaSim ? editContratoParceriaSim.checked : false;
 
   const nome = editNome ? editNome.value.trim() : obterNomePonto(ponto, codigoSelecionado);
   const cidade = editCidade ? editCidade.value.trim() : obterCidadePonto(ponto);
   const endereco = editEndereco ? editEndereco.value.trim() : obterEnderecoPonto(ponto);
 
-  const inicio = editContratoInicio ? editContratoInicio.value.trim() : "";
-  const fim = editContratoFim ? editContratoFim.value.trim() : "";
-  const parceria = editContratoParceriaSim?.checked ? "Sim" : "Não";
-  const valor = editValorContrato ? editValorContrato.value.trim() : "";
+  const dataInicio = editContratoInicio ? editContratoInicio.value.trim() : "";
+  const dataFim = editContratoFim ? editContratoFim.value.trim() : "";
+  const valorContrato = editValorContrato ? editValorContrato.value.trim() : "";
 
   const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
   const responsavelCpf = editResponsavelCpf ? editResponsavelCpf.value.trim() : "";
   const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
   const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
 
-  const texto = `
-CONTRATO - DUNA BRANDING
+  const modeloComercial = parceriaAtiva
+    ? `Parceria - ${valorContrato || "___"}% por venda`
+    : `Valor fixo mensal - R$ ${valorContrato || "___"}`;
 
-PONTO
-Código: ${codigoSelecionado}
-Nome: ${nome}
-Cidade: ${cidade}
-Endereço: ${endereco}
+  const clausulaRemuneracao = parceriaAtiva
+    ? `O CONTRATADO receberá participação de ${valorContrato || "___"}% sobre cada venda realizada pela CONTRATANTE relacionada ao espaço objeto deste contrato. A forma de apuração, periodicidade e pagamento serão definidos entre as partes.`
+    : `A CONTRATANTE pagará ao CONTRATADO o valor mensal de R$ ${valorContrato || "___"} pela cessão do espaço publicitário objeto deste contrato.`;
 
-CONTRATO
-Período: ${inicio} até ${fim}
-É parceria?: ${parceria}
-Valor / custo: ${parceria === "Sim" ? "Parceria" : valor}
+  try {
+    setStatus("Gerando contrato...", "normal");
 
-RESPONSÁVEL PELO ESTABELECIMENTO
-Nome completo: ${responsavelNome}
-CPF / CNPJ: ${responsavelCpf}
-Telefone: ${responsavelTelefone}
-E-mail: ${responsavelEmail}
-`.trim();
+    const { data: modelo, error } = await supabaseClient
+      .from("contratos_modelos")
+      .select("*")
+      .eq("tipo", "estabelecimento")
+      .maybeSingle();
 
-  const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+    if (error) throw error;
 
-  link.href = url;
-  link.download = `contrato-${codigoSelecionado}.txt`;
-  link.click();
+    if (!modelo || !modelo.html_modelo) {
+      setStatus("Modelo de estabelecimento não encontrado", "erro");
+      return;
+    }
 
-  URL.revokeObjectURL(url);
+    const dadosContratada = typeof modelo.dados_contratada === "string"
+      ? JSON.parse(modelo.dados_contratada || "{}")
+      : modelo.dados_contratada || {};
+
+    const substituicoes = {
+      "{{titulo}}": modelo.titulo || "Contrato de Parceria com Estabelecimento",
+      "{{subtitulo}}": modelo.subtitulo || "Contrato de cessão de espaço publicitário para mídia digital.",
+
+      "{{empresa}}": dadosContratada.empresa || "Duna Branding",
+      "{{cnpj}}": dadosContratada.cnpj || "",
+      "{{telefone_empresa}}": dadosContratada.telefone || "",
+      "{{email_empresa}}": dadosContratada.email || "",
+      "{{endereco_empresa}}": dadosContratada.endereco || "",
+      "{{responsavel}}": dadosContratada.responsavel || "",
+      "{{assinatura_url}}": dadosContratada.assinatura_url || "assinatura.png",
+
+      "{{estabelecimento_nome}}": nome,
+      "{{estabelecimento_cpf_cnpj}}": responsavelCpf,
+      "{{estabelecimento_responsavel}}": responsavelNome,
+      "{{estabelecimento_telefone}}": responsavelTelefone,
+      "{{estabelecimento_email}}": responsavelEmail,
+      "{{estabelecimento_cidade}}": cidade,
+      "{{estabelecimento_endereco}}": endereco,
+      "{{data_inicio}}": dataInicio,
+      "{{data_fim}}": dataFim,
+      "{{modelo_comercial}}": modeloComercial,
+      "{{clausula_remuneracao}}": clausulaRemuneracao,
+
+      "{{cliente_nome}}": nome,
+      "{{cliente_cpf_cnpj}}": responsavelCpf,
+      "{{cliente_telefone}}": responsavelTelefone,
+      "{{cliente_email}}": responsavelEmail,
+      "{{ambiente}}": nome,
+      "{{pontos}}": nome,
+      "{{valor}}": valorContrato
+    };
+
+    let htmlContrato = modelo.html_modelo;
+
+    Object.entries(substituicoes).forEach(([chave, valor]) => {
+      htmlContrato = htmlContrato.split(chave).join(escapeHtml(valor || ""));
+    });
+
+    const paginaContrato = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Contrato - ${escapeHtml(nome)}</title>
+
+        <style>
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            margin: 0;
+            padding: 28px;
+            font-family: Arial, sans-serif;
+            background: #eef3fb;
+            color: #1f2937;
+          }
+
+          .pagina-contrato {
+            max-width: 980px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 34px;
+            box-shadow: 0 16px 44px rgba(15, 23, 42, 0.10);
+          }
+
+          .topo-contrato {
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 16px;
+            margin-bottom: 22px;
+          }
+
+          .topo-contrato h1 {
+            font-size: 26px;
+            color: #111827;
+            margin: 0 0 8px;
+          }
+
+          .topo-contrato p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 14px;
+          }
+
+          .bloco {
+            margin-bottom: 24px;
+          }
+
+          .bloco h2 {
+            font-size: 16px;
+            color: #111827;
+            margin: 0 0 12px;
+            padding-left: 10px;
+            border-left: 4px solid #2563eb;
+          }
+
+          .bloco p {
+            font-size: 14px;
+            line-height: 1.7;
+            margin: 0 0 10px;
+            color: #374151;
+          }
+
+          .bloco strong {
+            color: #111827;
+          }
+
+          .assinaturas {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: 26px;
+            margin-top: 54px;
+            align-items: end;
+          }
+
+          .assinatura-box {
+            text-align: center;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+          }
+
+          .assinatura-img {
+            display: block;
+            width: 300px;
+            max-width: 100%;
+            height: 120px;
+            object-fit: contain;
+            object-position: center bottom;
+            margin: 0 auto -10px;
+          }
+
+          .linha-assinatura {
+            border-top: 1px solid #111827;
+            padding-top: 8px;
+            font-size: 14px;
+            color: #111827;
+            font-weight: 700;
+          }
+
+          .acoes-contrato {
+            display: flex;
+            gap: 10px;
+            margin: 24px auto 0;
+            max-width: 980px;
+          }
+
+          .acoes-contrato button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+          }
+
+          .btn-imprimir {
+            background: #2563eb;
+            color: #ffffff;
+          }
+
+          .btn-fechar {
+            background: #111827;
+            color: #ffffff;
+          }
+
+          @media print {
+            body {
+              background: #ffffff;
+              padding: 0;
+            }
+
+            .pagina-contrato {
+              max-width: none;
+              box-shadow: none;
+              border-radius: 0;
+              padding: 0;
+            }
+
+            .acoes-contrato {
+              display: none;
+            }
+
+            .assinatura-img {
+              width: 240px;
+              height: 80px;
+            }
+          }
+        </style>
+      </head>
+
+      <body>
+        <div class="pagina-contrato">
+          ${htmlContrato}
+        </div>
+
+        <div class="acoes-contrato">
+          <button class="btn-imprimir" onclick="window.print()">Imprimir / PDF</button>
+          <button class="btn-fechar" onclick="window.close()">Fechar</button>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const janela = window.open("", "_blank");
+
+    if (!janela) {
+      setStatus("Permita pop-ups para abrir o contrato", "erro");
+      return;
+    }
+
+    janela.document.open();
+    janela.document.write(paginaContrato);
+    janela.document.close();
+
+    setStatus("Contrato gerado", "ok");
+  } catch (error) {
+    console.error("Erro ao gerar contrato:", error);
+    setStatus("Erro ao gerar contrato", "erro");
+  }
 }
 
 function obterNomeArquivoPlaylist(item) {
