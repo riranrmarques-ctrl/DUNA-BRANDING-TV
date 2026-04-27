@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duna | Relatórios QR Code</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, Arial, sans-serif;
+}
+
+body {
+  background: #020817;
+  color: #fff;
+  padding: 28px;
+}
+
+.qr-page {
+  max-width: 1280px;
+  margin: auto;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 26px;
+}
+
+.tag {
+  color: #00c8ff;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+h1 {
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.subtitle {
+  color: #b8c7e6;
+  margin-top: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 14px;
+}
+
+button {
+  border: 1px solid #1f3b69;
+  background: #06152c;
+  color: #fff;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  background: linear-gradient(135deg, #0094ff, #005dff);
+  box-shadow: 0 0 25px rgba(0, 132, 255, .35);
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filter {
+  border: 1px solid #1c345e;
+  background: #061126;
+  padding: 14px 18px;
+  border-radius: 10px;
+  color: #dbe8ff;
+  min-width: 220px;
+}
+
+.tabs {
+  display: flex;
+  border: 1px solid #1c345e;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tabs span {
+  padding: 14px 20px;
+  color: #9fb2d7;
+  border-right: 1px solid #1c345e;
+}
+
+.tabs .active {
+  background: linear-gradient(135deg, #008cff, #0062ff);
+  color: #fff;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.card, .panel {
+  background: linear-gradient(180deg, #071833, #041022);
+  border: 1px solid #17345f;
+  border-radius: 16px;
+  box-shadow: inset 0 0 30px rgba(0, 119, 255, .08);
+}
+
+.card {
+  padding: 22px;
+  min-height: 130px;
+}
+
+.card-title {
+  color: #c5d4ee;
+  font-size: 15px;
+}
+
+.card-number {
+  font-size: 34px;
+  font-weight: 800;
+  margin: 12px 0 6px;
+}
+
+.up {
+  font-size: 13px;
+  color: #bcffe0;
+  background: #086044;
+  padding: 6px 10px;
+  border-radius: 999px;
+  margin-left: 8px;
+}
+
+.small {
+  color: #a8b9d8;
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.bottom {
+  display: grid;
+  grid-template-columns: 1.2fr .75fr .95fr;
+  gap: 18px;
+}
+
+.panel {
+  padding: 22px;
+}
+
+.panel h2 {
+  font-size: 20px;
+  margin-bottom: 18px;
+}
+
+.chart {
+  height: 230px;
+  position: relative;
+  border-left: 1px solid #17345f;
+  border-bottom: 1px solid #17345f;
+  background:
+    linear-gradient(to right, rgba(255,255,255,.05) 1px, transparent 1px),
+    linear-gradient(to top, rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 80px 45px;
+  overflow: hidden;
+}
+
+.line {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 106, 255, .55), transparent 75%);
+  clip-path: polygon(0 82%, 8% 70%, 16% 76%, 24% 62%, 31% 78%, 42% 28%, 50% 48%, 58% 65%, 68% 50%, 76% 64%, 86% 35%, 95% 55%, 100% 48%, 100% 100%, 0 100%);
+}
+
+.dots {
+  position: absolute;
+  inset: 0;
+  background: none;
+}
+
+.ranking-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 150px 55px;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 17px;
+  color: #e7efff;
+}
+
+.bar {
+  height: 8px;
+  background: #102747;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #00a2ff, #005dff);
+  border-radius: 999px;
+}
+
+.map {
+  height: 260px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(35deg, transparent 48%, rgba(32,91,160,.45) 49%, rgba(32,91,160,.45) 51%, transparent 52%),
+    linear-gradient(120deg, transparent 48%, rgba(32,91,160,.25) 49%, rgba(32,91,160,.25) 51%, transparent 52%),
+    #06152d;
+  background-size: 90px 90px;
+}
+
+.pin {
+  position: absolute;
+  background: #0077ff;
+  color: #fff;
+  width: 58px;
+  height: 58px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 25px #0077ff;
+  font-weight: 800;
+}
+
+.pin span {
+  transform: rotate(45deg);
+}
+
+.p1 { left: 22%; top: 34%; }
+.p2 { left: 56%; top: 17%; }
+.p3 { left: 72%; top: 40%; }
+.p4 { left: 42%; top: 62%; }
+.p5 { left: 82%; top: 68%; }
+
+.heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.heatmap div {
+  height: 32px;
+  background: #062352;
+  border-radius: 5px;
+}
+
+.heatmap .m { background: #0054c9; }
+.heatmap .h { background: #00a2ff; }
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  color: #c8d7f2;
+  font-size: 13px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.note {
+  margin-top: 18px;
+  border: 1px solid #17345f;
+  border-radius: 10px;
+  padding: 14px;
+  color: #dce9ff;
+}
+
+@media (max-width: 900px) {
+  body { padding: 16px; }
+  .top, .actions { flex-direction: column; gap: 16px; }
+  .cards, .grid, .bottom { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<main class="qr-page">
+
+  <section class="top">
+    <div>
+      <div class="tag">QR Code</div>
+      <h1>Relatórios de Escaneamentos</h1>
+      <p class="subtitle">Acompanhe o desempenho dos seus QR Codes em tempo real.</p>
+    </div>
+
+    <div class="actions">
+      <button>Exportar</button>
+      <button class="primary">Gerar relatório</button>
+    </div>
+  </section>
+
+  <section class="filters">
+    <div class="filter">Todos os QR Codes</div>
+    <div class="filter">19/04/2025 - 26/04/2025</div>
+    <div class="tabs">
+      <span>7 dias</span>
+      <span class="active">30 dias</span>
+      <span>90 dias</span>
+      <span>Personalizado</span>
+    </div>
+  </section>
+
+  <section class="cards">
+    <div class="card">
+      <div class="card-title">Escaneamentos totais</div>
+      <div class="card-number">347 <span class="up">↑ 18,6%</span></div>
+      <div class="small">vs. período anterior</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Escaneamentos únicos</div>
+      <div class="card-number">213 <span class="up">↑ 15,4%</span></div>
+      <div class="small">vs. período anterior</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Média por dia</div>
+      <div class="card-number">12 <span class="up">↑ 9,1%</span></div>
+      <div class="small">vs. período anterior</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Locais que escanearam</div>
+      <div class="card-number">5</div>
+      <div class="small">pontos de mídia</div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <h2>Escaneamentos ao longo do tempo</h2>
+      <div class="chart">
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Escaneamentos por ponto de mídia</h2>
+
+      <div class="ranking-row">
+        <span>Smart Fit Ilhéus</span><b>112</b><div class="bar"><span style="width:90%"></span></div><span>32,3%</span>
+      </div>
+
+      <div class="ranking-row">
+        <span>Aeroshake</span><b>98</b><div class="bar"><span style="width:78%"></span></div><span>28,2%</span>
+      </div>
+
+      <div class="ranking-row">
+        <span>Smart Fit Shopping</span><b>67</b><div class="bar"><span style="width:55%"></span></div><span>19,3%</span>
+      </div>
+
+      <div class="ranking-row">
+        <span>Aeroshake - Praça</span><b>44</b><div class="bar"><span style="width:38%"></span></div><span>12,7%</span>
+      </div>
+
+      <div class="ranking-row">
+        <span>Jacques Janine</span><b>26</b><div class="bar"><span style="width:25%"></span></div><span>7,5%</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="bottom">
+    <div class="panel">
+      <h2>Mapa de escaneamentos por ponto de mídia</h2>
+      <div class="map">
+        <div class="pin p1"><span>98</span></div>
+        <div class="pin p2"><span>67</span></div>
+        <div class="pin p3"><span>44</span></div>
+        <div class="pin p4"><span>112</span></div>
+        <div class="pin p5"><span>26</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Ranking de pontos de mídia</h2>
+      <div class="ranking-row"><span>1 Smart Fit Ilhéus</span><b>112</b><div class="bar"><span style="width:90%"></span></div><span></span></div>
+      <div class="ranking-row"><span>2 Aeroshake</span><b>98</b><div class="bar"><span style="width:78%"></span></div><span></span></div>
+      <div class="ranking-row"><span>3 Smart Fit Shopping</span><b>67</b><div class="bar"><span style="width:55%"></span></div><span></span></div>
+      <div class="ranking-row"><span>4 Aeroshake - Praça</span><b>44</b><div class="bar"><span style="width:38%"></span></div><span></span></div>
+      <div class="ranking-row"><span>5 Jacques Janine</span><b>26</b><div class="bar"><span style="width:25%"></span></div><span></span></div>
+    </div>
+
+    <div class="panel">
+      <h2>Horários de pico</h2>
+
+      <div class="heatmap">
+        <div></div><div></div><div class="m"></div><div></div><div class="m"></div><div></div><div></div>
+        <div></div><div class="m"></div><div class="m"></div><div class="m"></div><div class="h"></div><div class="m"></div><div></div>
+        <div class="m"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="m"></div>
+        <div class="h"></div><div class="h"></div><div class="m"></div><div class="h"></div><div class="h"></div><div class="m"></div><div class="m"></div>
+        <div></div><div class="m"></div><div></div><div class="m"></div><div class="m"></div><div></div><div></div>
+      </div>
+
+      <div class="days">
+        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
+      </div>
+
+      <div class="note">Maior concentração: <b style="color:#00a2ff;">12h - 14h</b></div>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>
