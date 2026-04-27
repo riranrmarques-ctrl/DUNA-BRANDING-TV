@@ -1109,24 +1109,6 @@ function abrirModalEdicao() {
   modalEditar.style.display = "flex";
 }
 
-  atualizarVisualParceria();
-
-  if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
-  if (editResponsavelCpf) editResponsavelCpf.value = ponto.responsavel_cpf || "";
-  if (editResponsavelTelefone) editResponsavelTelefone.value = ponto.responsavel_telefone || "";
-  if (editResponsavelEmail) editResponsavelEmail.value = ponto.responsavel_email || "";
-
-  if (previewImagem) {
-    previewImagem.src = obterImagemPonto(ponto);
-    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
-  }
-
-  if (inputImagem) inputImagem.value = "";
-
-  arquivoImagemEdicao = null;
-  modalEditar.style.display = "flex";
-}
-
 function fecharModalEdicao() {
   if (!modalEditar) return;
 
