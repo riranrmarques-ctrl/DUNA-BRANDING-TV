@@ -77,7 +77,7 @@ function carregarDadosSalvos() {
 }
 
 function irParaPlayer(codigo) {
-  window.location.href = `/player.html?codigo=${encodeURIComponent(codigo)}`;
+  window.location.href = `/player?codigo=${encodeURIComponent(codigo)}`;
 }
 
 async function buscarPontoPorCodigo(codigo) {
