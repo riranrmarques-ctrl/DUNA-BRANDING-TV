@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/inicio.html"
+    },
+    {
+      "source": "/i",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/player",
+      "destination": "/player.html"
+    }
+  ]
+}
