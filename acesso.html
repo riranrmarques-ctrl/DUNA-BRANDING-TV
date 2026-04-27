@@ -308,27 +308,42 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="acesso.js?v=1104"></script>
 
-<script>
-  function forcarMetricasTemporarias() {
-    const reproducoes = document.getElementById("totalReproducoesCliente");
-    const qrCode = document.getElementById("totalQrCodeCliente");
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="acesso.js?v=1103"></script>
 
-    if (reproducoes) reproducoes.textContent = "292";
-    if (qrCode) qrCode.textContent = "13";
+<script>
+  const metricasTemporarias = {
+    totalReproducoesCliente: "292",
+    totalQrCodeCliente: "13"
+  };
+
+  function aplicarMetricasTemporarias() {
+    Object.entries(metricasTemporarias).forEach(([id, valor]) => {
+      const el = document.getElementById(id);
+      if (el && el.textContent !== valor) {
+        el.textContent = valor;
+      }
+    });
   }
 
   window.addEventListener("load", () => {
-    forcarMetricasTemporarias();
+    aplicarMetricasTemporarias();
 
-    const intervalo = setInterval(forcarMetricasTemporarias, 200);
+    Object.keys(metricasTemporarias).forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
 
-    setTimeout(() => {
-      clearInterval(intervalo);
-      forcarMetricasTemporarias();
-    }, 10000);
+      const observer = new MutationObserver(aplicarMetricasTemporarias);
+      observer.observe(el, {
+        childList: true,
+        characterData: true,
+        subtree: true
+      });
+    });
+
+    setInterval(aplicarMetricasTemporarias, 500);
   });
 </script>
-</body>
-</html>
+
 
 
