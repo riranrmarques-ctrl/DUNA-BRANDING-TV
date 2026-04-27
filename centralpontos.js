@@ -49,15 +49,9 @@ function limparCachesAntigos() {
 limparCachesAntigos();
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-async function verificarSessaoProtegida() {
-  const { data } = await supabaseClient.auth.getSession();
 
-  if (!data.session) {
-    window.location.href = "/centralpainel.html";
-    return false;
-  }
-
-  return true;
+if (sessionStorage.getItem("painelLiberado") !== "1") {
+  window.location.replace("centralpainel.html");
 }
 
 const statusEl = document.querySelector(".status-topo") || document.getElementById("status");
@@ -2403,6 +2397,5 @@ if (editContratoParceriaNao) {
   editContratoParceriaNao.onchange = atualizarVisualParceria;
 }
 
-  iniciarPainel();
-});
-
+setStatus("Painel Ativo", "ok");
+iniciarPainel();
