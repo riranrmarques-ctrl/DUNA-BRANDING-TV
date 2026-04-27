@@ -24,126 +24,124 @@ body {
   margin: 0 auto;
 }
 
+/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 26px;
+  gap: 28px;
+  margin-bottom: 28px;
 }
 
-.tag {
-  color: #00c8ff;
-  font-size: 14px;
+.btn-voltar {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: #06152c;
+  border: 1px solid #1c345e;
+  color: #c8d7f2;
+  text-decoration: none;
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 6px;
+}
+
+.btn-voltar:hover {
+  background: #08204a;
+  color: #fff;
 }
 
 h1 {
   font-size: 34px;
-  line-height: 1.1;
   font-weight: 800;
 }
 
 .subtitle {
   color: #b9c8e6;
   margin-top: 8px;
-  font-size: 16px;
+  font-size: 15px;
 }
 
+/* CONTROLES */
 .header-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 14px;
+  align-items: center;
 }
 
-.actions {
-  display: flex;
-  gap: 12px;
-}
-
-button {
-  border: 1px solid #1f3f72;
-  background: #06152c;
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.primary {
-  background: linear-gradient(135deg, #0094ff, #005dff);
-  border: none;
-  box-shadow: 0 0 24px rgba(0, 132, 255, .32);
-}
-
-.filters-mini {
+.top-controls {
   display: flex;
   gap: 10px;
+  align-items: center;
 }
 
-.filters-mini select {
-  height: 38px;
+.top-controls select {
+  height: 42px;
   min-width: 170px;
   border: 1px solid #1c345e;
   background: #061126;
   color: #c8d7f2;
   border-radius: 9px;
-  padding: 0 13px;
+  padding: 0 12px;
   font-size: 13px;
-  outline: none;
 }
 
+.primary {
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0094ff, #005dff);
+  box-shadow: 0 0 20px rgba(0,132,255,.35);
+  cursor: pointer;
+}
+
+/* CARDS */
 .cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4,1fr);
   gap: 18px;
   margin-bottom: 22px;
 }
 
-.card,
-.panel {
+.card, .panel {
   background: linear-gradient(180deg, #071833, #041022);
   border: 1px solid #173a68;
   border-radius: 16px;
-  box-shadow: inset 0 0 30px rgba(0, 119, 255, .07);
 }
 
 .card {
-  padding: 24px;
-  min-height: 132px;
+  padding: 22px;
 }
 
 .card-title {
   color: #c5d4ee;
-  font-size: 15px;
-  margin-bottom: 16px;
+  font-size: 14px;
 }
 
 .card-number {
-  font-size: 34px;
+  font-size: 32px;
   font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  margin: 10px 0;
 }
 
 .up {
-  font-size: 13px;
+  font-size: 12px;
   color: #c5ffe7;
   background: #086044;
-  padding: 6px 11px;
+  padding: 5px 10px;
   border-radius: 999px;
+  margin-left: 6px;
 }
 
 .small {
   color: #a8b9d8;
-  font-size: 14px;
-  margin-top: 8px;
+  font-size: 13px;
 }
 
+/* GRID */
 .main-grid {
   display: grid;
   grid-template-columns: 1.1fr .9fr;
@@ -153,67 +151,52 @@ button {
 
 .bottom-grid {
   display: grid;
-  grid-template-columns: 1.08fr .8fr .9fr;
+  grid-template-columns: 1.1fr .8fr .9fr;
   gap: 18px;
 }
 
 .panel {
-  padding: 24px;
+  padding: 22px;
 }
 
 .panel h2 {
-  font-size: 21px;
-  margin-bottom: 20px;
+  font-size: 18px;
+  margin-bottom: 16px;
 }
 
+/* CHART */
 .chart {
-  height: 260px;
+  height: 240px;
   position: relative;
   border-left: 1px solid #17345f;
   border-bottom: 1px solid #17345f;
-  background:
-    linear-gradient(to right, rgba(255,255,255,.055) 1px, transparent 1px),
-    linear-gradient(to top, rgba(255,255,255,.055) 1px, transparent 1px);
-  background-size: 86px 52px;
-  overflow: hidden;
 }
 
 .line {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 106, 255, .68), transparent 74%);
+  background: linear-gradient(to top, rgba(0,106,255,.6), transparent 70%);
   clip-path: polygon(
-    0 82%, 8% 70%, 16% 76%, 24% 62%, 31% 78%,
-    42% 28%, 50% 48%, 58% 65%, 68% 50%,
-    76% 64%, 86% 35%, 95% 55%, 100% 48%,
-    100% 100%, 0 100%
+    0 80%, 10% 70%, 20% 75%, 30% 60%, 40% 30%,
+    50% 50%, 60% 65%, 70% 50%, 80% 60%,
+    90% 40%, 100% 55%, 100% 100%, 0 100%
   );
 }
 
-.ranking-list {
-  display: flex;
-  flex-direction: column;
-  gap: 17px;
-}
-
+/* RANKING */
 .ranking-row {
   display: grid;
-  grid-template-columns: 1fr 52px 150px 52px;
-  gap: 14px;
+  grid-template-columns: 1fr 50px 120px 50px;
+  gap: 10px;
   align-items: center;
-  color: #e7efff;
-  font-size: 15px;
-}
-
-.ranking-row b {
-  text-align: right;
+  margin-bottom: 12px;
+  font-size: 14px;
 }
 
 .bar {
-  height: 8px;
+  height: 6px;
   background: #102747;
   border-radius: 999px;
-  overflow: hidden;
 }
 
 .bar span {
@@ -223,31 +206,24 @@ button {
   border-radius: 999px;
 }
 
+/* MAPA */
 .map {
-  height: 270px;
+  height: 250px;
+  background: #06152d;
   border-radius: 12px;
   position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(35deg, transparent 48%, rgba(32,91,160,.38) 49%, rgba(32,91,160,.38) 51%, transparent 52%),
-    linear-gradient(120deg, transparent 48%, rgba(32,91,160,.25) 49%, rgba(32,91,160,.25) 51%, transparent 52%),
-    #06152d;
-  background-size: 92px 92px;
 }
 
 .pin {
   position: absolute;
   background: #0077ff;
-  color: #fff;
-  width: 56px;
-  height: 56px;
+  width: 50px;
+  height: 50px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 26px #0077ff;
-  font-weight: 800;
 }
 
 .pin span {
@@ -255,29 +231,22 @@ button {
 }
 
 .p1 { left: 20%; top: 36%; }
-.p2 { left: 56%; top: 18%; }
-.p3 { left: 70%; top: 42%; }
-.p4 { left: 42%; top: 64%; }
-.p5 { left: 82%; top: 68%; }
+.p2 { left: 55%; top: 20%; }
+.p3 { left: 70%; top: 40%; }
+.p4 { left: 40%; top: 60%; }
+.p5 { left: 80%; top: 70%; }
 
-.compact-ranking .ranking-row {
-  grid-template-columns: 1fr 48px 120px;
-}
-
+/* HEATMAP */
 .heatmap {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  grid-template-columns: repeat(7,1fr);
+  gap: 4px;
 }
 
 .heatmap div {
-  height: 34px;
+  height: 30px;
   background: #062352;
   border-radius: 5px;
-}
-
-.heatmap .m {
-  background: #0054c9;
 }
 
 .heatmap .h {
@@ -286,65 +255,35 @@ button {
 
 .days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  color: #c8d7f2;
-  font-size: 13px;
-  margin-top: 10px;
+  grid-template-columns: repeat(7,1fr);
+  font-size: 12px;
+  margin-top: 8px;
   text-align: center;
 }
 
 .note {
-  margin-top: 18px;
-  border: 1px solid #17345f;
-  border-radius: 10px;
-  padding: 14px;
-  color: #dce9ff;
-  font-size: 14px;
+  margin-top: 12px;
+  font-size: 13px;
 }
 
-@media (max-width: 1100px) {
+/* RESPONSIVO */
+@media(max-width:1000px){
+  .cards, .main-grid, .bottom-grid {
+    grid-template-columns:1fr;
+  }
+
   .header {
     flex-direction: column;
   }
 
-  .header-right {
-    align-items: flex-start;
-  }
-
-  .cards,
-  .main-grid,
-  .bottom-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  body {
-    padding: 18px;
-  }
-
-  h1 {
-    font-size: 28px;
-  }
-
-  .actions,
-  .filters-mini {
-    width: 100%;
+  .top-controls {
     flex-direction: column;
-  }
-
-  button,
-  .filters-mini select {
     width: 100%;
   }
 
-  .ranking-row {
-    grid-template-columns: 1fr 40px;
-  }
-
-  .ranking-row .bar,
-  .ranking-row span:last-child {
-    display: none;
+  .top-controls select,
+  .primary {
+    width: 100%;
   }
 }
 </style>
@@ -356,18 +295,13 @@ button {
 
   <section class="header">
     <div>
-      <div class="tag">QR Code</div>
+      <a href="centralpainel.html" class="btn-voltar">← Voltar</a>
       <h1>Relatórios de Escaneamentos</h1>
       <p class="subtitle">Acompanhe o desempenho dos seus QR Codes em tempo real.</p>
     </div>
 
     <div class="header-right">
-      <div class="actions">
-        <button>Exportar</button>
-        <button class="primary">Gerar relatório</button>
-      </div>
-
-      <div class="filters-mini">
+      <div class="top-controls">
         <select>
           <option>Todos os QR Codes</option>
           <option>Smart Fit Ilhéus</option>
@@ -381,8 +315,9 @@ button {
           <option>Últimos 30 dias</option>
           <option>Últimos 7 dias</option>
           <option>Últimos 90 dias</option>
-          <option>Personalizado</option>
         </select>
+
+        <button class="primary">Gerar relatório</button>
       </div>
     </div>
   </section>
@@ -391,19 +326,19 @@ button {
     <div class="card">
       <div class="card-title">Escaneamentos totais</div>
       <div class="card-number">347 <span class="up">↑ 18,6%</span></div>
-      <div class="small">vs. período anterior</div>
+      <div class="small">vs período anterior</div>
     </div>
 
     <div class="card">
       <div class="card-title">Escaneamentos únicos</div>
       <div class="card-number">213 <span class="up">↑ 15,4%</span></div>
-      <div class="small">vs. período anterior</div>
+      <div class="small">vs período anterior</div>
     </div>
 
     <div class="card">
       <div class="card-title">Média por dia</div>
       <div class="card-number">12 <span class="up">↑ 9,1%</span></div>
-      <div class="small">vs. período anterior</div>
+      <div class="small">vs período anterior</div>
     </div>
 
     <div class="card">
@@ -416,56 +351,43 @@ button {
   <section class="main-grid">
     <div class="panel">
       <h2>Escaneamentos ao longo do tempo</h2>
-      <div class="chart">
-        <div class="line"></div>
-      </div>
+      <div class="chart"><div class="line"></div></div>
     </div>
 
     <div class="panel">
-      <h2>Escaneamentos por ponto de mídia</h2>
+      <h2>Escaneamentos por ponto</h2>
 
-      <div class="ranking-list">
-        <div class="ranking-row">
-          <span>Smart Fit Ilhéus</span>
-          <b>112</b>
-          <div class="bar"><span style="width:90%"></span></div>
-          <span>32,3%</span>
-        </div>
-
-        <div class="ranking-row">
-          <span>Aeroshake</span>
-          <b>98</b>
-          <div class="bar"><span style="width:78%"></span></div>
-          <span>28,2%</span>
-        </div>
-
-        <div class="ranking-row">
-          <span>Smart Fit Shopping</span>
-          <b>67</b>
-          <div class="bar"><span style="width:55%"></span></div>
-          <span>19,3%</span>
-        </div>
-
-        <div class="ranking-row">
-          <span>Aeroshake - Praça</span>
-          <b>44</b>
-          <div class="bar"><span style="width:38%"></span></div>
-          <span>12,7%</span>
-        </div>
-
-        <div class="ranking-row">
-          <span>Jacques Janine</span>
-          <b>26</b>
-          <div class="bar"><span style="width:25%"></span></div>
-          <span>7,5%</span>
-        </div>
+      <div class="ranking-row">
+        <span>Smart Fit Ilhéus</span><b>112</b>
+        <div class="bar"><span style="width:90%"></span></div><span>32%</span>
       </div>
+
+      <div class="ranking-row">
+        <span>Aeroshake</span><b>98</b>
+        <div class="bar"><span style="width:78%"></span></div><span>28%</span>
+      </div>
+
+      <div class="ranking-row">
+        <span>Smart Fit Shopping</span><b>67</b>
+        <div class="bar"><span style="width:55%"></span></div><span>19%</span>
+      </div>
+
+      <div class="ranking-row">
+        <span>Aeroshake - Praça</span><b>44</b>
+        <div class="bar"><span style="width:38%"></span></div><span>12%</span>
+      </div>
+
+      <div class="ranking-row">
+        <span>Jacques Janine</span><b>26</b>
+        <div class="bar"><span style="width:25%"></span></div><span>7%</span>
+      </div>
+
     </div>
   </section>
 
   <section class="bottom-grid">
     <div class="panel">
-      <h2>Mapa de escaneamentos por ponto de mídia</h2>
+      <h2>Mapa</h2>
       <div class="map">
         <div class="pin p1"><span>98</span></div>
         <div class="pin p2"><span>67</span></div>
@@ -475,66 +397,24 @@ button {
       </div>
     </div>
 
-    <div class="panel compact-ranking">
-      <h2>Ranking de pontos de mídia</h2>
-
-      <div class="ranking-list">
-        <div class="ranking-row">
-          <span>1 Smart Fit Ilhéus</span>
-          <b>112</b>
-          <div class="bar"><span style="width:90%"></span></div>
-        </div>
-
-        <div class="ranking-row">
-          <span>2 Aeroshake</span>
-          <b>98</b>
-          <div class="bar"><span style="width:78%"></span></div>
-        </div>
-
-        <div class="ranking-row">
-          <span>3 Smart Fit Shopping</span>
-          <b>67</b>
-          <div class="bar"><span style="width:55%"></span></div>
-        </div>
-
-        <div class="ranking-row">
-          <span>4 Aeroshake - Praça</span>
-          <b>44</b>
-          <div class="bar"><span style="width:38%"></span></div>
-        </div>
-
-        <div class="ranking-row">
-          <span>5 Jacques Janine</span>
-          <b>26</b>
-          <div class="bar"><span style="width:25%"></span></div>
-        </div>
-      </div>
+    <div class="panel">
+      <h2>Ranking</h2>
+      <p>Smart Fit Ilhéus - 112</p>
+      <p>Aeroshake - 98</p>
+      <p>Smart Fit Shopping - 67</p>
+      <p>Aeroshake - Praça - 44</p>
+      <p>Jacques Janine - 26</p>
     </div>
 
     <div class="panel">
       <h2>Horários de pico</h2>
-
       <div class="heatmap">
-        <div></div><div></div><div class="m"></div><div></div><div class="m"></div><div></div><div></div>
-        <div></div><div class="m"></div><div class="m"></div><div class="m"></div><div class="h"></div><div class="m"></div><div></div>
-        <div class="m"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="h"></div><div class="m"></div>
-        <div class="h"></div><div class="h"></div><div class="m"></div><div class="h"></div><div class="h"></div><div class="m"></div><div class="m"></div>
-        <div></div><div class="m"></div><div></div><div class="m"></div><div class="m"></div><div></div><div></div>
+        <div></div><div class="h"></div><div></div><div class="h"></div><div></div><div class="h"></div><div></div>
       </div>
-
       <div class="days">
-        <span>Seg</span>
-        <span>Ter</span>
-        <span>Qua</span>
-        <span>Qui</span>
-        <span>Sex</span>
-        <span>Sáb</span>
-        <span>Dom</span>
+        <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span>
       </div>
-
-      <div class="note">
-        Maior concentração: <b style="color:#00a2ff;">12h - 14h</b>
-      </div>
+      <div class="note">Maior concentração: 12h - 14h</div>
     </div>
   </section>
 
