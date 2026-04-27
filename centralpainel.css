@@ -708,212 +708,71 @@ circle {
 .status-panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  min-height: 390px;
 }
 
 .status-panel .panel-head {
   width: 100%;
   justify-content: center;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
 }
 
 .status-panel .panel-head h3 {
   text-align: center;
+  font-size: 1rem;
+  opacity: 0.85;
 }
 
 .status-content {
   width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-end;
+  gap: 8px;
+  padding-right: 28px;
 }
 
 .donut {
-  width: 240px;
-  height: 240px;
-  margin: 0 auto;
+  width: 150px;
+  height: 150px;
+  margin: 0 0 0 auto;
 }
 
 .donut div {
-  width: 110px;
-  height: 110px;
+  width: 62px;
+  height: 62px;
 }
 
-.status-panel .panel-head h3 {
-  font-size: 1rem;
-  opacity: 0.85;
+.donut div strong,
+.donut div span {
+  font-size: 13px;
+  line-height: 1;
 }
 
 .legend {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  gap: 18px;
+  align-self: flex-end;
+  gap: 10px;
   flex-wrap: nowrap;
 }
 
 .legend li {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
-  font-size: 0.75rem;
-}
-
-/* DESTAQUE DO PRIMEIRO GRAFICO */
-
-.grid {
-  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr) !important;
-  align-items: stretch;
-}
-
-.grid .panel:first-child {
-  min-height: 390px;
-  padding: 22px;
-}
-
-.grid .panel:first-child .panel-head h3 {
-  font-size: 24px;
-}
-
-.contract-content {
-  align-items: flex-start;
-  gap: 28px;
-}
-
-.contract-number {
-  min-width: 210px;
-}
-
-.contract-number h2 {
-  font-size: 54px;
-  line-height: 1;
-}
-
-.contract-number strong {
-  font-size: 18px;
-}
-
-.chart svg {
-  height: 285px !important;
-}
-
-.chart-labels {
-  margin-top: 4px;
-  font-size: 8px !important;
-  line-height: 1;
-  opacity: 0.58;
-}
-
-/* DONUT MENOR E MAIS PARA DIREITA */
-
-.status-panel {
-  align-items: flex-end !important;
-}
-
-.status-panel .panel-head {
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
-.status-content {
-  align-items: flex-end !important;
-  padding-right: 20px;
-  gap: 10px;
-}
-
-.donut {
-  width: 185px !important;
-  height: 185px !important;
-  margin: 0 0 0 auto !important;
-}
-
-.donut div {
-  width: 78px !important;
-  height: 78px !important;
-}
-
-.donut strong,
-.donut span {
-  font-size: 14px;
-  line-height: 1.05;
-}
-
-.legend {
-  justify-content: flex-end !important;
-  gap: 10px !important;
-  font-size: 10px !important;
-}
-
-.legend li {
-  font-size: 10px !important;
-  gap: 4px !important;
+  font-size: 9px;
+  margin-bottom: 0;
 }
 
 .legend i {
-  width: 7px !important;
-  height: 7px !important;
-  margin-right: 3px !important;
-}
-
-/* DONUT REALMENTE MENOR E NO CANTO DIREITO */
-
-.status-panel {
-  min-height: 390px !important;
-  align-items: stretch !important;
-}
-
-.status-panel .panel-head {
-  margin-bottom: 8px !important;
-}
-
-.status-content {
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-end !important;
-  padding-right: 26px !important;
-  gap: 8px !important;
-}
-
-.donut {
-  width: 150px !important;
-  height: 150px !important;
-  margin-left: auto !important;
-  margin-right: 0 !important;
-}
-
-.donut div {
-  width: 62px !important;
-  height: 62px !important;
-}
-
-.donut div strong,
-.donut div span {
-  font-size: 13px !important;
-  line-height: 1 !important;
-}
-
-.legend {
-  width: auto !important;
-  max-width: 100% !important;
-  justify-content: flex-end !important;
-  align-self: flex-end !important;
-  gap: 10px !important;
-  flex-wrap: nowrap !important;
-  font-size: 9px !important;
-}
-
-.legend li {
-  font-size: 9px !important;
-  gap: 4px !important;
-}
-
-.legend i {
-  width: 7px !important;
-  height: 7px !important;
-  margin-right: 2px !important;
+  width: 7px;
+  height: 7px;
+  margin-right: 2px;
 }
