@@ -1,4 +1,4 @@
-const { createClient } = supabaseClient;
+const { createClient } = supabase;
 
 const supabaseClient = createClient(
   "https://hhqqwjjdhzxqjuyazjwk.supabase.co",
