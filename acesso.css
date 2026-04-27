@@ -2088,6 +2088,10 @@ body.loading-page {
 }
 
 .btn-ir-inicial {
+  display: none;
+}
+
+.login-screen .btn-ir-inicial {
   position: fixed;
   top: 28px;
   left: 28px;
@@ -2107,7 +2111,7 @@ body.loading-page {
   transition: transform 0.18s ease, filter 0.18s ease;
 }
 
-.btn-ir-inicial:hover {
+.login-screen .btn-ir-inicial:hover {
   transform: translateY(-1px);
   filter: brightness(0.96);
 }
