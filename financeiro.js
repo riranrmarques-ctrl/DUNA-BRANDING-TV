@@ -78,8 +78,8 @@ function calcularCards() {
 
     if (c.codigo) locais++;
 
-    if (c.data_vencimento) {
-      const dias = diasEntre(c.data_vencimento);
+    if (c.vencimento_exibicao) {
+      const dias = diasEntre(c.vencimento_exibicao);
       if (dias >= 0 && dias <= 30) {
         encerrando++;
       }
@@ -106,7 +106,7 @@ function montarTabela() {
       <td>${c.codigo || "-"}</td>
       <td>${formatarMoeda(parseValor(c.valor_contratado))}</td>
       <td>${formatarData(c.data_postagem)}</td>
-      <td>${formatarData(c.data_vencimento)}</td>
+      <td>${formatarData(c.vencimento_exibicao)}</td>
       <td>
         <span class="status ${status ? "ativo" : "inativo"}">
           ${status ? "Ativo" : "Inativo"}
@@ -157,8 +157,8 @@ function montarGraficos() {
       vendasPorMes[mes] = (vendasPorMes[mes] || 0) + parseValor(c.valor_contratado);
     }
 
-    if (c.data_vencimento) {
-      const mes = new Date(c.data_vencimento).toLocaleDateString("pt-BR", { month: "short" });
+    if (c.vencimento_exibicao) {
+      const mes = new Date(c.vencimento_exibicao).toLocaleDateString("pt-BR", { month: "short" });
       encerramentos[mes] = (encerramentos[mes] || 0) + 1;
     }
   });
