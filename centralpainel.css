@@ -762,3 +762,99 @@ circle {
   white-space: nowrap;
   font-size: 0.75rem;
 }
+
+/* DESTAQUE DO PRIMEIRO GRAFICO */
+
+.grid {
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr) !important;
+  align-items: stretch;
+}
+
+.grid .panel:first-child {
+  min-height: 390px;
+  padding: 22px;
+}
+
+.grid .panel:first-child .panel-head h3 {
+  font-size: 24px;
+}
+
+.contract-content {
+  align-items: flex-start;
+  gap: 28px;
+}
+
+.contract-number {
+  min-width: 210px;
+}
+
+.contract-number h2 {
+  font-size: 54px;
+  line-height: 1;
+}
+
+.contract-number strong {
+  font-size: 18px;
+}
+
+.chart svg {
+  height: 285px !important;
+}
+
+.chart-labels {
+  margin-top: 4px;
+  font-size: 8px !important;
+  line-height: 1;
+  opacity: 0.58;
+}
+
+/* DONUT MENOR E MAIS PARA DIREITA */
+
+.status-panel {
+  align-items: flex-end !important;
+}
+
+.status-panel .panel-head {
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.status-content {
+  align-items: flex-end !important;
+  padding-right: 20px;
+  gap: 10px;
+}
+
+.donut {
+  width: 185px !important;
+  height: 185px !important;
+  margin: 0 0 0 auto !important;
+}
+
+.donut div {
+  width: 78px !important;
+  height: 78px !important;
+}
+
+.donut strong,
+.donut span {
+  font-size: 14px;
+  line-height: 1.05;
+}
+
+.legend {
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  font-size: 10px !important;
+}
+
+.legend li {
+  font-size: 10px !important;
+  gap: 4px !important;
+}
+
+.legend i {
+  width: 7px !important;
+  height: 7px !important;
+  margin-right: 3px !important;
+}
