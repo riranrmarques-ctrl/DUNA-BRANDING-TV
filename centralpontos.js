@@ -1088,8 +1088,27 @@ function abrirModalEdicao() {
 
   if (editValorContrato) {
     editValorContrato.value = ponto.contrato_valor || "";
+    editValorContrato.style.display = "block";
   }
-  
+
+  atualizarVisualParceria();
+
+  if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
+  if (editResponsavelCpf) editResponsavelCpf.value = ponto.responsavel_cpf || "";
+  if (editResponsavelTelefone) editResponsavelTelefone.value = ponto.responsavel_telefone || "";
+  if (editResponsavelEmail) editResponsavelEmail.value = ponto.responsavel_email || "";
+
+  if (previewImagem) {
+    previewImagem.src = obterImagemPonto(ponto);
+    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+  }
+
+  if (inputImagem) inputImagem.value = "";
+
+  arquivoImagemEdicao = null;
+  modalEditar.style.display = "flex";
+}
+
   atualizarVisualParceria();
 
   if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
@@ -1973,7 +1992,8 @@ function atualizarVisualParceria() {
 
   const parceriaAtiva = editContratoParceriaSim.checked;
 
-  editValorContrato.style.display = parceriaAtiva ? "none" : "block";
+  editValorContrato.disabled = parceriaAtiva;
+  editValorContrato.placeholder = parceriaAtiva ? "Parceria ativada" : "Valor / custo";
 
   if (parceriaAtiva) {
     editValorContrato.value = "";
