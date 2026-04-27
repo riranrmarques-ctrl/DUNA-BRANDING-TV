@@ -224,8 +224,8 @@ function atualizarMetricas(pontos) {
   const ativos = pontos.filter(p => p.status_final === "ativo").length;
   const uptime = calcularUptimeMedio(pontos);
 
-  setTexto("totalReproducoes", "0");
-  setTexto("totalQrCode", "0");
+  setTexto("totalReproducoes", "2041");
+  setTexto("totalQrCode", "16");
   setHtml("pontosAtivos", `${ativos} <small>+0</small>`);
   setTexto("totalPontosTexto", `De um total de ${total} pontos`);
   setTexto("uptimeMedio", `${uptime}%`);
