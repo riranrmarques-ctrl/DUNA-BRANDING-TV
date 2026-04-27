@@ -164,7 +164,7 @@
 
       <div>
         <span class="metrica-label">Reproduções diárias</span>
-        <strong id="totalReproducoesCliente">1032</strong>
+        <strong id="totalReproducoesCliente">69</strong>
         <small>total de reproduções</small>
       </div>
 
@@ -207,7 +207,7 @@
           <div class="visibilidade-metricas">
             <div>
               <span>24h</span>
-              <strong id="visHoje">23</strong>
+              <strong id="visHoje">0</strong>
             </div>
             <div>
               <span>7 dias</span>
@@ -304,35 +304,8 @@
       </footer>
     </main>
   </main>
-  
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="acesso.js?v=1104"></script>
 
-<script>
-  (function () {
-    function aplicarMetricasTemporarias() {
-      const reproducoes = document.querySelector("#totalReproducoesCliente");
-      const qrCode = document.querySelector("#totalQrCodeCliente");
-
-      if (reproducoes) reproducoes.innerHTML = "292";
-      if (qrCode) qrCode.innerHTML = "13";
-    }
-
-    aplicarMetricasTemporarias();
-
-    setInterval(aplicarMetricasTemporarias, 100);
-
-    const observer = new MutationObserver(aplicarMetricasTemporarias);
-
-    observer.observe(document.documentElement, {
-      childList: true,
-      characterData: true,
-      subtree: true
-    });
-
-    window.addEventListener("load", aplicarMetricasTemporarias);
-    document.addEventListener("DOMContentLoaded", aplicarMetricasTemporarias);
-  })();
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="acesso.js?v=1102"></script>
 </body>
 </html>
