@@ -5,7 +5,6 @@ const BUCKET = "midias";
 const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "statuspontos";
-const TABELA_REPRODUCOES = "reproducoes_diarias";
 
 const DURACAO_IMAGEM = 10000;
 const DURACAO_SITE = 10000;
@@ -14,9 +13,8 @@ const DURACAO_VIDEO_FALLBACK = 20000;
 const INTERVALO_STATUS_ATIVO = 20 * 60 * 1000;
 const INTERVALO_ATUALIZAR_PLAYLIST = 5 * 60 * 1000;
 const INTERVALO_CLIMA = 30 * 60 * 1000;
-const INTERVALO_FLUSH_REPRODUCOES = 60 * 60 * 1000;
 
-const CACHE_PLAYLIST_PREFIX = "player_playlist_cache_v4_";
+const CACHE_PLAYLIST_PREFIX = "player_playlist_cache_v5_";
 const CACHE_PLAYLIST_TTL = 24 * 60 * 60 * 1000;
 
 const WEATHER_LAT = -14.84167;
@@ -33,11 +31,9 @@ let cacheMidia = new Map();
 let intervaloStatus = null;
 let intervaloPlaylist = null;
 let intervaloClima = null;
-let intervaloReproducoes = null;
 
 let statusAtualRegistrado = null;
 let ultimoStatusEnviadoEm = 0;
-let reproducoesPendentes = new Map();
 
 function renderizarNoPlayer(html) {
   const playerMain = document.getElementById("playerMain");
@@ -538,10 +534,7 @@ function aplicarPlaylistIncremental(listaNova) {
       itemExistente.url === itemNovo.url &&
       itemExistente.tipo === itemNovo.tipo
     ) {
-      return {
-        ...itemExistente,
-        ...itemNovo
-      };
+      return { ...itemExistente, ...itemNovo };
     }
 
     preCarregarItem(itemNovo);
@@ -639,122 +632,6 @@ function preCarregarProximos(quantidade = 2) {
   }
 }
 
-function pontoEstaOnlineParaContagem() {
-  return statusAtualRegistrado === "ativo" && navigator.onLine !== false;
-}
-
-function chaveReproducao(item) {
-  return [
-    codigoAtual,
-    item.codigo_cliente || "",
-    item.id
-  ].join("|");
-}
-
-function registrarReproducaoLocal(item) {
-  if (!item || !item.id) return;
-  if (!item.codigo_cliente) return;
-  if (!pontoEstaOnlineParaContagem()) return;
-
-  const chave = chaveReproducao(item);
-  const atual = reproducoesPendentes.get(chave) || {
-    ponto_codigo: codigoAtual,
-    codigo_cliente: item.codigo_cliente,
-    playlist_item_id: item.id,
-    material_nome: item.nome || "Arquivo",
-    total: 0
-  };
-
-  atual.total += 1;
-  reproducoesPendentes.set(chave, atual);
-}
-
-function obterHojeISO() {
-  return new Date().toISOString().split("T")[0];
-}
-
-async function enviarReproducoesPendentes() {
-  if (!supabaseClient || !reproducoesPendentes.size) return;
-  if (!pontoEstaOnlineParaContagem()) return;
-
-  const pendentes = Array.from(reproducoesPendentes.values());
-  reproducoesPendentes.clear();
-
-  for (const item of pendentes) {
-    const dataHoje = obterHojeISO();
-
-    try {
-      const { data: existente, error: erroBusca } = await supabaseClient
-        .from(TABELA_REPRODUCOES)
-        .select("id,total_reproducoes")
-        .eq("data", dataHoje)
-        .eq("ponto_codigo", item.ponto_codigo)
-        .eq("codigo_cliente", item.codigo_cliente)
-        .eq("playlist_item_id", item.playlist_item_id)
-        .maybeSingle();
-
-      if (erroBusca) {
-        throw erroBusca;
-      }
-
-      if (existente?.id) {
-        const totalAtualizado = Number(existente.total_reproducoes || 0) + Number(item.total || 0);
-
-        const { error } = await supabaseClient
-          .from(TABELA_REPRODUCOES)
-          .update({
-            total_reproducoes: totalAtualizado,
-            material_nome: item.material_nome,
-            ultimo_calculo_em: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", existente.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabaseClient
-          .from(TABELA_REPRODUCOES)
-          .insert([{
-            data: dataHoje,
-            ponto_codigo: item.ponto_codigo,
-            codigo_cliente: item.codigo_cliente,
-            playlist_item_id: item.playlist_item_id,
-            material_nome: item.material_nome,
-            total_reproducoes: Number(item.total || 0),
-            ultimo_calculo_em: new Date().toISOString()
-          }]);
-
-        if (error) throw error;
-      }
-    } catch (error) {
-      console.warn("Falha ao enviar reproduções. Tentará novamente depois:", error);
-      const chave = [
-        item.ponto_codigo,
-        item.codigo_cliente,
-        item.playlist_item_id
-      ].join("|");
-
-      const atual = reproducoesPendentes.get(chave) || item;
-      atual.total = Number(atual.total || 0) + Number(item.total || 0);
-      reproducoesPendentes.set(chave, atual);
-    }
-  }
-}
-
-function iniciarContagemReproducoes() {
-  intervaloReproducoes = setInterval(() => {
-    enviarReproducoesPendentes();
-  }, INTERVALO_FLUSH_REPRODUCOES);
-
-  window.addEventListener("beforeunload", () => {
-    enviarReproducoesPendentes();
-  });
-
-  window.addEventListener("pagehide", () => {
-    enviarReproducoesPendentes();
-  });
-}
-
 function proximo() {
   limparTimeout();
 
@@ -778,11 +655,7 @@ function tocarImagem(item) {
   `);
 
   preCarregarProximos(2);
-
-  timeoutMidia = setTimeout(() => {
-    registrarReproducaoLocal(item);
-    proximo();
-  }, DURACAO_IMAGEM);
+  timeoutMidia = setTimeout(proximo, DURACAO_IMAGEM);
 }
 
 function tocarVideo(item) {
@@ -795,33 +668,12 @@ function tocarVideo(item) {
   const video = document.getElementById("videoPlayer");
   if (!video) return;
 
-  let contabilizado = false;
-
-  function contabilizarUmaVez() {
-    if (contabilizado) return;
-    contabilizado = true;
-    registrarReproducaoLocal(item);
-  }
-
   video.src = item.url;
-
-  video.onended = () => {
-    contabilizarUmaVez();
-    proximo();
-  };
+  video.onended = proximo;
 
   video.onerror = () => {
     mostrarMensagem("Erro ao carregar video.", item.nome);
     timeoutMidia = setTimeout(proximo, 3000);
-  };
-
-  video.ontimeupdate = () => {
-    if (!video.duration || Number.isNaN(video.duration)) return;
-
-    const percentual = video.currentTime / video.duration;
-    if (percentual >= 0.8) {
-      contabilizarUmaVez();
-    }
   };
 
   video.play().catch(() => {
@@ -829,8 +681,7 @@ function tocarVideo(item) {
   });
 
   timeoutMidia = setTimeout(() => {
-    contabilizarUmaVez();
-    proximo();
+    if (!video.ended) proximo();
   }, Math.max(DURACAO_VIDEO_FALLBACK, 3000));
 
   preCarregarProximos(2);
@@ -852,11 +703,7 @@ function tocarSite(item) {
   `);
 
   preCarregarProximos(2);
-
-  timeoutMidia = setTimeout(() => {
-    registrarReproducaoLocal(item);
-    proximo();
-  }, DURACAO_SITE);
+  timeoutMidia = setTimeout(proximo, DURACAO_SITE);
 }
 
 function tocarMidia() {
@@ -968,12 +815,10 @@ function pararTudo() {
   if (intervaloStatus) clearInterval(intervaloStatus);
   if (intervaloPlaylist) clearInterval(intervaloPlaylist);
   if (intervaloClima) clearInterval(intervaloClima);
-  if (intervaloReproducoes) clearInterval(intervaloReproducoes);
 
   intervaloStatus = null;
   intervaloPlaylist = null;
   intervaloClima = null;
-  intervaloReproducoes = null;
 }
 
 async function iniciar() {
@@ -1013,7 +858,6 @@ async function iniciar() {
     }
 
     iniciarMonitoramentoStatus();
-    iniciarContagemReproducoes();
 
     await atualizarClima();
     intervaloClima = setInterval(atualizarClima, INTERVALO_CLIMA);
@@ -1054,10 +898,9 @@ async function iniciar() {
 window.addEventListener("load", iniciar);
 
 window.addEventListener("beforeunload", () => {
-  enviarReproducoesPendentes();
   pararTudo();
 });
 
 window.addEventListener("pagehide", () => {
-  enviarReproducoesPendentes();
+  pararTudo();
 });
