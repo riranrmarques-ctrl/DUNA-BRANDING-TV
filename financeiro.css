@@ -37,8 +37,8 @@ body {
 }
 
 .brand img {
-  width: 50px;
-  height: 50px;
+  width: 90px;
+  height: auto;
   object-fit: contain;
 }
 
@@ -216,4 +216,55 @@ th, td {
   .grid.inferior {
     grid-template-columns: 1fr;
   }
+}
+
+.ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: 0.2s;
+}
+
+.ranking-item:hover {
+  background: rgba(255,255,255,0.06);
+  transform: translateY(-2px);
+}
+
+.ranking-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ranking-pos {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7c3cff;
+  min-width: 28px;
+}
+
+.ranking-info strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.ranking-info span {
+  font-size: 0.75rem;
+  color: #8fa3c7;
+}
+
+.ranking-valor {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #7CFC9A;
 }
