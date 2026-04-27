@@ -1,9 +1,7 @@
-const { createClient } = supabase;
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-const supabaseClient = createClient(
-  "https://hhqqwjjdhzxqjuyazjwk.supabase.co",
-  "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly"
-);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TABELA = "dadosclientes";
 
@@ -78,8 +76,8 @@ function calcularCards() {
 
     if (c.codigo) locais++;
 
-    if (c.vencimento_exibicao) {
-      const dias = diasEntre(c.vencimento_exibicao);
+    if (c.vencimento_midia) {
+      const dias = diasEntre(c.vencimento_midia);
       if (dias >= 0 && dias <= 30) {
         encerrando++;
       }
@@ -106,7 +104,7 @@ function montarTabela() {
       <td>${c.codigo || "-"}</td>
       <td>${formatarMoeda(parseValor(c.valor_contratado))}</td>
       <td>${formatarData(c.data_postagem)}</td>
-      <td>${formatarData(c.vencimento_exibicao)}</td>
+      <td>${formatarData(c.vencimento_midia)}</td>
       <td>
         <span class="status ${status ? "ativo" : "inativo"}">
           ${status ? "Ativo" : "Inativo"}
@@ -157,8 +155,8 @@ function montarGraficos() {
       vendasPorMes[mes] = (vendasPorMes[mes] || 0) + parseValor(c.valor_contratado);
     }
 
-    if (c.vencimento_exibicao) {
-      const mes = new Date(c.vencimento_exibicao).toLocaleDateString("pt-BR", { month: "short" });
+    if (c.vencimento_midia) {
+      const mes = new Date(c.vencimento_midia).toLocaleDateString("pt-BR", { month: "short" });
       encerramentos[mes] = (encerramentos[mes] || 0) + 1;
     }
   });
