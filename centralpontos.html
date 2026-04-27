@@ -161,57 +161,31 @@
       </div>
 
       <div class="modal-secao modal-secao-download">
-        <h4>Contrato</h4>
+  <div class="contrato-download-layout">
+    <div class="contrato-parceria">
+      <label class="parceria-titulo">Parceria?</label>
 
-        <div class="contrato-download-layout">
-          <div class="contrato-parceria">
-            <label class="parceria-titulo">É parceria?</label>
+      <div class="parceria-opcoes">
+        <label>
+          <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaSim" value="sim">
+          <span>Sim</span>
+        </label>
 
-            <div class="parceria-opcoes">
-              <label>
-                <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaSim" value="sim">
-                <span>Sim</span>
-              </label>
-
-              <label>
-                <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaNao" value="nao">
-                <span>Não</span>
-              </label>
-            </div>
-
-            <input type="text" id="editValorContrato" placeholder="Valor / custo">
-          </div>
-
-          <button id="btnBaixarContrato" class="btn-baixar-contrato" type="button">
-            Baixar contrato
-          </button>
-        </div>
+        <label>
+          <input type="radio" name="contratoParceriaOpcao" id="editContratoParceriaNao" value="nao">
+          <span>Não</span>
+        </label>
       </div>
 
-      <div class="modal-secao modal-secao-responsavel">
-        <h4>Dados do responsável pelo estabelecimento</h4>
-
-        <input type="text" id="editResponsavelNome" placeholder="Nome completo" required>
-        <input type="text" id="editResponsavelCpf" placeholder="CPF / CNPJ" inputmode="numeric" required>
-        <input type="text" id="editResponsavelTelefone" placeholder="Telefone" inputmode="numeric" required>
-        <input type="email" id="editResponsavelEmail" placeholder="E-mail" required>
-      </div>
-
-      <div class="edit-imagem-box modal-secao-imagem">
-        <h4>Imagem do ponto</h4>
-        <img id="previewImagem">
-        <input type="file" id="inputImagem" accept="image/*">
-      </div>
-
-      <div class="edit-botoes">
-        <button id="btnSalvarEdicao">Salvar</button>
-        <button id="btnDeletarPonto" class="btn-deletar-ponto">Deletar ponto</button>
-        <button id="btnFecharModal">Cancelar</button>
-      </div>
+      <input type="text" id="editValorContrato" placeholder="Valor / custo">
     </div>
 
+    <button id="btnBaixarContrato" class="btn-baixar-contrato" type="button">
+      Baixar contrato
+    </button>
   </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="centralpontos.js?v=201"></script>
