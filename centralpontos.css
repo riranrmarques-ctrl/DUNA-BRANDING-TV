@@ -2066,3 +2066,20 @@ body.modo-detalhe .topo-esquerda {
     width: 100% !important;
   }
 }
+
+.modal-secao-download h4 {
+  display: none !important;
+}
+
+.contrato-download-layout {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+}
+
+.btn-baixar-contrato {
+  width: 100% !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  justify-self: stretch !important;
+}
