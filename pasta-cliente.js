@@ -1,184 +1,81 @@
+if (sessionStorage.getItem("painelLiberado") !== "1") {
+  window.location.replace("/centralpainel.html");
+}
+
+const codigo = new URLSearchParams(window.location.search).get("codigo");
+
+if (!codigo) {
+  window.location.replace("/central-clientes.html");
+}
+
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
+const BUCKET = "midias";
 const TABELA_CLIENTES = "dadosclientes";
-const TABELA_CLIENTE_PONTOS = "playercliente";
+const TABELA_VINCULOS = "playercliente";
+const TABELA_PLAYLISTS = "playlists";
 const TABELA_PONTOS = "pontos";
-const TABELA_PLAYLIST = "playlists";
-const TABELA_HISTORICO = "statuspontos";
-const TABELA_CONTRATOS_CLIENTES = "contratos_clientes";
-const TABELA_QRCODE_CONTADORES = "qrcode_contadores";
-const TABELA_REPRODUCOES_CLIENTES = "reproducoes_diarias";
+const TABELA_CONTRATOS_MODELOS = "contratos_modelos";
 
-const CACHE_AREA_PREFIX = "area_cliente_cache_v4_";
-const CACHE_STATUS_TTL = 30 * 60 * 1000;
-const CACHE_PLAYLIST_TTL = 60 * 60 * 1000;
+const CACHE_PASTA_PREFIX = "pasta_cliente_cache_v2_";
+const CACHE_PONTOS_TTL = 30 * 60 * 1000;
+const CACHE_VINCULOS_TTL = 30 * 60 * 1000;
+const CACHE_HISTORICO_ARQUIVOS_TTL = 60 * 60 * 1000;
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const loginScreen = document.getElementById("loginScreen");
-const areaCliente = document.getElementById("areaCliente");
-const codigoLogin = document.getElementById("codigoLogin");
-const btnEntrarCliente = document.getElementById("btnEntrarCliente");
-const loginErro = document.getElementById("loginErro");
-const loadingOverlay = document.getElementById("loadingOverlay");
+const inputCodigo = document.getElementById("codigo");
+const inputNome = document.getElementById("nome");
+const inputTelefone = document.getElementById("telefone");
+const inputEmail = document.getElementById("email");
+const inputCpfCnpj = document.getElementById("cpfCnpj");
+const inputVencimento = document.getElementById("vencimentoExibicao");
+const inputValorContratado = document.getElementById("valorContratado");
+const inputDataPostagem = document.getElementById("dataPostagem");
+const statusCliente = document.getElementById("statusCliente");
 
-const btnAtualizar = document.getElementById("btnAtualizar");
-const btnSair = document.getElementById("btnSair");
-const tituloBoasVindas = document.getElementById("tituloBoasVindas");
-const subtituloCliente = document.getElementById("subtituloCliente");
-const contratoBadge = document.getElementById("contratoBadge");
-const contratoInfo = document.getElementById("contratoInfo");
-const codigoClienteEl = document.getElementById("codigoCliente");
-const contratoCard = document.querySelector(".contrato-card");
-const btnAssinarContrato = document.getElementById("btnAssinarContrato");
-const historicoContratoCliente = document.getElementById("historicoContratoCliente");
-const mensagemCliente = document.getElementById("mensagemCliente");
-const contadorPontos = document.getElementById("contadorPontos");
-const listaPontosCliente = document.getElementById("listaPontosCliente");
+const listaPontos = document.getElementById("listaPontos");
+const mensagem = document.getElementById("mensagem");
+const botaoSalvar = document.getElementById("botaoSalvar");
+const botaoVoltar = document.getElementById("botaoVoltar");
+const botaoExcluirCliente = document.getElementById("botaoExcluirCliente");
 
-const estadoVazio = document.getElementById("estadoVazio");
-const detalhePonto = document.getElementById("detalhePonto");
-const nomePontoDetalhe = document.getElementById("nomePontoDetalhe");
-const localPontoDetalhe = document.getElementById("localPontoDetalhe");
-const statusPontoDetalhe = document.getElementById("statusPontoDetalhe");
-const statusDesdeDetalhe = document.getElementById("statusDesdeDetalhe");
-const previewNome = document.getElementById("previewNome");
-const previewMidia = document.getElementById("previewMidia");
-const listaMateriais = document.getElementById("listaMateriais");
-const historicoStatusPonto = document.getElementById("historicoStatusPonto");
-const nomeClienteTopo = document.getElementById("nomeClienteTopo");
+const arquivoInput = document.getElementById("arquivoInput");
+const btnUploadCliente = document.getElementById("btnUploadCliente");
+const statusUpload = document.getElementById("statusUpload");
 
-const totalReproducoesCliente = document.getElementById("totalReproducoesCliente");
-const totalQrCodeCliente = document.getElementById("totalQrCodeCliente");
-const graficoReproducoesCliente = document.getElementById("graficoReproducoesCliente");
-const graficoQrCodeCliente = document.getElementById("graficoQrCodeCliente");
+const historicoContratos = document.getElementById("historicoContratos");
+const historicoArquivos = document.getElementById("historicoArquivos");
 
+const contratoPreview = document.getElementById("contratoPreview");
+const contratoStatus = document.getElementById("contratoStatus");
+const btnBaixarContrato = document.getElementById("btnBaixarContrato");
+const btnBaixarQrCode = document.getElementById("btnBaixarQrCode");
+
+let pontosData = {};
 let codigoClienteAtual = "";
+let clausulasContrato = [];
 let clienteAtual = null;
-let contratoAtualCliente = null;
-let pontosContratados = [];
-let historicosPorPonto = {};
-let playlistsPorPonto = {};
-let pontoSelecionado = "";
 
-let timerMensagem = null;
-let timerLimparMensagem = null;
-let timerPreviewPlaylist = null;
-let canalClienteRealtime = null;
-let canalContratoRealtime = null;
+let dadosDunaContrato = {
+  empresa: "Duna Branding",
+  cnpj: "",
+  telefone: "",
+  email: "",
+  endereco: "",
+  responsavel: "",
+  titulo_contrato: "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
+  subtitulo_contrato: "Contrato de prestação de serviços de publicidade em telas digitais."
+};
 
-function setMensagem(texto, tipo = "normal") {
-  if (!mensagemCliente) return;
-
-  if (timerMensagem) clearTimeout(timerMensagem);
-  if (timerLimparMensagem) clearTimeout(timerLimparMensagem);
-
-  mensagemCliente.textContent = texto || "";
-  mensagemCliente.classList.remove("ok", "erro", "saindo");
-
-  if (tipo === "ok") mensagemCliente.classList.add("ok");
-  if (tipo === "erro") mensagemCliente.classList.add("erro");
-  if (!texto) return;
-
-  timerMensagem = setTimeout(() => {
-    mensagemCliente.classList.add("saindo");
-
-    timerLimparMensagem = setTimeout(() => {
-      mensagemCliente.textContent = "";
-      mensagemCliente.classList.remove("saindo", "ok", "erro");
-    }, 350);
-  }, 4500);
+function obterChaveCache(sufixo) {
+  return `${CACHE_PASTA_PREFIX}${codigoClienteAtual || "global"}_${sufixo}`;
 }
 
-function setLoginErro(texto) {
-  if (loginErro) loginErro.textContent = texto || "";
-}
-
-function mostrarLoading() {
-  document.body.classList.add("loading-page");
-
-  if (btnEntrarCliente) {
-    btnEntrarCliente.classList.add("carregando");
-    btnEntrarCliente.disabled = true;
-    btnEntrarCliente.textContent = "Entrando...";
-  }
-
-  if (loadingOverlay) {
-    loadingOverlay.style.display = "flex";
-    requestAnimationFrame(() => loadingOverlay.classList.add("ativo"));
-  }
-}
-
-function esconderLoading() {
-  document.body.classList.remove("loading-page");
-
-  if (btnEntrarCliente) {
-    btnEntrarCliente.classList.remove("carregando");
-    btnEntrarCliente.disabled = false;
-    btnEntrarCliente.textContent = "Entrar";
-  }
-
-  if (loadingOverlay) {
-    loadingOverlay.classList.remove("ativo");
-
-    setTimeout(() => {
-      if (!loadingOverlay.classList.contains("ativo")) {
-        loadingOverlay.style.display = "none";
-      }
-    }, 280);
-  }
-}
-
-function escapeHtml(texto) {
-  return String(texto || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function normalizarCodigo(codigo) {
-  return String(codigo || "").trim().toUpperCase();
-}
-
-function formatarData(valor) {
-  if (!valor) return "Sem data";
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return "Sem data";
-  return data.toLocaleDateString("pt-BR");
-}
-
-function formatarDataHora(valor) {
-  if (!valor) return "Sem registro";
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) return "Sem registro";
-  return data.toLocaleString("pt-BR");
-}
-
-function obterNomeCliente(cliente) {
-  return (
-    cliente?.nome_completo ||
-    cliente?.nome ||
-    cliente?.cliente ||
-    cliente?.razao_social ||
-    cliente?.responsavel ||
-    "Cliente"
-  );
-}
-
-function clienteEhSupervisor(cliente) {
-  return String(cliente?.tipo_acesso || "").trim().toLowerCase() === "supervisor";
-}
-
-function obterChaveCacheArea(sufixo) {
-  return `${CACHE_AREA_PREFIX}${codigoClienteAtual}_${sufixo}`;
-}
-
-function lerCacheArea(sufixo, ttl) {
+function lerCache(sufixo, ttl) {
   try {
-    const bruto = sessionStorage.getItem(obterChaveCacheArea(sufixo));
+    const bruto = sessionStorage.getItem(obterChaveCache(sufixo));
     if (!bruto) return null;
 
     const cache = JSON.parse(bruto);
@@ -191,9 +88,9 @@ function lerCacheArea(sufixo, ttl) {
   }
 }
 
-function salvarCacheArea(sufixo, dados) {
+function salvarCache(sufixo, dados) {
   try {
-    sessionStorage.setItem(obterChaveCacheArea(sufixo), JSON.stringify({
+    sessionStorage.setItem(obterChaveCache(sufixo), JSON.stringify({
       criadoEm: Date.now(),
       dados
     }));
@@ -202,12 +99,10 @@ function salvarCacheArea(sufixo, dados) {
   }
 }
 
-function limparCacheAreaCliente() {
-  if (!codigoClienteAtual) return;
-
+function limparCachePastaCliente() {
   try {
     Object.keys(sessionStorage).forEach((key) => {
-      if (key.startsWith(`${CACHE_AREA_PREFIX}${codigoClienteAtual}_`)) {
+      if (key.startsWith(CACHE_PASTA_PREFIX)) {
         sessionStorage.removeItem(key);
       }
     });
@@ -216,144 +111,167 @@ function limparCacheAreaCliente() {
   }
 }
 
-function normalizarContratoClienteLegado(cliente) {
-  const htmlOriginal = cliente?.contrato_texto || cliente?.contrato_html || "";
-  const htmlAssinado = cliente?.contrato_assinado_html || "";
-  const htmlFinal = htmlAssinado || htmlOriginal;
+function limparCacheClienteAtual() {
+  if (!codigoClienteAtual) return;
 
-  if (!htmlFinal) return null;
-
-  const assinadoEm = cliente?.contrato_assinado_em || null;
-  const status = cliente?.contrato_status || (assinadoEm || htmlAssinado ? "concluido" : "pendente");
-
-  return {
-    id: cliente?.contrato_id || cliente?.id || "",
-    codigo_cliente: normalizarCodigo(cliente?.codigo || codigoClienteAtual),
-    titulo: cliente?.contrato_titulo || "Contrato",
-    status,
-    html_final: htmlFinal,
-    assinado_em: assinadoEm,
-    enviado_em: cliente?.contrato_enviado_em || cliente?.updated_at || cliente?.created_at || null,
-    created_at: cliente?.created_at || null,
-    origem: TABELA_CLIENTES
-  };
+  try {
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith(`${CACHE_PASTA_PREFIX}${codigoClienteAtual}_`)) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  } catch {
+    return;
+  }
 }
 
-function contratoEstaDisponivel() {
-  if (!clienteAtual) return false;
-  if (clienteEhSupervisor(clienteAtual)) return false;
-  if (!contratoAtualCliente) return false;
-  if (!contratoAtualCliente.html_final) return false;
-
-  const status = String(contratoAtualCliente.status || "").trim().toLowerCase();
-  return status !== "cancelado" && status !== "apagado";
+function mostrarMensagem(texto, cor = "#9fd2ff") {
+  if (!mensagem) return;
+  mensagem.textContent = texto || "";
+  mensagem.style.color = cor;
 }
 
-function contratoEstaConcluido() {
-  if (!contratoEstaDisponivel()) return false;
-
-  const status = String(contratoAtualCliente.status || "").trim().toLowerCase();
-
-  return Boolean(
-    contratoAtualCliente.assinado_em ||
-    status === "assinado" ||
-    status === "concluido" ||
-    status === "concluído"
-  );
+function mostrarStatusUpload(texto, cor = "#9fd2ff") {
+  if (!statusUpload) return;
+  statusUpload.textContent = texto || "";
+  statusUpload.style.color = cor;
 }
 
-function obterImagemPonto(ponto) {
-  return ponto?.imagem_url || ponto?.imagem || ponto?.foto_url || "https://placehold.co/600x320/png";
+function obterCodigoDaUrl() {
+  return String(new URLSearchParams(window.location.search).get("codigo") || "").trim().toUpperCase();
 }
 
-function obterNomePonto(ponto) {
-  return ponto?.nome || ponto?.nome_painel || ponto?.titulo || ponto?.codigo || "Ponto";
+function escaparHtml(texto) {
+  return String(texto ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
-function obterCidadePonto(ponto) {
-  return ponto?.cidade || ponto?.cidade_regiao || ponto?.municipio || ponto?.localidade || "";
+function normalizarCodigo(valor) {
+  return String(valor || "").trim().toUpperCase();
 }
 
-function obterEnderecoPonto(ponto) {
-  return ponto?.endereco || ponto?.endereco_completo || ponto?.endereço || ponto?.local || "";
+function formatarTelefone(valor) {
+  const numeros = String(valor || "").replace(/\D/g, "").slice(0, 11);
+  if (!numeros) return "";
+  if (numeros.length <= 2) return `(${numeros}`;
+  if (numeros.length <= 7) return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+  return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
 }
 
-function obterLocalizacaoPonto(ponto) {
-  const cidade = String(obterCidadePonto(ponto) || "").trim();
-  const endereco = String(obterEnderecoPonto(ponto) || "").trim();
+function formatarCpfCnpj(valor) {
+  const numeros = String(valor || "").replace(/\D/g, "").slice(0, 14);
 
-  if (cidade && endereco) return `${cidade} | ${endereco}`;
-  if (cidade) return cidade;
-  if (endereco) return endereco;
-  return "Localização não definida";
-}
-
-function obterUltimoPingPonto(ponto) {
-  return ponto?.ultimo_ping || ponto?.last_ping || ponto?.updated_at || ponto?.data_ping || ponto?.created_at || null;
-}
-
-function pontoEstaDisponivel(ponto) {
-  const status = String(ponto?.status || ponto?.situacao || "").toLowerCase().trim();
-
-  if (ponto?.disponivel === false) return false;
-  if (status === "inativo") return false;
-
-  return true;
-}
-
-function obterEventoHistorico(item) {
-  return String(item?.evento || item?.status || "").toLowerCase().trim();
-}
-
-function obterDataHistorico(item) {
-  return item?.ultimo_ping || item?.data_hora || item?.created_at || null;
-}
-
-function eventoEhAtivo(evento) {
-  const valor = String(evento || "").toLowerCase();
-  return valor === "ativo" || valor === "conectou" || valor === "online";
-}
-
-function eventoEhInativo(evento) {
-  const valor = String(evento || "").toLowerCase();
-  return valor === "inativo" || valor === "desconectou" || valor === "offline";
-}
-
-function calcularStatusPonto(ponto, historico = []) {
-  if (!pontoEstaDisponivel(ponto)) {
-    return {
-      texto: "Indisponível",
-      detalhe: "Ponto indisponível",
-      classe: "indisponivel"
-    };
+  if (numeros.length <= 11) {
+    if (numeros.length <= 3) return numeros;
+    if (numeros.length <= 6) return `${numeros.slice(0, 3)}.${numeros.slice(3)}`;
+    if (numeros.length <= 9) return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6)}`;
+    return `${numeros.slice(0, 3)}.${numeros.slice(3, 6)}.${numeros.slice(6, 9)}-${numeros.slice(9)}`;
   }
 
-  const ultimoEvento = historico[0] || null;
-  const evento = obterEventoHistorico(ultimoEvento);
-  const dataReferencia = obterDataHistorico(ultimoEvento) || obterUltimoPingPonto(ponto);
-  const detalheData = dataReferencia ? formatarDataHora(dataReferencia) : "sem histórico";
+  if (numeros.length <= 2) return numeros;
+  if (numeros.length <= 5) return `${numeros.slice(0, 2)}.${numeros.slice(2)}`;
+  if (numeros.length <= 8) return `${numeros.slice(0, 2)}.${numeros.slice(2, 5)}.${numeros.slice(5)}`;
+  if (numeros.length <= 12) return `${numeros.slice(0, 2)}.${numeros.slice(2, 5)}.${numeros.slice(5, 8)}/${numeros.slice(8)}`;
+  return `${numeros.slice(0, 2)}.${numeros.slice(2, 5)}.${numeros.slice(5, 8)}/${numeros.slice(8, 12)}-${numeros.slice(12)}`;
+}
 
-  if (eventoEhAtivo(evento)) {
-    return {
-      texto: "Ativo",
-      detalhe: `Ativo desde ${detalheData}`,
-      classe: "ativo"
-    };
+function formatarMoedaBR(valor) {
+  const texto = String(valor ?? "").trim();
+
+  if (!texto) {
+    return (0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
-  if (eventoEhInativo(evento)) {
-    return {
-      texto: "Inativo",
-      detalhe: `Inativo desde ${detalheData}`,
-      classe: "inativo"
-    };
+  let numero;
+
+  if (typeof valor === "number") {
+    numero = valor;
+  } else {
+    const limpo = texto.replace(/\s/g, "").replace("R$", "").replace(/[^\d,.-]/g, "");
+    numero = limpo.includes(",")
+      ? Number(limpo.replace(/\./g, "").replace(",", "."))
+      : Number(limpo);
   }
 
-  return {
-    texto: "Inativo",
-    detalhe: "Inativo desde sem histórico",
-    classe: "inativo"
-  };
+  if (!Number.isFinite(numero)) numero = 0;
+
+  return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function extrairNumeroMoeda(valor) {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return 0;
+
+  const limpo = texto.replace(/\s/g, "").replace("R$", "").replace(/[^\d,.-]/g, "");
+  const numero = limpo.includes(",")
+    ? Number(limpo.replace(/\./g, "").replace(",", "."))
+    : Number(limpo);
+
+  return Number.isFinite(numero) ? numero : 0;
+}
+
+function formatarDataBR(valor) {
+  if (!valor) return "-";
+
+  const partes = String(valor).split("-");
+  if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor);
+
+  return data.toLocaleDateString("pt-BR");
+}
+
+function formatarDataHistorico(valor) {
+  if (!valor) return "-";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return String(valor);
+
+  return data.toLocaleString("pt-BR");
+}
+
+function marcarErro(campo) {
+  if (!campo) return;
+  campo.style.border = "1px solid #ff6b6b";
+}
+
+function limparErro(campo) {
+  if (!campo) return;
+  campo.style.border = "1px solid #313847";
+}
+
+function ativarBotaoSalvar() {
+  if (!botaoSalvar) return;
+  botaoSalvar.disabled = false;
+  botaoSalvar.style.opacity = "1";
+  botaoSalvar.style.cursor = "pointer";
+}
+
+function desativarBotaoSalvar() {
+  if (!botaoSalvar) return;
+  botaoSalvar.disabled = true;
+  botaoSalvar.style.opacity = "0.5";
+  botaoSalvar.style.cursor = "not-allowed";
+}
+
+function aplicarCampoDesativado(campo, desativado) {
+  if (!campo) return;
+  campo.disabled = desativado;
+  campo.style.opacity = desativado ? "0.45" : "1";
+  campo.style.cursor = desativado ? "not-allowed" : "";
+}
+
+function atualizarStatusClienteVisual(statusTexto) {
+  if (!statusCliente) return;
+
+  const ativo = String(statusTexto || "").trim().toLowerCase() === "ativo";
+  statusCliente.textContent = ativo ? "Ativo" : "Não ativo";
+  statusCliente.style.color = ativo ? "#7CFC9A" : "#ff6b6b";
 }
 
 function itemEstaInativo(item) {
@@ -363,398 +281,394 @@ function itemEstaInativo(item) {
   if (Number.isNaN(fim.getTime())) return false;
 
   fim.setHours(23, 59, 59, 999);
-  return fim < new Date();
+  return new Date() > fim;
 }
 
-function detectarTipo(url, tipoOriginal = "") {
-  const tipo = String(tipoOriginal || "").toLowerCase();
-  const limpa = String(url || "").toLowerCase().split("?")[0];
+function pontoEstaDisponivel(ponto) {
+  return ponto?.disponivel !== false;
+}
 
-  if (tipo === "imagem" || tipo === "image") return "imagem";
-  if (tipo === "video") return "video";
-  if (tipo === "site" || tipo === "url" || tipo === "texto" || tipo === "text") return "site";
+function atualizarCamposCliente() {
+  [
+    inputTelefone,
+    inputEmail,
+    inputCpfCnpj,
+    inputVencimento,
+    inputValorContratado,
+    inputDataPostagem,
+    arquivoInput,
+    btnUploadCliente,
+    btnBaixarContrato,
+    btnBaixarQrCode
+  ].forEach((campo) => aplicarCampoDesativado(campo, false));
 
-  if (
-    limpa.endsWith(".jpg") ||
-    limpa.endsWith(".jpeg") ||
-    limpa.endsWith(".png") ||
-    limpa.endsWith(".webp")
-  ) {
-    return "imagem";
+  if (inputCodigo) {
+    inputCodigo.style.opacity = "1";
+    inputCodigo.style.cursor = "default";
   }
 
-  if (limpa.endsWith(".txt")) return "site";
-  if (limpa.match(/\.(mp4|mov|webm)$/)) return "video";
+  aplicarCampoDesativado(inputNome, false);
+  aplicarCampoDesativado(botaoSalvar, false);
 
-  if (limpa.includes("youtube.com") || limpa.includes("youtu.be") || limpa.includes("http")) {
-    return "site";
-  }
-
-  return "video";
-}
-
-function normalizarUrl(url) {
-  const texto = String(url || "").trim();
-  if (!texto) return "";
-  if (/^https?:\/\//i.test(texto)) return texto;
-  return `https://${texto.replace(/^\/+/, "")}`;
-}
-
-function obterUrlPlaylist(item) {
-  return item?.video_url || item?.arquivo_url || item?.url || "";
-}
-
-function obterNomeArquivo(item) {
-  const tituloRenomeado = String(item?.titulo_arquivo || "").trim();
-  if (tituloRenomeado) return tituloRenomeado;
-
-  const nomeArquivo = String(item?.nome_arquivo || "").trim();
-  if (nomeArquivo) return nomeArquivo;
-
-  const nomeDado = String(item?.nome || "").trim();
-  if (nomeDado) return nomeDado;
-
-  return "Sem nome";
-}
-
-function filtrarMateriaisDoCliente(lista = []) {
-  return (lista || [])
-    .map((item, index) => ({
-      ...item,
-      posicao_playlist: index + 1
-    }))
-    .filter((item) => normalizarCodigo(item.codigo_cliente) === codigoClienteAtual);
-}
-
-function limitarHistorico72Horas(historico = []) {
-  const limite = Date.now() - (72 * 60 * 60 * 1000);
-
-  return (historico || []).filter((item) => {
-    const dataHistorico = new Date(obterDataHistorico(item));
-    if (Number.isNaN(dataHistorico.getTime())) return false;
-    return dataHistorico.getTime() >= limite;
+  document.querySelectorAll('input[name="pontos"]').forEach((checkbox) => {
+    checkbox.disabled = false;
+    checkbox.style.cursor = "pointer";
+    checkbox.style.opacity = "1";
   });
 }
 
-function limparTimerPreview() {
-  if (timerPreviewPlaylist) {
-    clearTimeout(timerPreviewPlaylist);
-    timerPreviewPlaylist = null;
-  }
+function obterCodigoPonto(ponto) {
+  return String(ponto?.codigo || "").trim();
 }
 
-function obterListaPreviewAtiva(lista = []) {
-  const ativos = (lista || []).filter((item) => !itemEstaInativo(item));
-  return ativos.length ? ativos : lista || [];
-}
+async function carregarPontos(opcoes = {}) {
+  const cache = lerCache("pontos", CACHE_PONTOS_TTL);
 
-function limparTelaDetalhe() {
-  pontoSelecionado = "";
-  limparTimerPreview();
-
-  if (estadoVazio) estadoVazio.style.display = "flex";
-  if (detalhePonto) detalhePonto.style.display = "none";
-}
-
-function pararAtualizacaoEmTempoReal() {
-  if (canalClienteRealtime) {
-    supabaseClient.removeChannel(canalClienteRealtime);
-    canalClienteRealtime = null;
+  if (!opcoes.forcarAtualizacao && cache?.dados) {
+    pontosData = cache.dados || {};
+    if (cache.fresco) return;
   }
 
-  if (canalContratoRealtime) {
-    supabaseClient.removeChannel(canalContratoRealtime);
-    canalContratoRealtime = null;
+  const { data, error } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    if (cache?.dados) return;
+    throw error;
   }
+
+  pontosData = {};
+
+  (data || []).forEach((ponto) => {
+    const chave = obterCodigoPonto(ponto);
+    if (!chave) return;
+    pontosData[chave] = ponto;
+  });
+
+  salvarCache("pontos", pontosData);
 }
 
-function iniciarAtualizacaoEmTempoReal() {
-  if (!codigoClienteAtual) return;
+function extrairClausulasDoHtmlModelo(htmlModelo) {
+  const temp = document.createElement("div");
+  temp.innerHTML = htmlModelo || "";
 
-  pararAtualizacaoEmTempoReal();
+  const ignorar = [
+    "Empresa:",
+    "CNPJ:",
+    "Telefone:",
+    "Email:",
+    "Endereço:",
+    "Responsável:",
+    "Nome:",
+    "CPF/CNPJ:",
+    "Valor:",
+    "Período:",
+    "Pontos:"
+  ];
 
-  canalClienteRealtime = supabaseClient
-    .channel(`cliente-dados-${codigoClienteAtual}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: TABELA_CLIENTES,
-        filter: `codigo=eq.${codigoClienteAtual}`
-      },
-      async (payload) => {
-        if (!payload.new) return;
+  return Array.from(temp.querySelectorAll("p"))
+    .filter((p) => {
+      const texto = p.textContent.trim();
+      return texto && !ignorar.some((prefixo) => texto.startsWith(prefixo));
+    })
+    .map((p) => {
+      const strong = p.querySelector("strong");
+      const titulo = strong ? strong.textContent.replace(":", "").trim() : "CLÁUSULA";
 
-        clienteAtual = payload.new;
-        contratoAtualCliente = await buscarContratoCliente(codigoClienteAtual);
-        renderizarContrato();
-        await carregarMetricasCliente();
-        setMensagem("Área do cliente atualizada.", "ok");
+      let texto = p.textContent.trim();
+
+      if (strong) {
+        texto = texto.replace(strong.textContent, "").trim();
       }
-    )
-    .subscribe();
 
-  canalContratoRealtime = supabaseClient
-    .channel(`cliente-contrato-${codigoClienteAtual}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: TABELA_CONTRATOS_CLIENTES,
-        filter: `codigo_cliente=eq.${codigoClienteAtual}`
-      },
-      async () => {
-        contratoAtualCliente = await buscarContratoCliente(codigoClienteAtual);
-        renderizarContrato();
-        renderizarHistoricoContratoCliente();
-        setMensagem("Contrato atualizado.", "ok");
-      }
-    )
-    .subscribe();
+      return { titulo, texto, ativo: true };
+    });
 }
 
-function obterUltimosDiasGrafico(total = 7) {
-  return Array.from({ length: total }).map((_, index) => {
-    const data = new Date();
-    data.setDate(data.getDate() - (total - 1 - index));
+async function carregarModeloContrato() {
+  try {
+    const cache = lerCache("modelo_contrato", 24 * 60 * 60 * 1000);
 
-    return {
-      iso: data.toISOString().split("T")[0],
-      rotulo: data.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit"
-      })
+    if (cache?.dados) {
+      dadosDunaContrato = cache.dados.dadosDunaContrato;
+      clausulasContrato = cache.dados.clausulasContrato || [];
+      if (cache.fresco) return;
+    }
+
+    const { data, error } = await supabaseClient
+      .from(TABELA_CONTRATOS_MODELOS)
+      .select("*")
+      .eq("tipo", "contratante")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      console.warn("Nenhum modelo contratante encontrado em contratos_modelos.");
+      clausulasContrato = [];
+      return;
+    }
+
+    const dados = typeof data.dados_contratada === "string"
+      ? JSON.parse(data.dados_contratada || "{}")
+      : data.dados_contratada || {};
+
+    dadosDunaContrato = {
+      empresa: dados.empresa || "Duna Branding",
+      cnpj: dados.cnpj || "",
+      telefone: dados.telefone || "",
+      email: dados.email || "",
+      endereco: dados.endereco || "",
+      responsavel: dados.responsavel || "",
+      titulo_contrato: data.titulo || "Contrato de Prestação de Serviços de Publicidade em Telas Digitais",
+      subtitulo_contrato: data.subtitulo || "Contrato de prestação de serviços de publicidade em telas digitais."
     };
-  });
-}
 
-function obterInicioSemanaISO() {
-  const data = new Date();
-  const dia = data.getDay();
-  const diff = dia === 0 ? 6 : dia - 1;
-  data.setDate(data.getDate() - diff);
-  data.setHours(0, 0, 0, 0);
-  return data.toISOString().split("T")[0];
-}
+    clausulasContrato = extrairClausulasDoHtmlModelo(data.html_modelo);
 
-function obterInicioMesISO() {
-  const data = new Date();
-  data.setDate(1);
-  data.setHours(0, 0, 0, 0);
-  return data.toISOString().split("T")[0];
-}
-
-function formatarNumeroMetrica(valor) {
-  return Number(valor || 0).toLocaleString("pt-BR");
-}
-
-function normalizarSeriePorDia(dias, dados = []) {
-  const mapa = new Map();
-
-  (dados || []).forEach((item) => {
-    const data = String(item.data || item.dia || "").split("T")[0];
-    const total = Number(item.total || item.quantidade || item.reproducoes || item.total_reproducoes || 0);
-    mapa.set(data, (mapa.get(data) || 0) + total);
-  });
-
-  return dias.map((dia) => ({
-    ...dia,
-    total: mapa.get(dia.iso) || 0
-  }));
-}
-
-async function buscarQrCodeCliente(codigoCliente, dias) {
-  const inicio = dias[0]?.iso;
-  const fim = dias[dias.length - 1]?.iso;
-
-  const { data, error } = await supabaseClient
-    .from(TABELA_QRCODE_CONTADORES)
-    .select("data,total")
-    .eq("codigo_cliente", codigoCliente)
-    .gte("data", inicio)
-    .lte("data", fim);
-
-  if (error) {
-    console.warn("Erro ao buscar QR Code:", error);
-    return normalizarSeriePorDia(dias, []);
+    salvarCache("modelo_contrato", {
+      dadosDunaContrato,
+      clausulasContrato
+    });
+  } catch (error) {
+    console.error("Erro ao carregar modelo do contrato:", error);
+    clausulasContrato = [];
   }
-
-  return normalizarSeriePorDia(dias, data || []);
 }
 
-async function buscarReproducoesCliente(codigoCliente, dias) {
-  const inicio = dias[0]?.iso;
-  const fim = dias[dias.length - 1]?.iso;
-
-  const { data, error } = await supabaseClient
-    .from(TABELA_REPRODUCOES_CLIENTES)
-    .select("data,total_reproducoes")
-    .eq("codigo_cliente", codigoCliente)
-    .gte("data", inicio)
-    .lte("data", fim);
-
-  if (error) {
-    console.warn("Erro ao buscar reproduções:", error);
-    return normalizarSeriePorDia(dias, []);
-  }
-
-  return normalizarSeriePorDia(dias, data || []);
+function obterNomeDoPonto(ponto, codigo) {
+  return ponto?.nome || ponto?.nome_painel || ponto?.titulo || ponto?.ambiente || `Ponto ${codigo}`;
 }
 
-async function buscarTotaisPeriodoReproducoes(codigoCliente) {
-  const hoje = new Date().toISOString().split("T")[0];
-  const inicioSemana = obterInicioSemanaISO();
-  const inicioMes = obterInicioMesISO();
-
-  const { data, error } = await supabaseClient
-    .from(TABELA_REPRODUCOES_CLIENTES)
-    .select("data,total_reproducoes")
-    .eq("codigo_cliente", codigoCliente)
-    .gte("data", inicioMes);
-
-  if (error) {
-    console.warn("Erro ao buscar totais de reproduções:", error);
-    return { dia: 0, semana: 0, mes: 0 };
-  }
-
-  return (data || []).reduce((acc, item) => {
-    const dia = String(item.data || "").split("T")[0];
-    const total = Number(item.total_reproducoes || 0);
-
-    if (dia === hoje) acc.dia += total;
-    if (dia >= inicioSemana) acc.semana += total;
-    if (dia >= inicioMes) acc.mes += total;
-
-    return acc;
-  }, { dia: 0, semana: 0, mes: 0 });
+function obterPontosMarcados() {
+  return Array.from(document.querySelectorAll('#listaPontos input[name="pontos"]:checked'))
+    .map((input) => String(input.value || "").trim())
+    .filter(Boolean);
 }
 
-function renderizarGraficoBarrasCliente(serie = []) {
-  if (!graficoReproducoesCliente) return;
+function obterPontosContratoTexto() {
+  return obterPontosMarcados()
+    .map((codigoVisual) => obterNomeDoPonto(pontosData[codigoVisual], codigoVisual))
+    .filter(Boolean)
+    .join(", ") || "Nenhum ponto selecionado";
+}
 
-  const maior = Math.max(...serie.map((item) => item.total), 1);
+function preencherMarcadoresContrato(texto, dados) {
+  return String(texto || "")
+    .replaceAll("{{empresa}}", dadosDunaContrato.empresa || "")
+    .replaceAll("{{cnpj}}", dadosDunaContrato.cnpj || "")
+    .replaceAll("{{telefone_empresa}}", dadosDunaContrato.telefone || "")
+    .replaceAll("{{email_empresa}}", dadosDunaContrato.email || "")
+    .replaceAll("{{endereco_empresa}}", dadosDunaContrato.endereco || "")
+    .replaceAll("{{responsavel}}", dadosDunaContrato.responsavel || "")
+    .replaceAll("{{telefoneEmpresa}}", dadosDunaContrato.telefone || "")
+    .replaceAll("{{emailEmpresa}}", dadosDunaContrato.email || "")
+    .replaceAll("{{enderecoEmpresa}}", dadosDunaContrato.endereco || "")
+    .replaceAll("{{cliente_nome}}", dados.nome || "")
+    .replaceAll("{{cliente_cpf_cnpj}}", dados.cpfCnpj || "")
+    .replaceAll("{{cliente_telefone}}", dados.telefone || "")
+    .replaceAll("{{cliente_email}}", dados.email || "")
+    .replaceAll("{{cliente}}", dados.nome || "")
+    .replaceAll("{{codigo}}", dados.codigo || "")
+    .replaceAll("{{cpfCnpj}}", dados.cpfCnpj || "")
+    .replaceAll("{{telefone}}", dados.telefone || "")
+    .replaceAll("{{email}}", dados.email || "")
+    .replaceAll("{{valor}}", dados.valor || "")
+    .replaceAll("{{data_inicio}}", dados.dataInicio || "")
+    .replaceAll("{{data_vencimento}}", dados.dataVencimento || "")
+    .replaceAll("{{dataInicio}}", dados.dataInicio || "")
+    .replaceAll("{{dataVencimento}}", dados.dataVencimento || "")
+    .replaceAll("{{pontos}}", dados.pontos || "")
+    .replaceAll("{{emissao}}", dados.emissao || "");
+}
 
-  graficoReproducoesCliente.innerHTML = serie.map((item) => {
-    const altura = Math.max((item.total / maior) * 100, item.total > 0 ? 8 : 4);
+function obterDadosContratoCliente() {
+  return {
+    codigo: codigoClienteAtual || inputCodigo?.textContent || "-",
+    nome: inputNome?.value?.trim() || "-",
+    telefone: inputTelefone?.value?.trim() || "-",
+    email: inputEmail?.value?.trim() || "-",
+    cpfCnpj: inputCpfCnpj?.value?.trim() || "-",
+    valor: inputValorContratado?.value || "R$ 0,00",
+    dataInicio: formatarDataBR(inputDataPostagem?.value),
+    dataVencimento: formatarDataBR(inputVencimento?.value),
+    pontos: obterPontosContratoTexto(),
+    emissao: new Date().toLocaleDateString("pt-BR")
+  };
+}
 
-    return `
-      <div class="barra-dia" title="${escapeHtml(`${item.rotulo}: ${item.total}`)}">
-        <div class="barra-coluna" style="--altura:${altura}%"></div>
-        <span>${escapeHtml(item.rotulo)}</span>
+function gerarContratoCliente() {
+  if (!contratoPreview || !contratoStatus) return;
+
+  const dados = obterDadosContratoCliente();
+
+  const htmlClausulas = clausulasContrato.length
+    ? clausulasContrato.map((clausula) => `
+        <p style="margin-bottom:10px;">
+          <strong>${escaparHtml(clausula.titulo || "")}:</strong>
+          ${escaparHtml(preencherMarcadoresContrato(clausula.texto || "", dados))}
+        </p>
+      `).join("")
+    : `
+        <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+        <p><strong>CPF/CNPJ:</strong> ${escaparHtml(dados.cpfCnpj)}</p>
+        <p><strong>Telefone:</strong> ${escaparHtml(dados.telefone)}</p>
+        <p><strong>Email:</strong> ${escaparHtml(dados.email)}</p>
+        <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
+        <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
+        <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+      `;
+
+  contratoPreview.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:1rem;font-weight:700;color:#fff;">${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato")}</div>
+      <div style="font-size:0.82rem;color:#9fb0cb;margin-top:4px;">${escaparHtml(dadosDunaContrato.subtitulo_contrato || "")}</div>
+    </div>
+
+    <div style="margin-bottom:12px;color:#d5dbea;">
+      <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+      <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+    </div>
+
+    <div style="color:#d5dbea;">
+      ${htmlClausulas}
+    </div>
+  `;
+
+  contratoStatus.textContent = "Modelo carregado";
+}
+
+function montarHtmlContratoCompleto(dadosContrato = null) {
+  const dados = dadosContrato || obterDadosContratoCliente();
+
+  const clausulasHtml = clausulasContrato.length
+    ? clausulasContrato.map((clausula) => `
+        <p style="margin:0 0 12px 0;line-height:1.7;text-align:justify;">
+          <strong>${escaparHtml(clausula.titulo || "")}:</strong>
+          ${escaparHtml(preencherMarcadoresContrato(clausula.texto || "", dados))}
+        </p>
+      `).join("")
+    : `
+        <p><strong>Cliente:</strong> ${escaparHtml(dados.nome)}</p>
+        <p><strong>CPF/CNPJ:</strong> ${escaparHtml(dados.cpfCnpj)}</p>
+        <p><strong>Telefone:</strong> ${escaparHtml(dados.telefone)}</p>
+        <p><strong>Email:</strong> ${escaparHtml(dados.email)}</p>
+        <p><strong>Valor:</strong> ${escaparHtml(dados.valor)}</p>
+        <p><strong>Período:</strong> ${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</p>
+        <p><strong>Pontos:</strong> ${escaparHtml(dados.pontos)}</p>
+      `;
+
+  return `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Contrato ${escaparHtml(dados.nome)}</title>
+      <style>
+        body { font-family: Arial, sans-serif; color: #111827; background: #fff; margin: 0; padding: 32px; }
+        .topo { border-bottom: 2px solid #111827; padding-bottom: 12px; margin-bottom: 20px; }
+        h1 { font-size: 24px; margin: 0 0 6px 0; }
+        .sub { color: #475569; font-size: 14px; }
+        .bloco { margin-bottom: 18px; }
+        .bloco h2 { font-size: 16px; margin: 0 0 10px 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .campo { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #f8fafc; font-size: 14px; }
+        .campo strong { display: block; margin-bottom: 4px; }
+        .assinaturas { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 20px; margin-top: 46px; align-items: end; }
+        .assinatura-box { text-align: center; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-end; }
+        .assinatura-img { display: block; width: 300px; max-width: 90%; height: 120px; object-fit: contain; margin: 0 auto -10px; }
+        .linha-assinatura { border-top: 1px solid #111827; padding-top: 8px; font-size: 14px; color: #111827; font-weight: 700; }
+      </style>
+    </head>
+    <body>
+      <div class="topo">
+        <h1>${escaparHtml(dadosDunaContrato.titulo_contrato || "Contrato")}</h1>
+        <div class="sub">${escaparHtml(dadosDunaContrato.subtitulo_contrato || "")}</div>
       </div>
-    `;
-  }).join("");
-}
 
-function renderizarGraficoLinhaCliente(serie = []) {
-  if (!graficoQrCodeCliente) return;
+      <div class="bloco">
+        <h2>Dados da Contratada</h2>
+        <div class="grid">
+          <div class="campo"><strong>Empresa</strong>${escaparHtml(dadosDunaContrato.empresa || "-")}</div>
+          <div class="campo"><strong>CNPJ</strong>${escaparHtml(dadosDunaContrato.cnpj || "-")}</div>
+          <div class="campo"><strong>Telefone</strong>${escaparHtml(dadosDunaContrato.telefone || "-")}</div>
+          <div class="campo"><strong>Email</strong>${escaparHtml(dadosDunaContrato.email || "-")}</div>
+          <div class="campo"><strong>Endereço</strong>${escaparHtml(dadosDunaContrato.endereco || "-")}</div>
+          <div class="campo"><strong>Responsável</strong>${escaparHtml(dadosDunaContrato.responsavel || "-")}</div>
+        </div>
+      </div>
 
-  const largura = 700;
-  const altura = 190;
-  const margemX = 28;
-  const margemY = 24;
-  const maior = Math.max(...serie.map((item) => item.total), 1);
-  const passoX = (largura - margemX * 2) / Math.max(serie.length - 1, 1);
+      <div class="bloco">
+        <h2>Dados do Cliente</h2>
+        <div class="grid">
+          <div class="campo"><strong>Nome</strong>${escaparHtml(dados.nome)}</div>
+          <div class="campo"><strong>CPF/CNPJ</strong>${escaparHtml(dados.cpfCnpj)}</div>
+          <div class="campo"><strong>Telefone</strong>${escaparHtml(dados.telefone)}</div>
+          <div class="campo"><strong>Email</strong>${escaparHtml(dados.email)}</div>
+          <div class="campo"><strong>Valor</strong>${escaparHtml(dados.valor)}</div>
+          <div class="campo"><strong>Período</strong>${escaparHtml(dados.dataInicio)} até ${escaparHtml(dados.dataVencimento)}</div>
+          <div class="campo" style="grid-column:1 / -1;"><strong>Pontos</strong>${escaparHtml(dados.pontos)}</div>
+        </div>
+      </div>
 
-  const pontos = serie.map((item, index) => {
-    const x = margemX + index * passoX;
-    const y = altura - margemY - ((item.total / maior) * (altura - margemY * 2));
-    return { ...item, x, y };
-  });
+      <div class="bloco">
+        <h2>Termos do Contrato</h2>
+        ${clausulasHtml}
+      </div>
 
-  if (!pontos.length) {
-    graficoQrCodeCliente.innerHTML = "";
-    return;
-  }
-
-  const path = pontos.map((ponto, index) => `${index === 0 ? "M" : "L"} ${ponto.x} ${ponto.y}`).join(" ");
-  const area = `${path} L ${pontos[pontos.length - 1].x} ${altura - margemY} L ${margemX} ${altura - margemY} Z`;
-
-  graficoQrCodeCliente.innerHTML = `
-    <path d="${area}" fill="rgba(124, 92, 255, 0.16)"></path>
-    <path d="${path}" fill="none" stroke="#7c5cff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-
-    ${pontos.map((ponto) => `
-      <circle cx="${ponto.x}" cy="${ponto.y}" r="5" fill="#10131a" stroke="#7c5cff" stroke-width="4"></circle>
-      <text x="${ponto.x}" y="${altura - 4}" text-anchor="middle" fill="#cbd5e1" font-size="13" font-weight="700">${escapeHtml(ponto.rotulo)}</text>
-    `).join("")}
+      <div class="assinaturas">
+        <div class="assinatura-box">
+          <div class="linha-assinatura">CONTRATANTE</div>
+        </div>
+        <div class="assinatura-box">
+          <img src="${escaparHtml(`${window.location.origin}/assinatura.png`)}" alt="Assinatura Duna Branding" class="assinatura-img">
+          <div class="linha-assinatura">${escaparHtml(dadosDunaContrato.empresa || "Duna Branding")}</div>
+        </div>
+      </div>
+    </body>
+    </html>
   `;
 }
 
-async function carregarMetricasCliente() {
-  if (!codigoClienteAtual) return;
-
-  const dias = obterUltimosDiasGrafico(7);
-
-  const [serieReproducoes, serieQrCode, totaisPeriodo] = await Promise.all([
-    buscarReproducoesCliente(codigoClienteAtual, dias),
-    buscarQrCodeCliente(codigoClienteAtual, dias),
-    buscarTotaisPeriodoReproducoes(codigoClienteAtual)
-  ]);
-
-  const totalQrCode = serieQrCode.reduce((total, item) => total + item.total, 0);
-
-  if (totalReproducoesCliente) {
-    totalReproducoesCliente.textContent = formatarNumeroMetrica(totaisPeriodo.mes);
-    totalReproducoesCliente.title = `Hoje: ${formatarNumeroMetrica(totaisPeriodo.dia)} | Semana: ${formatarNumeroMetrica(totaisPeriodo.semana)} | Mês: ${formatarNumeroMetrica(totaisPeriodo.mes)}`;
-  }
-
-  if (totalQrCodeCliente) totalQrCodeCliente.textContent = formatarNumeroMetrica(totalQrCode);
-
-  renderizarGraficoBarrasCliente(serieReproducoes);
-  renderizarGraficoLinhaCliente(serieQrCode);
+function obterChaveHistoricoContratos() {
+  return `historico_contratos_cliente_${codigoClienteAtual}`;
 }
 
-function abrirAreaCliente() {
-  if (loginScreen) loginScreen.style.display = "none";
-  if (areaCliente) areaCliente.style.display = "block";
+function lerHistoricoContratosGerados() {
+  try {
+    const bruto = sessionStorage.getItem(obterChaveHistoricoContratos());
+    const lista = JSON.parse(bruto || "[]");
+    return Array.isArray(lista) ? lista : [];
+  } catch {
+    return [];
+  }
 }
 
-function abrirLogin() {
-  codigoClienteAtual = "";
-  clienteAtual = null;
-  contratoAtualCliente = null;
-  pontosContratados = [];
-  historicosPorPonto = {};
-  playlistsPorPonto = {};
-  pontoSelecionado = "";
-
-  limparTimerPreview();
-  pararAtualizacaoEmTempoReal();
-
-  if (areaCliente) areaCliente.style.display = "none";
-  if (loginScreen) loginScreen.style.display = "flex";
-  if (contratoCard) contratoCard.style.display = "";
-
-  if (codigoLogin) {
-    codigoLogin.value = "";
-    setTimeout(() => codigoLogin.focus(), 100);
-  }
-
-  setLoginErro("");
-  setMensagem("");
-  esconderLoading();
-  limparTelaDetalhe();
+function salvarHistoricoContratosGerados(lista) {
+  sessionStorage.setItem(obterChaveHistoricoContratos(), JSON.stringify(lista));
 }
 
-function baixarContratoCliente() {
-  if (!contratoAtualCliente?.html_final) {
-    setMensagem("Contrato indisponível para download.", "erro");
-    return;
-  }
+function obterProximoNumeroContrato() {
+  const historico = lerHistoricoContratosGerados();
 
-  const concluido = contratoEstaConcluido();
-  const nomeArquivo = `contrato-${codigoClienteAtual}${concluido ? "-assinado" : ""}.html`;
+  return historico.reduce((maior, item) => {
+    const match = String(item.nome_arquivo || "").match(/^branding-(\d+)\.html$/i);
+    const numero = match ? Number(match[1]) : 0;
+    return Number.isFinite(numero) && numero > maior ? numero : maior;
+  }, 0) + 1;
+}
 
-  const blob = new Blob([contratoAtualCliente.html_final], {
-    type: "text/html;charset=utf-8"
-  });
+function obterNomeArquivoContrato() {
+  return `branding-${obterProximoNumeroContrato()}.html`;
+}
 
+function baixarHtmlContrato(html, nomeArquivo) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
 
+  const link = document.createElement("a");
   link.href = url;
   link.download = nomeArquivo;
   document.body.appendChild(link);
@@ -764,973 +678,1081 @@ function baixarContratoCliente() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function renderizarHistoricoContratoCliente() {
-  if (!historicoContratoCliente) return;
+async function gerarContratoClienteParaHistorico() {
+  try {
+    if (!validarDadosParaMaterialOuContrato()) return;
 
-  historicoContratoCliente.innerHTML = "";
-  historicoContratoCliente.style.display = "none";
+    const dados = obterDadosContratoCliente();
+    const historico = lerHistoricoContratosGerados();
+    const agoraIso = new Date().toISOString();
+
+    const item = {
+      id: `${Date.now()}`,
+      criado_em: agoraIso,
+      nome_arquivo: obterNomeArquivoContrato(),
+      status: "pendente",
+      dados
+    };
+
+    const htmlContrato = montarHtmlContratoCompleto(item.dados);
+
+    historico.unshift(item);
+    salvarHistoricoContratosGerados(historico);
+
+    const payloadContrato = {
+      contrato_titulo: dadosDunaContrato.titulo_contrato || "Contrato",
+      contrato_texto: htmlContrato,
+      contrato_modelo_nome: item.nome_arquivo,
+      contrato_status: "pendente",
+      contrato_enviado_em: agoraIso
+    };
+
+    const { data, error } = await supabaseClient
+      .from(TABELA_CLIENTES)
+      .update(payloadContrato)
+      .eq("codigo", codigoClienteAtual)
+      .select("*")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    clienteAtual = data || { ...(clienteAtual || {}), ...payloadContrato };
+
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+
+    mostrarMensagem("Contrato enviado para assinatura do cliente.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem(`Erro ao enviar contrato: ${error.message || "falha desconhecida"}`, "#ff6b6b");
+  }
 }
 
-function renderizarContrato() {
-  if (!clienteAtual) return;
+function baixarContratoDoHistorico(id) {
+  const historico = lerHistoricoContratosGerados();
+  const item = historico.find((contrato) => contrato.id === id);
 
-  const nome = obterNomeCliente(clienteAtual);
-  const supervisor = clienteEhSupervisor(clienteAtual);
-  const disponivel = contratoEstaDisponivel();
-  const concluido = contratoEstaConcluido();
-
-  if (nomeClienteTopo) nomeClienteTopo.textContent = nome;
-
-  if (contratoCard) {
-    contratoCard.style.display = supervisor ? "none" : "";
+  if (!item) {
+    mostrarMensagem("Contrato não encontrado no histórico.", "#ff6b6b");
+    return;
   }
 
-  if (tituloBoasVindas) {
-    tituloBoasVindas.classList.add("hero-titulo-classico");
-    tituloBoasVindas.innerHTML = `
-      <span class="hero-linha">Seja bem-vindo(a),</span>
-      <span class="hero-linha nome">${escapeHtml(nome)}</span>
+  baixarHtmlContrato(clienteAtual?.contrato_texto || montarHtmlContratoCompleto(item.dados), item.nome_arquivo || "contrato.html");
+}
+
+async function excluirContratoDoHistorico(id) {
+  const confirmar = window.confirm("Deseja apagar este contrato do histórico?");
+  if (!confirmar) return;
+
+  try {
+    const historicoAtual = lerHistoricoContratosGerados();
+    const itemRemovido = historicoAtual.find((contrato) => contrato.id === id);
+    const novoHistorico = historicoAtual.filter((contrato) => contrato.id !== id);
+
+    salvarHistoricoContratosGerados(novoHistorico);
+
+    if (itemRemovido && clienteAtual?.contrato_modelo_nome === itemRemovido.nome_arquivo) {
+      const payloadLimparContrato = {
+        contrato_titulo: null,
+        contrato_texto: null,
+        contrato_modelo_nome: null,
+        contrato_status: null,
+        contrato_enviado_em: null
+      };
+
+      const { data, error } = await supabaseClient
+        .from(TABELA_CLIENTES)
+        .update(payloadLimparContrato)
+        .eq("codigo", codigoClienteAtual)
+        .select("*")
+        .maybeSingle();
+
+      if (error) throw error;
+
+      clienteAtual = data || { ...(clienteAtual || {}), ...payloadLimparContrato };
+    }
+
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+
+    mostrarMensagem("Contrato removido do histórico.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao apagar contrato.", "#ff6b6b");
+  }
+}
+
+function sincronizarContratoAtualNoHistorico() {
+  if (!clienteAtual?.contrato_modelo_nome || !clienteAtual?.contrato_texto) return;
+
+  const historico = lerHistoricoContratosGerados();
+  const existe = historico.some((item) => item.nome_arquivo === clienteAtual.contrato_modelo_nome);
+
+  if (existe) return;
+
+  historico.unshift({
+    id: String(Date.now()),
+    criado_em: clienteAtual.contrato_enviado_em || new Date().toISOString(),
+    nome_arquivo: clienteAtual.contrato_modelo_nome,
+    status: clienteAtual.contrato_status || "pendente",
+    dados: obterDadosContratoCliente()
+  });
+
+  salvarHistoricoContratosGerados(historico);
+}
+
+function gerarHistoricoContratoVisual() {
+  if (!historicoContratos) return;
+
+  sincronizarContratoAtualNoHistorico();
+
+  const historico = lerHistoricoContratosGerados();
+
+  if (!historico.length) {
+    historicoContratos.innerHTML = `<div class="historico-vazio">Nenhum contrato gerado ainda.</div>`;
+    return;
+  }
+
+  historicoContratos.innerHTML = historico.map((item) => {
+    const concluido = String(item.status || "").toLowerCase() === "concluido";
+    const corStatus = concluido ? "#7CFC9A" : "#f59e0b";
+
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid #2a3040;border-radius:12px;background:#10131a;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;color:#ffffff;word-break:break-word;margin-bottom:6px;">
+            ${escaparHtml(item.nome_arquivo || "contrato.html")}
+          </div>
+          <div style="color:#c6cedd;font-size:0.9rem;margin-bottom:8px;">
+            Enviado em: ${escaparHtml(formatarDataHistorico(item.criado_em))}
+          </div>
+          <div style="display:inline-flex;width:fit-content;min-height:28px;padding:5px 10px;border-radius:999px;border:1px solid ${corStatus};color:${corStatus};font-size:0.78rem;font-weight:800;text-transform:uppercase;">
+            ${concluido ? "Concluído" : "Pendente de assinatura"}
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn-baixar-contrato-historico" data-id="${escaparHtml(item.id)}" style="border:none;border-radius:8px;background:#22c55e;color:#fff;font-weight:700;cursor:pointer;padding:9px 12px;">Baixar</button>
+          <button type="button" class="btn-excluir-contrato-historico" data-id="${escaparHtml(item.id)}" style="border:none;border-radius:8px;background:#d9534f;color:#fff;font-weight:700;cursor:pointer;padding:9px 12px;">Deletar</button>
+        </div>
+      </div>
     `;
+  }).join("");
+
+  document.querySelectorAll(".btn-baixar-contrato-historico").forEach((botao) => {
+    botao.onclick = () => baixarContratoDoHistorico(botao.dataset.id);
+  });
+
+  document.querySelectorAll(".btn-excluir-contrato-historico").forEach((botao) => {
+    botao.onclick = () => excluirContratoDoHistorico(botao.dataset.id);
+  });
+}
+
+function obterTituloArquivo(item) {
+  if (item.titulo_arquivo && String(item.titulo_arquivo).trim()) return String(item.titulo_arquivo).trim();
+
+  if (item.storage_path) {
+    const partes = String(item.storage_path).split("/");
+    return partes[partes.length - 1] || "Arquivo";
   }
 
-  if (subtituloCliente) {
-    subtituloCliente.textContent = "";
-    subtituloCliente.innerHTML = "";
-    subtituloCliente.style.display = "none";
-  }
+  if (item.video_url) return item.tipo === "url" ? "Link externo" : "Arquivo enviado";
 
-  if (codigoClienteEl) {
-    codigoClienteEl.style.display = "none";
-    codigoClienteEl.textContent = "";
-  }
+  return "Arquivo";
+}
 
-  renderizarHistoricoContratoCliente();
+function criarChaveGrupoHistorico(item) {
+  return String(item.storage_path || `${item.video_url || ""}|${item.data_inicio || ""}|${item.nome || ""}`).trim();
+}
 
-  if (supervisor) return;
+function agruparHistoricoArquivos(itens = []) {
+  const grupos = new Map();
 
-  if (contratoBadge) {
-    contratoBadge.textContent = concluido
-      ? "Contrato assinado"
-      : disponivel
-        ? "Contrato pendente"
-        : "Contrato indisponível";
+  itens.forEach((item) => {
+    const chave = criarChaveGrupoHistorico(item);
+    if (!chave) return;
 
-    contratoBadge.classList.toggle("inativo", !disponivel && !concluido);
-    contratoBadge.classList.toggle("pendente", disponivel && !concluido);
-    contratoBadge.classList.toggle("concluido", concluido);
-  }
-
-  if (contratoInfo) {
-    if (!disponivel) {
-      contratoInfo.textContent = "Seu contrato ainda não está pronto. Caso necessário, solicite à equipe Duna.";
-    } else if (concluido) {
-      contratoInfo.textContent = "Seu contrato foi assinado e está disponível para download.";
-    } else {
-      contratoInfo.textContent = "Seu contrato já está disponível. Para finalizá-lo, leia e conclua a assinatura.";
+    if (!grupos.has(chave)) {
+      grupos.set(chave, {
+        ids: [],
+        storage_path: item.storage_path || "",
+        video_url: item.video_url || "",
+        titulo: obterTituloArquivo(item),
+        tipo: item.tipo || "-",
+        data_inicio: item.data_inicio || item.created_at || null,
+        data_fim: item.data_fim || null,
+        pontos: []
+      });
     }
+
+    const grupo = grupos.get(chave);
+    grupo.ids.push(item.id);
+
+    const ponto = String(item.codigo || "").trim();
+    if (ponto && !grupo.pontos.includes(ponto)) grupo.pontos.push(ponto);
+
+    if (!grupo.data_fim && item.data_fim) grupo.data_fim = item.data_fim;
+  });
+
+  return Array.from(grupos.values());
+}
+
+function renderizarHistoricoArquivos(itens = []) {
+  if (!historicoArquivos) return;
+
+  if (!Array.isArray(itens) || !itens.length) {
+    historicoArquivos.innerHTML = `<div class="historico-vazio">Nenhum arquivo enviado para esta pasta ainda.</div>`;
+    return;
   }
 
-  if (btnAssinarContrato) {
-    if (!disponivel) {
-      btnAssinarContrato.style.display = "none";
-      btnAssinarContrato.disabled = true;
-      btnAssinarContrato.onclick = null;
-      return;
-    }
+  const grupos = agruparHistoricoArquivos(itens);
 
-    btnAssinarContrato.style.display = "";
-    btnAssinarContrato.textContent = concluido ? "Baixar contrato" : "Assinar contrato";
-    btnAssinarContrato.disabled = false;
-    btnAssinarContrato.classList.toggle("concluido", concluido);
-    btnAssinarContrato.classList.toggle("pendente", !concluido);
+  historicoArquivos.innerHTML = grupos.map((grupo) => {
+    const idsEncoded = encodeURIComponent(JSON.stringify(grupo.ids));
+    const tituloSeguro = escaparHtml(grupo.titulo || "");
+    const pontosTexto = grupo.pontos.length ? grupo.pontos.join(", ") : "-";
 
-    btnAssinarContrato.onclick = () => {
-      if (concluido) {
-        baixarContratoCliente();
-        return;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid #2a3040;border-radius:12px;background:#10131a;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;margin-bottom:8px;color:#ffffff;word-break:break-word;">${tituloSeguro}</div>
+          <div style="color:#c6cedd;font-size:0.9rem;line-height:1.55;">
+            <div><strong>Pontos:</strong> ${escaparHtml(pontosTexto)}</div>
+            <div><strong>Tipo:</strong> ${escaparHtml(grupo.tipo)}</div>
+            <div><strong>Início:</strong> ${escaparHtml(formatarDataHistorico(grupo.data_inicio))}</div>
+            <div><strong>Fim:</strong> ${escaparHtml(grupo.data_fim ? formatarDataHistorico(grupo.data_fim) : "-")}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:110px;flex-shrink:0;">
+          <button type="button" class="btn-renomear-historico" data-ids="${idsEncoded}" data-titulo="${tituloSeguro}" style="height:36px;border:none;border-radius:8px;background:#f59e0b;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;">Renomear</button>
+          <a href="${escaparHtml(grupo.video_url || "#")}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;justify-content:center;height:36px;border-radius:8px;background:#2d8cff;color:#fff;text-decoration:none;font-size:0.82rem;font-weight:700;">Abrir</a>
+          <button type="button" class="btn-deletar-historico" data-ids="${idsEncoded}" data-storage-path="${escaparHtml(grupo.storage_path || "")}" style="height:36px;border:none;border-radius:8px;background:#ff5f5f;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;">Excluir</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  ativarBotoesRenomearHistorico();
+  ativarBotoesDeletarHistorico();
+}
+
+function ativarBotoesRenomearHistorico() {
+  document.querySelectorAll(".btn-renomear-historico").forEach((botao) => {
+    botao.onclick = async () => {
+      let ids = [];
+      try {
+        ids = JSON.parse(decodeURIComponent(botao.dataset.ids || "[]"));
+      } catch (error) {
+        console.error("Erro ao ler ids para renomear:", error);
       }
 
-      mostrarLoading();
-
-      const params = new URLSearchParams({
-        codigo: codigoClienteAtual,
-        contrato: String(contratoAtualCliente.id || "")
-      });
-
-      setTimeout(() => {
-        window.location.href = `/assinatura.html?${params.toString()}`;
-      }, 220);
+      await renomearGrupoHistorico(ids, botao.dataset.titulo || "");
     };
-  }
-}
-
-function montarCardPonto(ponto) {
-  const codigo = normalizarCodigo(ponto.codigo);
-  const historico = historicosPorPonto[codigo] || [];
-  const status = calcularStatusPonto(ponto, historico);
-  const ativo = pontoSelecionado === codigo;
-
-  return `
-    <button class="ponto-card ${ativo ? "ativo" : ""}" type="button" data-codigo="${escapeHtml(codigo)}">
-      <img src="${escapeHtml(obterImagemPonto(ponto))}" alt="${escapeHtml(obterNomePonto(ponto))}">
-      <div>
-        <h3>${escapeHtml(obterNomePonto(ponto))}</h3>
-        <p>${escapeHtml(obterLocalizacaoPonto(ponto))}</p>
-        <span class="status-mini ${status.classe}">${escapeHtml(status.detalhe)}</span>
-      </div>
-    </button>
-  `;
-}
-
-function ordenarPontosPorPrioridade(lista = pontosContratados) {
-  return [...(lista || [])].sort((a, b) => {
-    const codigoA = normalizarCodigo(a.codigo);
-    const codigoB = normalizarCodigo(b.codigo);
-    const statusA = calcularStatusPonto(a, historicosPorPonto[codigoA] || []);
-    const statusB = calcularStatusPonto(b, historicosPorPonto[codigoB] || []);
-
-    const ativoA = statusA.classe === "ativo" ? 0 : 1;
-    const ativoB = statusB.classe === "ativo" ? 0 : 1;
-
-    if (ativoA !== ativoB) return ativoA - ativoB;
-
-    const ordemA = pontosContratados.findIndex((item) => normalizarCodigo(item.codigo) === codigoA);
-    const ordemB = pontosContratados.findIndex((item) => normalizarCodigo(item.codigo) === codigoB);
-
-    return ordemA - ordemB;
   });
 }
 
-function obterPontoInicialPrioritario() {
-  return ordenarPontosPorPrioridade(pontosContratados)[0] || null;
+function ativarBotoesDeletarHistorico() {
+  document.querySelectorAll(".btn-deletar-historico").forEach((botao) => {
+    botao.onclick = async () => {
+      let ids = [];
+      try {
+        ids = JSON.parse(decodeURIComponent(botao.dataset.ids || "[]"));
+      } catch (error) {
+        console.error("Erro ao ler ids do histórico:", error);
+      }
+
+      await deletarItemHistorico(ids, botao.dataset.storagePath || "");
+    };
+  });
 }
 
-function renderizarListaPontos() {
-  if (contadorPontos) {
-    const total = pontosContratados.length;
-    contadorPontos.textContent = total === 1 ? "1 ponto" : `${total} pontos`;
-  }
+async function renomearGrupoHistorico(ids, tituloAtual) {
+  const listaIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  if (!listaIds.length) return;
 
-  if (!listaPontosCliente) return;
+  const novoTitulo = window.prompt("Digite o novo nome do arquivo:", tituloAtual || "");
+  if (novoTitulo === null) return;
 
-  if (!pontosContratados.length) {
-    listaPontosCliente.innerHTML = `<div class="vazio">Nenhum ponto contratado encontrado para este cliente.</div>`;
+  const tituloFinal = String(novoTitulo || "").trim();
+
+  if (!tituloFinal) {
+    mostrarMensagem("Digite um nome válido para o arquivo.", "#ff6b6b");
     return;
   }
 
-  const pontosOrdenados = ordenarPontosPorPrioridade(pontosContratados);
-
-  listaPontosCliente.innerHTML = pontosOrdenados.map(montarCardPonto).join("");
-
-  document.querySelectorAll(".ponto-card").forEach((card) => {
-    card.onclick = () => abrirPonto(card.dataset.codigo);
-  });
-}
-
-function obterChavePreviewVirtual() {
-  return `preview_virtual_${codigoClienteAtual}_${pontoSelecionado}`;
-}
-
-function lerEstadoPreviewVirtual() {
   try {
-    return JSON.parse(localStorage.getItem(obterChavePreviewVirtual()) || "{}");
-  } catch {
-    return {};
+    const { error } = await supabaseClient
+      .from(TABELA_PLAYLISTS)
+      .update({ titulo_arquivo: tituloFinal })
+      .in("id", listaIds);
+
+    if (error) throw error;
+
+    sessionStorage.removeItem(obterChaveCache("historico_arquivos"));
+    await carregarHistoricoArquivos({ forcarAtualizacao: true });
+    mostrarMensagem("Nome do arquivo atualizado com sucesso.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao renomear arquivo.", "#ff6b6b");
   }
 }
 
-function salvarEstadoPreviewVirtual(estado) {
-  localStorage.setItem(obterChavePreviewVirtual(), JSON.stringify(estado));
-}
+async function deletarItemHistorico(ids, storagePath) {
+  const listaIds = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  if (!listaIds.length) return;
 
-function obterIdMaterialPreview(item) {
-  return String(item?.id || item?.storage_path || item?.video_url || item?.arquivo_url || item?.url || item?.nome || "").trim();
-}
+  const confirmar = window.confirm("Deseja deletar este arquivo de todos os pontos?");
+  if (!confirmar) return;
 
-function obterDuracaoVirtualPreview(item, tipo = "") {
-  const tipoFinal = tipo || detectarTipo(normalizarUrl(obterUrlPlaylist(item)), item?.tipo);
+  try {
+    const caminho = String(storagePath || "").trim();
 
-  if (tipoFinal === "imagem") return 10000;
-  if (tipoFinal === "site") return 10000;
-
-  return 20000;
-}
-
-function obterDuracaoMaterialMs(item) {
-  const url = normalizarUrl(obterUrlPlaylist(item));
-  const tipo = detectarTipo(url, item?.tipo);
-  return obterDuracaoVirtualPreview(item, tipo);
-}
-
-function calcularEstadoPorRelogio(playlist) {
-  const lista = obterListaPreviewAtiva(playlist);
-  const duracaoTotal = lista.reduce((total, item) => total + obterDuracaoMaterialMs(item), 0);
-
-  if (!lista.length || duracaoTotal <= 0) {
-    return { indice: 0, restante: 0 };
-  }
-
-  let restanteRelogio = Date.now() % duracaoTotal;
-
-  for (let index = 0; index < lista.length; index += 1) {
-    const duracao = obterDuracaoMaterialMs(lista[index]);
-
-    if (restanteRelogio < duracao) {
-      return {
-        indice: index,
-        restante: duracao - restanteRelogio
-      };
+    if (caminho) {
+      const { error: storageError } = await supabaseClient.storage.from(BUCKET).remove([caminho]);
+      if (storageError) console.error("Erro ao deletar do storage:", storageError);
     }
 
-    restanteRelogio -= duracao;
-  }
+    const { error: deleteError } = await supabaseClient
+      .from(TABELA_PLAYLISTS)
+      .delete()
+      .in("id", listaIds);
 
-  return {
-    indice: 0,
-    restante: obterDuracaoMaterialMs(lista[0])
-  };
+    if (deleteError) throw deleteError;
+
+    sessionStorage.removeItem(obterChaveCache("historico_arquivos"));
+    await carregarHistoricoArquivos({ forcarAtualizacao: true });
+    await sincronizarStatusCliente();
+
+    mostrarMensagem("Arquivo excluído de todos os pontos.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem("Erro ao excluir arquivo.", "#ff6b6b");
+  }
 }
 
-function calcularEstadoVirtualAtual(playlist, estadoSalvo, offline = false) {
-  if (!playlist.length) {
-    return {
-      indice: 0,
-      restante: 0
-    };
-  }
+async function carregarHistoricoArquivos(opcoes = {}) {
+  try {
+    const cache = lerCache("historico_arquivos", CACHE_HISTORICO_ARQUIVOS_TTL);
 
-  const indiceSalvo = Number(estadoSalvo.indice);
-  const iniciouEm = Number(estadoSalvo.iniciouEm || 0);
-
-  if (offline && Number.isFinite(indiceSalvo) && indiceSalvo >= 0) {
-    return {
-      indice: indiceSalvo >= playlist.length ? 0 : indiceSalvo,
-      restante: 0
-    };
-  }
-
-  if (!iniciouEm) {
-    return calcularEstadoPorRelogio(playlist);
-  }
-
-  let indice = Number.isFinite(indiceSalvo) && indiceSalvo >= 0 ? indiceSalvo : 0;
-  if (indice >= playlist.length) indice = 0;
-
-  let tempoPassado = Math.max(Date.now() - iniciouEm, 0);
-
-  while (tempoPassado >= 0) {
-    const item = playlist[indice];
-    const duracao = obterDuracaoMaterialMs(item);
-
-    if (tempoPassado < duracao) {
-      return {
-        indice,
-        restante: duracao - tempoPassado
-      };
+    if (!opcoes.forcarAtualizacao && cache?.dados) {
+      renderizarHistoricoArquivos(cache.dados || []);
+      if (cache.fresco) return cache.dados || [];
     }
 
-    tempoPassado -= duracao;
-    indice = indice + 1 >= playlist.length ? 0 : indice + 1;
-  }
-
-  return calcularEstadoPorRelogio(playlist);
-}
-
-function renderizarPreview(lista, indice = null, statusPonto = null) {
-  limparTimerPreview();
-
-  if (!previewMidia) return;
-
-  const playlist = obterListaPreviewAtiva(lista);
-  const offline = statusPonto?.classe !== "ativo";
-  const tituloPreview = document.getElementById("tituloPreview");
-
-  if (tituloPreview) {
-    tituloPreview.textContent = offline ? "Playlist offline |" : "Exibição em tempo real |";
-  }
-
-  if (!playlist.length) {
-    if (previewNome) previewNome.textContent = "";
-
-    previewMidia.classList.toggle("offline", offline);
-    previewMidia.innerHTML = `
-      <div class="preview-vazio">Nenhum material para preview neste ponto.</div>
-      ${offline ? `<div class="preview-aviso-offline">Você está assistindo a playlist da TV offline.</div>` : ""}
-    `;
-    return;
-  }
-
-  const estadoSalvo = lerEstadoPreviewVirtual();
-  const estadoVirtual = indice === null
-    ? calcularEstadoVirtualAtual(playlist, estadoSalvo, offline)
-    : { indice: Number(indice || 0), restante: 0 };
-
-  const indexSeguro = estadoVirtual.indice >= playlist.length ? 0 : estadoVirtual.indice;
-  const item = playlist[indexSeguro];
-  const proximoIndex = indexSeguro + 1 >= playlist.length ? 0 : indexSeguro + 1;
-
-  const url = normalizarUrl(obterUrlPlaylist(item));
-  const tipo = detectarTipo(url, item.tipo);
-  const arquivo = obterNomeArquivo(item);
-  const agora = Date.now();
-  const duracao = obterDuracaoVirtualPreview(item, tipo);
-  const restante = estadoVirtual.restante > 0 ? estadoVirtual.restante : duracao;
-  const idMaterial = obterIdMaterialPreview(item);
-
-  if (previewNome) previewNome.textContent = arquivo;
-
-  previewMidia.classList.toggle("offline", offline);
-
-  const avisoOffline = offline
-    ? `<div class="preview-aviso-offline">Você está assistindo a playlist da TV offline.</div>`
-    : "";
-
-  if (!offline) {
-    salvarEstadoPreviewVirtual({
-      indice: indexSeguro,
-      idMaterial,
-      iniciouEm: agora - (duracao - restante),
-      expiraEm: agora + restante
-    });
-  }
-
-  if (!url) {
-    previewMidia.innerHTML = `
-      <div class="preview-vazio">Material sem URL disponível.</div>
-      ${avisoOffline}
-    `;
-  } else if (tipo === "imagem") {
-    previewMidia.innerHTML = `
-      <img src="${escapeHtml(url)}" alt="${escapeHtml(arquivo)}" loading="lazy">
-      ${avisoOffline}
-    `;
-  } else if (tipo === "site") {
-    previewMidia.innerHTML = `
-      <iframe src="${escapeHtml(url)}" allow="autoplay; fullscreen" loading="lazy"></iframe>
-      ${avisoOffline}
-    `;
-  } else {
-    previewMidia.innerHTML = `
-      <video src="${escapeHtml(url)}" ${offline ? "" : "autoplay"} muted playsinline preload="metadata"></video>
-      ${avisoOffline}
-    `;
-  }
-
-  if (offline) return;
-
-  timerPreviewPlaylist = setTimeout(async () => {
-    renderizarPreview(playlist, proximoIndex, statusPonto);
-  }, restante);
-}
-
-function renderizarMateriais(lista) {
-  if (!listaMateriais) return;
-
-  if (!lista.length) {
-    listaMateriais.innerHTML = `<div class="vazio">Nenhum material deste cliente encontrado neste ponto.</div>`;
-    return;
-  }
-
-  listaMateriais.innerHTML = lista.map((item, index) => {
-    const arquivo = obterNomeArquivo(item);
-    const posicao = Number(item.posicao_playlist || index + 1);
-
-    return `
-      <div class="linha-material">
-        <span>${escapeHtml(`${posicao}ª posição`)}</span>
-        <div>
-          <strong>${escapeHtml(arquivo)}</strong>
-        </div>
-        <span>${formatarDataHora(item.created_at)}</span>
-        <span>${formatarData(item.data_fim)}</span>
-      </div>
-    `;
-  }).join("");
-}
-
-function obterTextoEvento(evento) {
-  if (eventoEhAtivo(evento)) return "Ativo";
-  if (eventoEhInativo(evento)) return "Inativo";
-  return evento || "Registro";
-}
-
-function renderizarHistorico(historico) {
-  if (!historicoStatusPonto) return;
-
-  const historico72h = limitarHistorico72Horas(historico);
-
-  if (!historico72h.length) {
-    historicoStatusPonto.innerHTML = `<div class="vazio historico-vazio-pequeno">Sem histórico nas últimas 72 horas.</div>`;
-    return;
-  }
-
-  historicoStatusPonto.innerHTML = historico72h.map((item, index) => {
-    const evento = obterEventoHistorico(item);
-    const texto = obterTextoEvento(evento);
-    const classe = index === 0 && eventoEhAtivo(evento) ? "ativo-primeiro" : "neutro";
-
-    return `
-      <div class="historico-item ${classe}">
-        <span>${index + 1}.</span>
-        <span class="historico-evento ${classe}">${escapeHtml(texto)}</span>
-        <span>${formatarDataHora(obterDataHistorico(item))}</span>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderizarDetalheBase(ponto, historico) {
-  const status = calcularStatusPonto(ponto, historico);
-
-  if (estadoVazio) estadoVazio.style.display = "none";
-  if (detalhePonto) detalhePonto.style.display = "block";
-  if (nomePontoDetalhe) nomePontoDetalhe.textContent = obterNomePonto(ponto);
-  if (localPontoDetalhe) localPontoDetalhe.textContent = obterLocalizacaoPonto(ponto);
-
-  if (statusPontoDetalhe) {
-    statusPontoDetalhe.textContent = status.texto;
-    statusPontoDetalhe.className = `status-grande ${status.classe}`;
-  }
-
-  if (statusDesdeDetalhe) {
-    const ultimoRegistro = historico[0] || null;
-    const dataUltimoRegistro = obterDataHistorico(ultimoRegistro) || obterUltimoPingPonto(ponto);
-    statusDesdeDetalhe.textContent = dataUltimoRegistro ? `último registro: ${formatarDataHora(dataUltimoRegistro)}` : "ainda sem registro";
-  }
-}
-
-async function buscarCliente(codigo) {
-  const { data, error } = await supabaseClient
-    .from(TABELA_CLIENTES)
-    .select("*")
-    .eq("codigo", codigo)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data;
-}
-
-async function buscarContratoCliente(codigo) {
-  const consultas = [
-    { ordenarPor: "enviado_em" },
-    { ordenarPor: "created_at" }
-  ];
-
-  for (const consulta of consultas) {
     const { data, error } = await supabaseClient
-      .from(TABELA_CONTRATOS_CLIENTES)
+      .from(TABELA_PLAYLISTS)
       .select("*")
-      .eq("codigo_cliente", codigo)
-      .order(consulta.ordenarPor, { ascending: false })
-      .limit(1);
+      .eq("codigo_cliente", codigoClienteAtual)
+      .order("ordem", { ascending: false });
 
-    if (!error) {
-      if (data?.[0]) return data[0];
-      continue;
+    if (error) throw error;
+
+    salvarCache("historico_arquivos", data || []);
+    renderizarHistoricoArquivos(data || []);
+    return data || [];
+  } catch (error) {
+    console.error(error);
+
+    if (historicoArquivos) {
+      historicoArquivos.innerHTML = `<div class="historico-vazio">Erro ao carregar histórico de arquivo.</div>`;
     }
 
-    console.warn("Falha ao buscar contrato do cliente:", error);
+    return [];
   }
-
-  const { data: clienteContrato, error: erroClienteContrato } = await supabaseClient
-    .from(TABELA_CLIENTES)
-    .select("*")
-    .eq("codigo", codigo)
-    .maybeSingle();
-
-  if (erroClienteContrato) {
-    console.warn("Falha ao buscar contrato em dados do cliente:", erroClienteContrato);
-    return null;
-  }
-
-  return normalizarContratoClienteLegado(clienteContrato);
 }
 
-async function buscarVinculosCliente(codigo) {
-  const codigoNormalizado = normalizarCodigo(codigo);
-  const codigosEncontrados = new Set();
+function renderizarPontosSelecionaveis(selecionados = []) {
+  if (!listaPontos) return;
+
+  const codigos = Object.keys(pontosData);
+
+  if (!codigos.length) {
+    listaPontos.innerHTML = `<div class="vazio">Nenhum ponto encontrado na tabela pontos.</div>`;
+    return;
+  }
+
+  const selecionadosSet = new Set(selecionados.map((item) => String(item || "").trim()));
+  const cardsSelecionados = [];
+  const cardsDisponiveis = [];
+  const cardsIndisponiveis = [];
+
+  codigos
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }))
+    .forEach((codigoPonto) => {
+      const ponto = pontosData[codigoPonto];
+      const nome = obterNomeDoPonto(ponto, codigoPonto);
+      const checked = selecionadosSet.has(codigoPonto);
+      const disponivel = pontoEstaDisponivel(ponto);
+      const disabled = !disponivel;
+
+      const card = `
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;min-height:52px;cursor:${disabled ? "not-allowed" : "pointer"};border:1px solid ${checked ? "#8ce063" : disabled ? "#ff7b7b" : "#6f8bff"};background:${checked ? "#76d34f" : disabled ? "#e85252" : "#4f6ff0"};color:#fff;opacity:1;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.16);">
+          <input
+            type="checkbox"
+            name="pontos"
+            value="${escaparHtml(codigoPonto)}"
+            ${checked ? "checked" : ""}
+            ${disabled ? "disabled" : ""}
+            style="width:16px;height:16px;flex-shrink:0;accent-color:#ffffff;cursor:${disabled ? "not-allowed" : "pointer"};"
+          >
+          <div style="display:flex;align-items:center;min-width:0;flex:1;overflow:hidden;">
+            <span style="font-size:0.88rem;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${escaparHtml(nome)}
+            </span>
+          </div>
+        </label>
+      `;
+
+      if (checked) cardsSelecionados.push(card);
+      else if (!disponivel) cardsIndisponiveis.push(card);
+      else cardsDisponiveis.push(card);
+    });
+
+  const montarGrupo = (titulo, cor, cards) => {
+    if (!cards.length) return "";
+    return `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:0.92rem;font-weight:700;color:${cor};text-transform:lowercase;">${titulo}</div>
+        <div style="display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:8px;" class="grid-pontos-grupo">
+          ${cards.join("")}
+        </div>
+      </div>
+    `;
+  };
+
+  listaPontos.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      ${montarGrupo("selecionado", "#7CFC9A", cardsSelecionados)}
+      ${montarGrupo("disponível", "#6ea8ff", cardsDisponiveis)}
+      ${montarGrupo("indisponível", "#ff8f8f", cardsIndisponiveis)}
+    </div>
+  `;
+
+  atualizarCamposCliente();
+}
+
+function extrairCodigoClienteVinculo(item) {
+  return normalizarCodigo(item?.cliente_codigo || item?.codigo_cliente || item?.codigo || "");
+}
+
+function extrairCodigoPontoVinculo(item) {
+  return String(item?.ponto_codigo || item?.codigo_ponto || item?.codigo || "").trim();
+}
+
+async function carregarVinculosCliente(opcoes = {}) {
+  const cache = lerCache("vinculos", CACHE_VINCULOS_TTL);
+
+  if (!opcoes.forcarAtualizacao && cache?.dados) {
+    if (cache.fresco) return cache.dados || [];
+  }
 
   try {
     const { data, error } = await supabaseClient
-      .from(TABELA_CLIENTE_PONTOS)
+      .from(TABELA_VINCULOS)
       .select("*");
 
-    if (!error) {
-      (data || []).forEach((item) => {
-        const clienteDoVinculo = normalizarCodigo(
-          item?.cliente_codigo ||
-          item?.codigo_cliente ||
-          item?.cliente ||
-          ""
-        );
+    if (error) throw error;
 
-        if (clienteDoVinculo !== codigoNormalizado) return;
+    const vinculos = (data || [])
+      .filter((item) => extrairCodigoClienteVinculo(item) === codigoClienteAtual)
+      .map(extrairCodigoPontoVinculo)
+      .filter(Boolean);
 
-        const codigoPonto = normalizarCodigo(
-          item?.ponto_codigo ||
-          item?.codigo_ponto ||
-          item?.ponto ||
-          item?.codigo_tela ||
-          item?.codigo ||
-          ""
-        );
-
-        if (codigoPonto) codigosEncontrados.add(codigoPonto);
-      });
-    } else {
-      console.warn("Falha ao buscar vínculos em playercliente:", error);
-    }
+    salvarCache("vinculos", vinculos);
+    return vinculos;
   } catch (error) {
-    console.warn("Erro ao buscar vínculos em playercliente:", error);
-  }
-
-  try {
-    const { data, error } = await supabaseClient
-      .from(TABELA_PLAYLIST)
-      .select("codigo,codigo_cliente")
-      .eq("codigo_cliente", codigoNormalizado);
-
-    if (!error) {
-      (data || []).forEach((item) => {
-        const codigoPonto = normalizarCodigo(item?.codigo || "");
-        if (codigoPonto) codigosEncontrados.add(codigoPonto);
-      });
-    } else {
-      console.warn("Falha ao buscar pontos pela playlist:", error);
-    }
-  } catch (error) {
-    console.warn("Erro ao buscar pontos pela playlist:", error);
-  }
-
-  return Array.from(codigosEncontrados);
-}
-
-async function buscarPontos(codigos) {
-  const codigosNormalizados = Array.from(
-    new Set((codigos || []).map(normalizarCodigo).filter(Boolean))
-  );
-
-  if (!codigosNormalizados.length) return [];
-
-  const { data, error } = await supabaseClient
-    .from(TABELA_PONTOS)
-    .select("*")
-    .in("codigo", codigosNormalizados);
-
-  if (error) throw error;
-
-  const encontrados = (data || []).map((ponto) => ({
-    ...ponto,
-    codigo: normalizarCodigo(ponto.codigo)
-  }));
-
-  const encontradosSet = new Set(encontrados.map((ponto) => normalizarCodigo(ponto.codigo)));
-
-  const faltantes = codigosNormalizados
-    .filter((codigo) => !encontradosSet.has(codigo))
-    .map((codigo) => ({
-      codigo,
-      nome: codigo,
-      nome_painel: codigo,
-      cidade: "",
-      endereco: "",
-      status: "ativo",
-      disponivel: true
-    }));
-
-  const todos = [...encontrados, ...faltantes];
-  const ordem = new Map(codigosNormalizados.map((codigo, index) => [codigo, index]));
-
-  return todos.sort((a, b) => {
-    const codigoA = normalizarCodigo(a.codigo);
-    const codigoB = normalizarCodigo(b.codigo);
-
-    const posA = ordem.has(codigoA) ? ordem.get(codigoA) : 9999;
-    const posB = ordem.has(codigoB) ? ordem.get(codigoB) : 9999;
-
-    return posA - posB;
-  });
-}
-
-async function buscarPlaylistPonto(codigo, opcoes = {}) {
-  const codigoNormalizado = normalizarCodigo(codigo);
-  const cache = lerCacheArea(`playlist_${codigoNormalizado}`, CACHE_PLAYLIST_TTL);
-
-  if (!opcoes.forcarAtualizacao && cache?.dados) {
-    return cache.dados;
-  }
-
-  const { data, error } = await supabaseClient
-    .from(TABELA_PLAYLIST)
-    .select("*")
-    .eq("codigo", codigoNormalizado)
-    .order("ordem", { ascending: true });
-
-  if (error) {
-    console.warn("Falha ao buscar playlist do ponto:", codigoNormalizado, error);
+    console.error("Erro ao buscar vínculos em playercliente:", error);
     return cache?.dados || [];
   }
-
-  const playlist = (data || []).sort((a, b) => {
-    const ordemA = Number(a.ordem || 0);
-    const ordemB = Number(b.ordem || 0);
-
-    if (ordemA !== ordemB) return ordemA - ordemB;
-
-    const dataA = new Date(a.created_at || 0).getTime() || 0;
-    const dataB = new Date(b.created_at || 0).getTime() || 0;
-
-    return dataA - dataB;
-  });
-
-  salvarCacheArea(`playlist_${codigoNormalizado}`, playlist);
-  return playlist;
 }
 
-async function buscarHistoricoPonto(codigo, opcoes = {}) {
-  const codigoNormalizado = normalizarCodigo(codigo);
-  const cache = lerCacheArea(`historico_${codigoNormalizado}`, CACHE_STATUS_TTL);
+async function calcularStatusClienteRealPorCodigoCliente() {
+  const cache = lerCache("historico_arquivos", CACHE_HISTORICO_ARQUIVOS_TTL);
+  let data = Array.isArray(cache?.dados) ? cache.dados : null;
 
-  if (!opcoes.forcarAtualizacao && cache?.dados) {
-    return cache.dados;
+  if (!data) {
+    const resposta = await supabaseClient
+      .from(TABELA_PLAYLISTS)
+      .select("data_fim")
+      .eq("codigo_cliente", codigoClienteAtual);
+
+    if (resposta.error) return "Não ativo";
+    data = resposta.data || [];
   }
 
-  const consultas = [
-    {
-      filtro: "ponto_codigo",
-      colunas: "*",
-      ordenarPor: "ultimo_ping"
-    },
-    {
-      filtro: "ponto_codigo",
-      colunas: "*",
-      ordenarPor: "created_at"
-    },
-    {
-      filtro: "codigo",
-      colunas: "*",
-      ordenarPor: "created_at"
+  const ativos = (data || []).filter((item) => !itemEstaInativo(item));
+  return ativos.length ? "Ativo" : "Não ativo";
+}
+
+async function sincronizarStatusCliente() {
+  const statusReal = await calcularStatusClienteRealPorCodigoCliente();
+  const statusBanco = statusReal === "Ativo" ? "ativo" : "inativo";
+
+  atualizarStatusClienteVisual(statusReal);
+
+  const { error } = await supabaseClient
+    .from(TABELA_CLIENTES)
+    .update({
+      status: statusBanco,
+      statuscliente: statusBanco
+    })
+    .eq("codigo", codigoClienteAtual);
+
+  if (error) console.error(error);
+}
+
+function validarDadosCliente() {
+  let valido = true;
+  const camposObrigatorios = [inputNome, inputTelefone, inputEmail, inputCpfCnpj];
+
+  [inputNome, inputTelefone, inputEmail, inputCpfCnpj, inputVencimento].forEach(limparErro);
+
+  camposObrigatorios.forEach((campo) => {
+    if (!String(campo?.value || "").trim()) {
+      marcarErro(campo);
+      valido = false;
+    } else {
+      limparErro(campo);
     }
+  });
+
+  if (!valido) {
+    mostrarMensagem("Preencha os dados obrigatórios do cliente.", "#ff6b6b");
+    return false;
+  }
+
+  return true;
+}
+
+function validarDadosParaMaterialOuContrato() {
+  if (!validarDadosCliente()) return false;
+
+  let valido = true;
+
+  if (!String(inputVencimento?.value || "").trim()) {
+    marcarErro(inputVencimento);
+    valido = false;
+  } else {
+    limparErro(inputVencimento);
+  }
+
+  if (!obterPontosMarcados().length) {
+    mostrarMensagem("Selecione ao menos um ponto.", "#ff6b6b");
+    valido = false;
+  }
+
+  if (!valido) {
+    mostrarMensagem("Selecione os pontos e informe o vencimento da mídia.", "#ff6b6b");
+    return false;
+  }
+
+  return true;
+}
+
+async function carregarCliente() {
+  const { data, error } = await supabaseClient
+    .from(TABELA_CLIENTES)
+    .select("*")
+    .eq("codigo", codigoClienteAtual)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Erro ao buscar cliente em dadosclientes:", error);
+    throw error;
+  }
+
+  if (inputCodigo) inputCodigo.textContent = codigoClienteAtual;
+  clienteAtual = data || null;
+
+  if (!data) {
+    if (inputNome) inputNome.value = "";
+    if (inputTelefone) inputTelefone.value = "";
+    if (inputEmail) inputEmail.value = "";
+    if (inputCpfCnpj) inputCpfCnpj.value = "";
+    if (inputVencimento) inputVencimento.value = "";
+    if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(0);
+    if (inputDataPostagem) inputDataPostagem.value = new Date().toISOString().split("T")[0];
+
+    atualizarStatusClienteVisual("Não ativo");
+    renderizarPontosSelecionaveis([]);
+    renderizarHistoricoArquivos([]);
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+    ativarBotaoSalvar();
+
+    mostrarMensagem(`Cliente ${codigoClienteAtual} ainda não existe no banco. Preencha e clique em Salvar.`, "#ffb86b");
+    return;
+  }
+
+  const nomeFinal = data.nome_completo || data.nome || "";
+
+  if (inputNome) inputNome.value = nomeFinal;
+  if (inputTelefone) inputTelefone.value = formatarTelefone(data.telefone || "");
+  if (inputEmail) inputEmail.value = data.email || "";
+  if (inputCpfCnpj) inputCpfCnpj.value = formatarCpfCnpj(data.cpf_cnpj || "");
+  if (inputVencimento) inputVencimento.value = data.vencimento_midia || "";
+  if (inputValorContratado) inputValorContratado.value = formatarMoedaBR(data.valor_contratado ?? 0);
+  if (inputDataPostagem) inputDataPostagem.value = data.data_postagem || new Date().toISOString().split("T")[0];
+
+  const statusBanco = data.statuscliente || data.status || "inativo";
+  atualizarStatusClienteVisual(String(statusBanco).toLowerCase() === "ativo" ? "Ativo" : "Não ativo");
+
+  const selecionados = await carregarVinculosCliente();
+
+  renderizarPontosSelecionaveis(selecionados);
+  await carregarHistoricoArquivos();
+  await sincronizarStatusCliente();
+
+  gerarHistoricoContratoVisual();
+  gerarContratoCliente();
+  desativarBotaoSalvar();
+
+  mostrarMensagem(`Cliente ${codigoClienteAtual} carregado com sucesso.`, "#7CFC9A");
+}
+
+async function inserirVinculosCliente(vinculos) {
+  if (!vinculos.length) return;
+
+  const { error } = await supabaseClient
+    .from(TABELA_VINCULOS)
+    .insert(vinculos);
+
+  if (!error) return;
+
+  const erroTexto = String(error.message || "").toLowerCase();
+  const erroColuna = erroTexto.includes("column") || erroTexto.includes("schema cache") || erroTexto.includes("does not exist");
+
+  if (!erroColuna) throw error;
+
+  const fallback = vinculos.map((item) => ({
+    codigo_cliente: item.cliente_codigo,
+    ponto_codigo: item.ponto_codigo,
+    tipo_vinculo: item.tipo_vinculo
+  }));
+
+  const { error: fallbackError } = await supabaseClient
+    .from(TABELA_VINCULOS)
+    .insert(fallback);
+
+  if (fallbackError) throw fallbackError;
+}
+
+async function apagarVinculosCliente() {
+  const tentativas = [
+    ["cliente_codigo", codigoClienteAtual],
+    ["codigo_cliente", codigoClienteAtual]
   ];
 
-  for (const consulta of consultas) {
-    const { data, error } = await supabaseClient
-      .from(TABELA_HISTORICO)
-      .select(consulta.colunas)
-      .eq(consulta.filtro, codigoNormalizado)
-      .order(consulta.ordenarPor, { ascending: false })
-      .limit(120);
+  let ultimoErro = null;
 
-    if (!error) {
-      const historico = data || [];
-      salvarCacheArea(`historico_${codigoNormalizado}`, historico);
-      return historico;
-    }
+  for (const [campo, valor] of tentativas) {
+    const { error } = await supabaseClient
+      .from(TABELA_VINCULOS)
+      .delete()
+      .eq(campo, valor);
 
-    console.warn("Falha ao buscar histórico:", error);
+    if (!error) return;
+    ultimoErro = error;
   }
 
-  return cache?.dados || [];
+  if (ultimoErro) throw ultimoErro;
 }
 
-async function carregarHistoricosIniciais(pontos, opcoes = {}) {
-  const pares = await Promise.all(
-    pontos.map(async (ponto) => {
-      const codigo = normalizarCodigo(ponto.codigo);
+async function salvarVinculosSelecionados() {
+  const pontosSelecionados = obterPontosMarcados();
 
-      try {
-        const historico = await buscarHistoricoPonto(codigo, opcoes);
-        return [codigo, limitarHistorico72Horas(historico)];
-      } catch {
-        return [codigo, []];
-      }
-    })
-  );
+  await apagarVinculosCliente();
 
-  historicosPorPonto = Object.fromEntries(pares);
+  const vinculos = pontosSelecionados.map((codigoPonto) => ({
+    cliente_codigo: codigoClienteAtual,
+    ponto_codigo: codigoPonto,
+    tipo_vinculo: "cliente"
+  }));
+
+  await inserirVinculosCliente(vinculos);
+  sessionStorage.removeItem(obterChaveCache("vinculos"));
 }
 
-async function carregarPlaylistsIniciais(pontos, opcoes = {}) {
-  const pares = await Promise.all(
-    pontos.map(async (ponto) => {
-      const codigo = normalizarCodigo(ponto.codigo);
+async function salvarCliente() {
+  if (!validarDadosCliente()) return false;
 
-      try {
-        const playlist = await buscarPlaylistPonto(codigo, opcoes);
-        return [codigo, playlist || []];
-      } catch (error) {
-        console.warn("Falha ao carregar playlist inicial:", codigo, error);
-        return [codigo, []];
-      }
-    })
-  );
+  const statusReal = await calcularStatusClienteRealPorCodigoCliente();
+  const statusBanco = statusReal === "Ativo" ? "ativo" : "inativo";
+  const nomeCliente = inputNome.value.trim();
 
-  playlistsPorPonto = Object.fromEntries(pares);
-}
-
-async function abrirPonto(codigo, opcoes = {}) {
-  const codigoNormalizado = normalizarCodigo(codigo);
-  const ponto = pontosContratados.find((item) => normalizarCodigo(item.codigo) === codigoNormalizado);
-
-  if (!ponto) return;
-
-  pontoSelecionado = codigoNormalizado;
-  renderizarListaPontos();
-
-  const historicoAtual = historicosPorPonto[codigoNormalizado] || [];
-  const playlistAtual = playlistsPorPonto[codigoNormalizado] || [];
-  const statusAtual = calcularStatusPonto(ponto, historicoAtual);
-
-  renderizarDetalheBase(ponto, historicoAtual);
-
-  if (previewMidia) previewMidia.innerHTML = `<div class="preview-vazio">Carregando preview...</div>`;
-  if (listaMateriais) listaMateriais.innerHTML = `<div class="vazio">Carregando materiais...</div>`;
-  if (historicoStatusPonto) historicoStatusPonto.innerHTML = `<div class="vazio">Carregando histórico...</div>`;
+  const payload = {
+    codigo: codigoClienteAtual,
+    nome: nomeCliente,
+    nome_completo: nomeCliente,
+    telefone: inputTelefone.value.trim(),
+    email: inputEmail.value.trim(),
+    cpf_cnpj: inputCpfCnpj.value.trim(),
+    valor_contratado: extrairNumeroMoeda(inputValorContratado.value),
+    vencimento_midia: inputVencimento.value || null,
+    data_postagem: inputDataPostagem.value || new Date().toISOString().split("T")[0],
+    status: statusBanco,
+    statuscliente: statusBanco,
+    tipo_acesso: "cliente"
+  };
 
   try {
-    const [playlist, historico] = await Promise.all([
-      playlistAtual.length && !opcoes.forcarAtualizacao
-        ? Promise.resolve(playlistAtual)
-        : buscarPlaylistPonto(codigoNormalizado, opcoes),
-      buscarHistoricoPonto(codigoNormalizado, opcoes)
-    ]);
+    const { data: clienteAtualizado, error: errorUpdate } = await supabaseClient
+      .from(TABELA_CLIENTES)
+      .update(payload)
+      .eq("codigo", codigoClienteAtual)
+      .select("codigo");
 
-    const historico72h = limitarHistorico72Horas(historico);
-    historicosPorPonto[codigoNormalizado] = historico72h;
-    playlistsPorPonto[codigoNormalizado] = playlist || [];
+    if (errorUpdate) throw errorUpdate;
 
-    const materiaisCliente = filtrarMateriaisDoCliente(playlist);
+    if (!clienteAtualizado || !clienteAtualizado.length) {
+      const { error: errorInsert } = await supabaseClient
+        .from(TABELA_CLIENTES)
+        .insert([payload]);
 
-    renderizarDetalheBase(ponto, historico72h);
+      if (errorInsert) throw errorInsert;
+    }
 
-    const statusFinal = calcularStatusPonto(ponto, historico72h);
+    await salvarVinculosSelecionados();
 
-    renderizarPreview(playlist, null, statusFinal);
-    renderizarMateriais(materiaisCliente);
-    renderizarHistorico(historico72h);
-    renderizarListaPontos();
-    await carregarMetricasCliente();
+    atualizarStatusClienteVisual(statusReal);
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
 
-    setMensagem("Área do cliente atualizada.", "ok");
+    mostrarMensagem("Cliente salvo com sucesso.", "#7CFC9A");
+    desativarBotaoSalvar();
+    return true;
   } catch (error) {
-    console.error("Erro ao abrir ponto:", error);
-
-    renderizarPreview(playlistAtual, null, statusAtual);
-    renderizarMateriais(filtrarMateriaisDoCliente(playlistAtual));
-    renderizarHistorico(historicoAtual);
-
-    setMensagem("Erro ao carregar dados deste ponto.", "erro");
+    console.error("Erro ao salvar cliente:", error);
+    mostrarMensagem(`Erro ao salvar cliente: ${error.message || "falha desconhecida"}`, "#ff6b6b");
+    return false;
   }
 }
 
-async function carregarAreaCliente(codigo, opcoes = {}) {
-  codigoClienteAtual = normalizarCodigo(codigo);
+function detectarTipoArquivoPlaylist(file) {
+  const nome = String(file?.name || "").toLowerCase();
 
-  if (!codigoClienteAtual) {
-    setLoginErro("Digite o código do cliente.");
-    return;
-  }
+  if (/\.(jpg|jpeg|png|webp)$/i.test(nome)) return "imagem";
+  if (nome.endsWith(".txt")) return "url";
 
-  setLoginErro("");
-  mostrarLoading();
-  setMensagem("Carregando área do cliente...");
-
-  if (opcoes.forcarAtualizacao) {
-    limparCacheAreaCliente();
-  }
-
-  if (codigoClienteEl) {
-    codigoClienteEl.textContent = codigoClienteAtual;
-  }
-
-  try {
-    const cacheResumo = lerCacheArea("resumo", CACHE_STATUS_TTL);
-
-    if (!opcoes.forcarAtualizacao && cacheResumo?.dados) {
-      clienteAtual = cacheResumo.dados.cliente || null;
-      contratoAtualCliente = cacheResumo.dados.contrato || null;
-      pontosContratados = cacheResumo.dados.pontos || [];
-      historicosPorPonto = cacheResumo.dados.historicos || {};
-      playlistsPorPonto = cacheResumo.dados.playlists || {};
-
-      if (!clienteAtual) {
-        abrirLogin();
-        setLoginErro("Cliente não encontrado para este código.");
-        return;
-      }
-
-      renderizarContrato();
-      iniciarAtualizacaoEmTempoReal();
-      renderizarListaPontos();
-      abrirAreaCliente();
-      await carregarMetricasCliente();
-
-      const pontoInicial = pontoSelecionado
-        ? pontosContratados.find((ponto) => normalizarCodigo(ponto.codigo) === pontoSelecionado)
-        : obterPontoInicialPrioritario();
-
-      if (pontoInicial) {
-        await abrirPonto(pontoInicial.codigo);
-      } else {
-        if (estadoVazio) {
-          estadoVazio.style.display = "flex";
-          estadoVazio.textContent = "Este cliente ainda não possui pontos contratados vinculados.";
-        }
-
-        if (detalhePonto) {
-          detalhePonto.style.display = "none";
-        }
-      }
-
-      setMensagem("Área do cliente carregada.", "ok");
-      return;
-    }
-
-    const [cliente, contrato] = await Promise.all([
-      buscarCliente(codigoClienteAtual),
-      buscarContratoCliente(codigoClienteAtual)
-    ]);
-
-    clienteAtual = cliente;
-    contratoAtualCliente = contrato;
-
-    if (!clienteAtual) {
-      abrirLogin();
-      setLoginErro("Cliente não encontrado para este código.");
-      return;
-    }
-
-    renderizarContrato();
-    iniciarAtualizacaoEmTempoReal();
-
-    const codigosPontos = await buscarVinculosCliente(codigoClienteAtual);
-
-    pontosContratados = await buscarPontos(codigosPontos);
-
-    await carregarHistoricosIniciais(pontosContratados, opcoes);
-    await carregarPlaylistsIniciais(pontosContratados, opcoes);
-
-    salvarCacheArea("resumo", {
-      cliente: clienteAtual,
-      contrato: contratoAtualCliente,
-      pontos: pontosContratados,
-      historicos: historicosPorPonto,
-      playlists: playlistsPorPonto
-    });
-
-    renderizarListaPontos();
-    abrirAreaCliente();
-
-    await carregarMetricasCliente();
-
-    const pontoInicial = obterPontoInicialPrioritario();
-
-    if (pontoInicial) {
-      await abrirPonto(pontoInicial.codigo, opcoes);
-    } else {
-      if (estadoVazio) {
-        estadoVazio.style.display = "flex";
-        estadoVazio.textContent = "Este cliente ainda não possui pontos contratados vinculados.";
-      }
-
-      if (detalhePonto) {
-        detalhePonto.style.display = "none";
-      }
-    }
-
-    setMensagem("Área do cliente carregada.", "ok");
-  } catch (error) {
-    console.error("Erro ao carregar área do cliente:", error);
-
-    abrirLogin();
-    setMensagem(error.message || "Erro ao carregar área do cliente.", "erro");
-  } finally {
-    esconderLoading();
-  }
+  return "video";
 }
 
-function entrarComCodigoDigitado() {
-  const codigo = normalizarCodigo(codigoLogin?.value);
+function limparNomeArquivo(nome) {
+  return String(nome || "arquivo")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+}
+
+function montarUrlContatoQrCodeCliente() {
+  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.textContent);
+  if (!codigo) return "";
+  return `${window.location.origin}/contato-qrcode.html?cliente=${encodeURIComponent(codigo)}`;
+}
+
+function baixarArquivoUrl(url, nomeArquivo) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+async function baixarQrCodeCliente() {
+  const codigo = normalizarCodigo(codigoClienteAtual || inputCodigo?.textContent);
 
   if (!codigo) {
-    setLoginErro("Digite o código do cliente.");
+    mostrarMensagem("Código do cliente não encontrado.", "#ff6b6b");
     return;
   }
 
-  carregarAreaCliente(codigo);
+  try {
+    mostrarMensagem("Gerando QR Code...", "#9fd2ff");
+
+    const urlContato = montarUrlContatoQrCodeCliente();
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=900x900&margin=40&format=png&data=${encodeURIComponent(urlContato)}`;
+
+    const resposta = await fetch(qrUrl);
+    if (!resposta.ok) throw new Error("Não foi possível gerar o QR Code.");
+
+    const blob = await resposta.blob();
+    const urlBlob = URL.createObjectURL(blob);
+
+    baixarArquivoUrl(urlBlob, `qrcode-${codigo}.png`);
+    setTimeout(() => URL.revokeObjectURL(urlBlob), 1000);
+
+    mostrarMensagem("QR Code baixado com sucesso.", "#7CFC9A");
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem(`Erro ao baixar QR Code: ${error.message || "falha desconhecida"}`, "#ff6b6b");
+  }
 }
 
-if (btnEntrarCliente) {
-  btnEntrarCliente.onclick = entrarComCodigoDigitado;
-}
+async function uploadArquivoCliente() {
+  const file = arquivoInput?.files?.[0];
 
-if (codigoLogin) {
-  codigoLogin.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      entrarComCodigoDigitado();
+  if (!file) {
+    mostrarStatusUpload("Selecione um arquivo.", "#ff6b6b");
+    return;
+  }
+
+  const codigosDestino = obterPontosMarcados();
+
+  if (!codigosDestino.length) {
+    mostrarStatusUpload("Selecione ao menos um ponto antes de enviar.", "#ff6b6b");
+    mostrarMensagem("Selecione ao menos um ponto antes de enviar o material.", "#ff6b6b");
+    return;
+  }
+
+  if (!validarDadosParaMaterialOuContrato()) return;
+
+  try {
+    mostrarStatusUpload("Salvando cliente...", "#9fd2ff");
+
+    const clienteSalvo = await salvarCliente();
+    if (!clienteSalvo) return;
+
+    const dataFim = inputVencimento.value || null;
+    const agoraIso = new Date().toISOString();
+    const baseOrdem = Date.now();
+    const tipoFinal = detectarTipoArquivoPlaylist(file);
+
+    let videoUrl = "";
+    let storagePath = null;
+
+    if (tipoFinal === "url") {
+      const texto = await file.text();
+      videoUrl = texto.trim();
+
+      if (!videoUrl) {
+        mostrarStatusUpload("O arquivo TXT está vazio.", "#ff6b6b");
+        return;
+      }
+    } else {
+      mostrarStatusUpload("Enviando arquivo...", "#9fd2ff");
+
+      const nomeLimpo = limparNomeArquivo(file.name);
+      storagePath = `clientes/${codigoClienteAtual}/${Date.now()}-${nomeLimpo}`;
+
+      const { error: uploadError } = await supabaseClient.storage
+        .from(BUCKET)
+        .upload(storagePath, file, {
+          cacheControl: "86400",
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicData } = supabaseClient.storage
+        .from(BUCKET)
+        .getPublicUrl(storagePath);
+
+      videoUrl = publicData.publicUrl;
     }
+
+    const registros = codigosDestino.map((codigoPonto, index) => ({
+      codigo: codigoPonto,
+      codigo_cliente: codigoClienteAtual,
+      nome: inputNome.value.trim(),
+      titulo_arquivo: file.name,
+      video_url: videoUrl,
+      storage_path: storagePath,
+      tipo: tipoFinal,
+      data_inicio: agoraIso,
+      data_fim: dataFim,
+      ordem: baseOrdem + index
+    }));
+
+    const { error: insertError } = await supabaseClient
+      .from(TABELA_PLAYLISTS)
+      .insert(registros);
+
+    if (insertError) throw insertError;
+
+    sessionStorage.removeItem(obterChaveCache("historico_arquivos"));
+    await carregarHistoricoArquivos({ forcarAtualizacao: true });
+    await sincronizarStatusCliente();
+
+    gerarHistoricoContratoVisual();
+    gerarContratoCliente();
+
+    mostrarStatusUpload("Material enviado para a playlist.", "#7CFC9A");
+    mostrarMensagem("Material enviado para os pontos selecionados.", "#7CFC9A");
+
+    arquivoInput.value = "";
+  } catch (error) {
+    console.error("Erro ao enviar material:", error);
+    mostrarStatusUpload(`Erro ao enviar: ${error.message || "falha desconhecida"}`, "#ff6b6b");
+  }
+}
+
+async function executarComAnimacaoBotao(botao, acao) {
+  if (!botao || botao.disabled) return;
+
+  botao.classList.add("carregando");
+  botao.disabled = true;
+
+  try {
+    await acao();
+  } finally {
+    setTimeout(() => {
+      botao.classList.remove("carregando");
+      botao.disabled = false;
+    }, 450);
+  }
+}
+
+async function excluirClienteAtual() {
+  if (!codigoClienteAtual) return;
+
+  const confirmar = window.confirm(
+    `Tem certeza que deseja apagar o cliente ${codigoClienteAtual}? Essa ação também remove os vínculos e arquivos da playlist deste cliente.`
+  );
+
+  if (!confirmar) return;
+
+  try {
+    mostrarMensagem("Apagando cliente...", "#9fd2ff");
+
+    await apagarVinculosCliente();
+
+    const { error: erroPlaylists } = await supabaseClient
+      .from(TABELA_PLAYLISTS)
+      .delete()
+      .eq("codigo_cliente", codigoClienteAtual);
+
+    if (erroPlaylists) throw erroPlaylists;
+
+    const { error: erroCliente } = await supabaseClient
+      .from(TABELA_CLIENTES)
+      .delete()
+      .eq("codigo", codigoClienteAtual);
+
+    if (erroCliente) throw erroCliente;
+
+    sessionStorage.removeItem(obterChaveHistoricoContratos());
+    limparCacheClienteAtual();
+
+    mostrarMensagem("Cliente apagado com sucesso.", "#7CFC9A");
+
+    setTimeout(() => {
+      window.location.href = "/central-clientes.html";
+    }, 500);
+  } catch (error) {
+    console.error(error);
+    mostrarMensagem(`Erro ao apagar cliente: ${error.message || "falha desconhecida"}`, "#ff6b6b");
+  }
+}
+
+if (listaPontos) {
+  listaPontos.addEventListener("change", () => {
+    renderizarPontosSelecionaveis(obterPontosMarcados());
+    ativarBotaoSalvar();
+    gerarContratoCliente();
   });
 }
 
-if (btnAtualizar) {
-  btnAtualizar.onclick = () => {
-    if (!codigoClienteAtual) return;
+if (inputNome) inputNome.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputEmail) inputEmail.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputVencimento) inputVencimento.addEventListener("input", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
+if (inputDataPostagem) inputDataPostagem.addEventListener("change", () => { ativarBotaoSalvar(); gerarContratoCliente(); });
 
-    carregarAreaCliente(codigoClienteAtual, {
-      forcarAtualizacao: true
-    });
-  };
+if (inputTelefone) {
+  inputTelefone.addEventListener("input", (event) => {
+    event.target.value = formatarTelefone(event.target.value);
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
 }
 
-if (btnSair) {
-  btnSair.onclick = () => abrirLogin();
+if (inputCpfCnpj) {
+  inputCpfCnpj.addEventListener("input", (event) => {
+    event.target.value = formatarCpfCnpj(event.target.value);
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
 }
 
-if (codigoClienteEl) {
-  codigoClienteEl.onclick = async () => {
-    if (!codigoClienteAtual) return;
+if (inputValorContratado) {
+  inputValorContratado.addEventListener("blur", (event) => {
+    event.target.value = formatarMoedaBR(event.target.value);
+    ativarBotaoSalvar();
+    gerarContratoCliente();
+  });
 
-    try {
-      await navigator.clipboard.writeText(codigoClienteAtual);
-      setMensagem("Código copiado.", "ok");
-    } catch {
-      setMensagem("Erro ao copiar código.", "erro");
+  if (!inputValorContratado.value) {
+    inputValorContratado.value = formatarMoedaBR(0);
+  }
+}
+
+if (botaoSalvar) {
+  botaoSalvar.addEventListener("click", () => {
+    executarComAnimacaoBotao(botaoSalvar, salvarCliente);
+  });
+}
+
+if (botaoExcluirCliente) {
+  botaoExcluirCliente.addEventListener("click", () => {
+    executarComAnimacaoBotao(botaoExcluirCliente, excluirClienteAtual);
+  });
+}
+
+if (botaoVoltar) {
+  botaoVoltar.addEventListener("click", () => {
+    botaoVoltar.classList.add("carregando");
+
+    setTimeout(() => {
+      window.location.href = "/central-clientes.html";
+    }, 250);
+  });
+}
+
+if (btnUploadCliente) {
+  btnUploadCliente.addEventListener("click", () => {
+    executarComAnimacaoBotao(btnUploadCliente, uploadArquivoCliente);
+  });
+}
+
+if (btnBaixarContrato) {
+  btnBaixarContrato.addEventListener("click", () => {
+    executarComAnimacaoBotao(btnBaixarContrato, gerarContratoClienteParaHistorico);
+  });
+}
+
+if (btnBaixarQrCode) {
+  btnBaixarQrCode.addEventListener("click", () => {
+    executarComAnimacaoBotao(btnBaixarQrCode, baixarQrCodeCliente);
+  });
+}
+
+async function iniciar() {
+  try {
+    codigoClienteAtual = obterCodigoDaUrl();
+
+    if (!codigoClienteAtual) {
+      if (inputCodigo) inputCodigo.textContent = "";
+      mostrarMensagem("Código do cliente não encontrado na URL.", "#ff6b6b");
+      return;
     }
-  };
+
+    if (inputCodigo) inputCodigo.textContent = codigoClienteAtual;
+
+    mostrarMensagem(`Carregando cliente ${codigoClienteAtual}...`, "#9fd2ff");
+
+    await carregarPontos();
+    await carregarModeloContrato();
+    await carregarCliente();
+
+    gerarContratoCliente();
+  } catch (error) {
+    console.error("Erro ao iniciar pasta-cliente:", error);
+    mostrarMensagem(`Erro ao carregar dados: ${error.message || "falha desconhecida"}`, "#ff6b6b");
+  }
 }
 
-window.addEventListener("scroll", () => {
-  document.body.classList.toggle("rolando", window.scrollY > 12);
-});
-
-window.addEventListener("load", () => {
-  const params = new URLSearchParams(window.location.search);
-  const codigoUrl = normalizarCodigo(params.get("codigo"));
-  const voltouDaAssinatura = params.get("voltar") === "1";
-
-  abrirLogin();
-
-  if (tituloBoasVindas) {
-    tituloBoasVindas.classList.add("hero-titulo-classico");
-    tituloBoasVindas.innerHTML = `<span class="hero-linha">Seja bem-vindo(a)</span>`;
-  }
-
-  if (subtituloCliente) {
-    subtituloCliente.textContent = "";
-    subtituloCliente.innerHTML = "";
-    subtituloCliente.style.display = "none";
-  }
-
-  if (codigoUrl && codigoLogin) {
-    codigoLogin.value = codigoUrl;
-  }
-
-  if (codigoUrl && voltouDaAssinatura) {
-    carregarAreaCliente(codigoUrl, {
-      forcarAtualizacao: true
-    });
-
-    const urlLimpa = `${window.location.pathname}?codigo=${encodeURIComponent(codigoUrl)}`;
-    window.history.replaceState({}, "", urlLimpa);
-  }
-});
+iniciar();
