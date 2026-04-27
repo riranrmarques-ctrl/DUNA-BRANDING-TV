@@ -59,32 +59,29 @@ function iniciarLoginCentral() {
     if (conteudoPainel) conteudoPainel.style.display = "none";
   }
 
-  async function fazerLogin() {
-    const senha = senhaInput?.value?.trim();
+ async function fazerLogin() {
+  const senha = senhaInput?.value || "";
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email: "adm@dunabranding.com.br",
-      password: senha
-    });
+  if (loginErro) loginErro.textContent = "Verificando...";
 
-    if (error) {
-      if (loginErro) loginErro.textContent = "Acesso inválido";
-      return;
-    }
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: "adm@dunabranding.com.br",
+    password: senha
+  });
 
-    if (loginErro) loginErro.textContent = "";
-    liberarPainel();
+  if (error) {
+    console.error("ERRO LOGIN SUPABASE:", error);
+    alert("Erro: " + error.message);
+
+    if (loginErro) loginErro.textContent = error.message;
+    return;
   }
 
-  verificarSessao();
+  console.log("LOGIN OK:", data);
+  alert("Login aprovado");
 
-  if (btnLogin) btnLogin.onclick = fazerLogin;
-
-  if (senhaInput) {
-    senhaInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") fazerLogin();
-    });
-  }
+  if (loginErro) loginErro.textContent = "";
+  liberarPainel();
 }
 
 async function lerCacheCentral() {
