@@ -60,45 +60,43 @@ function iniciarLoginCentral() {
     if (conteudoPainel) conteudoPainel.style.display = "none";
   }
 
- async function fazerLogin() {
-  const senha = senhaInput?.value || "";
+  async function fazerLogin() {
+    const senha = senhaInput?.value || "";
 
-  if (loginErro) loginErro.textContent = "Verificando...";
+    if (loginErro) loginErro.textContent = "Verificando...";
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: "adm@dunabranding.com.br",
-    password: senha
-  });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: "adm@dunabranding.com.br",
+      password: senha
+    });
 
-  if (error) {
-    console.error("ERRO LOGIN SUPABASE:", error);
-    alert("Erro: " + error.message);
+    if (error) {
+      console.error("ERRO LOGIN SUPABASE:", error);
+      alert("Erro: " + error.message);
+      if (loginErro) loginErro.textContent = error.message;
+      return;
+    }
 
-    if (loginErro) loginErro.textContent = error.message;
-    return;
+    console.log("LOGIN OK:", data);
+    alert("Login aprovado");
+
+    if (loginErro) loginErro.textContent = "";
+    liberarPainel();
   }
 
-  console.log("LOGIN OK:", data);
-  alert("Login aprovado");
+  verificarSessao();
 
-  if (loginErro) loginErro.textContent = "";
-  liberarPainel();
-}
+  if (btnLogin) {
+    btnLogin.addEventListener("click", () => {
+      console.log("BOTÃO CLICADO");
+      fazerLogin();
+    });
+  }
 
-async function lerCacheCentral() {
-  try {
-    const bruto = sessionStorage.getItem(CACHE_CENTRAL_KEY);
-    if (!bruto) return null;
-
-    const cache = JSON.parse(bruto);
-    const fresco = Date.now() - Number(cache.criadoEm || 0) < CACHE_CENTRAL_TTL;
-
-    return {
-      fresco,
-      dados: cache.dados || null
-    };
-  } catch {
-    return null;
+  if (senhaInput) {
+    senhaInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") fazerLogin();
+    });
   }
 }
 
