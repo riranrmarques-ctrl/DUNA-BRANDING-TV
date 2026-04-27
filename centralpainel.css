@@ -2,164 +2,54 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
-
-:root {
-  --primary: #008cff;
-  --primary-hover: #1aa3ff;
-  --primary-dark: #005be8;
-  --primary-soft: rgba(0, 140, 255, 0.14);
-  --primary-border: rgba(0, 140, 255, 0.48);
-}
-
-html,
-body {
-  width: 100%;
-  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
 }
 
 body {
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #020617;
+  background: #040816;
   color: #fff;
-}
-
-/* LOGIN */
-
-.login-screen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px 18px;
-  background:
-    radial-gradient(circle at top center, rgba(0, 140, 255, 0.22), transparent 34%),
-    linear-gradient(180deg, #07122a 0%, #060b18 58%, #05070d 100%);
-}
-
-.login-card {
-  width: 100%;
-  max-width: 390px;
-  background: rgba(8, 15, 33, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
-  padding: 32px 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-  text-align: center;
-}
-
-.login-card h2 {
-  font-size: 32px;
-  margin-bottom: 18px;
-}
-
-.login-card input {
-  width: 100%;
-  height: 52px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-  padding: 0 16px;
-  font-size: 16px;
-  outline: none;
-  margin-bottom: 12px;
-}
-
-.login-card input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.login-card button {
-  width: 100%;
-  height: 52px;
-  border: none;
-  border-radius: 14px;
-  background: var(--primary);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.login-card button:hover {
-  background: var(--primary-hover);
-}
-
-.login-erro {
-  min-height: 18px;
-  margin-top: 12px;
-  font-size: 14px;
-  color: #ff7a7a;
-}
-
-/* ESTRUTURA */
-
-#conteudoPainel {
-  height: 100vh;
-  min-height: 100vh;
-  background: #020617;
-  color: #fff;
-  overflow: hidden;
-  display: flex;
 }
 
 .sidebar {
   width: 240px;
   height: 100vh;
-  background: #020617;
-  border-right: 1px solid #111827;
-  padding: 20px;
+  position: fixed;
+  background: #050b1d;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 30px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  position: sticky;
-  top: 0;
-  flex-shrink: 0;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .logo-img {
-  width: 160px;
-  height: auto;
-  object-fit: contain;
-  border-radius: 10px;
-}
-
-.brand span {
-  color: var(--primary);
-  font-size: 12px;
+  width: 110px;
+  margin-bottom: 40px;
 }
 
 .menu {
-  margin-top: 30px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.menu a {
-  color: #9ca3af;
-  text-decoration: none;
-  padding: 10px;
-  border-radius: 10px;
-  display: flex;
   gap: 10px;
 }
 
-.menu a.active {
-  background: var(--primary);
-  color: #fff;
+.menu a {
+  text-decoration: none;
+  color: #8fa3c7;
+  padding: 12px 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.2s;
 }
 
 .menu a:hover {
-  background: #111827;
+  background: rgba(255,255,255,0.05);
+}
+
+.menu a.active {
+  background: #1e6fff;
   color: #fff;
 }
 
@@ -167,58 +57,34 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  background: #111827;
-  border-radius: 50%;
+  font-size: 0.8rem;
+  color: #8fa3c7;
 }
 
 .main {
-  flex: 1;
-  min-width: 0;
-  height: 100vh;
-  padding: 25px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  margin-left: 240px;
+  padding: 30px;
 }
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-shrink: 0;
-}
-
-select {
-  background: #020617;
-  border: 1px solid #111827;
-  color: #fff;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-/* MÉTRICAS */
 
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-shrink: 0;
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
 .metric-card {
-  background: #020617;
-  border: 1px solid #111827;
-  padding: 15px;
-  border-radius: 15px;
+  background: #071028;
+  padding: 20px;
+  border-radius: 18px;
   display: flex;
   gap: 15px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.metric-card h2 {
+  margin-top: 5px;
 }
 
 .metric-icon {
@@ -228,59 +94,25 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
-.purple {
-  background: var(--primary);
-}
-
-.cyan {
-  background: #06b6d4;
-}
-
-.orange {
-  background: #f59e0b;
-}
-
-.green {
-  background: #22c55e;
-}
-
-.metric-card span {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-.metric-card p {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.metric-card h2 {
-  font-size: 22px;
-}
-
-.metric-card small {
-  color: #22c55e;
-  font-size: 12px;
-}
-
-/* PAINÉIS SUPERIORES */
+.purple { background: #6c5cff; }
+.cyan { background: #00c2ff; }
+.orange { background: #ff9f1a; }
+.green { background: #00c853; }
 
 .grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 15px;
-  margin-bottom: 20px;
-  flex-shrink: 0;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
 .panel {
-  background: #020617;
-  border: 1px solid #111827;
-  border-radius: 15px;
-  padding: 15px;
+  background: #071028;
+  border-radius: 18px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .panel-head {
@@ -289,420 +121,33 @@ select {
   margin-bottom: 15px;
 }
 
-.panel-head a {
-  color: var(--primary);
-  text-decoration: none;
+.panel-head h3 {
+  font-size: 1.1rem;
 }
-
-.panel-head a:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
-/* GRÁFICO COMERCIAL */
 
 .contract-content {
   display: flex;
   gap: 20px;
 }
 
-.contract-number {
-  min-width: 160px;
-}
-
 .contract-number h2 {
-  font-size: 36px;
-}
-
-.contract-number strong {
-  display: block;
-  color: #fff;
+  font-size: 2rem;
 }
 
 .chart {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 .chart svg {
   width: 100%;
-  height: 200px;
-}
-
-svg line {
-  stroke: #111827;
-}
-
-.area {
-  fill: url(#chartFill);
-}
-
-.line {
-  stroke: var(--primary);
-  stroke-width: 3;
-  fill: none;
-}
-
-circle {
-  fill: var(--primary);
+  height: 180px;
 }
 
 .chart-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
-  color: #6b7280;
-}
-
-/* DONUT */
-
-.status-content {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.donut {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.donut div {
-  width: 90px;
-  height: 90px;
-  background: #020617;
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.legend {
-  list-style: none;
-  font-size: 12px;
-}
-
-.legend li {
-  margin-bottom: 8px;
-}
-
-.legend i {
-  width: 10px;
-  height: 10px;
-  display: inline-block;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.green-dot {
-  background: #22c55e;
-}
-
-.yellow-dot {
-  background: #f59e0b;
-}
-
-.red-dot {
-  background: #ef4444;
-}
-
-.gray-dot {
-  background: #6b7280;
-}
-
-/* STATUS DOS PONTOS COM ROLAGEM INTERNA */
-
-.points {
-  min-height: 0;
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.points .panel-head {
-  flex-shrink: 0;
-}
-
-.points .point-list {
-  min-height: 0;
-  flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 15px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 8px;
-  align-content: start;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 140, 255, 0.42) transparent;
-}
-
-.points .point-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.points .point-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 140, 255, 0.42);
-  border-radius: 999px;
-}
-
-.points .point-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* CARDS DOS PONTOS */
-
-.point-card {
-  min-height: 0;
-  background: #020617;
-  border: 1px solid #111827;
-  border-radius: 15px;
-  overflow: hidden;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.point-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--primary-border);
-}
-
-.point-card img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  display: block;
-}
-
-.point-body {
-  padding: 12px;
-}
-
-.point-body h4 {
-  font-size: 14px;
-  line-height: 1.2;
-  margin-bottom: 4px;
-}
-
-.point-body p {
-  font-size: 11px;
-  color: #9ca3af;
-  line-height: 1.25;
-}
-
-.status {
-  display: block;
-  font-size: 11px;
-  margin: 5px 0;
-  font-weight: 700;
-}
-
-.active {
-  color: #22c55e;
-}
-
-.warning {
-  color: #f59e0b;
-}
-
-.inactive {
-  color: #ef4444;
-}
-
-.offline {
-  color: #6b7280;
-}
-
-.progress {
-  height: 5px;
-  background: #111827;
-  border-radius: 10px;
-  margin-top: 5px;
-}
-
-.progress i {
-  display: block;
-  height: 100%;
-  background: #22c55e;
-  border-radius: 10px;
-}
-
-.warning-bar i {
-  background: #f59e0b;
-}
-
-.inactive-bar i {
-  background: #ef4444;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: #6b7280;
-}
-
-/* RESPONSIVO */
-
-@media (max-width: 1100px) {
-  .metrics {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  .points .point-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 760px) {
-  body {
-    overflow: auto;
-  }
-
-  #conteudoPainel {
-    display: block !important;
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-
-  .main {
-    height: auto;
-    padding: 16px;
-    overflow: visible;
-    display: block;
-  }
-
-  .metrics,
-  .points .point-list {
-    grid-template-columns: 1fr;
-  }
-
-  .points {
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-
-  .points .point-list {
-    overflow: visible;
-    padding-right: 0;
-  }
-
-  .contract-content,
-  .status-content {
-    flex-direction: column;
-  }
-}
-
-.points {
-  flex: 0 0 280px !important;
-  height: 280px !important;
-  max-height: 280px !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-}
-
-.points .point-list {
-  height: 165px !important;
-  max-height: 165px !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  grid-auto-rows: 75px !important;
-  gap: 15px !important;
-  align-content: start !important;
-  padding-right: 8px !important;
-}
-
-.point-card {
-  height: 75px !important;
-  min-height: 75px !important;
-  border-radius: 15px !important;
-  overflow: hidden !important;
-}
-
-.point-card img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  display: block !important;
-}
-
-.point-body {
-  display: none !important;
-}
-
-.point-card {
-  position: relative !important;
-  height: 75px !important;
-  min-height: 75px !important;
-  border-radius: 15px !important;
-  overflow: hidden !important;
-  background: #020617 !important;
-}
-
-.point-card img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  display: block !important;
-  filter: brightness(0.68) saturate(1.05) !important;
-}
-
-.point-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 3px;
-  padding: 10px 12px;
-  background: linear-gradient(
-    180deg,
-    rgba(2, 6, 23, 0.05) 0%,
-    rgba(2, 6, 23, 0.42) 45%,
-    rgba(2, 6, 23, 0.88) 100%
-  );
-}
-
-.point-overlay strong {
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.point-overlay span {
-  font-size: 10px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0.03em;
-}
-
-.point-body {
-  display: none !important;
+  font-size: 0.7rem;
+  color: #8fa3c7;
 }
 
 .status-panel {
@@ -712,47 +157,108 @@ circle {
 }
 
 .status-panel .panel-head {
-  width: 100%;
   justify-content: center;
-  text-align: center;
-  margin-bottom: 18px;
-}
-
-.status-panel .panel-head h3 {
+  width: 100%;
   text-align: center;
 }
 
 .status-content {
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
+  gap: 14px;
 }
 
 .donut {
-  width: 210px;
-  height: 210px;
-  margin: 0 auto;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #00c853 25%,
+    #ff3d3d 25% 62.5%,
+    #8fa3c7 62.5% 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut div {
+  background: #071028;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .legend {
-  width: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
-  gap: 22px;
+  gap: 20px;
   flex-wrap: nowrap;
 }
 
 .legend li {
   display: flex;
   align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  font-size: 0.9rem;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #dce5f7;
 }
 
-.legend li i {
-  flex: 0 0 auto;
+.green-dot {
+  width: 8px;
+  height: 8px;
+  background: #00c853;
+  border-radius: 50%;
+}
+
+.red-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff3d3d;
+  border-radius: 50%;
+}
+
+.gray-dot {
+  width: 8px;
+  height: 8px;
+  background: #8fa3c7;
+  border-radius: 50%;
+}
+
+.points {
+  margin-top: 10px;
+}
+
+.point-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.point-card {
+  height: 100px;
+  border-radius: 14px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.point-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+}
+
+.point-info {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  font-size: 0.8rem;
 }
