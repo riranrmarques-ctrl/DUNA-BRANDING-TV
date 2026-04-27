@@ -341,4 +341,8 @@ if (btnAtualizar) {
   btnAtualizar.addEventListener("click", carregarDados);
 }
 
+function voltarPainel() {
+  window.location.href = "/centralpainel.html";
+}
+
 carregarDados();
