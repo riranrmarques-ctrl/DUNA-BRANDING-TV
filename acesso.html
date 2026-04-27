@@ -304,11 +304,12 @@
       </footer>
     </main>
   </main>
+  
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="acesso.js?v=1102"></script>
+<script src="acesso.js?v=1104"></script>
 
 <script>
-  function mostrarMetricasTemporarias() {
+  function forcarMetricasTemporarias() {
     const reproducoes = document.getElementById("totalReproducoesCliente");
     const qrCode = document.getElementById("totalQrCodeCliente");
 
@@ -317,12 +318,17 @@
   }
 
   window.addEventListener("load", () => {
-    mostrarMetricasTemporarias();
+    forcarMetricasTemporarias();
 
-    setTimeout(mostrarMetricasTemporarias, 500);
-    setTimeout(mostrarMetricasTemporarias, 1500);
-    setTimeout(mostrarMetricasTemporarias, 3000);
+    const intervalo = setInterval(forcarMetricasTemporarias, 200);
+
+    setTimeout(() => {
+      clearInterval(intervalo);
+      forcarMetricasTemporarias();
+    }, 10000);
   });
 </script>
 </body>
+</html>
+
 
