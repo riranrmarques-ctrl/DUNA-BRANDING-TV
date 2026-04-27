@@ -1,5 +1,12 @@
+if (sessionStorage.getItem("painelLiberado") !== "1") {
+  window.location.replace("/centralpainel.html");
+}
+
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+
+const CACHE_FINANCEIRO_KEY = "financeiro_cache_v1";
+const CACHE_FINANCEIRO_TTL = 30 * 60 * 1000;
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -8,6 +15,33 @@ const TABELA = "dadosclientes";
 let contratos = [];
 let graficoVendasInstance = null;
 let graficoEncerramentosInstance = null;
+
+function lerCacheFinanceiro() {
+  try {
+    const bruto = sessionStorage.getItem(CACHE_FINANCEIRO_KEY);
+    if (!bruto) return null;
+
+    const cache = JSON.parse(bruto);
+
+    return {
+      contratos: Array.isArray(cache.contratos) ? cache.contratos : [],
+      fresco: Date.now() - Number(cache.criadoEm || 0) < CACHE_FINANCEIRO_TTL
+    };
+  } catch {
+    return null;
+  }
+}
+
+function salvarCacheFinanceiro(lista) {
+  try {
+    sessionStorage.setItem(CACHE_FINANCEIRO_KEY, JSON.stringify({
+      criadoEm: Date.now(),
+      contratos: lista || []
+    }));
+  } catch {
+    return;
+  }
+}
 
 function formatarMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", {
@@ -70,7 +104,20 @@ function formatarData(valor) {
   return data.toLocaleDateString("pt-BR");
 }
 
-async function carregarDados() {
+async function carregarDados(opcoes = {}) {
+  const forcarAtualizacao = opcoes.forcarAtualizacao === true;
+  const cache = lerCacheFinanceiro();
+
+  if (!forcarAtualizacao && cache?.contratos?.length) {
+    contratos = cache.contratos;
+    calcularCards();
+    montarTabela();
+    montarRanking();
+    montarGraficos();
+
+    if (cache.fresco) return;
+  }
+
   const { data, error } = await supabaseClient
     .from(TABELA)
     .select("*")
@@ -82,6 +129,7 @@ async function carregarDados() {
   }
 
   contratos = data || [];
+  salvarCacheFinanceiro(contratos);
 
   calcularCards();
   montarTabela();
@@ -338,7 +386,7 @@ function montarGraficos() {
 const btnAtualizar = document.getElementById("btnAtualizar");
 
 if (btnAtualizar) {
-  btnAtualizar.addEventListener("click", carregarDados);
+  btnAtualizar.addEventListener("click", () => carregarDados({ forcarAtualizacao: true }));
 }
 
 function voltarPainel() {
