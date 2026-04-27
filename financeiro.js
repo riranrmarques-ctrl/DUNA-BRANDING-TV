@@ -167,25 +167,26 @@ function montarRanking() {
   box.innerHTML = "";
 
   const ordenado = [...contratos]
-    .filter((c) => parseValor(c.valor_contratado) > 0)
+    .filter(c => parseValor(c.valor_contratado) > 0)
     .sort((a, b) => parseValor(b.valor_contratado) - parseValor(a.valor_contratado))
     .slice(0, 5);
 
-  if (!ordenado.length) {
-    box.innerHTML = `<div class="ranking-item"><span>Nenhum contrato com valor encontrado.</span></div>`;
-    return;
-  }
-
-  ordenado.forEach((c) => {
+  ordenado.forEach((c, index) => {
     const item = document.createElement("div");
     item.className = "ranking-item";
 
     item.innerHTML = `
-      <div>
-        <strong>${c.nome_completo || "-"}</strong>
-        <span>${c.codigo || "-"}</span>
+      <div class="ranking-left">
+        <span class="ranking-pos">#${index + 1}</span>
+        <div class="ranking-info">
+          <strong>${c.nome_completo || "-"}</strong>
+          <span>${c.codigo || "-"}</span>
+        </div>
       </div>
-      <b>${formatarMoeda(parseValor(c.valor_contratado))}</b>
+
+      <div class="ranking-valor">
+        ${formatarMoeda(parseValor(c.valor_contratado))}
+      </div>
     `;
 
     box.appendChild(item);
