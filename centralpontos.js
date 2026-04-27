@@ -2403,10 +2403,6 @@ if (editContratoParceriaNao) {
   editContratoParceriaNao.onchange = atualizarVisualParceria;
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const ok = await verificarSessaoProtegida();
-  if (!ok) return;
-
   iniciarPainel();
 });
 
