@@ -1408,6 +1408,36 @@ if (btnSalvarEdicao) {
 async function baixarContratoAtual() {
   if (!codigoSelecionado) return;
 
+  const janela = window.open("", "_blank");
+
+  if (!janela) {
+    setStatus("Permita pop-ups para abrir o contrato", "erro");
+    return;
+  }
+
+  janela.document.open();
+  janela.document.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Gerando contrato...</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 40px;
+          color: #111827;
+        }
+      </style>
+    </head>
+    <body>
+      <h2>Gerando contrato...</h2>
+      <p>Aguarde um instante.</p>
+    </body>
+    </html>
+  `);
+  janela.document.close();
+
   const ponto = pontosMap[codigoSelecionado] || {};
   const parceriaAtiva = editContratoParceriaSim ? editContratoParceriaSim.checked : false;
 
@@ -1444,6 +1474,7 @@ async function baixarContratoAtual() {
     if (error) throw error;
 
     if (!modelo || !modelo.html_modelo) {
+      janela.document.body.innerHTML = "<h2>Modelo de estabelecimento não encontrado.</h2>";
       setStatus("Modelo de estabelecimento não encontrado", "erro");
       return;
     }
@@ -1455,7 +1486,6 @@ async function baixarContratoAtual() {
     const substituicoes = {
       "{{titulo}}": modelo.titulo || "Contrato de Parceria com Estabelecimento",
       "{{subtitulo}}": modelo.subtitulo || "Contrato de cessão de espaço publicitário para mídia digital.",
-
       "{{empresa}}": dadosContratada.empresa || "Duna Branding",
       "{{cnpj}}": dadosContratada.cnpj || "",
       "{{telefone_empresa}}": dadosContratada.telefone || "",
@@ -1491,52 +1521,39 @@ async function baixarContratoAtual() {
       htmlContrato = htmlContrato.split(chave).join(escapeHtml(valor || ""));
     });
 
-    const paginaContrato = `
+    janela.document.open();
+    janela.document.write(`
       <!DOCTYPE html>
       <html lang="pt-BR">
       <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Contrato - ${escapeHtml(nome)}</title>
-
+        <title>Contrato ${escapeHtml(nome)}</title>
         <style>
-          * {
-            box-sizing: border-box;
-          }
-
           body {
-            margin: 0;
-            padding: 28px;
             font-family: Arial, sans-serif;
             background: #eef3fb;
-            color: #1f2937;
+            color: #111827;
+            margin: 0;
+            padding: 32px;
           }
 
           .pagina-contrato {
-            max-width: 980px;
+            max-width: 900px;
             margin: 0 auto;
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 34px;
-            box-shadow: 0 16px 44px rgba(15, 23, 42, 0.10);
-          }
-
-          .topo-contrato {
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 16px;
-            margin-bottom: 22px;
+            background: #fff;
+            padding: 44px;
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.14);
           }
 
           .topo-contrato h1 {
-            font-size: 26px;
-            color: #111827;
-            margin: 0 0 8px;
+            font-size: 24px;
+            margin-bottom: 8px;
           }
 
           .topo-contrato p {
-            margin: 0;
-            color: #6b7280;
-            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 24px;
           }
 
           .bloco {
@@ -1544,9 +1561,8 @@ async function baixarContratoAtual() {
           }
 
           .bloco h2 {
-            font-size: 16px;
-            color: #111827;
-            margin: 0 0 12px;
+            font-size: 17px;
+            margin-bottom: 12px;
             padding-left: 10px;
             border-left: 4px solid #2563eb;
           }
@@ -1554,99 +1570,84 @@ async function baixarContratoAtual() {
           .bloco p {
             font-size: 14px;
             line-height: 1.7;
-            margin: 0 0 10px;
-            color: #374151;
-          }
-
-          .bloco strong {
-            color: #111827;
+            margin-bottom: 10px;
+            text-align: justify;
           }
 
           .assinaturas {
             display: grid;
-            grid-template-columns: repeat(2, minmax(220px, 1fr));
-            gap: 26px;
-            margin-top: 54px;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-top: 70px;
             align-items: end;
           }
 
           .assinatura-box {
             text-align: center;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
           }
 
           .assinatura-img {
-            display: block;
-            width: 300px;
+            width: 260px;
             max-width: 100%;
-            height: 120px;
+            height: 90px;
             object-fit: contain;
             object-position: center bottom;
+            display: block;
             margin: 0 auto -10px;
           }
 
           .linha-assinatura {
             border-top: 1px solid #111827;
             padding-top: 8px;
-            font-size: 14px;
-            color: #111827;
             font-weight: 700;
+            font-size: 14px;
           }
 
           .acoes-contrato {
+            max-width: 900px;
+            margin: 18px auto 0;
             display: flex;
             gap: 10px;
-            margin: 24px auto 0;
-            max-width: 980px;
+            justify-content: flex-end;
           }
 
           .acoes-contrato button {
             border: none;
             border-radius: 10px;
-            padding: 12px 18px;
-            font-size: 14px;
-            font-weight: 800;
+            padding: 12px 16px;
+            font-weight: 700;
             cursor: pointer;
           }
 
           .btn-imprimir {
             background: #2563eb;
-            color: #ffffff;
+            color: #fff;
           }
 
           .btn-fechar {
             background: #111827;
-            color: #ffffff;
+            color: #fff;
           }
 
           @media print {
             body {
-              background: #ffffff;
+              background: #fff;
               padding: 0;
             }
 
             .pagina-contrato {
-              max-width: none;
               box-shadow: none;
               border-radius: 0;
-              padding: 0;
+              max-width: none;
+              padding: 24px;
             }
 
             .acoes-contrato {
               display: none;
             }
-
-            .assinatura-img {
-              width: 240px;
-              height: 80px;
-            }
           }
         </style>
       </head>
-
       <body>
         <div class="pagina-contrato">
           ${htmlContrato}
@@ -1658,22 +1659,13 @@ async function baixarContratoAtual() {
         </div>
       </body>
       </html>
-    `;
-
-    const janela = window.open("", "_blank");
-
-    if (!janela) {
-      setStatus("Permita pop-ups para abrir o contrato", "erro");
-      return;
-    }
-
-    janela.document.open();
-    janela.document.write(paginaContrato);
+    `);
     janela.document.close();
 
     setStatus("Contrato gerado", "ok");
   } catch (error) {
     console.error("Erro ao gerar contrato:", error);
+    janela.document.body.innerHTML = "<h2>Erro ao gerar contrato.</h2>";
     setStatus("Erro ao gerar contrato", "erro");
   }
 }
