@@ -1,55 +1,534 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Contrato - Estabelecimento</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contrato - Estabelecimento</title>
 
-<style>
-body { font-family: Arial; background:#fff; padding:30px; }
-h1 { margin-bottom:20px; }
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.campo { margin-bottom:10px; }
-.campo strong { display:block; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef3fb;
+      color: #1f2937;
+      min-height: 100vh;
+    }
 
-.btn {
-  margin-top:20px;
-  padding:10px 20px;
-  background:#000;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-</style>
+    .pagina {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .topo h1 {
+      font-size: 30px;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .topo p {
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .topo-acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: 0.2s;
+    }
+
+    .btn-primario {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    .btn-primario:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secundario {
+      background: #111827;
+      color: #fff;
+    }
+
+    .btn-secundario:hover {
+      background: #000;
+    }
+
+    .conteudo {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 16px 44px rgba(15, 23, 42, 0.10);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      padding: 28px;
+    }
+
+    .cabecalho-contrato {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
+
+    .cabecalho-contrato h2 {
+      font-size: 25px;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .cabecalho-contrato p {
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .bloco {
+      margin-bottom: 24px;
+    }
+
+    .bloco h3 {
+      font-size: 16px;
+      color: #111827;
+      margin-bottom: 12px;
+      padding-left: 10px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .linha-info {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 10px 18px;
+    }
+
+    .campo {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+    }
+
+    .campo strong {
+      color: #111827;
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .campo span {
+      color: #64748b;
+      display: block;
+      min-height: 18px;
+      word-break: break-word;
+    }
+
+    .texto-contrato p {
+      font-size: 14px;
+      line-height: 1.72;
+      margin-bottom: 15px;
+      text-align: justify;
+      color: #374151;
+    }
+
+    .texto-contrato strong {
+      color: #111827;
+    }
+
+    .assinaturas {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 24px;
+      margin-top: 50px;
+      align-items: end;
+    }
+
+    .assinatura-box {
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .assinatura-img {
+      display: block;
+      width: 320px;
+      max-width: 100%;
+      height: 130px;
+      object-fit: contain;
+      object-position: center bottom;
+      margin: 0 auto -10px;
+      pointer-events: none;
+    }
+
+    .linha-assinatura {
+      border-top: 1px solid #111827;
+      padding-top: 8px;
+      font-size: 14px;
+      color: #111827;
+      font-weight: 700;
+      position: relative;
+      z-index: 2;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .topo,
+      .acoes {
+        display: none !important;
+      }
+
+      .pagina {
+        max-width: none;
+        padding: 0;
+      }
+
+      .conteudo {
+        box-shadow: none;
+        border-radius: 0;
+        border: none;
+        padding: 0;
+      }
+
+      .assinatura-img {
+        width: 260px;
+        height: 90px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .pagina {
+        padding: 18px;
+      }
+
+      .conteudo {
+        padding: 20px;
+      }
+
+      .linha-info,
+      .assinaturas {
+        grid-template-columns: 1fr;
+      }
+
+      .topo-acoes {
+        width: 100%;
+      }
+
+      .topo-acoes .btn {
+        flex: 1;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <div class="pagina">
+    <div class="topo">
+      <div>
+        <h1>Contrato de Parceria</h1>
+        <p>Contrato de cessão de espaço publicitário para mídia digital.</p>
+      </div>
 
-<h1>Contrato de Parceria</h1>
+      <div class="topo-acoes">
+        <button class="btn btn-primario" type="button" onclick="window.print()">Imprimir / PDF</button>
+        <button class="btn btn-secundario" type="button" onclick="history.back()">Voltar</button>
+      </div>
+    </div>
 
-<div class="campo"><strong>Estabelecimento:</strong> <span id="nomeLocal">[LOCAL]</span></div>
+    <main class="conteudo">
+      <div class="cabecalho-contrato">
+        <h2>Contrato de Parceria com Estabelecimento</h2>
+        <p>Instalação, operação e veiculação de mídia digital em televisão no estabelecimento parceiro.</p>
+      </div>
 
-<hr>
+      <div class="bloco">
+        <h3>Dados da Contratante</h3>
 
-<p><strong>OBJETO:</strong> Instalação de telas para publicidade.</p>
-<p><strong>RESPONSABILIDADE:</strong> DUNA é responsável pela operação e manutenção.</p>
-<p><strong>USO:</strong> O local autoriza a exibição de anúncios.</p>
+        <div class="linha-info">
+          <div class="campo">
+            <strong>Empresa</strong>
+            <span>Duna Branding</span>
+          </div>
 
-<button class="btn" onclick="window.print()">Imprimir</button>
+          <div class="campo">
+            <strong>CNPJ</strong>
+            <span>[CNPJ DA DUNA]</span>
+          </div>
 
-<script>
+          <div class="campo">
+            <strong>Telefone</strong>
+            <span>[TELEFONE DA DUNA]</span>
+          </div>
 
-function getAmbiente(){
-  return JSON.parse(localStorage.getItem('ambienteSelecionado')) ||
-         JSON.parse(localStorage.getItem('ambiente')) || null;
-}
+          <div class="campo">
+            <strong>E-mail</strong>
+            <span>[EMAIL DA DUNA]</span>
+          </div>
 
-const ambiente = getAmbiente();
+          <div class="campo">
+            <strong>Endereço</strong>
+            <span>[ENDEREÇO DA DUNA]</span>
+          </div>
 
-if(ambiente){
-  document.getElementById('nomeLocal').innerText = ambiente.nome || '[LOCAL]';
-}
+          <div class="campo">
+            <strong>Responsável</strong>
+            <span>[RESPONSÁVEL LEGAL]</span>
+          </div>
+        </div>
+      </div>
 
-</script>
+      <div class="bloco">
+        <h3>Dados do Estabelecimento</h3>
 
+        <div class="linha-info">
+          <div class="campo">
+            <strong>Estabelecimento</strong>
+            <span id="nomeLocal">[LOCAL]</span>
+          </div>
+
+          <div class="campo">
+            <strong>CPF / CNPJ</strong>
+            <span id="responsavelCpf">[CPF / CNPJ]</span>
+          </div>
+
+          <div class="campo">
+            <strong>Responsável</strong>
+            <span id="responsavelNome">[RESPONSÁVEL]</span>
+          </div>
+
+          <div class="campo">
+            <strong>Telefone</strong>
+            <span id="responsavelTelefone">[TELEFONE]</span>
+          </div>
+
+          <div class="campo">
+            <strong>E-mail</strong>
+            <span id="responsavelEmail">[E-MAIL]</span>
+          </div>
+
+          <div class="campo">
+            <strong>Cidade</strong>
+            <span id="cidadeLocal">[CIDADE]</span>
+          </div>
+
+          <div class="campo">
+            <strong>Endereço</strong>
+            <span id="enderecoLocal">[ENDEREÇO]</span>
+          </div>
+
+          <div class="campo">
+            <strong>Período</strong>
+            <span id="periodoContrato">[PERÍODO]</span>
+          </div>
+
+          <div class="campo">
+            <strong>Modelo comercial</strong>
+            <span id="modeloComercial">[MODELO]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bloco texto-contrato">
+        <h3>Cláusulas do Contrato</h3>
+
+        <p><strong>1. OBJETO</strong><br>
+          O presente contrato tem como objeto a cessão de espaço publicitário em televisão de propriedade do CONTRATADO, para veiculação de conteúdo digital por meio de dispositivo TV Box ou player fornecido e operado pela CONTRATANTE.
+        </p>
+
+        <p><strong>2. ESTRUTURA DA OPERAÇÃO</strong><br>
+          A operação será composta por televisão de propriedade do CONTRATADO, dispositivo TV Box ou player de propriedade da CONTRATANTE e internet disponibilizada pelo CONTRATADO, utilizada pela CONTRATANTE em baixo consumo exclusivamente para operação do sistema de mídia digital, sem caracterizar uso intensivo nem comprometer a performance da rede do estabelecimento.
+        </p>
+
+        <p><strong>3. INSTALAÇÃO E ACESSO</strong><br>
+          O CONTRATADO autoriza a instalação do TV Box na televisão e compromete-se a permitir acesso para instalação, manutenção, retirada ou substituição dos equipamentos, disponibilizando energia elétrica e acesso técnico sempre que necessário.
+        </p>
+
+        <p><strong>4. CONTROLE DE EXIBIÇÃO</strong><br>
+          A CONTRATANTE detém controle sobre o conteúdo exibido, programação e frequência de exibição. Fica vedado ao CONTRATADO alterar a entrada HDMI da TV, desconectar o dispositivo ou interferir na programação sem autorização da CONTRATANTE.
+        </p>
+
+        <p><strong>5. DISPONIBILIDADE OPERACIONAL</strong><br>
+          O CONTRATADO compromete-se a manter a TV ligada durante o horário de funcionamento, manter a televisão na entrada correta do sistema da CONTRATANTE e não interromper a exibição sem autorização.
+        </p>
+
+        <p><strong>6. POSICIONAMENTO E VISIBILIDADE</strong><br>
+          A televisão deverá permanecer em local visível ao público, em área de circulação e sem obstruções que prejudiquem a visualização do conteúdo exibido.
+        </p>
+
+        <p><strong>7. EXCLUSIVIDADE</strong><br>
+          O CONTRATADO não poderá instalar sistemas concorrentes de mídia digital ou exibir publicidade de terceiros na mesma TV sem autorização prévia da CONTRATANTE.
+        </p>
+
+        <p><strong>8. RESPONSABILIDADE PELOS EQUIPAMENTOS</strong><br>
+          O TV Box ou player é de propriedade da CONTRATANTE. O CONTRATADO será responsável por danos causados por mau uso, remoção indevida, negligência ou interferência não autorizada nos equipamentos.
+        </p>
+
+        <p><strong>9. MONITORAMENTO</strong><br>
+          A CONTRATANTE poderá monitorar remotamente o funcionamento da tela, tempo de exibição, relatórios de reprodução e demais informações técnicas relacionadas à operação da mídia digital.
+        </p>
+
+        <p><strong>10. INTERRUPÇÕES</strong><br>
+          Caso a operação seja interrompida por TV desligada, alteração de entrada, desconexão do dispositivo ou falhas recorrentes de operação por período superior ao limite acordado entre as partes, poderá ser considerado descumprimento contratual.
+        </p>
+
+        <p><strong>11. REMUNERAÇÃO</strong><br>
+          <span id="clausulaRemuneracao">
+            A remuneração será definida conforme as condições acordadas entre as partes.
+          </span>
+        </p>
+
+        <p><strong>12. PRAZO</strong><br>
+          O contrato terá vigência conforme período definido entre as partes, podendo ser renovado automaticamente salvo manifestação contrária de uma das partes.
+        </p>
+
+        <p><strong>13. RESCISÃO</strong><br>
+          O contrato poderá ser rescindido mediante aviso prévio entre as partes ou imediatamente em caso de interferência no sistema, recorrência de falhas operacionais, descumprimento das obrigações ou uso indevido dos equipamentos.
+        </p>
+
+        <p><strong>14. RETIRADA DO EQUIPAMENTO</strong><br>
+          Ao término do contrato, a CONTRATANTE poderá retirar o TV Box ou player, devendo o CONTRATADO permitir acesso ao local para retirada imediata dos equipamentos.
+        </p>
+
+        <p><strong>15. NATUREZA DA RELAÇÃO</strong><br>
+          Este contrato não gera vínculo empregatício, sociedade ou exclusividade comercial ampla entre as partes, limitando-se à parceria operacional de mídia digital em tela, conforme as condições aqui estabelecidas.
+        </p>
+      </div>
+
+      <div class="assinaturas">
+        <div class="assinatura-box">
+          <div class="linha-assinatura">
+            CONTRATADO / ESTABELECIMENTO
+          </div>
+        </div>
+
+        <div class="assinatura-box">
+          <img src="assinatura.png" alt="Assinatura Duna Branding" class="assinatura-img">
+          <div class="linha-assinatura">
+            Duna Branding
+          </div>
+        </div>
+      </div>
+
+      <div class="acoes">
+        <button class="btn btn-primario" type="button" onclick="window.print()">Imprimir / Baixar PDF</button>
+        <button class="btn btn-secundario" type="button" onclick="history.back()">Voltar</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function getAmbiente() {
+      try {
+        return (
+          JSON.parse(localStorage.getItem("ambienteSelecionado")) ||
+          JSON.parse(localStorage.getItem("ambiente")) ||
+          null
+        );
+      } catch {
+        return null;
+      }
+    }
+
+    function preencher(id, valor, fallback = "") {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      el.textContent = valor || fallback;
+    }
+
+    function montarPeriodo(inicio, fim) {
+      if (inicio && fim) return `${inicio} até ${fim}`;
+      if (inicio) return `A partir de ${inicio}`;
+      if (fim) return `Até ${fim}`;
+      return "[PERÍODO]";
+    }
+
+    function normalizarValor(valor) {
+      return String(valor || "").trim();
+    }
+
+    const ambiente = getAmbiente();
+
+    if (ambiente) {
+      const nome = ambiente.nome || ambiente.nome_local || ambiente.titulo || "[LOCAL]";
+      const cidade = ambiente.cidade || ambiente.cidade_regiao || ambiente.municipio || "[CIDADE]";
+      const endereco = ambiente.endereco || ambiente.endereco_completo || ambiente.local || "[ENDEREÇO]";
+
+      const responsavelNome = ambiente.responsavel_nome || ambiente.responsavel || "[RESPONSÁVEL]";
+      const responsavelCpf = ambiente.responsavel_cpf || ambiente.cpf_cnpj || ambiente.cnpj || ambiente.cpf || "[CPF / CNPJ]";
+      const responsavelTelefone = ambiente.responsavel_telefone || ambiente.telefone || "[TELEFONE]";
+      const responsavelEmail = ambiente.responsavel_email || ambiente.email || "[E-MAIL]";
+
+      const inicio = ambiente.contrato_data_inicio || "";
+      const fim = ambiente.contrato_data_fim || "";
+      const tipoContrato = ambiente.contrato_tipo || "";
+      const valor = normalizarValor(ambiente.contrato_valor);
+
+      preencher("nomeLocal", nome, "[LOCAL]");
+      preencher("cidadeLocal", cidade, "[CIDADE]");
+      preencher("enderecoLocal", endereco, "[ENDEREÇO]");
+      preencher("responsavelNome", responsavelNome, "[RESPONSÁVEL]");
+      preencher("responsavelCpf", responsavelCpf, "[CPF / CNPJ]");
+      preencher("responsavelTelefone", responsavelTelefone, "[TELEFONE]");
+      preencher("responsavelEmail", responsavelEmail, "[E-MAIL]");
+      preencher("periodoContrato", montarPeriodo(inicio, fim), "[PERÍODO]");
+
+      const modeloComercial = document.getElementById("modeloComercial");
+      const clausulaRemuneracao = document.getElementById("clausulaRemuneracao");
+
+      if (tipoContrato === "parceria") {
+        preencher("modeloComercial", valor ? `Parceria - ${valor}% por venda` : "Parceria - percentual por venda");
+
+        if (clausulaRemuneracao) {
+          clausulaRemuneracao.textContent = valor
+            ? `O CONTRATADO receberá participação de ${valor}% sobre cada venda realizada pela CONTRATANTE relacionada ao espaço objeto deste contrato. A forma de apuração, periodicidade e pagamento serão definidos entre as partes.`
+            : "O CONTRATADO receberá participação percentual sobre cada venda realizada pela CONTRATANTE relacionada ao espaço objeto deste contrato. O percentual, forma de apuração, periodicidade e pagamento serão definidos entre as partes.";
+        }
+      } else {
+        preencher("modeloComercial", valor ? `Valor fixo mensal - R$ ${valor}` : "Valor fixo mensal");
+
+        if (clausulaRemuneracao) {
+          clausulaRemuneracao.textContent = valor
+            ? `A CONTRATANTE pagará ao CONTRATADO o valor mensal de R$ ${valor} pela cessão do espaço publicitário objeto deste contrato.`
+            : "A CONTRATANTE pagará ao CONTRATADO valor mensal pela cessão do espaço publicitário objeto deste contrato, conforme valor acordado entre as partes.";
+        }
+      }
+    }
+  </script>
 </body>
 </html>
