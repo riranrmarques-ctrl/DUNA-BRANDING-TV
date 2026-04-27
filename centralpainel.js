@@ -1,4 +1,3 @@
-alert("JS NOVO CARREGOU");
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
@@ -78,7 +77,6 @@ function iniciarLoginCentral() {
     }
 
     console.log("LOGIN OK:", data);
-    alert("Login aprovado");
 
     if (loginErro) loginErro.textContent = "";
     liberarPainel();
