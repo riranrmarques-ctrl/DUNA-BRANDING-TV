@@ -2147,3 +2147,11 @@ body.loading-page {
   }
 }
 
+.btn-inicio-login {
+  display: none;
+}
+
+.login-screen .btn-inicio-login {
+  display: inline-flex;
+}
+
