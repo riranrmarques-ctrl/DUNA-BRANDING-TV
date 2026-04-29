@@ -9,7 +9,7 @@ const TABELA_STATUS_PONTOS = "statuspontos";
 const CACHE_PONTOS_KEY = "painel_pontos_cache_v11";
 const CACHE_PONTOS_TTL = 30 * 60 * 1000;
 const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v10_";
-const CACHE_PLAYLIST_TTL = 60 * 60 * 1000;
+const CACHE_PLAYLIST_TTL = 2 * 60 * 1000;
 
 function limparCachesAntigos() {
   try {
@@ -1024,7 +1024,7 @@ function abrirPonto(codigo) {
     aplicarPosicaoImagem(imagemPonto, posicaoSalva);
   }
 
-  carregarPlaylist();
+  carregarPlaylist({ forcarAtualizacao: true });
 }
 
 function obterNomeArquivoPlaylist(item) {
@@ -2396,6 +2396,18 @@ if (editContratoParceriaSim) {
 if (editContratoParceriaNao) {
   editContratoParceriaNao.onchange = atualizarVisualParceria;
 }
+
+window.addEventListener("focus", () => {
+  if (codigoSelecionado) {
+    carregarPlaylist({ forcarAtualizacao: true });
+  }
+});
+
+setInterval(() => {
+  if (codigoSelecionado) {
+    carregarPlaylist({ forcarAtualizacao: true });
+  }
+}, 30000);
 
 setStatus("Painel Ativo", "ok");
 iniciarPainel();
