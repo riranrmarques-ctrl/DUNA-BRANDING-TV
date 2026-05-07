@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duna News | Ilheus Eventos</title>
+  <style>
+    :root {
+      --blue: #36c8ff;
+      --pink: #e83d72;
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.72);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .screen {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+    }
+
+    .background {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transform: scale(1.02);
+      transition: opacity 0.55s ease, transform 7s linear;
+      filter: brightness(0.82);
+    }
+
+    .background.visible {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.38) 54%, rgba(0, 0, 0, 0.2) 100%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.08) 54%, rgba(0, 0, 0, 0.34) 100%);
+    }
+
+    .logo-wrap {
+      position: absolute;
+      top: 28px;
+      left: 38px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      min-width: 146px;
+      min-height: 44px;
+    }
+
+    .logo-image {
+      width: 152px;
+      max-width: 14vw;
+      max-height: 50px;
+      object-fit: contain;
+      object-position: left center;
+      display: block;
+    }
+
+    .logo-fallback {
+      display: none;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .mark {
+      width: 23px;
+      height: 36px;
+      position: relative;
+    }
+
+    .mark::before,
+    .mark::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 10px;
+      border-radius: 2px;
+      background: var(--pink);
+    }
+
+    .mark::before {
+      top: 0;
+      height: 36px;
+      transform: skewY(-18deg);
+    }
+
+    .mark::after {
+      top: 7px;
+      left: 12px;
+      height: 9px;
+      width: 19px;
+      background: #268ed2;
+      box-shadow: 0 13px 0 #268ed2, 0 26px 0 #268ed2;
+      transform: skewY(18deg);
+    }
+
+    .brand-text strong {
+      display: block;
+      font-size: 20px;
+      line-height: 0.9;
+      letter-spacing: -0.06em;
+    }
+
+    .brand-text span {
+      display: block;
+      margin-top: 2px;
+      font-size: 13px;
+      line-height: 0.9;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .content {
+      position: absolute;
+      left: 48px;
+      right: 340px;
+      bottom: 42px;
+      z-index: 3;
+    }
+
+    .source {
+      color: var(--blue);
+      font-size: clamp(18px, 1.7vw, 24px);
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-shadow: 0 4px 16px rgba(0, 0, 0, 0.62);
+    }
+
+    .title {
+      max-width: 1060px;
+      font-size: clamp(38px, 5.1vw, 68px);
+      line-height: 1.02;
+      font-weight: 900;
+      letter-spacing: -0.055em;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.66);
+    }
+
+    .meta {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .qr-box {
+      position: absolute;
+      right: 44px;
+      bottom: 42px;
+      z-index: 3;
+      width: 190px;
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .qr-frame {
+      width: 182px;
+      height: 182px;
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
+    }
+
+    .qr-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .qr-text {
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1.1;
+      text-shadow: 0 4px 16px rgba(0, 0, 0, 0.72);
+    }
+
+    .status {
+      position: absolute;
+      right: 42px;
+      top: 38px;
+      z-index: 3;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 15px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .empty {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: none;
+      place-items: center;
+      padding: 48px;
+      background: #000;
+      text-align: center;
+    }
+
+    .empty.visible {
+      display: grid;
+    }
+
+    .empty strong {
+      display: block;
+      font-size: 54px;
+      line-height: 1;
+      margin-bottom: 14px;
+    }
+
+    .empty span {
+      display: block;
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1.35;
+      max-width: 860px;
+    }
+
+    @media (max-width: 920px) {
+      .logo-wrap {
+        top: 24px;
+        left: 26px;
+      }
+
+      .logo-image {
+        width: 136px;
+      }
+
+      .content {
+        left: 28px;
+        right: 220px;
+        bottom: 30px;
+      }
+
+      .qr-box {
+        right: 24px;
+        bottom: 28px;
+        width: 170px;
+      }
+
+      .qr-frame {
+        width: 158px;
+        height: 158px;
+      }
+
+      .qr-text {
+        font-size: 15px;
+      }
+    }
+
+    @media (max-height: 760px) and (min-width: 1000px) {
+      .logo-wrap {
+        top: 24px;
+        left: 34px;
+        min-height: 40px;
+      }
+
+      .logo-image {
+        width: 136px;
+        max-height: 44px;
+      }
+
+      .mark {
+        width: 21px;
+        height: 33px;
+      }
+
+      .mark::before {
+        width: 9px;
+        height: 33px;
+      }
+
+      .mark::after {
+        top: 6px;
+        left: 11px;
+        width: 18px;
+        height: 8px;
+        box-shadow: 0 12px 0 #268ed2, 0 24px 0 #268ed2;
+      }
+
+      .brand-text strong {
+        font-size: 18px;
+      }
+
+      .brand-text span {
+        font-size: 12px;
+      }
+
+      .logo-fallback {
+        gap: 16px;
+      }
+
+      .status {
+        top: 34px;
+        right: 40px;
+        font-size: 14px;
+      }
+
+      .content {
+        left: 40px;
+        right: 300px;
+        bottom: 36px;
+      }
+
+      .source {
+        font-size: 20px;
+        margin-bottom: 12px;
+      }
+
+      .title {
+        max-width: 900px;
+        font-size: clamp(38px, 4.85vw, 58px);
+        line-height: 1.04;
+      }
+
+      .meta {
+        margin-top: 14px;
+        font-size: 17px;
+      }
+
+      .qr-box {
+        right: 38px;
+        bottom: 38px;
+        width: 168px;
+      }
+
+      .qr-frame {
+        width: 160px;
+        height: 160px;
+        border-radius: 16px;
+      }
+
+      .qr-text {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="screen">
+    <img id="imagem" class="background" alt="Imagem da noticia">
+    <div class="overlay"></div>
+
+    <div class="logo-wrap">
+      <img id="logoImagem" class="logo-image" src="logo.png" alt="Ilheus Eventos">
+      <div id="logoFallback" class="logo-fallback" aria-hidden="true">
+        <div class="mark"></div>
+        <div class="brand-text">
+          <strong>ilheus eventos</strong>
+          <span>.com.br</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="status" class="status">Atualizando noticias...</div>
+
+    <a id="qrLink" class="qr-box" href="https://ilheuseventos.com.br" target="_blank" rel="noopener">
+      <div class="qr-frame">
+        <img id="qrCode" alt="QR Code">
+      </div>
+      <div class="qr-text">Veja a noticia no site</div>
+    </a>
+
+    <section class="content">
+      <div class="source">Fonte: Ilheus Eventos</div>
+      <div id="titulo" class="title">Carregando...</div>
+      <div id="meta" class="meta"></div>
+    </section>
+
+    <div id="empty" class="empty">
+      <div>
+        <strong>Duna News</strong>
+        <span>Nao foi possivel carregar as noticias agora. Assim que houver internet, esta tela atualiza automaticamente.</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = "https://ilheuseventos.com.br/wp-json/wp/v2/posts?_embed=wp:featuredmedia&per_page=12";
+    const SITE_URL = "https://ilheuseventos.com.br";
+    const CACHE_KEY = "duna_news_ilheus_eventos_v1";
+    const SLIDE_MS = 20 * 1000;
+    const UPDATE_MS = 5 * 60 * 1000;
+
+    const imagemEl = document.getElementById("imagem");
+    const tituloEl = document.getElementById("titulo");
+    const metaEl = document.getElementById("meta");
+    const qrLinkEl = document.getElementById("qrLink");
+    const qrCodeEl = document.getElementById("qrCode");
+    const statusEl = document.getElementById("status");
+    const emptyEl = document.getElementById("empty");
+    const logoImagemEl = document.getElementById("logoImagem");
+    const logoFallbackEl = document.getElementById("logoFallback");
+
+    let noticias = [];
+    let indiceAtual = 0;
+    let slideTimer = null;
+
+    logoImagemEl.addEventListener("error", () => {
+      logoImagemEl.style.display = "none";
+      logoFallbackEl.style.display = "flex";
+    });
+
+    function removerTags(html) {
+      const div = document.createElement("div");
+      div.innerHTML = html || "";
+      return (div.textContent || div.innerText || "").replace(/\s+/g, " ").trim();
+    }
+
+    function formatarData(dataIso) {
+      if (!dataIso) return "";
+
+      const data = new Date(dataIso);
+      if (Number.isNaN(data.getTime())) return "";
+
+      return data.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function obterImagem(post) {
+      const media = post?._embedded?.["wp:featuredmedia"]?.[0];
+      const sizes = media?.media_details?.sizes || {};
+
+      return (
+        sizes["1536x1536"]?.source_url ||
+        sizes.large?.source_url ||
+        sizes.full?.source_url ||
+        media?.source_url ||
+        ""
+      );
+    }
+
+    function normalizarNoticias(posts) {
+      return (Array.isArray(posts) ? posts : [])
+        .map((post) => ({
+          titulo: removerTags(post?.title?.rendered || "Sem titulo"),
+          imagem: obterImagem(post),
+          link: post?.link || SITE_URL,
+          data: post?.date || ""
+        }))
+        .filter((item) => item.titulo && item.link);
+    }
+
+    function salvarCache(lista) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          atualizadoEm: new Date().toISOString(),
+          noticias: lista
+        }));
+      } catch (error) {
+        console.warn("Falha ao salvar cache:", error);
+      }
+    }
+
+    function lerCache() {
+      try {
+        const bruto = localStorage.getItem(CACHE_KEY);
+        if (!bruto) return null;
+
+        const cache = JSON.parse(bruto);
+        if (!Array.isArray(cache.noticias) || !cache.noticias.length) return null;
+
+        return cache;
+      } catch {
+        return null;
+      }
+    }
+
+    function definirQr(link) {
+      const destino = link || SITE_URL;
+      qrLinkEl.href = destino;
+      qrCodeEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(destino)}`;
+    }
+
+    function preCarregarProxima() {
+      if (!noticias.length) return;
+
+      const proxima = noticias[(indiceAtual + 1) % noticias.length];
+      if (!proxima?.imagem) return;
+
+      const img = new Image();
+      img.src = proxima.imagem;
+    }
+
+    function mostrarNoticia(index) {
+      if (!noticias.length) {
+        emptyEl.classList.add("visible");
+        return;
+      }
+
+      emptyEl.classList.remove("visible");
+
+      const noticia = noticias[index % noticias.length];
+      tituloEl.textContent = noticia.titulo || "Sem titulo";
+      metaEl.textContent = formatarData(noticia.data);
+      definirQr(noticia.link);
+
+      imagemEl.classList.remove("visible");
+
+      const novaImagem = noticia.imagem || "";
+      window.setTimeout(() => {
+        imagemEl.onload = () => imagemEl.classList.add("visible");
+        imagemEl.onerror = () => imagemEl.classList.remove("visible");
+        imagemEl.src = novaImagem;
+
+        if (!novaImagem) {
+          imagemEl.classList.remove("visible");
+        }
+      }, 120);
+
+      preCarregarProxima();
+    }
+
+    function iniciarSlides() {
+      if (slideTimer) clearInterval(slideTimer);
+
+      mostrarNoticia(indiceAtual);
+
+      slideTimer = setInterval(() => {
+        if (!noticias.length) return;
+        indiceAtual = (indiceAtual + 1) % noticias.length;
+        mostrarNoticia(indiceAtual);
+      }, SLIDE_MS);
+    }
+
+    function aplicarNoticias(lista, origem) {
+      if (!lista.length) return false;
+
+      noticias = lista;
+      indiceAtual = Math.min(indiceAtual, noticias.length - 1);
+
+      const agora = new Date().toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      statusEl.textContent = origem === "cache"
+        ? `Modo offline | Ultima copia local`
+        : `Atualizado as ${agora}`;
+
+      iniciarSlides();
+      return true;
+    }
+
+    async function buscarNoticias() {
+      try {
+        const resposta = await fetch(`${API_URL}&_=${Date.now()}`, {
+          cache: "no-store"
+        });
+
+        if (!resposta.ok) {
+          throw new Error(`HTTP ${resposta.status}`);
+        }
+
+        const posts = await resposta.json();
+        const lista = normalizarNoticias(posts);
+
+        if (!lista.length) {
+          throw new Error("Lista vazia");
+        }
+
+        salvarCache(lista);
+        aplicarNoticias(lista, "online");
+      } catch (error) {
+        console.warn("Falha ao buscar noticias:", error);
+
+        const cache = lerCache();
+        if (cache?.noticias?.length) {
+          aplicarNoticias(cache.noticias, "cache");
+          return;
+        }
+
+        statusEl.textContent = "Sem conexao";
+        emptyEl.classList.add("visible");
+      }
+    }
+
+    definirQr(SITE_URL);
+    buscarNoticias();
+    setInterval(buscarNoticias, UPDATE_MS);
+  </script>
+</body>
+</html>
