@@ -211,6 +211,63 @@ body {
   gap: 15px;
 }
 
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 350px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid rgba(23, 58, 104, .65);
+  padding-bottom: 12px;
+}
+
+.history-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.history-row strong {
+  display: block;
+  color: #e7efff;
+  font-size: 14px;
+}
+
+.history-row span {
+  display: block;
+  color: #9fb2d7;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.history-row time {
+  color: #c8d7f2;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.history-count {
+  color: #fff;
+  background: linear-gradient(135deg, #00a2ff, #005dff);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-left: auto;
+}
+
 .ranking-row {
   display: grid;
   grid-template-columns: 1fr 50px 120px 48px;
