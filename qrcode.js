@@ -1,13 +1,14 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 
-const CACHE_QRCODE_RELATORIO_KEY = "qrcode_relatorio_cache_v1";
+const CACHE_QRCODE_RELATORIO_KEY = "qrcode_relatorio_cache_v2";
 const CACHE_QRCODE_RELATORIO_TTL = 10 * 60 * 1000;
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let todosOsPontos = [];
 let todosOsClientes = [];
+let todasAsPlaylists = [];
 let todosOsEscaneamentos = [];
 
 const el = {
@@ -24,7 +25,7 @@ const el = {
   chartArea: document.getElementById("chartArea"),
   chartDots: document.getElementById("chartDots"),
   chartLabels: document.getElementById("chartLabels"),
-  mediaRankingList: document.getElementById("mediaRankingList"),
+  scanHistoryList: document.getElementById("scanHistoryList"),
   scanMap: document.getElementById("scanMap"),
   rankLines: document.getElementById("rankLines"),
   heatmap: document.getElementById("heatmap"),
@@ -79,6 +80,7 @@ async function carregarRelatorio(opcoes = {}) {
     const [
       { data: pontos, error: erroPontos },
       { data: clientes, error: erroClientes },
+      { data: playlists, error: erroPlaylists },
       { data: escaneamentos, error: erroEscaneamentos }
     ] = await Promise.all([
       supabaseClient
@@ -90,6 +92,9 @@ async function carregarRelatorio(opcoes = {}) {
         .select("id,codigo,nome,nome_completo,status,statuscliente,created_at")
         .order("created_at", { ascending: false }),
       supabaseClient
+        .from("playlists")
+        .select("codigo,codigo_cliente,nome,data_inicio,data_fim,status,created_at"),
+      supabaseClient
         .from("qrcode_contadores")
         .select("*")
         .gte("data", formatarDataBanco(previousStart))
@@ -99,11 +104,13 @@ async function carregarRelatorio(opcoes = {}) {
 
     if (erroPontos) throw erroPontos;
     if (erroClientes) console.warn("Clientes não carregaram:", erroClientes);
+    if (erroPlaylists) console.warn("Playlists não carregaram:", erroPlaylists);
     if (erroEscaneamentos) throw erroEscaneamentos;
 
     const dados = {
       pontos: pontos || [],
       clientes: clientes || [],
+      playlists: playlists || [],
       escaneamentos: escaneamentos || []
     };
 
@@ -118,6 +125,7 @@ async function carregarRelatorio(opcoes = {}) {
 function aplicarDadosRelatorio(dados) {
   todosOsPontos = dados?.pontos || [];
   todosOsClientes = dados?.clientes || [];
+  todasAsPlaylists = dados?.playlists || [];
   todosOsEscaneamentos = dados?.escaneamentos || [];
 
   renderizarFiltroPontos();
@@ -130,6 +138,7 @@ function aplicarRelatorio() {
 
   atualizarCards(escaneamentosPeriodo, escaneamentosPeriodoAnterior);
   desenharGraficoTempo(escaneamentosPeriodo);
+  renderizarHistorico(escaneamentosPeriodo);
   renderizarRankings(escaneamentosPeriodo);
   renderizarMapa(escaneamentosPeriodo);
   renderizarHorariosPico(escaneamentosPeriodo);
@@ -148,15 +157,6 @@ function renderizarFiltroPontos() {
     el.qrCodeFilter.appendChild(option);
   });
 
-  todosOsClientes
-    .filter(cliente => !todosOsPontos.some(ponto => chavePonto(ponto) === chaveCliente(cliente)))
-    .forEach(cliente => {
-      const option = document.createElement("option");
-      option.value = chaveCliente(cliente);
-      option.textContent = nomeCliente(cliente);
-      el.qrCodeFilter.appendChild(option);
-    });
-
   if ([...el.qrCodeFilter.options].some(option => option.value === valorAtual)) {
     el.qrCodeFilter.value = valorAtual;
   }
@@ -170,8 +170,7 @@ function filtrarEscaneamentosPeriodo(anterior) {
     const data = dataEscaneamento(item);
     if (Number.isNaN(data.getTime())) return false;
 
-    const entidade = encontrarEntidadeDoEscaneamento(item);
-    const pertenceAoFiltro = filtro === "all" || (entidade && chaveEntidade(entidade) === filtro);
+    const pertenceAoFiltro = filtro === "all" || escaneamentoPertenceAoPonto(item, filtro);
     const pertenceAoPeriodo = anterior ? data >= previousStart && data < start : data >= start && data <= end;
 
     return pertenceAoFiltro && pertenceAoPeriodo;
@@ -186,7 +185,7 @@ function atualizarCards(atuais, anteriores) {
   const unicosAnterior = somaUnicos(anteriores);
   const media = total / days;
   const mediaAnterior = totalAnterior / days;
-  const locais = new Set(atuais.map(item => chaveEntidade(encontrarEntidadeDoEscaneamento(item))).filter(Boolean)).size;
+  const locais = new Set(atuais.flatMap(item => pontosDoEscaneamento(item).map(chavePonto)).filter(Boolean)).size;
 
   setTexto("totalScans", formatarNumero(total));
   setTexto("uniqueScans", formatarNumero(unicos));
@@ -241,29 +240,60 @@ function desenharGraficoTempo(escaneamentos) {
   }
 }
 
+function renderizarHistorico(escaneamentos) {
+  if (!el.scanHistoryList) return;
+
+  const historico = escaneamentos
+    .flatMap(item => {
+      const pontos = pontosDoEscaneamento(item);
+      const anunciante = anuncianteDoEscaneamento(item);
+      const data = new Date(item.atualizado_em || item.data || dataEscaneamento(item));
+
+      if (!pontos.length) {
+        return [{
+          anunciante,
+          ponto: { nome: "Ponto não encontrado" },
+          data,
+          total: totalEscaneamento(item)
+        }];
+      }
+
+      return pontos.map(ponto => ({
+        anunciante,
+        ponto,
+        data,
+        total: totalEscaneamento(item)
+      }));
+    })
+    .sort((a, b) => b.data - a.data);
+
+  if (!historico.length) {
+    el.scanHistoryList.innerHTML = '<div class="empty-state">Nenhuma leitura encontrada neste período.</div>';
+    return;
+  }
+
+  el.scanHistoryList.innerHTML = historico.slice(0, 40).map(item => `
+    <div class="history-row">
+      <div>
+        <strong>${escaparHtml(nomeCliente(item.anunciante))}</strong>
+        <span>${escaparHtml(nomePonto(item.ponto))}</span>
+      </div>
+      <div>
+        <time>${escaparHtml(formatarDataHora(item.data))}</time>
+        <span class="history-count">${formatarNumero(item.total)}</span>
+      </div>
+    </div>
+  `).join("");
+}
+
 function renderizarRankings(escaneamentos) {
   const ranking = rankingPorPonto(escaneamentos);
   const max = Math.max(...ranking.map(item => item.total), 1);
   const total = Math.max(somaTotal(escaneamentos), 1);
 
   if (!ranking.length) {
-    if (el.mediaRankingList) el.mediaRankingList.innerHTML = '<div class="empty-state">Nenhum escaneamento encontrado neste período.</div>';
     if (el.rankLines) el.rankLines.innerHTML = '<div class="empty-state">Nenhum ponto de mídia ativo.</div>';
     return;
-  }
-
-  if (el.mediaRankingList) {
-    el.mediaRankingList.innerHTML = ranking.slice(0, 5).map(item => {
-      const percentual = (item.total / total) * 100;
-      return `
-        <div class="ranking-row">
-          <span>${escaparHtml(nomeEntidade(item.entidade))}</span>
-          <b>${formatarNumero(item.total)}</b>
-          <div class="bar"><span style="width:${(item.total / max) * 100}%"></span></div>
-          <span>${percentual.toFixed(1).replace(".", ",")}%</span>
-        </div>
-      `;
-    }).join("");
   }
 
   if (el.rankLines) {
@@ -350,6 +380,18 @@ function rankingPorPonto(escaneamentos) {
 }
 
 function encontrarEntidadeDoEscaneamento(item) {
+  const pontos = pontosDoEscaneamento(item);
+
+  if (pontos.length) {
+    return {
+      codigo: pontos.map(chavePonto).join("__"),
+      nome: pontos.map(nomePonto).join(" + "),
+      map_x: pontos[0]?.map_x || pontos[0]?.posicao_x,
+      map_y: pontos[0]?.map_y || pontos[0]?.posicao_y,
+      __tipo: "ponto"
+    };
+  }
+
   const chavesEscaneamento = [
     item.codigo_cliente,
     item.codigo_ponto,
@@ -372,8 +414,6 @@ function encontrarEntidadeDoEscaneamento(item) {
     return chavesEscaneamento.some(chave => chavesCliente.includes(chave));
   });
 
-  if (cliente) return { ...cliente, __tipo: "cliente" };
-
   const ponto = todosOsPontos.find(itemPonto => {
     const chavesPonto = [
       itemPonto.codigo,
@@ -389,11 +429,71 @@ function encontrarEntidadeDoEscaneamento(item) {
 
   if (ponto) return { ...ponto, __tipo: "ponto" };
 
+  if (cliente) {
+    return {
+      codigo: cliente.codigo,
+      nome: `QR ${cliente.codigo}`,
+      __tipo: "contador"
+    };
+  }
+
   return {
     codigo: item.codigo_cliente || item.codigo_ponto || item.codigo || "SEM-CODIGO",
     nome: item.codigo_cliente || item.codigo_ponto || item.codigo || "QR Code sem nome",
     __tipo: "contador"
   };
+}
+
+function anuncianteDoEscaneamento(item) {
+  const codigoCliente = normalizarCodigo(item.codigo_cliente || item.codigo_anunciante || item.cliente_codigo);
+
+  const cliente = todosOsClientes.find(itemCliente => {
+    return [itemCliente.codigo, itemCliente.id].map(normalizarCodigo).includes(codigoCliente);
+  });
+
+  if (cliente) return cliente;
+
+  return {
+    codigo: codigoCliente || "SEM-CODIGO",
+    nome: codigoCliente ? `Anunciante ${codigoCliente}` : "Anunciante não encontrado"
+  };
+}
+
+function pontosDoEscaneamento(item) {
+  const codigoCliente = normalizarCodigo(item.codigo_cliente);
+  const codigosDiretos = [
+    item.codigo_ponto,
+    item.ponto_codigo,
+    item.codigo,
+    item.ponto_id
+  ].map(normalizarCodigo).filter(Boolean);
+
+  const pontosDiretos = todosOsPontos.filter(ponto => codigosDiretos.includes(chavePonto(ponto)));
+  if (pontosDiretos.length) return removerPontosDuplicados(pontosDiretos);
+
+  const codigosPlaylist = todasAsPlaylists
+    .filter(playlist => normalizarCodigo(playlist.codigo_cliente) === codigoCliente)
+    .map(playlist => normalizarCodigo(playlist.codigo))
+    .filter(Boolean);
+
+  const pontosDaPlaylist = todosOsPontos.filter(ponto => codigosPlaylist.includes(chavePonto(ponto)));
+  return removerPontosDuplicados(pontosDaPlaylist);
+}
+
+function escaneamentoPertenceAoPonto(item, codigoPonto) {
+  return pontosDoEscaneamento(item).some(ponto => chavePonto(ponto) === normalizarCodigo(codigoPonto));
+}
+
+function removerPontosDuplicados(pontos) {
+  const vistos = new Set();
+
+  return pontos.filter(ponto => {
+    const chave = chavePonto(ponto);
+    if (!chave || vistos.has(chave)) return false;
+
+    vistos.add(chave);
+    return true;
+  });
 }
 
 function chavePonto(ponto) {
@@ -501,6 +601,17 @@ function formatarDataCurta(data) {
   return data.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short"
+  }).replace(".", "");
+}
+
+function formatarDataHora(data) {
+  if (Number.isNaN(data.getTime())) return "--";
+
+  return data.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
   }).replace(".", "");
 }
 
