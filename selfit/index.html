@@ -56,31 +56,66 @@
     /* LOGIN */
     #telaLogin{
       min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:42px 24px 24px;
+    }
+
+    .login-layout{
+      width:min(100%,1080px);
+      margin:auto;
       display:grid;
-      place-items:center;
-      padding:24px;
+      grid-template-columns:1fr 420px;
+      align-items:center;
+      gap:90px;
+    }
+
+    .login-logo-area{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:420px;
+    }
+
+    .login-logo{
+      width:min(100%,430px);
+      max-height:300px;
+      object-fit:contain;
+      filter:brightness(0) invert(1);
+    }
+
+    .login-coluna{
+      width:100%;
     }
 
     .login-card{
-      width:min(100%,390px);
-      padding:28px;
-      border:1px solid #343434;
-      border-radius:18px;
-      background:linear-gradient(145deg,#1b1b1b,#101010);
-      box-shadow:var(--sombra);
+      width:100%;
+      padding:32px;
+      border:1px solid rgba(255,255,255,.9);
+      border-radius:20px;
+      background:#ffffff;
+      color:#111111;
+      box-shadow:0 22px 70px rgba(0,0,0,.28);
     }
 
     .login-card h1{
-      margin:0 0 8px;
+      margin:0 0 24px;
+      text-align:center;
+      color:#111111;
       font-size:29px;
+      font-weight:900;
       letter-spacing:-.8px;
     }
 
-    .login-card p{
-      margin:0 0 22px;
-      color:#eee;
+    .login-descricao{
+      margin:16px auto 0;
+      max-width:390px;
+      color:#ffffff;
+      text-align:center;
       line-height:1.5;
-      font-size:15px;
+      font-size:14px;
+      font-weight:400;
     }
 
     .campo{
@@ -91,39 +126,89 @@
     }
 
     .campo label{
+      color:#111111;
       font-size:12px;
       font-weight:800;
     }
 
     .campo input{
       width:100%;
-      height:46px;
-      border:1px solid #3a3a3a;
-      border-radius:10px;
-      background:#0d0d0d;
-      color:#fff;
+      height:48px;
+      border:1px solid #d9d9d9;
+      border-radius:12px;
+      background:#f7f7f7;
+      color:#111111;
       outline:none;
-      padding:0 14px;
+      padding:0 15px;
+      transition:.18s ease;
     }
 
-    .campo input:focus{border-color:var(--vermelho)}
+    .campo input::placeholder{
+      color:#8b8b8b;
+    }
+
+    .campo input:hover{
+      background:#ffffff;
+      border-color:#c8c8c8;
+    }
+
+    .campo input:focus{
+      background:#ffffff;
+      border-color:var(--vermelho);
+      box-shadow:0 0 0 3px rgba(237,16,27,.12);
+    }
 
     .btn-principal{
       border:0;
       border-radius:11px;
-      background:linear-gradient(90deg,var(--vermelho),#d9000c);
-      color:#fff;
+      background:linear-gradient(90deg,#ed101b,#d60914);
+      color:#ffffff;
       font-weight:900;
       min-height:46px;
       padding:0 20px;
       transition:.2s ease;
     }
 
-    .btn-principal:hover{filter:brightness(1.08);transform:translateY(-1px)}
+    .btn-principal:hover{filter:brightness(1.12);transform:translateY(-1px)}
     .btn-principal:disabled{opacity:.6;cursor:not-allowed;transform:none}
 
-    .login-card .btn-principal{width:100%;margin-top:1px}
-    .mensagem-login{min-height:18px;margin:12px 0 0!important;color:#ff5b62!important;font-size:13px!important}
+    .login-card .btn-principal{
+      width:100%;
+      margin-top:1px;
+      background:linear-gradient(90deg,#ed101b,#d60914);
+      color:#ffffff;
+    }
+
+    .mensagem-login{
+      min-height:18px;
+      margin:12px 0 0!important;
+      color:#b00008!important;
+      font-size:13px!important;
+      text-align:center;
+    }
+
+    .login-creditos{
+      margin-top:34px;
+      text-align:center;
+      color:rgba(255,255,255,.85);
+      font-size:14px;
+    }
+
+    .login-creditos strong{
+      color:#ffffff;
+      font-weight:900;
+    }
+
+    @media(max-width:850px){
+      #telaLogin{padding-top:28px}
+      .login-layout{
+        grid-template-columns:1fr;
+        gap:28px;
+      }
+      .login-logo-area{min-height:auto}
+      .login-logo{width:min(76vw,300px);max-height:180px}
+      .login-coluna{width:min(100%,420px);margin:auto}
+    }
 
     /* PAINEL */
     #painel{
@@ -678,23 +763,34 @@
 
 <body>
   <section id="telaLogin">
-    <form class="login-card" id="formLogin">
-      <h1>Painel de Controle</h1>
-      <p>Acesso exclusivo do gerente. Entre para administrar os conteúdos da unidade Ilhéus.</p>
-
-      <div class="campo">
-        <label for="loginUsuario">Usuário</label>
-        <input id="loginUsuario" autocomplete="username" required />
+    <div class="login-layout">
+      <div class="login-logo-area">
+        <img src="selfit.png" class="login-logo" alt="Selfit" />
       </div>
 
-      <div class="campo">
-        <label for="loginSenha">Senha</label>
-        <input id="loginSenha" type="password" autocomplete="current-password" required />
-      </div>
+      <div class="login-coluna">
+        <form class="login-card" id="formLogin">
+          <h1>Painel de Controle</h1>
 
-      <button class="btn-principal" id="btnEntrar" type="submit">Entrar</button>
-      <p class="mensagem-login" id="mensagemLogin"></p>
-    </form>
+          <div class="campo">
+            <label for="loginUsuario">Usuário</label>
+            <input id="loginUsuario" autocomplete="username" required />
+          </div>
+
+          <div class="campo">
+            <label for="loginSenha">Senha</label>
+            <input id="loginSenha" type="password" autocomplete="current-password" required />
+          </div>
+
+          <button class="btn-principal" id="btnEntrar" type="submit">Entrar</button>
+          <p class="mensagem-login" id="mensagemLogin"></p>
+        </form>
+
+        <p class="login-descricao">Acesso exclusivo do gerente. Entre para administrar os conteúdos da unidade Ilhéus.</p>
+      </div>
+    </div>
+
+    <div class="login-creditos">Desenvolvido por <strong>DUNA BRANDING</strong></div>
   </section>
 
   <main id="painel" class="oculto">
@@ -720,7 +816,7 @@
         <h2 class="nome-unidade" id="nomeUnidade">Selfit</h2>
         <div class="localizacao"><span class="pin">●</span><span id="localizacaoUnidade">Ilhéus | zona sul</span></div>
         <div class="divisor"></div>
-        <div class="rotulo">Código do ponto</div>
+        <div class="rotulo">CÓDIGO DA SALA</div>
 
         <div class="codigo-linha">
           <div class="codigo" id="codigoSala">R6V0G8V</div>
@@ -734,8 +830,8 @@
     <section class="card conteudos-card">
       <div class="cabecalho-conteudos">
         <div class="cabecalho-conteudos-texto">
-          <h2>Playlist</h2>
-          <p>Gerencie os conteúdos da playlist.</p>
+          <h2>Conteúdos</h2>
+          <p>O gerente visualiza e administra somente este ponto.</p>
         </div>
 
         <button class="btn-preview" id="btnPreview" type="button">
