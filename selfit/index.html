@@ -135,9 +135,23 @@
     .topo{
       display:flex;
       justify-content:space-between;
-      align-items:flex-start;
+      align-items:center;
       gap:20px;
       margin-bottom:34px;
+    }
+
+    .topo-identidade{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      min-width:0;
+    }
+
+    .logo-topo{
+      width:92px;
+      height:92px;
+      object-fit:contain;
+      flex:none;
     }
 
     .topo h1{
@@ -273,7 +287,7 @@
       font-size:19px;
     }
 
-    .conteudos-card{padding:26px;margin-bottom:24px}
+    .conteudos-card{padding:22px;margin-bottom:24px}
 
     .cabecalho-conteudos{
       display:flex;
@@ -312,78 +326,116 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width:980px;
+      min-width:900px;
       background:#0f0f0f;
     }
 
     th{
-      height:64px;
-      padding:0 18px;
+      height:48px;
+      padding:0 14px;
       text-align:left;
       color:#e8e8e8;
       background:#181818;
       border-bottom:1px solid #383838;
-      font-size:13px;
+      font-size:11px;
     }
 
     td{
-      padding:18px;
-      border-right:1px solid #292929;
-      border-bottom:1px solid #292929;
+      padding:10px 14px;
+      border-right:1px solid #242424;
+      border-bottom:1px solid #242424;
       vertical-align:middle;
+      font-size:13px;
     }
 
     tbody tr:last-child td{border-bottom:0}
     td:last-child,th:last-child{border-right:0}
 
-    .numero{
-      width:46px;
-      height:46px;
+    .coluna-ordem{
+      width:72px;
+      text-align:center;
+    }
+
+    .drag-handle{
+      width:34px;
+      height:34px;
+      margin:auto;
       display:grid;
       place-items:center;
-      border-radius:12px;
-      background:linear-gradient(145deg,#df000b,#a90007);
-      font-weight:900;
+      border:1px solid #353535;
+      border-radius:9px;
+      background:#171717;
+      color:#bdbdbd;
+      font-size:19px;
+      line-height:1;
+      cursor:grab;
+      user-select:none;
+      transition:.18s ease;
+    }
+
+    .drag-handle:hover{
+      color:#fff;
+      border-color:#555;
+      background:#202020;
+    }
+
+    tr.arrastando{
+      opacity:.45;
+    }
+
+    tr.drag-over{
+      outline:1px solid var(--vermelho);
+      outline-offset:-1px;
+      background:#181010;
     }
 
     .nome-arquivo{
-      max-width:340px;
-      font-weight:800;
-      overflow-wrap:anywhere;
+      max-width:360px;
+      font-weight:700;
+      font-size:13px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
     .data-cell{
       display:flex;
-      flex-direction:column;
-      gap:5px;
+      align-items:center;
+      gap:6px;
       white-space:nowrap;
-      color:#f0f0f0;
+      color:#cfcfcf;
+      font-size:12px;
     }
 
-    .tipo-cell{white-space:nowrap}
+    .data-cell .hora{
+      color:#858585;
+      font-size:11px;
+    }
+
+    .tipo-cell{white-space:nowrap;color:#cfcfcf;font-size:12px}
 
     .acoes{
       display:flex;
-      gap:12px;
-      min-width:330px;
+      gap:7px;
+      min-width:255px;
     }
 
     .acao{
-      min-width:105px;
-      min-height:78px;
-      border:1px solid #363636;
-      border-radius:13px;
-      background:linear-gradient(145deg,#202020,#111);
-      color:#fff;
+      min-width:78px;
+      min-height:38px;
+      border:1px solid #303030;
+      border-radius:9px;
+      background:#181818;
+      color:#e8e8e8;
       display:flex;
-      flex-direction:column;
       align-items:center;
       justify-content:center;
-      gap:8px;
-      font-size:13px;
+      gap:6px;
+      font-size:11px;
+      padding:0 10px;
     }
 
-    .acao span:first-child{font-size:20px}
+    .acao span:first-child{font-size:14px}
     .acao.excluir{color:#ff353d;border-color:#5d171b}
     .vazio{padding:48px;text-align:center;color:#aaa}
     .carregando{opacity:.7}
@@ -469,6 +521,7 @@
 
     @media(max-width:980px){
       #painel{width:min(100% - 28px,1480px);padding-top:22px}
+      .logo-topo{width:72px;height:72px}
       .topo h1{font-size:34px}
       .unidade-card{grid-template-columns:1fr;padding:18px}
       .imagem-unidade-wrap,.imagem-unidade{min-height:300px}
@@ -478,6 +531,8 @@
 
     @media(max-width:600px){
       .topo{align-items:center}
+      .logo-topo{width:56px;height:56px}
+      .topo-identidade{gap:12px}
       .topo h1{font-size:28px}
       .topo p{font-size:15px}
       .btn-sair{min-height:46px;padding:0 14px}
@@ -512,9 +567,12 @@
 
   <main id="painel" class="oculto">
     <header class="topo">
-      <div>
-        <h1>Painel da Unidade</h1>
-        <p>Gerenciamento de conteúdo</p>
+      <div class="topo-identidade">
+        <img src="selfit.png" class="logo-topo" alt="Selfit" />
+        <div>
+          <h1>Painel da Unidade</h1>
+          <p>Gerenciamento de conteúdo</p>
+        </div>
       </div>
       <button class="btn-sair" id="btnSair" type="button"><span>⇥</span> Sair</button>
     </header>
@@ -553,7 +611,7 @@
         <table>
           <thead>
             <tr>
-              <th>#</th>
+              <th class="coluna-ordem">ORDEM</th>
               <th>NOME DO CONTEÚDO</th>
               <th>POSTAGEM</th>
               <th>VENCIMENTO</th>
@@ -815,22 +873,87 @@
         const url = obterUrl(item);
 
         return `
-          <tr>
-            <td><div class="numero">${index+1}</div></td>
-            <td><div class="nome-arquivo">${escapeHtml(nome)}</div></td>
-            <td><div class="data-cell"><span>▣ &nbsp;${escapeHtml(postagem.data)}</span><span>${escapeHtml(postagem.hora)}</span></div></td>
-            <td><div class="data-cell"><span>▣ &nbsp;${escapeHtml(vencimento.data)}</span><span>${escapeHtml(vencimento.hora)}</span></div></td>
-            <td class="tipo-cell">▰ &nbsp;${escapeHtml(obterTipo(item))}</td>
+          <tr draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
+            <td class="coluna-ordem"><div class="drag-handle" title="Arraste para mudar a ordem">⋮⋮</div></td>
+            <td><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
+            <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
+            <td><div class="data-cell"><span>${escapeHtml(vencimento.data)}</span><span class="hora">${escapeHtml(vencimento.hora)}</span></div></td>
+            <td class="tipo-cell">${escapeHtml(obterTipo(item))}</td>
             <td>
               <div class="acoes">
-                <button class="acao" type="button" onclick="visualizarItem('${escapeHtml(url)}')"><span>◉</span><span>Visualizar</span></button>
+                <button class="acao" type="button" onclick="visualizarItem('${escapeHtml(url)}')"><span>◉</span><span>Ver</span></button>
                 <button class="acao" type="button" onclick="renomearItem('${escapeHtml(item.id)}','${escapeHtml(nome)}')"><span>✎</span><span>Renomear</span></button>
-                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','${escapeHtml(item.storage_path || "")}')"><span>♜</span><span>Excluir</span></button>
+                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','${escapeHtml(item.storage_path || "")}')"><span>×</span><span>Excluir</span></button>
               </div>
             </td>
           </tr>
         `;
       }).join("");
+
+      ativarOrdenacaoPlaylist();
+    }
+
+    function ativarOrdenacaoPlaylist(){
+      const linhas = [...corpoTabela.querySelectorAll("tr[draggable='true']")];
+      let indiceOrigem = null;
+
+      linhas.forEach((linha)=>{
+        linha.addEventListener("dragstart",()=>{
+          indiceOrigem = Number(linha.dataset.index);
+          linha.classList.add("arrastando");
+        });
+
+        linha.addEventListener("dragend",()=>{
+          linha.classList.remove("arrastando");
+          linhas.forEach(item=>item.classList.remove("drag-over"));
+          indiceOrigem = null;
+        });
+
+        linha.addEventListener("dragover",(event)=>{
+          event.preventDefault();
+          linhas.forEach(item=>item.classList.remove("drag-over"));
+          linha.classList.add("drag-over");
+        });
+
+        linha.addEventListener("drop",async(event)=>{
+          event.preventDefault();
+          linha.classList.remove("drag-over");
+
+          const indiceDestino = Number(linha.dataset.index);
+
+          if(
+            indiceOrigem === null ||
+            Number.isNaN(indiceOrigem) ||
+            Number.isNaN(indiceDestino) ||
+            indiceOrigem === indiceDestino
+          ) return;
+
+          const novaOrdem = [...playlistAtual];
+          const [movido] = novaOrdem.splice(indiceOrigem,1);
+          novaOrdem.splice(indiceDestino,0,movido);
+
+          playlistAtual = novaOrdem;
+          renderizarPlaylist();
+          mostrarStatus("Salvando nova ordem...");
+
+          for(let i=0;i<novaOrdem.length;i++){
+            const {error} = await supabaseClient
+              .from(TABELA_PLAYLIST)
+              .update({ordem:i+1})
+              .eq("id",novaOrdem[i].id)
+              .eq("codigo",CODIGO_FIXO);
+
+            if(error){
+              console.error(error);
+              mostrarStatus("Erro ao salvar a ordem.","erro");
+              await carregarPlaylist();
+              return;
+            }
+          }
+
+          mostrarStatus("Ordem atualizada.","ok");
+        });
+      });
     }
 
     window.visualizarItem = function(url){
