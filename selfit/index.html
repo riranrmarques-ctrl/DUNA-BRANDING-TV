@@ -378,10 +378,16 @@
 
     td{
       padding:10px 14px;
-      border-right:1px solid #242424;
-      border-bottom:1px solid #242424;
+      border-right:1px solid #d9d9d9;
+      border-bottom:1px solid #d9d9d9;
       vertical-align:middle;
       font-size:13px;
+      background:#ffffff;
+      color:#1a1a1a;
+    }
+
+    tbody tr:hover td{
+      background:#f7f7f7;
     }
 
     tbody tr:last-child td{border-bottom:0}
@@ -440,16 +446,16 @@
       align-items:center;
       gap:6px;
       white-space:nowrap;
-      color:#cfcfcf;
+      color:#333;
       font-size:12px;
     }
 
     .data-cell .hora{
-      color:#858585;
+      color:#666;
       font-size:11px;
     }
 
-    .tipo-cell{white-space:nowrap;color:#cfcfcf;font-size:12px}
+    .tipo-cell{white-space:nowrap;color:#333;font-size:12px;font-weight:600}
 
     .acoes{
       display:flex;
