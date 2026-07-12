@@ -28,9 +28,9 @@
       font-family:Arial,Helvetica,sans-serif;
       color:var(--texto);
       background:
-        radial-gradient(circle at 73% 5%,rgba(120,0,0,.42),transparent 33%),
-        radial-gradient(circle at 10% 92%,rgba(85,0,0,.22),transparent 28%),
-        linear-gradient(145deg,#120000 0,#050505 42%,#030303 100%);
+        radial-gradient(circle at 75% 8%,rgba(255,70,70,.18),transparent 30%),
+        radial-gradient(circle at 15% 88%,rgba(150,0,0,.18),transparent 30%),
+        linear-gradient(145deg,#ed101b 0%,#b10812 45%,#730008 100%);
       overflow-x:hidden;
     }
 
@@ -394,21 +394,37 @@
     td:last-child,th:last-child{border-right:0}
 
     .coluna-ordem{
-      width:72px;
+      width:92px;
       text-align:center;
     }
 
+    .ordem-conteudo{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      color:#111;
+      font-weight:800;
+    }
+
+    .numero-ordem{
+      min-width:18px;
+      text-align:center;
+      font-size:13px;
+    }
+
     .drag-handle{
-      width:34px;
-      height:34px;
-      margin:auto;
-      display:grid;
-      place-items:center;
-      border:1px solid #353535;
-      border-radius:9px;
-      background:#171717;
-      color:#bdbdbd;
-      font-size:19px;
+      width:auto;
+      height:auto;
+      margin:0;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border:0;
+      border-radius:0;
+      background:transparent;
+      color:#111;
+      font-size:18px;
       line-height:1;
       cursor:grab;
       user-select:none;
@@ -416,9 +432,8 @@
     }
 
     .drag-handle:hover{
-      color:#fff;
-      border-color:#555;
-      background:#202020;
+      color:#000;
+      transform:scale(1.08);
     }
 
     tr.arrastando{
@@ -433,7 +448,7 @@
 
     .nome-arquivo{
       max-width:360px;
-      color:#ffffff;
+      color:#111111;
       font-weight:800;
       font-size:13px;
       overflow:hidden;
@@ -459,8 +474,15 @@
 
     .acoes{
       display:flex;
+      justify-content:flex-end;
       gap:7px;
       min-width:255px;
+      width:100%;
+    }
+
+    td:last-child,
+    th:last-child{
+      text-align:right;
     }
 
     .acao{
@@ -1093,7 +1115,12 @@
 
         return `
           <tr draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
-            <td class="coluna-ordem"><div class="drag-handle" title="Arraste para mudar a ordem">⋮⋮</div></td>
+            <td class="coluna-ordem">
+              <div class="ordem-conteudo">
+                <span class="numero-ordem">${index + 1}</span>
+                <div class="drag-handle" title="Arraste para mudar a ordem">⠿</div>
+              </div>
+            </td>
             <td><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
             <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
             <td><div class="data-cell"><span>${escapeHtml(vencimento.data)}</span><span class="hora">${escapeHtml(vencimento.hora)}</span></div></td>
