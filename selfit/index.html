@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Painel da Unidade</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #120404;
+      --panel: #250909;
+      --panel-2: #320c0c;
+      --line: rgba(255,255,255,.11);
+      --text: #ffffff;
+      --muted: #9eb0cb;
+      --primary: #e02f2f;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(circle at top, rgba(230,27,35,.30), transparent 38%),
+        linear-gradient(180deg, #7d0f14 0%, #5f090d 45%, #430507 100%);
+      color: #1a1a1a;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button, input { font: inherit; }
+
+    [hidden] { display: none !important; }
+
+    .app {
+      min-height: 100vh;
+    }
+
+    .login {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      width: min(420px, 100%);
+      padding: 34px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 24px;
+      background: linear-gradient(180deg, #ffffff, #f5f5f5);
+      box-shadow: 0 30px 90px rgba(0,0,0,.5), 0 0 45px rgba(224,47,47,.08);
+    }
+
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .login-brand img {
+      width: 112px;
+      height: 48px;
+      object-fit: contain;
+      object-position: left center;
+    }
+
+    .login-brand div {
+      border-left: 1px solid var(--line);
+      padding-left: 14px;
+    }
+
+    .login-brand strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    .login-brand span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .login-card h1 {
+      margin: 0 0 7px;
+      font-size: 28px;
+    }
+
+    .login-card p {
+      margin: 0 0 24px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .field span {
+      color: #dce6f7;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .field input {
+      width: 100%;
+      height: 52px;
+      padding: 0 15px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      outline: none;
+      background: #101010;
+      color: #fff;
+    }
+
+    .field input:focus {
+      border-color: rgba(91,109,246,.85);
+      box-shadow: 0 0 0 3px rgba(91,109,246,.14);
+    }
+
+    .btn {
+      min-height: 46px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 11px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 7px;
+      background: #fff;
+      color: #08101e;
+    }
+
+    .btn-blue {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-dark {
+      background: #3a1515;
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: rgba(239,68,68,.14);
+      color: #ff8989;
+      border: 1px solid rgba(239,68,68,.23);
+    }
+
+    .login-error {
+      min-height: 20px;
+      margin-top: 13px;
+      color: #ff8181;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .dashboard {
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand img {
+      width: 130px;
+      height: 52px;
+      object-fit: contain;
+      object-position: left center;
+    }
+
+    .brand-text {
+      padding-left: 16px;
+      border-left: 1px solid var(--line);
+    }
+
+    .brand-text strong {
+      display: block;
+      font-size: 20px;
+    }
+
+    .brand-text span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: rgba(34,197,94,.12);
+      color: #6ef09a;
+      border: 1px solid rgba(34,197,94,.2);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .status::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .unit-card {
+      display: grid;
+      grid-template-columns: minmax(260px, 420px) 1fr;
+      gap: 22px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ffffff, #f4f4f4);
+      box-shadow: 0 22px 60px rgba(0,0,0,.32), 0 0 30px rgba(224,47,47,.06);
+      margin-bottom: 20px;
+    }
+
+    .unit-image {
+      width: 100%;
+      aspect-ratio: 16/10;
+      object-fit: cover;
+      border-radius: 16px;
+      background: #090909;
+    }
+
+    .unit-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .unit-label {
+      color: #8296b7;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    .unit-info h1 {
+      margin: 7px 0 8px;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1;
+    }
+
+    .unit-location {
+      margin: 0 0 19px;
+      color: #bdc9db;
+      line-height: 1.5;
+    }
+
+    .code {
+      display: inline-flex;
+      width: fit-content;
+      padding: 9px 13px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #111111;
+      font-weight: 900;
+      letter-spacing: .16em;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .metric {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .panel {
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ffffff, #f4f4f4);
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 18px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .panel-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .upload-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 17px;
+      border-radius: 11px;
+      background: #fff;
+      color: #08101e;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .playlist {
+      display: grid;
+      gap: 10px;
+    }
+
+    .playlist-item {
+      display: grid;
+      grid-template-columns: 42px minmax(0,1fr) 110px 100px;
+      align-items: center;
+      gap: 12px;
+      min-height: 72px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .order {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #451818;
+      font-weight: 900;
+    }
+
+    .item-main {
+      min-width: 0;
+    }
+
+    .item-main strong {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .item-main small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+    }
+
+    .item-type {
+      color: #9eb0cb;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .item-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #3b0d0d;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .empty {
+      padding: 34px 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(0,0,0,.54);
+      backdrop-filter: blur(8px);
+    }
+
+    .loading.active { display: flex; }
+
+    .loading-card {
+      width: min(390px, 100%);
+      padding: 28px;
+      border-radius: 20px;
+      background: #111111;
+      border: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 17px;
+      border: 4px solid rgba(255,255,255,.15);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .progress {
+      height: 9px;
+      margin-top: 16px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+    }
+
+    .progress > div {
+      width: 0;
+      height: 100%;
+      background: #fff;
+      transition: width .2s ease;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 800px) {
+      .dashboard { padding: 16px; }
+      .topbar { align-items: flex-start; }
+      .unit-card { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr; }
+      .playlist-item { grid-template-columns: 42px minmax(0,1fr) 88px; }
+      .item-type { display: none; }
+      .brand-text { display: none; }
+      .status { display: none; }
+    }
+  
+.login-card,.unit-card,.panel{color:#1b1b1b}
+.login-card h1,.unit-info h1,.panel-head h2,.item-main strong,.login-brand strong,.brand-text strong{color:#111}
+.login-card p,.unit-location,.panel-head p,.item-main small,.metric span,.login-brand span,.brand-text span{color:#666}
+.field span,.unit-label,.item-type{color:#444}
+.metric strong,.code{color:#111}
+.upload-button{background:#e31b23;color:#fff}
+.btn-primary{background:#e31b23;color:#fff}
+.btn-dark{background:#222;color:#fff}
+.footer-credit{margin:28px 0;text-align:center;color:#fff;font-size:13px;opacity:.9}
+
+</style>
+
+<style id="layout-tune">
+.login{padding:16px}
+.login-card{padding:28px 30px;border-radius:20px}
+.field{margin-bottom:10px}
+.field input{
+  background:#f7f7f7!important;
+  color:#222!important;
+  border:1px solid #ddd!important;
+  height:48px;
+}
+.field input::placeholder{color:#999}
+.login-card p{margin-bottom:18px}
+.dashboard{padding:18px}
+.shell{max-width:1120px}
+.topbar{margin-bottom:16px}
+.unit-card{padding:16px;gap:18px;margin-bottom:16px}
+.panel{padding:16px}
+.panel-head{margin-bottom:12px}
+.metrics{margin-top:16px;gap:10px}
+.metric{padding:12px}
+.playlist{gap:8px}
+.playlist-item{min-height:62px;padding:10px}
+.order{width:34px;height:34px}
+.footer-credit{
+ margin:18px 0 8px;
+ font-size:12px;
+ letter-spacing:.05em;
+ opacity:.75;
+}
+.upload-button,.btn-primary{
+ border-radius:10px;
+}
+</style>
+
+
+<style id="button-animations">
+.btn,.upload-button,.icon-btn{
+ transition:transform .18s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease;
+}
+.btn:hover,.upload-button:hover,.icon-btn:hover{
+ transform:translateY(-2px);
+ box-shadow:0 10px 24px rgba(227,27,35,.25);
+}
+.btn:active,.upload-button:active,.icon-btn:active{
+ transform:scale(.96);
+}
+.playlist-item{
+ transition:transform .18s ease, box-shadow .18s ease;
+}
+.playlist-item:hover{
+ transform:translateY(-2px);
+ box-shadow:0 12px 28px rgba(0,0,0,.12);
+}
+</style>
+
+
+<style id="contrast-fix">
+body{color:#fff}
+.topbar,.footer-credit{color:#fff!important}
+.brand-text strong,.brand-text span,
+.status{color:#fff!important}
+.unit-card,.panel,.login-card{color:#1b1b1b!important}
+.unit-card h1,.panel h2,.login-card h1,
+.metric strong,.code,.item-main strong,
+.login-brand strong,.field span{
+ color:#111!important;
+}
+.unit-location,.panel-head p,.metric span,
+.item-main small,.login-card p,
+.login-brand span,.item-type{
+ color:#555!important;
+}
+.unit-label{
+ color:#c1121f!important;
+ font-weight:800;
+}
+</style>
+
+</head>
+
+<body>
+<div class="app">
+
+  <section id="loginScreen" class="login">
+    <div class="login-card">
+      <div class="login-brand">
+        <img id="loginLogo" src="logo.png" alt="Logo">
+        <div>
+          <strong id="loginUnitName">Painel da Unidade</strong>
+          <span>Acesso exclusivo do gerente</span>
+        </div>
+      </div>
+
+      <h1>Bem-vindo (a) Indiara</h1>
+      <p>Entre para administrar os conteúdos exibidos nesta unidade.</p>
+
+      <label class="field">
+        <span>Usuário</span>
+        <input id="loginUser" type="text" autocomplete="username" placeholder="Digite seu usuário">
+      </label>
+
+      <label class="field">
+        <span>Senha</span>
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Digite sua senha">
+      </label>
+
+      <button id="loginButton" class="btn btn-primary" type="button">Entrar</button>
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </section>
+
+  <section id="dashboardScreen" class="dashboard" hidden>
+    <div class="shell">
+
+      <header class="topbar">
+        <div class="brand">
+          <img id="brandLogo" src="logo.png" alt="Logo">
+          <div class="brand-text">
+            <strong id="brandUnitName">Painel da Unidade</strong>
+            <span>Gerenciamento de conteúdo</span>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <div id="pointStatus" class="status">Painel ativo</div>
+          <button id="logoutButton" class="btn btn-dark" type="button">Sair</button>
+        </div>
+      </header>
+
+      <section class="unit-card">
+        <img id="unitImage" class="unit-image" src="https://placehold.co/900x560/png" alt="Unidade">
+
+        <div class="unit-info">
+          <span class="unit-label">Unidade autorizada</span>
+          <h1 id="unitName">Carregando...</h1>
+          <p id="unitLocation" class="unit-location">Carregando informações...</p>
+          <div id="unitCode" class="code">-------</div>
+
+          <div class="metrics">
+            <div class="metric">
+              <strong id="metricItems">0</strong>
+              <span>Itens na playlist</span>
+            </div>
+            <div class="metric">
+              <strong id="metricActive">0</strong>
+              <span>Itens ativos</span>
+            </div>
+            <div class="metric">
+              <strong id="metricStatus">—</strong>
+              <span>Status do ponto</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Playlist da unidade</h2>
+            <p>O gerente visualiza e administra somente este ponto.</p>
+          </div>
+
+          <label class="upload-button">
+            Adicionar material
+            <input id="fileInput" type="file" accept="video/*,image/*,.txt,text/plain" hidden>
+          </label>
+        </div>
+
+        <div id="playlistList" class="playlist"></div>
+      </section>
+
+    </div>
+  </section>
+<div class="footer-credit">Desenvolvido por <strong>DUNA BRANDING</strong></div>
+
+  <div id="loadingOverlay" class="loading">
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <strong id="loadingTitle">Processando...</strong>
+      <p id="loadingText" style="color:#9eb0cb;margin:9px 0 0">Aguarde um momento.</p>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO PRINCIPAL
+   Altere somente estes dados para personalizar cada unidade.
+============================================================ */
+const CONFIG = {
+  SUPABASE_URL: "https://hhqqwjjdhzxqjuyazjwk.supabase.co",
+  SUPABASE_KEY: "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly",
+
+  // Código fixo do ponto que este painel poderá acessar:
+  FIXED_POINT_CODE: "R6V0G8V",
+
+  // Login específico do gerente desta unidade:
+  LOGIN_USER: "indiara",
+  LOGIN_PASSWORD: "selfittv",
+
+  // Personalização:
+  PANEL_NAME: "Painel da Unidade",
+  LOGO_URL: "selfit.png",
+
+  TABLE_POINTS: "pontos",
+  TABLE_PLAYLIST: "playlists",
+  TABLE_STATUS: "statuspontos",
+  STORAGE_BUCKET: "midias"
+};
+
+const supabaseClient = window.supabase.createClient(
+  CONFIG.SUPABASE_URL,
+  CONFIG.SUPABASE_KEY
+);
+
+const state = {
+  point: null,
+  playlist: [],
+  logged: sessionStorage.getItem("unit_panel_logged") === "1"
+};
+
+const $ = id => document.getElementById(id);
+
+const els = {
+  loginScreen: $("loginScreen"),
+  dashboardScreen: $("dashboardScreen"),
+  loginUser: $("loginUser"),
+  loginPassword: $("loginPassword"),
+  loginButton: $("loginButton"),
+  loginError: $("loginError"),
+  logoutButton: $("logoutButton"),
+  unitImage: $("unitImage"),
+  unitName: $("unitName"),
+  unitLocation: $("unitLocation"),
+  unitCode: $("unitCode"),
+  pointStatus: $("pointStatus"),
+  playlistList: $("playlistList"),
+  fileInput: $("fileInput"),
+  metricItems: $("metricItems"),
+  metricActive: $("metricActive"),
+  metricStatus: $("metricStatus"),
+  loadingOverlay: $("loadingOverlay"),
+  loadingTitle: $("loadingTitle"),
+  loadingText: $("loadingText"),
+  progressBar: $("progressBar")
+};
+
+boot();
+
+function boot() {
+  applyBrand();
+  bindEvents();
+
+  if (state.logged) {
+    openDashboard();
+  }
+}
+
+function applyBrand() {
+  $("loginLogo").src = CONFIG.LOGO_URL;
+  $("brandLogo").src = CONFIG.LOGO_URL;
+  $("loginUnitName").textContent = CONFIG.PANEL_NAME;
+  $("brandUnitName").textContent = CONFIG.PANEL_NAME;
+  document.title = CONFIG.PANEL_NAME;
+}
+
+function bindEvents() {
+  els.loginButton.addEventListener("click", login);
+
+  [els.loginUser, els.loginPassword].forEach(input => {
+    input.addEventListener("keydown", event => {
+      if (event.key === "Enter") login();
+    });
+  });
+
+  els.logoutButton.addEventListener("click", () => {
+    sessionStorage.removeItem("unit_panel_logged");
+    location.reload();
+  });
+
+  els.fileInput.addEventListener("change", async () => {
+    const file = els.fileInput.files?.[0];
+    els.fileInput.value = "";
+    if (file) await uploadMaterial(file);
+  });
+}
+
+function login() {
+  const user = els.loginUser.value.trim();
+  const password = els.loginPassword.value;
+
+  if (user !== CONFIG.LOGIN_USER || password !== CONFIG.LOGIN_PASSWORD) {
+    els.loginError.textContent = "Usuário ou senha incorretos.";
+    return;
+  }
+
+  sessionStorage.setItem("unit_panel_logged", "1");
+  state.logged = true;
+  els.loginError.textContent = "";
+  openDashboard();
+}
+
+async function openDashboard() {
+  els.loginScreen.hidden = true;
+  els.dashboardScreen.hidden = false;
+
+  try {
+    showLoading("Carregando unidade...", "Buscando os dados deste ponto.", 18);
+    await loadPoint();
+    setProgress(48);
+    await loadPlaylist();
+    setProgress(100);
+
+    setTimeout(hideLoading, 300);
+  } catch (error) {
+    console.error(error);
+    hideLoading();
+    alert(error.message || "Não foi possível carregar o painel.");
+  }
+}
+
+async function loadPoint() {
+  const code = normalizeCode(CONFIG.FIXED_POINT_CODE);
+
+  if (!code || code === "COLOQUEOCODIGO") {
+    throw new Error("Configure o código fixo do ponto em CONFIG.FIXED_POINT_CODE.");
+  }
+
+  const { data, error } = await supabaseClient
+    .from(CONFIG.TABLE_POINTS)
+    .select("*")
+    .eq("codigo", code)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error("Ponto fixo não encontrado no banco.");
+
+  state.point = data;
+  renderPoint();
+}
+
+async function loadPlaylist() {
+  const code = normalizeCode(CONFIG.FIXED_POINT_CODE);
+
+  const { data, error } = await supabaseClient
+    .from(CONFIG.TABLE_PLAYLIST)
+    .select("*")
+    .eq("codigo", code)
+    .order("ordem", { ascending: true });
+
+  if (error) throw error;
+
+  state.playlist = data || [];
+  renderPlaylist();
+}
+
+function renderPoint() {
+  const point = state.point || {};
+  const code = normalizeCode(point.codigo || CONFIG.FIXED_POINT_CODE);
+  const name = point.nome || point.nome_local || point.titulo || code;
+  const city = point.cidade || point.cidade_regiao || "";
+  const address = point.endereco || point.endereco_completo || "";
+  const image = point.imagem_url || point.imagem || "https://placehold.co/900x560/png";
+
+  const available = point.disponivel !== false &&
+    String(point.status || "").toLowerCase() !== "inativo";
+
+  els.unitImage.src = image;
+  els.unitImage.alt = name;
+  els.unitName.textContent = name;
+  els.unitLocation.textContent = [city, address].filter(Boolean).join(" | ") || "Localização não informada";
+  els.unitCode.textContent = code;
+  els.metricStatus.textContent = available ? "Ativo" : "Inativo";
+
+  els.pointStatus.textContent = available ? "Painel ativo" : "Ponto indisponível";
+  els.pointStatus.style.color = available ? "#6ef09a" : "#ff8d8d";
+  els.pointStatus.style.background = available ? "rgba(34,197,94,.12)" : "rgba(239,68,68,.12)";
+}
+
+function renderPlaylist() {
+  const active = state.playlist.filter(item => !isExpired(item));
+
+  els.metricItems.textContent = state.playlist.length;
+  els.metricActive.textContent = active.length;
+
+  if (!state.playlist.length) {
+    els.playlistList.innerHTML = '<div class="empty">Nenhum material cadastrado nesta unidade.</div>';
+    return;
+  }
+
+  els.playlistList.innerHTML = state.playlist.map((item, index) => {
+    const name = getItemName(item);
+    const type = String(item.tipo || detectTypeFromName(name)).toUpperCase();
+    const url = item.video_url || item.arquivo_url || item.url || "";
+    const expired = isExpired(item);
+
+    return `
+      <article class="playlist-item" style="${expired ? "opacity:.5" : ""}">
+        <div class="order">${index + 1}</div>
+
+        <div class="item-main">
+          <strong title="${escapeHtml(name)}">${escapeHtml(name)}</strong>
+          <small>${expired ? "Encerrado" : "Ativo"}${item.data_fim ? " • até " + formatDate(item.data_fim) : ""}</small>
+        </div>
+
+        <div class="item-type">${escapeHtml(type)}</div>
+
+        <div class="item-actions">
+          ${url ? `<button class="icon-btn" type="button" onclick="previewItem('${escapeJs(url)}')" title="Visualizar">◉</button>` : ""}
+          <button class="icon-btn" type="button" onclick="deleteItem('${escapeJs(item.id)}')" title="Excluir">×</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+async function uploadMaterial(file) {
+  const code = normalizeCode(CONFIG.FIXED_POINT_CODE);
+
+  try {
+    showLoading("Enviando material...", file.name, 5);
+
+    const safeName = sanitizeFileName(file.name);
+    const path = `playlists/${code}/${Date.now()}-${safeName}`;
+
+    setProgress(22);
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from(CONFIG.STORAGE_BUCKET)
+      .upload(path, file, {
+        cacheControl: "86400",
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    setProgress(72);
+
+    const { data: publicData } = supabaseClient.storage
+      .from(CONFIG.STORAGE_BUCKET)
+      .getPublicUrl(path);
+
+    const nextOrder = state.playlist.length + 1;
+    const payload = {
+      codigo: code,
+      nome: file.name,
+      titulo_arquivo: file.name,
+      video_url: publicData.publicUrl,
+      storage_path: path,
+      tipo: detectType(file),
+      ordem: nextOrder
+    };
+
+    const { error: insertError } = await supabaseClient
+      .from(CONFIG.TABLE_PLAYLIST)
+      .insert([payload]);
+
+    if (insertError) {
+      await supabaseClient.storage
+        .from(CONFIG.STORAGE_BUCKET)
+        .remove([path]);
+
+      throw insertError;
+    }
+
+    setProgress(100);
+    await loadPlaylist();
+
+    setTimeout(hideLoading, 400);
+  } catch (error) {
+    console.error(error);
+    hideLoading();
+    alert(error.message || "Não foi possível enviar o material.");
+  }
+}
+
+async function deleteItem(id) {
+  if (!id) return;
+
+  const item = state.playlist.find(entry => String(entry.id) === String(id));
+  if (!item) return;
+
+  if (!confirm("Deseja excluir este material da playlist?")) return;
+
+  try {
+    showLoading("Excluindo material...", getItemName(item), 25);
+
+    const { error } = await supabaseClient
+      .from(CONFIG.TABLE_PLAYLIST)
+      .delete()
+      .eq("id", id);
+
+    if (error) throw error;
+
+    if (item.storage_path) {
+      await supabaseClient.storage
+        .from(CONFIG.STORAGE_BUCKET)
+        .remove([item.storage_path]);
+    }
+
+    setProgress(100);
+    await loadPlaylist();
+    setTimeout(hideLoading, 300);
+  } catch (error) {
+    console.error(error);
+    hideLoading();
+    alert(error.message || "Não foi possível excluir o material.");
+  }
+}
+
+function previewItem(url) {
+  if (!url) return;
+  window.open(url, "_blank", "noopener");
+}
+
+function getItemName(item) {
+  return item.titulo_arquivo ||
+    item.nome ||
+    String(item.storage_path || "").split("/").pop() ||
+    "Material";
+}
+
+function detectType(file) {
+  const name = String(file?.name || "").toLowerCase();
+
+  if (file?.type?.startsWith("image/")) return "imagem";
+  if (name.endsWith(".txt")) return "site";
+  return "video";
+}
+
+function detectTypeFromName(name) {
+  const value = String(name || "").toLowerCase();
+
+  if (/\.(png|jpe?g|webp|gif)$/.test(value)) return "imagem";
+  if (/\.txt$/.test(value)) return "site";
+  return "video";
+}
+
+function isExpired(item) {
+  const value = item.data_fim || item.fim_exibicao || "";
+  if (!value) return false;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  date.setHours(23, 59, 59, 999);
+  return date.getTime() < Date.now();
+}
+
+function normalizeCode(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function sanitizeFileName(name) {
+  return String(name || "arquivo")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-");
+}
+
+function formatDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "sem data"
+    : date.toLocaleDateString("pt-BR");
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function escapeJs(value) {
+  return String(value || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'");
+}
+
+function showLoading(title, text, progress = 0) {
+  els.loadingTitle.textContent = title;
+  els.loadingText.textContent = text;
+  els.loadingOverlay.classList.add("active");
+  setProgress(progress);
+}
+
+function hideLoading() {
+  els.loadingOverlay.classList.remove("active");
+}
+
+function setProgress(value) {
+  const safe = Math.max(0, Math.min(100, Number(value) || 0));
+  els.progressBar.style.width = `${safe}%`;
+}
+</script>
+</body>
+</html>
