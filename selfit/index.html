@@ -591,100 +591,46 @@ body{color:#fff}
 </style>
 
 
-<style id="selfit-layout-final">
-.status-text-only::before { display:none !important; }
-.status-text-only { gap:0 !important; }
-
-.metrics-single {
-  grid-template-columns: minmax(170px, 230px) !important;
-}
-
-.panel-title-row {
-  width:100%;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:18px;
-}
-
-.playlist-table-head,
-.playlist-item {
-  display:grid;
-  grid-template-columns: 48px minmax(220px,1.8fr) 160px 160px 90px 150px !important;
-  align-items:center;
-  gap:12px;
-}
-
-.playlist-table-head {
-  padding:10px 12px;
-  color:#666;
-  font-size:11px;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:.05em;
-  border-bottom:1px solid #e7e7e7;
-}
-
-.playlist-item {
-  min-height:64px;
-  background:#fff !important;
-  border:1px solid #e8e8e8 !important;
-}
-
-.item-date {
-  color:#444;
-  font-size:13px;
-  white-space:nowrap;
-}
-
-.item-actions {
-  justify-content:flex-end;
-}
-
-.rename-btn {
-  background:#fff !important;
-  color:#222 !important;
-  border-color:#ddd !important;
-}
-
-.delete-btn {
-  background:#c90000 !important;
-  color:#fff !important;
-}
-
-.code {
-  color:#fff !important;
-  background:#111 !important;
-}
-
-@media (max-width: 980px) {
-  .playlist-table-head { display:none; }
-
-  .playlist-item {
-    grid-template-columns: 42px minmax(0,1fr) auto !important;
-  }
-
-  .item-date,
-  .item-type {
-    grid-column:2;
-  }
-
-  .item-actions {
-    grid-column:3;
-    grid-row:1 / span 4;
-  }
-}
-
-@media (max-width: 650px) {
-  .panel-title-row {
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
-  .upload-button {
-    width:100%;
-  }
-}
+<style id="layout-selfit-referencia">
+html,body{background:radial-gradient(circle at 100% 0%,rgba(120,0,0,.22),transparent 30%),linear-gradient(145deg,#080000,#080808 72%)!important;color:#fff!important}
+.dashboard{padding:28px 34px 18px!important}
+.shell{width:min(1440px,calc(100vw - 68px))!important;max-width:1440px!important}
+.topbar{margin-bottom:28px!important}
+.brand-text-clean{padding:0!important;border:0!important}
+.brand-text-clean strong{color:#fff!important;font-size:40px!important;line-height:1;font-weight:800}
+.brand-text-clean span{display:block;margin-top:8px;color:#d0d0d0!important;font-size:18px!important}
+.status-hidden,.metrics-hidden,.login-brand-hidden{display:none!important}
+.btn-dark{min-height:56px!important;padding:0 28px!important;border-radius:13px!important;background:#121212!important;color:#fff!important}
+.unit-card,.panel{background:linear-gradient(180deg,#151515,#0d0d0d)!important;border:1px solid rgba(255,255,255,.12)!important;color:#fff!important;box-shadow:0 24px 70px rgba(0,0,0,.42)!important}
+.unit-card{grid-template-columns:minmax(620px,1.2fr) minmax(420px,.8fr)!important;gap:40px!important;padding:28px!important;border-radius:24px!important;margin-bottom:22px!important;align-items:stretch!important}
+.unit-image{min-height:430px!important;max-height:500px;height:100%!important;aspect-ratio:auto!important;object-fit:cover;border-radius:18px!important;border:1px solid rgba(255,255,255,.18)}
+.unit-info{justify-content:center!important;padding:10px 0!important}
+.unit-label{color:#ff2a2a!important;font-size:15px!important}
+.unit-info h1{margin:18px 0 14px!important;color:#fff!important;font-size:clamp(62px,5vw,88px)!important;line-height:.92!important}
+.unit-location{margin:0 0 28px!important;color:#d7d7d7!important;font-size:19px!important}
+.unit-code-wrap{padding-top:18px;border-top:1px solid rgba(255,255,255,.10)}
+.unit-code-label{display:block;margin-bottom:10px;color:#d7d7d7;font-size:14px;font-weight:800;text-transform:uppercase}
+.code{padding:14px 18px!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:12px!important;background:#101010!important;color:#fff!important;font-size:27px!important}
+.unit-upload-button{width:100%!important;min-height:66px!important;margin-top:30px!important;border-radius:12px!important;background:linear-gradient(#f20b16,#ca000a)!important;color:#fff!important;font-size:19px!important}
+.panel{padding:28px!important;border-radius:24px!important}
+.panel-head{margin-bottom:22px!important}
+.panel-head h2{color:#fff!important;font-size:31px!important}
+.panel-head p{color:#bcbcbc!important;font-size:15px!important}
+.playlist{gap:0!important;overflow:hidden;border:1px solid rgba(255,255,255,.10);border-radius:17px;background:rgba(255,255,255,.015)}
+.playlist-item{min-height:120px!important;padding:0 16px!important;border:0!important;border-radius:0!important;background:transparent!important;grid-template-columns:58px minmax(300px,1.8fr) 120px 270px!important}
+.playlist-item>*{height:100%;display:flex;align-items:center;padding:0 18px;border-right:1px solid rgba(255,255,255,.08)}
+.playlist-item>*:last-child{border-right:0}
+.order{justify-content:center;width:46px!important;height:46px!important;padding:0!important;background:linear-gradient(#e30b14,#ad0008)!important;color:#fff!important}
+.item-main strong{color:#fff!important;font-size:15px!important}
+.item-main small,.item-type{color:#e8e8e8!important}
+.item-actions{justify-content:flex-end!important;gap:18px!important}
+.icon-btn{width:86px!important;height:78px!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:13px!important;background:rgba(255,255,255,.035)!important;color:#fff!important;font-size:20px!important}
+.footer-credit{margin:30px 0 10px!important;color:#d7d7d7!important;font-size:15px!important}
+.login-card{background:linear-gradient(#171717,#0f0f0f)!important;color:#fff!important;border:1px solid rgba(255,255,255,.12)!important}
+.login-card h1,.login-card p,.field span{color:#fff!important}
+.field input{background:#0d0d0d!important;color:#fff!important;border:1px solid rgba(255,255,255,.14)!important}
+@media(max-width:1100px){.shell{width:min(100%,calc(100vw - 32px))!important}.unit-card{grid-template-columns:1fr!important}.unit-image{min-height:340px!important}}
+@media(max-width:800px){.dashboard{padding:18px 14px!important}.brand-text-clean strong{font-size:30px!important}.unit-card{padding:14px!important;gap:18px!important}.unit-image{min-height:270px!important}.unit-info h1{font-size:54px!important}.panel{padding:16px!important}.playlist-item{grid-template-columns:44px minmax(0,1fr) auto!important;min-height:100px!important}.icon-btn{width:48px!important;height:48px!important}}
 </style>
 
 </head>
@@ -694,6 +640,10 @@ body{color:#fff}
 
   <section id="loginScreen" class="login">
     <div class="login-card">
+      <div class="login-brand login-brand-hidden" aria-hidden="true">
+        <img id="loginLogo" src="selfit.png" alt="">
+        <div><strong id="loginUnitName">Painel da Unidade</strong><span>Acesso exclusivo do gerente</span></div>
+      </div>
       <h1>Painel da Unidade</h1>
       <p>Acesso exclusivo do gerente. Entre para administrar os conteúdos na unidade Ilhéus.</p>
 
@@ -717,15 +667,13 @@ body{color:#fff}
 
       <header class="topbar">
         <div class="brand">
-          <img id="brandLogo" src="logo.png" alt="Logo">
-          <div class="brand-text">
+          <div class="brand-text brand-text-clean">
             <strong id="brandUnitName">Painel da Unidade</strong>
             <span>Gerenciamento de conteúdo</span>
           </div>
         </div>
-
         <div class="top-actions">
-          <div id="pointStatus" class="status status-text-only">Painel ativo</div>
+          <div id="pointStatus" class="status status-hidden" aria-hidden="true"></div>
           <button id="logoutButton" class="btn btn-dark" type="button">Sair</button>
         </div>
       </header>
@@ -737,12 +685,27 @@ body{color:#fff}
           <span class="unit-label">Unidade autorizada</span>
           <h1 id="unitName">Carregando...</h1>
           <p id="unitLocation" class="unit-location">Carregando informações...</p>
-          <div id="unitCode" class="code">-------</div>
+          <div class="unit-code-wrap">
+            <span class="unit-code-label">Código da sala</span>
+            <div id="unitCode" class="code">-------</div>
+            <label class="upload-button unit-upload-button">
+              +&nbsp;&nbsp;Adicionar conteúdo
+              <input id="fileInput" type="file" accept="video/*,image/*,.txt,text/plain" hidden>
+            </label>
+          </div>
 
-          <div class="metrics metrics-single">
+          <div class="metrics metrics-hidden">
             <div class="metric">
               <strong id="metricItems">0</strong>
-              <span>Conteúdos</span>
+              <span>Itens na playlist</span>
+            </div>
+            <div class="metric">
+              <strong id="metricActive">0</strong>
+              <span>Itens ativos</span>
+            </div>
+            <div class="metric">
+              <strong id="metricStatus">—</strong>
+              <span>Status do ponto</span>
             </div>
           </div>
         </div>
@@ -750,17 +713,12 @@ body{color:#fff}
 
       <section class="panel">
         <div class="panel-head">
-          <div class="panel-title-row">
-            <div>
-              <h2>Conteúdos</h2>
-              <p>O gerente visualiza e administra somente este ponto.</p>
-            </div>
-
-            <label class="upload-button">
-              Adicionar conteúdo
-              <input id="fileInput" type="file" accept="video/*,image/*,.txt,text/plain" hidden>
-            </label>
+          <div>
+            <h2>Conteúdos</h2>
+            <p>O gerente visualiza e administra somente este ponto.</p>
           </div>
+
+          
         </div>
 
         <div id="playlistList" class="playlist"></div>
@@ -836,6 +794,8 @@ const els = {
   playlistList: $("playlistList"),
   fileInput: $("fileInput"),
   metricItems: $("metricItems"),
+  metricActive: $("metricActive"),
+  metricStatus: $("metricStatus"),
   loadingOverlay: $("loadingOverlay"),
   loadingTitle: $("loadingTitle"),
   loadingText: $("loadingText"),
@@ -854,6 +814,7 @@ function boot() {
 }
 
 function applyBrand() {
+  $("loginLogo").src = CONFIG.LOGO_URL;
   $("brandLogo").src = CONFIG.LOGO_URL;
   $("loginUnitName").textContent = CONFIG.PANEL_NAME;
   $("brandUnitName").textContent = CONFIG.PANEL_NAME;
@@ -966,6 +927,7 @@ function renderPoint() {
   els.unitName.textContent = name;
   els.unitLocation.textContent = [city, address].filter(Boolean).join(" | ") || "Localização não informada";
   els.unitCode.textContent = code;
+  els.metricStatus.textContent = available ? "Ativo" : "Inativo";
 
   els.pointStatus.textContent = available ? "Painel ativo" : "Ponto indisponível";
   els.pointStatus.style.color = available ? "#6ef09a" : "#ff8d8d";
@@ -973,45 +935,36 @@ function renderPoint() {
 }
 
 function renderPlaylist() {
+  const active = state.playlist.filter(item => !isExpired(item));
+
   els.metricItems.textContent = state.playlist.length;
+  els.metricActive.textContent = active.length;
 
   if (!state.playlist.length) {
-    els.playlistList.innerHTML = '<div class="empty">Nenhum conteúdo cadastrado nesta unidade.</div>';
+    els.playlistList.innerHTML = '<div class="empty">Nenhum material cadastrado nesta unidade.</div>';
     return;
   }
 
-  els.playlistList.innerHTML = `
-    <div class="playlist-table-head">
-      <span>#</span>
-      <span>Nome do conteúdo</span>
-      <span>Postagem</span>
-      <span>Vencimento</span>
-      <span>Tipo</span>
-      <span>Ações</span>
-    </div>
-  ` + state.playlist.map((item, index) => {
+  els.playlistList.innerHTML = state.playlist.map((item, index) => {
     const name = getItemName(item);
     const type = String(item.tipo || detectTypeFromName(name)).toUpperCase();
     const url = item.video_url || item.arquivo_url || item.url || "";
-    const posted = item.created_at || item.data_inicio || item.data_postagem || "";
-    const expires = item.data_fim || item.fim_exibicao || item.data_vencimento || "";
+    const expired = isExpired(item);
 
     return `
-      <article class="playlist-item">
+      <article class="playlist-item" style="${expired ? "opacity:.5" : ""}">
         <div class="order">${index + 1}</div>
 
         <div class="item-main">
           <strong title="${escapeHtml(name)}">${escapeHtml(name)}</strong>
+          <small>${expired ? "Encerrado" : "Ativo"}${item.data_fim ? " • até " + formatDate(item.data_fim) : ""}</small>
         </div>
 
-        <div class="item-date">${formatDateTime(posted)}</div>
-        <div class="item-date">${formatDateTime(expires)}</div>
         <div class="item-type">${escapeHtml(type)}</div>
 
         <div class="item-actions">
           ${url ? `<button class="icon-btn" type="button" onclick="previewItem('${escapeJs(url)}')" title="Visualizar">◉</button>` : ""}
-          <button class="icon-btn rename-btn" type="button" onclick="renameItem('${escapeJs(item.id)}')" title="Renomear">✎</button>
-          <button class="icon-btn delete-btn" type="button" onclick="deleteItem('${escapeJs(item.id)}')" title="Excluir">×</button>
+          <button class="icon-btn" type="button" onclick="deleteItem('${escapeJs(item.id)}')" title="Excluir">×</button>
         </div>
       </article>
     `;
@@ -1075,58 +1028,6 @@ async function uploadMaterial(file) {
     console.error(error);
     hideLoading();
     alert(error.message || "Não foi possível enviar o material.");
-  }
-}
-
-async function renameItem(id) {
-  if (!id) return;
-
-  const item = state.playlist.find(entry => String(entry.id) === String(id));
-  if (!item) return;
-
-  const currentName = getItemName(item);
-  const newName = window.prompt("Digite o novo nome do conteúdo:", currentName);
-
-  if (newName === null) return;
-
-  const finalName = newName.trim();
-
-  if (!finalName) {
-    alert("Digite um nome válido.");
-    return;
-  }
-
-  try {
-    showLoading("Renomeando conteúdo...", finalName, 35);
-
-    let updateError = null;
-
-    for (const payload of [
-      { titulo_arquivo: finalName },
-      { nome: finalName }
-    ]) {
-      const { error } = await supabaseClient
-        .from(CONFIG.TABLE_PLAYLIST)
-        .update(payload)
-        .eq("id", id);
-
-      if (!error) {
-        updateError = null;
-        break;
-      }
-
-      updateError = error;
-    }
-
-    if (updateError) throw updateError;
-
-    setProgress(100);
-    await loadPlaylist();
-    setTimeout(hideLoading, 300);
-  } catch (error) {
-    console.error(error);
-    hideLoading();
-    alert(error.message || "Não foi possível renomear o conteúdo.");
   }
 }
 
@@ -1216,18 +1117,6 @@ function sanitizeFileName(name) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9._-]/g, "-")
     .replace(/-+/g, "-");
-}
-
-function formatDateTime(value) {
-  if (!value) return "—";
-
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? "—"
-    : date.toLocaleString("pt-BR", {
-        dateStyle: "short",
-        timeStyle: "short"
-      });
 }
 
 function formatDate(value) {
