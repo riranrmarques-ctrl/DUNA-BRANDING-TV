@@ -162,15 +162,16 @@
     }
 
     .topo h1{
-      margin:0 0 5px;
-      font-size:31px;
-      letter-spacing:-.8px;
+      margin:0 0 4px;
+      font-size:25px;
+      line-height:1.05;
+      letter-spacing:-.55px;
     }
 
     .topo p{
       margin:0;
       color:var(--texto-2);
-      font-size:15px;
+      font-size:12px;
     }
 
     .btn-sair{
@@ -299,7 +300,36 @@
     .cabecalho-conteudos{
       display:flex;
       align-items:center;
+      justify-content:space-between;
+      gap:18px;
       margin-bottom:18px;
+    }
+
+    .cabecalho-conteudos-texto{
+      min-width:0;
+    }
+
+    .btn-preview{
+      min-width:132px;
+      min-height:42px;
+      flex:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      border:1px solid #3a3a3a;
+      border-radius:10px;
+      background:#f4f4f4;
+      color:#090909;
+      font-weight:900;
+      font-size:13px;
+      padding:0 18px;
+      transition:.18s ease;
+    }
+
+    .btn-preview:hover{
+      background:#fff;
+      transform:translateY(-1px);
     }
 
     .icone-tv{
@@ -397,7 +427,8 @@
 
     .nome-arquivo{
       max-width:360px;
-      font-weight:700;
+      color:#ffffff;
+      font-weight:800;
       font-size:13px;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -581,7 +612,7 @@
       #painel{width:min(100% - 28px,1480px);padding-top:22px}
       .logo-topo{width:64px;height:64px}
       .divisor-topo{height:46px}
-      .topo h1{font-size:28px}
+      .topo h1{font-size:24px}
       .unidade-card{grid-template-columns:1fr;padding:18px}
       .imagem-unidade-wrap,.imagem-unidade{min-height:300px}
       .nome-unidade{font-size:48px}
@@ -593,15 +624,16 @@
       .logo-topo{width:50px;height:50px}
       .divisor-topo{height:38px}
       .topo-identidade{gap:10px}
-      .topo h1{font-size:23px}
-      .topo p{font-size:13px}
-      .topo p{font-size:15px}
+      .topo h1{font-size:20px}
+      .topo p{font-size:11px}
       .btn-sair{min-height:46px;padding:0 14px}
       .unidade-card,.conteudos-card{border-radius:18px}
       .nome-unidade{font-size:42px}
       .grid-campos{grid-template-columns:1fr}
       .campo-completo{grid-column:auto}
       .agendamento-box{grid-template-columns:1fr}
+      .cabecalho-conteudos{align-items:flex-start}
+      .btn-preview{min-width:108px;padding:0 12px}
     }
   </style>
 </head>
@@ -663,10 +695,15 @@
 
     <section class="card conteudos-card">
       <div class="cabecalho-conteudos">
-        <div>
+        <div class="cabecalho-conteudos-texto">
           <h2>Conteúdos</h2>
           <p>O gerente visualiza e administra somente este ponto.</p>
         </div>
+
+        <button class="btn-preview" id="btnPreview" type="button">
+          <span>◉</span>
+          <span>Preview</span>
+        </button>
       </div>
 
       <div class="tabela-wrap">
@@ -738,6 +775,35 @@
     </div>
   </section>
 
+
+  <section class="modal oculto" id="modalEditar">
+    <div class="modal-card">
+      <div class="modal-topo">
+        <h3>Editar conteúdo</h3>
+        <button class="btn-fechar" id="btnFecharModalEditar" type="button">×</button>
+      </div>
+
+      <form id="formEditar">
+        <div class="grid-campos">
+          <div class="campo campo-completo">
+            <label for="editarNomeConteudo">Nome do conteúdo</label>
+            <input id="editarNomeConteudo" type="text" maxlength="180" required />
+          </div>
+
+          <div class="campo campo-completo">
+            <label for="editarDataVencimento">Data de vencimento</label>
+            <input id="editarDataVencimento" type="datetime-local" required />
+          </div>
+        </div>
+
+        <div class="modal-acoes">
+          <button class="btn-secundario" id="btnCancelarEditar" type="button">Cancelar</button>
+          <button class="btn-principal" id="btnSalvarEdicao" type="submit">Salvar alterações</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
   <div class="status-toast oculto" id="statusToast"></div>
 
   <script>
@@ -772,6 +838,7 @@
     const localizacaoUnidade = document.getElementById("localizacaoUnidade");
     const corpoTabela = document.getElementById("corpoTabela");
     const btnCopiar = document.getElementById("btnCopiar");
+    const btnPreview = document.getElementById("btnPreview");
 
     const modalAdicionar = document.getElementById("modalAdicionar");
     const btnAbrirAdicionar = document.getElementById("btnAbrirAdicionar");
@@ -784,9 +851,17 @@
     const duracaoConteudo = document.getElementById("duracaoConteudo");
     const agendamentoBox = document.getElementById("agendamentoBox");
     const btnEnviar = document.getElementById("btnEnviar");
+    const modalEditar = document.getElementById("modalEditar");
+    const btnFecharModalEditar = document.getElementById("btnFecharModalEditar");
+    const btnCancelarEditar = document.getElementById("btnCancelarEditar");
+    const formEditar = document.getElementById("formEditar");
+    const editarNomeConteudo = document.getElementById("editarNomeConteudo");
+    const editarDataVencimento = document.getElementById("editarDataVencimento");
+    const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
     const statusToast = document.getElementById("statusToast");
 
     let playlistAtual = [];
+    let itemEmEdicao = null;
 
     arquivoConteudo.addEventListener("change",()=>{
       const possuiArquivo = arquivoConteudo.files && arquivoConteudo.files.length > 0;
@@ -910,6 +985,11 @@
       }
     });
 
+    btnPreview.addEventListener("click",()=>{
+      const urlPreview = `player.html?codigo=${encodeURIComponent(CODIGO_FIXO)}`;
+      window.open(urlPreview,"_blank","noopener");
+    });
+
     async function carregarDadosPonto(){
       const {data,error} = await supabaseClient
         .from(TABELA_PONTOS)
@@ -1014,8 +1094,8 @@
             <td class="tipo-cell">${escapeHtml(obterTipo(item))}</td>
             <td>
               <div class="acoes">
-                <button class="acao" type="button" onclick="visualizarItem('${escapeHtml(url)}')"><span>◉</span><span>Ver</span></button>
-                <button class="acao" type="button" onclick="renomearItem('${escapeHtml(item.id)}','${escapeHtml(nome)}')"><span>✎</span><span>Renomear</span></button>
+                <button class="acao" type="button" onclick="baixarItem('${escapeHtml(url)}','${escapeHtml(nome)}')"><span>↓</span><span>Download</span></button>
+                <button class="acao" type="button" onclick="abrirEdicaoItem('${escapeHtml(item.id)}')"><span>✎</span><span>Editar</span></button>
                 <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','${escapeHtml(item.storage_path || "")}')"><span>×</span><span>Excluir</span></button>
               </div>
             </td>
@@ -1089,47 +1169,141 @@
       });
     }
 
-    window.visualizarItem = function(url){
+    window.baixarItem = function(url,nomeArquivo){
       if(!url){
-        mostrarStatus("Este conteúdo não possui endereço para visualização.","erro");
+        mostrarStatus("Este conteúdo não possui endereço para download.","erro");
         return;
       }
-      window.open(url,"_blank","noopener");
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = nomeArquivo || "conteudo";
+      link.target = "_blank";
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     };
 
-    window.renomearItem = async function(id,nomeAtual){
-      const novoNome = prompt("Digite o novo nome do conteúdo:",nomeAtual);
-      if(novoNome === null) return;
+    function valorDatetimeLocal(valor){
+      if(!valor) return "";
+      const data = new Date(valor);
+      if(Number.isNaN(data.getTime())) return "";
+      data.setMinutes(data.getMinutes()-data.getTimezoneOffset());
+      return data.toISOString().slice(0,16);
+    }
 
-      const nomeFinal = novoNome.trim();
+    window.abrirEdicaoItem = function(id){
+      const item = playlistAtual.find(conteudo=>String(conteudo.id) === String(id));
+
+      if(!item){
+        mostrarStatus("Conteúdo não encontrado.","erro");
+        return;
+      }
+
+      itemEmEdicao = item;
+      editarNomeConteudo.value = obterNomeArquivo(item);
+      editarDataVencimento.value = valorDatetimeLocal(item.data_fim || item.fim_exibicao);
+      modalEditar.classList.remove("oculto");
+      setTimeout(()=>editarNomeConteudo.focus(),50);
+    };
+
+    function fecharModalEditar(){
+      modalEditar.classList.add("oculto");
+      formEditar.reset();
+      itemEmEdicao = null;
+    }
+
+    btnFecharModalEditar.addEventListener("click",fecharModalEditar);
+    btnCancelarEditar.addEventListener("click",fecharModalEditar);
+    modalEditar.addEventListener("click",(event)=>{
+      if(event.target === modalEditar) fecharModalEditar();
+    });
+
+    formEditar.addEventListener("submit",async(event)=>{
+      event.preventDefault();
+
+      if(!itemEmEdicao){
+        mostrarStatus("Nenhum conteúdo selecionado.","erro");
+        return;
+      }
+
+      const nomeFinal = editarNomeConteudo.value.trim();
+      const vencimentoFinal = editarDataVencimento.value;
+
       if(!nomeFinal){
         mostrarStatus("Digite um nome válido.","erro");
         return;
       }
 
+      if(!vencimentoFinal){
+        mostrarStatus("Informe a data de vencimento.","erro");
+        return;
+      }
+
+      const dataVencimentoFinal = new Date(vencimentoFinal);
+      if(Number.isNaN(dataVencimentoFinal.getTime())){
+        mostrarStatus("Informe uma data de vencimento válida.","erro");
+        return;
+      }
+
+      btnSalvarEdicao.disabled = true;
+      btnSalvarEdicao.textContent = "Salvando...";
+
+      const payloads = [
+        {
+          titulo_arquivo:nomeFinal,
+          nome:nomeFinal,
+          data_fim:dataVencimentoFinal.toISOString()
+        },
+        {
+          titulo_arquivo:nomeFinal,
+          data_fim:dataVencimentoFinal.toISOString()
+        },
+        {
+          nome:nomeFinal,
+          data_fim:dataVencimentoFinal.toISOString()
+        },
+        {
+          titulo_arquivo:nomeFinal,
+          fim_exibicao:dataVencimentoFinal.toISOString()
+        },
+        {
+          nome:nomeFinal,
+          fim_exibicao:dataVencimentoFinal.toISOString()
+        }
+      ];
+
       let erroFinal = null;
-      for(const payload of [{titulo_arquivo:nomeFinal},{nome:nomeFinal}]){
+
+      for(const payload of payloads){
         const {error} = await supabaseClient
           .from(TABELA_PLAYLIST)
           .update(payload)
-          .eq("id",id);
+          .eq("id",itemEmEdicao.id)
+          .eq("codigo",CODIGO_FIXO);
 
         if(!error){
           erroFinal = null;
           break;
         }
+
         erroFinal = error;
       }
 
+      btnSalvarEdicao.disabled = false;
+      btnSalvarEdicao.textContent = "Salvar alterações";
+
       if(erroFinal){
         console.error(erroFinal);
-        mostrarStatus("Erro ao renomear conteúdo.","erro");
+        mostrarStatus("Erro ao editar o conteúdo.","erro");
         return;
       }
 
-      mostrarStatus("Conteúdo renomeado.","ok");
-      carregarPlaylist();
-    };
+      fecharModalEditar();
+      mostrarStatus("Conteúdo atualizado.","ok");
+      await carregarPlaylist();
+    });
 
     window.excluirItem = async function(id,storagePath){
       if(!confirm("Deseja excluir este conteúdo?")) return;
