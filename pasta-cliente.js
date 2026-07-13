@@ -18,6 +18,61 @@ const TABELA_PLAYLISTS = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_CONTRATOS_MODELOS = "contratos_modelos";
 
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://SEU_WORKER.workers.dev").replace(/\/$/, "");
+
+function obterTokenWorker() {
+  return String(window.DUNATV_ADMIN_TOKEN || sessionStorage.getItem("dunatv_worker_token") || "");
+}
+
+async function requisitarWorker(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const token = obterTokenWorker();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const resposta = await fetch(`${DUNATV_WORKER_URL}${path}`, { ...options, headers });
+  const texto = await resposta.text();
+  const dados = texto ? JSON.parse(texto) : null;
+  if (!resposta.ok) throw new Error(dados?.error || `Falha na API (${resposta.status})`);
+  return dados;
+}
+
+async function obterPlaylistR2(codigo) {
+  const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`);
+  return Array.isArray(documento) ? documento : documento?.items || [];
+}
+
+async function salvarPlaylistR2(codigo, items) {
+  return requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items })
+  });
+}
+
+async function obterCatalogoClienteR2() {
+  const documento = await requisitarWorker(`/api/catalogo/${encodeURIComponent(codigoClienteAtual)}`);
+  return documento?.items || [];
+}
+
+async function salvarCatalogoClienteR2(items) {
+  return requisitarWorker(`/api/catalogo/${encodeURIComponent(codigoClienteAtual)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items })
+  });
+}
+
+async function enviarMidiaClienteR2(file, nomeArquivo) {
+  return requisitarWorker(
+    `/api/media/clientes/${encodeURIComponent(codigoClienteAtual)}/${encodeURIComponent(nomeArquivo)}`,
+    { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file }
+  );
+}
+
+async function excluirMidiaR2(storagePath) {
+  if (!storagePath) return;
+  await requisitarWorker(`/api/media?key=${encodeURIComponent(storagePath)}`, { method: "DELETE" });
+}
+
 const CACHE_PASTA_PREFIX = "pasta_cliente_cache_v2_";
 const CACHE_PONTOS_TTL = 30 * 60 * 1000;
 const CACHE_VINCULOS_TTL = 30 * 60 * 1000;
@@ -982,12 +1037,21 @@ async function renomearGrupoHistorico(ids, tituloAtual) {
   }
 
   try {
-    const { error } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .update({ titulo_arquivo: tituloFinal })
-      .in("id", listaIds);
+    const catalogo = await obterCatalogoClienteR2();
+    const selecionados = catalogo.filter((item) => listaIds.map(String).includes(String(item.id)));
+    const atualizados = catalogo.map((item) => listaIds.map(String).includes(String(item.id))
+      ? { ...item, titulo_arquivo: tituloFinal, nome: tituloFinal }
+      : item);
+    await salvarCatalogoClienteR2(atualizados);
 
-    if (error) throw error;
+    const destinos = [...new Set(selecionados.flatMap((item) => item.destinos || []))];
+    await Promise.all(destinos.map(async (codigo) => {
+      const playlist = await obterPlaylistR2(codigo);
+      const nova = playlist.map((item) => listaIds.map(String).includes(String(item.id))
+        ? { ...item, titulo_arquivo: tituloFinal, nome: tituloFinal }
+        : item);
+      await salvarPlaylistR2(codigo, nova);
+    }));
 
     sessionStorage.removeItem(obterChaveCache("historico_arquivos"));
     await carregarHistoricoArquivos({ forcarAtualizacao: true });
@@ -1007,18 +1071,16 @@ async function deletarItemHistorico(ids, storagePath) {
 
   try {
     const caminho = String(storagePath || "").trim();
+    const catalogo = await obterCatalogoClienteR2();
+    const selecionados = catalogo.filter((item) => listaIds.map(String).includes(String(item.id)));
+    const destinos = [...new Set(selecionados.flatMap((item) => item.destinos || []))];
 
-    if (caminho) {
-      const { error: storageError } = await supabaseClient.storage.from(BUCKET).remove([caminho]);
-      if (storageError) console.error("Erro ao deletar do storage:", storageError);
-    }
-
-    const { error: deleteError } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .delete()
-      .in("id", listaIds);
-
-    if (deleteError) throw deleteError;
+    await Promise.all(destinos.map(async (codigo) => {
+      const playlist = await obterPlaylistR2(codigo);
+      await salvarPlaylistR2(codigo, playlist.filter((item) => !listaIds.map(String).includes(String(item.id))));
+    }));
+    if (caminho) await excluirMidiaR2(caminho);
+    await salvarCatalogoClienteR2(catalogo.filter((item) => !listaIds.map(String).includes(String(item.id))));
 
     sessionStorage.removeItem(obterChaveCache("historico_arquivos"));
     await carregarHistoricoArquivos({ forcarAtualizacao: true });
@@ -1040,13 +1102,8 @@ async function carregarHistoricoArquivos(opcoes = {}) {
       if (cache.fresco) return cache.dados || [];
     }
 
-    const { data, error } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .select("*")
-      .eq("codigo_cliente", codigoClienteAtual)
-      .order("ordem", { ascending: false });
-
-    if (error) throw error;
+    const data = await obterCatalogoClienteR2();
+    data.sort((a, b) => Number(b.ordem || 0) - Number(a.ordem || 0));
 
     salvarCache("historico_arquivos", data || []);
     renderizarHistoricoArquivos(data || []);
@@ -1172,13 +1229,11 @@ async function calcularStatusClienteRealPorCodigoCliente() {
   let data = Array.isArray(cache?.dados) ? cache.dados : null;
 
   if (!data) {
-    const resposta = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .select("data_fim")
-      .eq("codigo_cliente", codigoClienteAtual);
-
-    if (resposta.error) return "Não ativo";
-    data = resposta.data || [];
+    try {
+      data = await obterCatalogoClienteR2();
+    } catch {
+      return "Não ativo";
+    }
   }
 
   const ativos = (data || []).filter((item) => !itemEstaInativo(item));
@@ -1537,25 +1592,14 @@ async function uploadArquivoCliente() {
       mostrarStatusUpload("Enviando arquivo...", "#9fd2ff");
 
       const nomeLimpo = limparNomeArquivo(file.name);
-      storagePath = `clientes/${codigoClienteAtual}/${Date.now()}-${nomeLimpo}`;
-
-      const { error: uploadError } = await supabaseClient.storage
-        .from(BUCKET)
-        .upload(storagePath, file, {
-          cacheControl: "86400",
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicData } = supabaseClient.storage
-        .from(BUCKET)
-        .getPublicUrl(storagePath);
-
-      videoUrl = publicData.publicUrl;
+      const upload = await enviarMidiaClienteR2(file, `${Date.now()}-${nomeLimpo}`);
+      storagePath = upload.key;
+      videoUrl = upload.publicUrl;
     }
 
+    const materialId = crypto.randomUUID();
     const registros = codigosDestino.map((codigoPonto, index) => ({
+      id: materialId,
       codigo: codigoPonto,
       codigo_cliente: codigoClienteAtual,
       nome: inputNome.value.trim(),
@@ -1568,11 +1612,17 @@ async function uploadArquivoCliente() {
       ordem: baseOrdem + index
     }));
 
-    const { error: insertError } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .insert(registros);
+    await Promise.all(codigosDestino.map(async (codigoPonto, index) => {
+      const playlist = await obterPlaylistR2(codigoPonto);
+      await salvarPlaylistR2(codigoPonto, [...playlist, registros[index]]);
+    }));
 
-    if (insertError) throw insertError;
+    const catalogo = await obterCatalogoClienteR2();
+    await salvarCatalogoClienteR2([...catalogo, {
+      ...registros[0],
+      destinos: codigosDestino,
+      ordem: baseOrdem
+    }]);
 
     sessionStorage.removeItem(obterChaveCache("historico_arquivos"));
     await carregarHistoricoArquivos({ forcarAtualizacao: true });
@@ -1620,13 +1670,14 @@ async function excluirClienteAtual() {
     mostrarMensagem("Apagando cliente...", "#9fd2ff");
 
     await apagarVinculosCliente();
-
-    const { error: erroPlaylists } = await supabaseClient
-      .from(TABELA_PLAYLISTS)
-      .delete()
-      .eq("codigo_cliente", codigoClienteAtual);
-
-    if (erroPlaylists) throw erroPlaylists;
+    const catalogo = await obterCatalogoClienteR2();
+    const destinos = [...new Set(catalogo.flatMap((item) => item.destinos || []))];
+    await Promise.all(destinos.map(async (codigo) => {
+      const playlist = await obterPlaylistR2(codigo);
+      await salvarPlaylistR2(codigo, playlist.filter((item) => normalizarCodigo(item.codigo_cliente) !== codigoClienteAtual));
+    }));
+    await Promise.all([...new Set(catalogo.map((item) => item.storage_path).filter(Boolean))].map(excluirMidiaR2));
+    await requisitarWorker(`/api/catalogo/${encodeURIComponent(codigoClienteAtual)}`, { method: "DELETE" });
 
     const { error: erroCliente } = await supabaseClient
       .from(TABELA_CLIENTES)
