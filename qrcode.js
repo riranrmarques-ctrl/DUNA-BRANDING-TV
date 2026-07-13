@@ -1,6 +1,6 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
-const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://SEU_WORKER.workers.dev").replace(/\/$/, "");
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev").replace(/\/$/, "");
 
 const CACHE_QRCODE_RELATORIO_KEY = "qrcode_relatorio_cache_v2";
 const CACHE_QRCODE_RELATORIO_TTL = 10 * 60 * 1000;

@@ -7,7 +7,7 @@ const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "statuspontos";
 
 const R2_PUBLIC_URL = "https://pub-7b0265ccfa1f43c4bbc908e8cb61b544.r2.dev";
-const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://SEU_WORKER.workers.dev").replace(/\/$/, "");
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev").replace(/\/$/, "");
 const DUNATV_DEVICE_TOKEN = String(window.DUNATV_DEVICE_TOKEN || localStorage.getItem("dunatv_device_token") || "");
 
 const DURACAO_IMAGEM = 10000;

@@ -6,7 +6,7 @@ const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_STATUS_PONTOS = "statuspontos";
 
-const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://SEU_WORKER.workers.dev").replace(/\/$/, "");
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev").replace(/\/$/, "");
 
 function obterTokenWorker() {
   return String(window.DUNATV_ADMIN_TOKEN || sessionStorage.getItem("dunatv_worker_token") || "");
