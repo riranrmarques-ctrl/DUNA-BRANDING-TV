@@ -6,6 +6,44 @@ const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_STATUS_PONTOS = "statuspontos";
 
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://SEU_WORKER.workers.dev").replace(/\/$/, "");
+
+function obterTokenWorker() {
+  return String(window.DUNATV_ADMIN_TOKEN || sessionStorage.getItem("dunatv_worker_token") || "");
+}
+
+async function requisitarWorker(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const token = obterTokenWorker();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  const resposta = await fetch(`${DUNATV_WORKER_URL}${path}`, { ...options, headers });
+  const texto = await resposta.text();
+  const dados = texto ? JSON.parse(texto) : null;
+  if (!resposta.ok) throw new Error(dados?.error || `Falha na API (${resposta.status})`);
+  return dados;
+}
+
+async function obterPlaylistR2(codigo) {
+  const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`);
+  return Array.isArray(documento) ? documento : documento?.items || [];
+}
+
+async function salvarPlaylistR2(codigo, items) {
+  return requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items })
+  });
+}
+
+async function enviarMidiaR2(file, escopo, codigo, nomeArquivo) {
+  return requisitarWorker(
+    `/api/media/${encodeURIComponent(escopo)}/${encodeURIComponent(normalizarCodigo(codigo))}/${encodeURIComponent(nomeArquivo)}`,
+    { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file }
+  );
+}
+
 const CACHE_PONTOS_KEY = "painel_pontos_cache_v11";
 const CACHE_PONTOS_TTL = 30 * 60 * 1000;
 const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v10_";
@@ -617,19 +655,8 @@ async function criarNovoPonto() {
 }
 
 async function obterProximaOrdemPlaylist() {
-  const { data, error } = await supabaseClient
-    .from(TABELA)
-    .select("ordem")
-    .eq("codigo", codigoSelecionado)
-    .order("ordem", { ascending: false })
-    .limit(1);
-
-  if (error) {
-    console.warn("Não foi possível buscar ordem da playlist:", error);
-    return 1;
-  }
-
-  return Number(data?.[0]?.ordem || 0) + 1;
+  const items = await obterPlaylistR2(codigoSelecionado);
+  return items.reduce((maior, item) => Math.max(maior, Number(item.ordem || 0)), 0) + 1;
 }
 
 async function enviarMaterialDiretoPlaylist(file) {
@@ -649,13 +676,10 @@ async function enviarMaterialDiretoPlaylist(file) {
     setStatus("Enviando material...", "normal");
 
     const nomeLimpo = limparNomeArquivo(file.name);
-    path = `playlists/${codigoSelecionado}/${Date.now()}-${nomeLimpo}`;
+    path = `pontos/${codigoSelecionado}/${Date.now()}-${nomeLimpo}`;
     const tipo = detectarTipoArquivoPlaylist(file);
 
-    const uploadResultado = await uploadArquivoEmBucket(file, path, {
-      cacheControl: "86400",
-      upsert: false
-    });
+    const uploadResultado = await enviarMidiaR2(file, "pontos", codigoSelecionado, `${Date.now()}-${nomeLimpo}`);
 
     const ordem = await obterProximaOrdemPlaylist();
 
@@ -664,25 +688,15 @@ async function enviarMaterialDiretoPlaylist(file) {
       nome: file.name,
       titulo_arquivo: file.name,
       video_url: uploadResultado.publicUrl,
-      storage_path: path,
+      storage_path: uploadResultado.key,
       codigo_cliente: null,
       tipo,
       ordem
     };
 
-    const { data, error } = await supabaseClient
-      .from(TABELA)
-      .insert([payload])
-      .select();
-
-    if (error) {
-      console.error("ERRO INSERT PLAYLIST:", error);
-      await supabaseClient.storage.from(BUCKET).remove([path]);
-      setStatus(`Erro ao gravar playlist: ${error.message || "falha no banco"}`, "erro");
-      return;
-    }
-
-    console.log("ITEM INSERIDO:", data);
+    payload.id = crypto.randomUUID();
+    const items = await obterPlaylistR2(codigoSelecionado);
+    await salvarPlaylistR2(codigoSelecionado, [...items, payload]);
 
     limparCachePlaylist(codigoSelecionado);
     await carregarPlaylist({ forcarAtualizacao: true });
@@ -691,9 +705,7 @@ async function enviarMaterialDiretoPlaylist(file) {
   } catch (error) {
     console.error("Erro ao enviar material:", error);
 
-    if (path) {
-      await supabaseClient.storage.from(BUCKET).remove([path]);
-    }
+    if (path) console.warn("O upload pode exigir limpeza manual no R2:", path);
 
     setStatus(`Erro ao enviar material: ${error.message || "falha desconhecida"}`, "erro");
   }
@@ -806,41 +818,17 @@ async function alternarDisponibilidadePonto() {
 }
 
 async function buscarStatusPontosRemoto() {
-  const consultas = [
-    { filtro: "ponto_codigo", ordem: "ultimo_ping" },
-    { filtro: "codigo", ordem: "data_hora" },
-    { filtro: "ponto_codigo", ordem: "created_at" }
-  ];
-
-  for (const consulta of consultas) {
-    const { data, error } = await supabaseClient
-      .from(TABELA_STATUS_PONTOS)
-      .select("*")
-      .order(consulta.ordem, { ascending: false });
-
-    if (!error) {
-      const statusPorCodigo = {};
-
-      (data || []).forEach((item) => {
-        const codigo = normalizarCodigo(
-          item.ponto_codigo ||
-          item.codigo ||
-          item.codigo_ponto ||
-          ""
-        );
-
-        if (!codigo || statusPorCodigo[codigo]) return;
-
-        statusPorCodigo[codigo] = item;
-      });
-
-      return statusPorCodigo;
-    }
-
-    console.warn("Status dos pontos não carregou:", error);
+  try {
+    const data = await requisitarWorker("/api/status");
+    return (data || []).reduce((mapa, item) => {
+      const codigo = normalizarCodigo(item?.ponto_codigo || item?.codigo || "");
+      if (codigo) mapa[codigo] = item;
+      return mapa;
+    }, {});
+  } catch (error) {
+    console.warn("Status dos pontos no R2 nao carregou:", error);
+    return {};
   }
-
-  return {};
 }
 
 async function buscarPontosRemoto() {
@@ -1190,38 +1178,20 @@ function renderizarPlaylistDados(lista, historicoStatus) {
 }
 
 async function buscarHistoricoStatusPonto(codigo) {
-  const consultasHistorico = [
-    { filtro: "ponto_codigo", ordem: "ultimo_ping", colunas: "*" },
-    { filtro: "codigo", ordem: "data_hora", colunas: "*" },
-    { filtro: "ponto_codigo", ordem: "created_at", colunas: "*" }
-  ];
-
-  for (const consulta of consultasHistorico) {
-    const { data, error } = await supabaseClient
-      .from(TABELA_STATUS_PONTOS)
-      .select(consulta.colunas)
-      .eq(consulta.filtro, codigo)
-      .order(consulta.ordem, { ascending: false })
-      .limit(30);
-
-    if (!error) return data || [];
-
-    console.warn(`Erro ao buscar histórico usando ${consulta.ordem}:`, error);
+  try {
+    const data = await requisitarWorker(`/api/status/${encodeURIComponent(normalizarCodigo(codigo))}`);
+    return data?.historico || (data?.atual ? [data.atual] : []);
+  } catch (error) {
+    console.warn("Historico de status no R2 nao carregou:", error);
+    return [];
   }
-
-  return [];
 }
 
 async function buscarPlaylistRemota(codigo) {
-  const { data: playlistData, error: playlistError } = await supabaseClient
-    .from(TABELA)
-    .select("*")
-    .eq("codigo", codigo)
-    .order("ordem", { ascending: true });
-
-  if (playlistError) throw playlistError;
-
-  const historicoData = await buscarHistoricoStatusPonto(codigo);
+  const [playlistData, historicoData] = await Promise.all([
+    obterPlaylistR2(codigo),
+    buscarHistoricoStatusPonto(codigo)
+  ]);
 
   return {
     playlist: playlistData || [],
@@ -1289,33 +1259,11 @@ function ativarRenomearItens() {
         return;
       }
 
-      const tentativasUpdate = [
-        { titulo_arquivo: nomeFinal },
-        { nome: nomeFinal }
-      ];
-
-      let updateError = null;
-
-      for (const payload of tentativasUpdate) {
-        const { error } = await supabaseClient
-          .from(TABELA)
-          .update(payload)
-          .eq("id", id);
-
-        if (!error) {
-          updateError = null;
-          break;
-        }
-
-        updateError = error;
-        console.warn("Falha ao renomear com payload:", payload, error);
-      }
-
-      if (updateError) {
-        console.error(updateError);
-        setStatus("Erro ao renomear arquivo", "erro");
-        return;
-      }
+      const items = await obterPlaylistR2(codigoSelecionado);
+      const atualizados = items.map((item) => String(item.id) === String(id)
+        ? { ...item, titulo_arquivo: nomeFinal, nome: nomeFinal }
+        : item);
+      await salvarPlaylistR2(codigoSelecionado, atualizados);
 
       limparCachePlaylist(codigoSelecionado);
       setStatus("Arquivo renomeado", "ok");
@@ -1335,16 +1283,8 @@ async function ativarExclusaoItens() {
       const confirmar = window.confirm("Deseja excluir este item da playlist?");
       if (!confirmar) return;
 
-      const { error } = await supabaseClient
-        .from(TABELA)
-        .delete()
-        .eq("id", id);
-
-      if (error) {
-        console.error(error);
-        setStatus("Erro ao excluir item", "erro");
-        return;
-      }
+      const items = await obterPlaylistR2(codigoSelecionado);
+      await salvarPlaylistR2(codigoSelecionado, items.filter((item) => String(item.id) !== String(id)));
 
       limparCachePlaylist(codigoSelecionado);
       setStatus("Item excluído", "ok");
@@ -1404,19 +1344,7 @@ function ativarDrag(lista) {
       const movido = novo.splice(dragIndex, 1)[0];
       novo.splice(target, 0, movido);
 
-      for (let i = 0; i < novo.length; i++) {
-        const { error } = await supabaseClient
-          .from(TABELA)
-          .update({ ordem: i + 1 })
-          .eq("id", novo[i].id);
-
-        if (error) {
-          console.error(error);
-          setStatus("Erro ao reordenar playlist", "erro");
-          item.classList.remove("drop-animating");
-          return;
-        }
-      }
+      await salvarPlaylistR2(codigoSelecionado, novo.map((entrada, index) => ({ ...entrada, ordem: index + 1 })));
 
       limparCachePlaylist(codigoSelecionado);
 
@@ -1489,15 +1417,10 @@ async function deletarPontoAtual() {
   try {
     setStatus("Deletando ponto...", "normal");
 
-    await supabaseClient
-      .from(TABELA)
-      .delete()
-      .eq("codigo", codigoSelecionado);
-
-    await supabaseClient
-      .from(TABELA_STATUS_PONTOS)
-      .delete()
-      .eq("ponto_codigo", codigoSelecionado);
+    await Promise.all([
+      requisitarWorker(`/api/playlist/${encodeURIComponent(codigoSelecionado)}`, { method: "DELETE" }),
+      requisitarWorker(`/api/status/${encodeURIComponent(codigoSelecionado)}`, { method: "DELETE" })
+    ]);
 
     const { error } = await supabaseClient
       .from(TABELA_PONTOS)
