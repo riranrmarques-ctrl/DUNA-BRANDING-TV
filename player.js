@@ -6,13 +6,19 @@ const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
 const TABELA_HISTORICO_CONEXAO = "statuspontos";
 
+const R2_PUBLIC_URL = "https://pub-7b0265ccfa1f43c4bbc908e8cb61b544.r2.dev";
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://SEU_WORKER.workers.dev").replace(/\/$/, "");
+const DUNATV_DEVICE_TOKEN = String(window.DUNATV_DEVICE_TOKEN || localStorage.getItem("dunatv_device_token") || "");
+
 const DURACAO_IMAGEM = 10000;
 const DURACAO_SITE = 10000;
 const DURACAO_VIDEO_FALLBACK = 20000;
 
-const INTERVALO_STATUS_ATIVO = 20 * 60 * 1000;
+const INTERVALO_STATUS_ATIVO = 10 * 60 * 1000;
 const INTERVALO_ATUALIZAR_PLAYLIST = 5 * 60 * 1000;
 const INTERVALO_CLIMA = 30 * 60 * 1000;
+const INTERVALO_ENVIO_REPRODUCOES = 24 * 60 * 60 * 1000;
+const INTERVALO_VERIFICAR_REPRODUCOES = 15 * 60 * 1000;
 
 const CACHE_PLAYLIST_PREFIX = "player_playlist_cache_v5_";
 const CACHE_PLAYLIST_TTL = 24 * 60 * 60 * 1000;
@@ -31,9 +37,13 @@ let cacheMidia = new Map();
 let intervaloStatus = null;
 let intervaloPlaylist = null;
 let intervaloClima = null;
+let intervaloReproducoes = null;
 
 let statusAtualRegistrado = null;
 let ultimoStatusEnviadoEm = 0;
+
+let periodoReproducoes = null;
+let contagemReproducoes = {};
 
 function renderizarNoPlayer(html) {
   const playerMain = document.getElementById("playerMain");
@@ -254,123 +264,39 @@ async function buscarPontoAtual(codigo) {
 function pontoPodeRodar(ponto) {
   if (!ponto) return false;
 
-  const status = String(ponto.status || "").trim().toLowerCase();
-
   if (ponto.disponivel === false) return false;
-  if (status === "inativo") return false;
 
   return true;
 }
 
-async function atualizarPontoAtivo(agoraIso) {
-  const tentativas = [
-    { ultimo_ping: agoraIso, status: "ativo" },
-    { ultimo_ping: agoraIso },
-    { status: "ativo" }
-  ];
+async function registrarAtivoSeNecessario() {
+  if (!codigoAtual) return false;
+  const headers = { "Content-Type": "application/json" };
+  if (DUNATV_DEVICE_TOKEN) headers["X-Device-Token"] = DUNATV_DEVICE_TOKEN;
 
-  for (const payload of tentativas) {
-    const { error } = await supabaseClient
-      .from(TABELA_PONTOS)
-      .update(payload)
-      .eq("codigo", codigoAtual);
-
-    if (!error) return true;
-
-    console.warn("Falha ao atualizar ponto ativo:", error.message || error);
-  }
-
-  return false;
-}
-
-async function buscarUltimoStatusRegistrado() {
-  const consultas = [
-    { filtro: "ponto_codigo", ordem: "ultimo_ping" },
-    { filtro: "codigo", ordem: "data_hora" },
-    { filtro: "ponto_codigo", ordem: "created_at" }
-  ];
-
-  for (const consulta of consultas) {
-    const { data, error } = await supabaseClient
-      .from(TABELA_HISTORICO_CONEXAO)
-      .select("*")
-      .eq(consulta.filtro, codigoAtual)
-      .order(consulta.ordem, { ascending: false })
-      .limit(1);
-
-    if (!error) {
-      const item = data?.[0] || null;
-      return String(item?.status || item?.evento || "").trim().toLowerCase() || null;
-    }
-
-    console.warn("Falha ao buscar último status:", error.message || error);
-  }
-
-  return null;
-}
-
-async function registrarStatusHistorico(status) {
-  if (!codigoAtual || !supabaseClient) return false;
-
-  const statusFinal = String(status || "").trim().toLowerCase();
-  if (statusFinal !== "ativo" && statusFinal !== "inativo") return false;
-
-  const agoraIso = new Date().toISOString();
-
-  const payloads = [
-    {
-      ponto_codigo: codigoAtual,
-      status: statusFinal,
-      ultimo_ping: agoraIso
-    },
-    {
-      codigo: codigoAtual,
-      evento: statusFinal,
-      data_hora: agoraIso
-    }
-  ];
-
-  for (const payload of payloads) {
-    const { error } = await supabaseClient
-      .from(TABELA_HISTORICO_CONEXAO)
-      .insert(payload);
-
-    if (!error) {
-      statusAtualRegistrado = statusFinal;
-      ultimoStatusEnviadoEm = Date.now();
-      return true;
-    }
-
-    console.warn("Falha ao registrar status:", error.message || error);
-  }
-
-  return false;
-}
-
-async function registrarAtivoSeNecessario({ forcar = false } = {}) {
-  if (!codigoAtual || !supabaseClient) return;
-
-  const agoraIso = new Date().toISOString();
-  const atualizouPonto = await atualizarPontoAtivo(agoraIso);
-
-  if (!atualizouPonto) return;
-
-  if (!statusAtualRegistrado) {
-    statusAtualRegistrado = await buscarUltimoStatusRegistrado();
-  }
-
-  const deveRegistrar =
-    forcar ||
-    statusAtualRegistrado !== "ativo" ||
-    Date.now() - ultimoStatusEnviadoEm > 24 * 60 * 60 * 1000;
-
-  if (deveRegistrar) {
-    await registrarStatusHistorico("ativo");
+  try {
+    const resposta = await fetch(`${DUNATV_WORKER_URL}/api/status/${encodeURIComponent(codigoAtual)}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        status: "ativo",
+        evento: "ping",
+        versao: "DunaTV-1.0",
+        dispositivo: navigator.userAgent
+      })
+    });
+    if (!resposta.ok) throw new Error(`Status ${resposta.status}`);
+    statusAtualRegistrado = "ativo";
+    ultimoStatusEnviadoEm = Date.now();
+    return true;
+  } catch (error) {
+    console.warn("Falha ao enviar heartbeat ao Worker:", error);
+    return false;
   }
 }
 
 function iniciarMonitoramentoStatus() {
-  registrarAtivoSeNecessario({ forcar: true });
+  registrarAtivoSeNecessario();
 
   intervaloStatus = setInterval(() => {
     registrarAtivoSeNecessario();
@@ -440,30 +366,16 @@ function assinaturaMetadados(lista) {
 }
 
 async function buscarMetadadosPlaylist() {
-  const consultas = [
-    "id,nome,titulo_arquivo,video_url,arquivo_url,url,storage_path,tipo,data_fim,ordem,codigo,codigo_cliente,created_at,updated_at,ativo",
-    "id,nome,titulo_arquivo,video_url,storage_path,tipo,data_fim,ordem,codigo,codigo_cliente,created_at,ativo",
-    "*"
-  ];
-
-  let ultimoErro = null;
-
-  for (const colunas of consultas) {
-    const { data, error } = await supabaseClient
-      .from(TABELA)
-      .select(colunas)
-      .eq("codigo", codigoAtual)
-      .order("ordem", { ascending: true });
-
-    if (!error) {
-      return (data || []).filter(itemEstaAtivo).filter((item) => obterUrlItem(item));
-    }
-
-    ultimoErro = error;
-    console.warn("Falha ao buscar playlist com colunas:", colunas, error);
-  }
-
-  throw ultimoErro;
+  const url = `${R2_PUBLIC_URL}/playlists/${encodeURIComponent(codigoAtual)}.json`;
+  const resposta = await fetch(url, { cache: "no-cache" });
+  if (resposta.status === 404) return [];
+  if (!resposta.ok) throw new Error(`R2 ${resposta.status}`);
+  const documento = await resposta.json();
+  const items = Array.isArray(documento) ? documento : documento?.items || [];
+  return items
+    .filter(itemEstaAtivo)
+    .filter((item) => obterUrlItem(item))
+    .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0));
 }
 
 async function buscarPlaylistRemota({ silencioso = false } = {}) {
@@ -476,10 +388,10 @@ async function buscarPlaylistRemota({ silencioso = false } = {}) {
   try {
     lista = await buscarMetadadosPlaylist();
   } catch (error) {
-    console.error("Erro Supabase:", error);
+    console.error("Erro R2:", error);
 
     if (!silencioso) {
-      mostrarMensagem("Erro ao buscar playlist.", error.message || "Verifique a tabela playlists.");
+      mostrarMensagem("Erro ao buscar playlist.", error.message || "Verifique o arquivo no R2.");
     }
 
     return false;
@@ -632,6 +544,94 @@ function preCarregarProximos(quantidade = 2) {
   }
 }
 
+function chaveEstadoReproducoes() {
+  return `dunatv_reproducoes_${codigoAtual}`;
+}
+
+function carregarEstadoReproducoes() {
+  try {
+    const salvo = JSON.parse(localStorage.getItem(chaveEstadoReproducoes()) || "null");
+    periodoReproducoes = salvo?.periodo || { inicio: Date.now(), lote_id: `${codigoAtual}-${Date.now()}` };
+    contagemReproducoes = salvo?.contagens || {};
+  } catch {
+    periodoReproducoes = { inicio: Date.now(), lote_id: `${codigoAtual}-${Date.now()}` };
+    contagemReproducoes = {};
+  }
+}
+
+function salvarEstadoReproducoes() {
+  localStorage.setItem(chaveEstadoReproducoes(), JSON.stringify({
+    periodo: periodoReproducoes,
+    contagens: contagemReproducoes
+  }));
+}
+
+function registrarReproducao(item) {
+  if (!item) return;
+  const materialId = String(item.id || item.storage_path || item.url || "");
+  if (!materialId) return;
+  const cliente = normalizarCodigo(item.codigo_cliente || "DIRETO");
+  const chave = `${cliente}::${materialId}`;
+  const atual = contagemReproducoes[chave] || {
+    codigo_cliente: cliente,
+    material_id: materialId,
+    titulo: item.titulo_arquivo || item.nome || "Material",
+    reproducoes: 0
+  };
+  atual.reproducoes += 1;
+  contagemReproducoes[chave] = atual;
+  salvarEstadoReproducoes();
+}
+
+function dataLocalDoPeriodo(timestamp) {
+  const data = new Date(timestamp);
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+async function enviarReproducoesSeNecessario() {
+  if (!periodoReproducoes || Date.now() - Number(periodoReproducoes.inicio || 0) < INTERVALO_ENVIO_REPRODUCOES) return;
+  const itens = Object.values(contagemReproducoes);
+  if (!itens.length) {
+    periodoReproducoes = { inicio: Date.now(), lote_id: `${codigoAtual}-${Date.now()}` };
+    salvarEstadoReproducoes();
+    return;
+  }
+
+  const grupos = new Map();
+  itens.forEach((item) => {
+    const cliente = item.codigo_cliente || "DIRETO";
+    if (!grupos.has(cliente)) grupos.set(cliente, []);
+    grupos.get(cliente).push(item);
+  });
+  const headers = { "Content-Type": "application/json" };
+  if (DUNATV_DEVICE_TOKEN) headers["X-Device-Token"] = DUNATV_DEVICE_TOKEN;
+  const data = dataLocalDoPeriodo(periodoReproducoes.inicio);
+
+  try {
+    await Promise.all([...grupos.entries()].map(async ([cliente, materiais]) => {
+      const resposta = await fetch(`${DUNATV_WORKER_URL}/api/reproducoes/${encodeURIComponent(codigoAtual)}/${data}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          lote_id: periodoReproducoes.lote_id,
+          codigo_cliente: cliente,
+          items: materiais.map(({ material_id, titulo, reproducoes }) => ({ material_id, titulo, reproducoes }))
+        })
+      });
+      if (!resposta.ok) throw new Error(`Reproducoes ${resposta.status}`);
+    }));
+
+    periodoReproducoes = { inicio: Date.now(), lote_id: `${codigoAtual}-${Date.now()}` };
+    contagemReproducoes = {};
+    salvarEstadoReproducoes();
+  } catch (error) {
+    console.warn("Falha ao enviar reproducoes; o lote sera reenviado:", error);
+  }
+}
+
 function proximo() {
   limparTimeout();
 
@@ -655,7 +655,10 @@ function tocarImagem(item) {
   `);
 
   preCarregarProximos(2);
-  timeoutMidia = setTimeout(proximo, DURACAO_IMAGEM);
+  timeoutMidia = setTimeout(() => {
+    registrarReproducao(item);
+    proximo();
+  }, DURACAO_IMAGEM);
 }
 
 function tocarVideo(item) {
@@ -669,7 +672,10 @@ function tocarVideo(item) {
   if (!video) return;
 
   video.src = item.url;
-  video.onended = proximo;
+  video.onended = () => {
+    registrarReproducao(item);
+    proximo();
+  };
 
   video.onerror = () => {
     mostrarMensagem("Erro ao carregar video.", item.nome);
@@ -681,7 +687,10 @@ function tocarVideo(item) {
   });
 
   timeoutMidia = setTimeout(() => {
-    if (!video.ended) proximo();
+    if (!video.ended) {
+      registrarReproducao(item);
+      proximo();
+    }
   }, Math.max(DURACAO_VIDEO_FALLBACK, 3000));
 
   preCarregarProximos(2);
@@ -703,7 +712,10 @@ function tocarSite(item) {
   `);
 
   preCarregarProximos(2);
-  timeoutMidia = setTimeout(proximo, DURACAO_SITE);
+  timeoutMidia = setTimeout(() => {
+    registrarReproducao(item);
+    proximo();
+  }, DURACAO_SITE);
 }
 
 function tocarMidia() {
@@ -815,10 +827,12 @@ function pararTudo() {
   if (intervaloStatus) clearInterval(intervaloStatus);
   if (intervaloPlaylist) clearInterval(intervaloPlaylist);
   if (intervaloClima) clearInterval(intervaloClima);
+  if (intervaloReproducoes) clearInterval(intervaloReproducoes);
 
   intervaloStatus = null;
   intervaloPlaylist = null;
   intervaloClima = null;
+  intervaloReproducoes = null;
 }
 
 async function iniciar() {
@@ -836,6 +850,10 @@ async function iniciar() {
       );
       return;
     }
+
+    carregarEstadoReproducoes();
+    enviarReproducoesSeNecessario();
+    intervaloReproducoes = setInterval(enviarReproducoesSeNecessario, INTERVALO_VERIFICAR_REPRODUCOES);
 
     mostrarMensagem("Validando ponto...", `Codigo: ${codigoAtual}`);
 
