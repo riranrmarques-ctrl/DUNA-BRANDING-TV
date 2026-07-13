@@ -1,10 +1,22 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://SEU_WORKER.workers.dev").replace(/\/$/, "");
 
 const CACHE_QRCODE_RELATORIO_KEY = "qrcode_relatorio_cache_v2";
 const CACHE_QRCODE_RELATORIO_TTL = 10 * 60 * 1000;
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+async function carregarQrCodeR2(inicio, fim) {
+  const headers = {};
+  const token = String(window.DUNATV_ADMIN_TOKEN || sessionStorage.getItem("dunatv_worker_token") || "");
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const url = `${DUNATV_WORKER_URL}/api/qrcode?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`;
+  const resposta = await fetch(url, { headers, cache: "no-store" });
+  const dados = await resposta.json().catch(() => null);
+  if (!resposta.ok) throw new Error(dados?.error || `QR Code R2 ${resposta.status}`);
+  return dados || [];
+}
 
 let todosOsPontos = [];
 let todosOsClientes = [];
@@ -77,12 +89,7 @@ async function carregarRelatorio(opcoes = {}) {
 
     const { previousStart, end } = periodoSelecionado();
 
-    const [
-      { data: pontos, error: erroPontos },
-      { data: clientes, error: erroClientes },
-      { data: playlists, error: erroPlaylists },
-      { data: escaneamentos, error: erroEscaneamentos }
-    ] = await Promise.all([
+    const [pontosResposta, clientesResposta, vinculosResposta, escaneamentos] = await Promise.all([
       supabaseClient
         .from("pontos")
         .select("*")
@@ -92,25 +99,19 @@ async function carregarRelatorio(opcoes = {}) {
         .select("id,codigo,nome,nome_completo,status,statuscliente,created_at")
         .order("created_at", { ascending: false }),
       supabaseClient
-        .from("playlists")
-        .select("codigo,codigo_cliente,nome,data_inicio,data_fim,status,created_at"),
-      supabaseClient
-        .from("qrcode_contadores")
-        .select("*")
-        .gte("data", formatarDataBanco(previousStart))
-        .lte("data", formatarDataBanco(end))
-        .order("data", { ascending: true })
+        .from("playercliente")
+        .select("cliente_codigo,ponto_codigo,codigo_cliente,codigo_ponto,tipo_vinculo,created_at"),
+      carregarQrCodeR2(formatarDataBanco(previousStart), formatarDataBanco(end))
     ]);
 
-    if (erroPontos) throw erroPontos;
-    if (erroClientes) console.warn("Clientes não carregaram:", erroClientes);
-    if (erroPlaylists) console.warn("Playlists não carregaram:", erroPlaylists);
-    if (erroEscaneamentos) throw erroEscaneamentos;
+    if (pontosResposta.error) throw pontosResposta.error;
+    if (clientesResposta.error) console.warn("Clientes não carregaram:", clientesResposta.error);
+    if (vinculosResposta.error) console.warn("Vinculos não carregaram:", vinculosResposta.error);
 
     const dados = {
-      pontos: pontos || [],
-      clientes: clientes || [],
-      playlists: playlists || [],
+      pontos: pontosResposta.data || [],
+      clientes: clientesResposta.data || [],
+      playlists: vinculosResposta.data || [],
       escaneamentos: escaneamentos || []
     };
 
@@ -247,7 +248,7 @@ function renderizarHistorico(escaneamentos) {
     .flatMap(item => {
       const pontos = pontosDoEscaneamento(item);
       const anunciante = anuncianteDoEscaneamento(item);
-      const data = new Date(item.atualizado_em || item.data || dataEscaneamento(item));
+      const data = dataEscaneamento(item);
 
       if (!pontos.length) {
         return [{
@@ -341,7 +342,7 @@ function renderizarHorariosPico(escaneamentos) {
   const horarios = new Map();
 
   escaneamentos.forEach(item => {
-    const data = new Date(item.atualizado_em || item.data || dataEscaneamento(item));
+    const data = dataEscaneamento(item);
     const total = totalEscaneamento(item);
     const diaSemana = (data.getDay() + 6) % 7;
     const faixaDia = Math.min(Math.floor(data.getHours() / 5), 4);
@@ -472,8 +473,8 @@ function pontosDoEscaneamento(item) {
   if (pontosDiretos.length) return removerPontosDuplicados(pontosDiretos);
 
   const codigosPlaylist = todasAsPlaylists
-    .filter(playlist => normalizarCodigo(playlist.codigo_cliente) === codigoCliente)
-    .map(playlist => normalizarCodigo(playlist.codigo))
+    .filter(playlist => normalizarCodigo(playlist.codigo_cliente || playlist.cliente_codigo) === codigoCliente)
+    .map(playlist => normalizarCodigo(playlist.codigo || playlist.ponto_codigo || playlist.codigo_ponto))
     .filter(Boolean);
 
   const pontosDaPlaylist = todosOsPontos.filter(ponto => codigosPlaylist.includes(chavePonto(ponto)));
@@ -528,6 +529,7 @@ function nomeEntidade(entidade) {
 function dataEscaneamento(item) {
   return new Date(
     item.__data_escaneamento ||
+    item.lido_em ||
     item.data ||
     item.created_at ||
     item.data_hora ||
