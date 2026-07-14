@@ -951,14 +951,99 @@
 
     const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
     const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
-    const BUCKET = "midias";
-
-    const TABELA_PLAYLIST = "playlists";
     const TABELA_PONTOS = "pontos";
     const CODIGO_FIXO = "R6V0G8V";
     const CHAVE_SESSAO = "painel_unidade_selfit_liberado";
 
+    const DUNATV_WORKER_URL = String(
+      window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev"
+    ).replace(/\/$/,"");
+    const DUNATV_R2_PUBLIC_URL = String(
+      window.DUNATV_R2_PUBLIC_URL || "https://pub-7b0265ccfa1f43c4bbc908e8cb61b544.r2.dev"
+    ).replace(/\/$/,"");
+
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function obterTokenWorker(){
+      return String(
+        window.DUNATV_ADMIN_TOKEN ||
+        localStorage.getItem("dunatv_admin_token") ||
+        sessionStorage.getItem("dunatv_admin_token") ||
+        sessionStorage.getItem("dunatv_worker_token") ||
+        ""
+      ).trim();
+    }
+
+    async function requisitarWorker(caminho,opcoes={}){
+      const headers = new Headers(opcoes.headers || {});
+      const token = obterTokenWorker();
+      if(token) headers.set("Authorization",`Bearer ${token}`);
+
+      const resposta = await fetch(`${DUNATV_WORKER_URL}${caminho}`,{
+        ...opcoes,
+        headers
+      });
+      const texto = await resposta.text();
+      let dados = null;
+
+      if(texto){
+        try{ dados = JSON.parse(texto); }
+        catch{ dados = texto; }
+      }
+
+      if(!resposta.ok){
+        throw new Error(dados?.error || dados?.message || texto || `Falha na API (${resposta.status})`);
+      }
+
+      return dados;
+    }
+
+    async function obterPlaylistR2(){
+      const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`);
+      return Array.isArray(documento) ? documento : (documento?.items || []);
+    }
+
+    async function salvarPlaylistR2(items){
+      const lista = (Array.isArray(items) ? items : []).map((item,index)=>({
+        ...item,
+        id:item.id || (globalThis.crypto?.randomUUID
+          ? globalThis.crypto.randomUUID()
+          : `${Date.now()}-${index}`),
+        codigo:CODIGO_FIXO,
+        ordem:index+1
+      }));
+
+      const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`,{
+        method:"PUT",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({items:lista})
+      });
+
+      return Array.isArray(documento) ? documento : (documento?.items || lista);
+    }
+
+    async function enviarMidiaR2(file,nomeArquivo){
+      const resultado = await requisitarWorker(
+        `/api/media/pontos/${encodeURIComponent(CODIGO_FIXO)}/${encodeURIComponent(nomeArquivo)}`,
+        {
+          method:"PUT",
+          headers:{"Content-Type":file.type || "application/octet-stream"},
+          body:file
+        }
+      );
+
+      let publicUrl = resultado?.publicUrl || resultado?.url || "";
+      if(publicUrl.startsWith("/")) publicUrl = `${DUNATV_R2_PUBLIC_URL}${publicUrl}`;
+      if(!publicUrl) throw new Error("O R2 não devolveu a URL pública da mídia.");
+
+      return {...resultado,publicUrl};
+    }
+
+    async function excluirMidiaR2(storagePath){
+      const key = String(storagePath || "").trim();
+      if(!key.startsWith("midias/")) return;
+      await requisitarWorker(`/api/media?key=${encodeURIComponent(key)}`,{method:"DELETE"});
+    }
 
     const telaLogin = document.getElementById("telaLogin");
     const painel = document.getElementById("painel");
@@ -1057,14 +1142,14 @@
     function obterTipo(item){
       const tipo = String(item.tipo || "").toLowerCase();
       if(tipo === "imagem") return "Imagem";
-      if(tipo === "site") return "Site";
+      if(tipo === "site" || tipo === "txt") return "Site";
       return "Vídeo";
     }
 
     function detectarTipoArquivo(file){
       const nome = file.name.toLowerCase();
       if(/\.(jpg|jpeg|png|webp)$/.test(nome)) return "imagem";
-      if(nome.endsWith(".txt")) return "site";
+      if(nome.endsWith(".txt")) return "txt";
       return "video";
     }
 
@@ -1162,49 +1247,36 @@
 
       if(!vencidos.length) return lista || [];
 
-      for(const item of vencidos){
-        const {error} = await supabaseClient
-          .from(TABELA_PLAYLIST)
-          .delete()
-          .eq("id",item.id)
-          .eq("codigo",CODIGO_FIXO);
+      const restantes = (lista || []).filter(
+        (item)=>!vencidos.some((vencido)=>String(vencido.id) === String(item.id))
+      );
 
-        if(error){
-          console.error("Erro ao excluir conteúdo vencido:",error);
-          continue;
+      try{
+        const listaSalva = await salvarPlaylistR2(restantes);
+        for(const item of vencidos){
+          try{ await excluirMidiaR2(item.storage_path); }
+          catch(error){ console.warn("Playlist atualizada, mas a mídia vencida não foi removida:",error); }
         }
-
-        if(item.storage_path){
-          const {error:storageError} = await supabaseClient.storage
-            .from(BUCKET)
-            .remove([item.storage_path]);
-
-          if(storageError){
-            console.warn("Conteúdo vencido excluído do banco, mas não do armazenamento:",storageError);
-          }
-        }
+        return listaSalva;
+      }catch(error){
+        console.error("Erro ao remover conteúdos vencidos do R2:",error);
+        return lista || [];
       }
-
-      return (lista || []).filter((item)=>!vencidos.some((vencido)=>vencido.id === item.id));
     }
 
     async function carregarPlaylist(){
       corpoTabela.innerHTML = '<tr><td colspan="6" class="vazio">Carregando conteúdos...</td></tr>';
 
-      const {data,error} = await supabaseClient
-        .from(TABELA_PLAYLIST)
-        .select("*")
-        .eq("codigo",CODIGO_FIXO)
-        .order("ordem",{ascending:true});
-
-      if(error){
+      try{
+        const items = await obterPlaylistR2();
+        items.sort((a,b)=>Number(a.ordem || 0)-Number(b.ordem || 0));
+        playlistAtual = await excluirConteudosVencidos(items);
+        renderizarPlaylist();
+      }catch(error){
         console.error(error);
         corpoTabela.innerHTML = '<tr><td colspan="6" class="vazio">Erro ao carregar conteúdos.</td></tr>';
-        return;
+        mostrarStatus(error.message || "Erro ao carregar a playlist do R2.","erro");
       }
-
-      playlistAtual = await excluirConteudosVencidos(data || []);
-      renderizarPlaylist();
     }
 
     function renderizarPlaylist(){
@@ -1284,26 +1356,21 @@
           const [movido] = novaOrdem.splice(indiceOrigem,1);
           novaOrdem.splice(indiceDestino,0,movido);
 
-          playlistAtual = novaOrdem;
+          const ordemAnterior = [...playlistAtual];
+          playlistAtual = novaOrdem.map((item,index)=>({...item,ordem:index+1}));
           renderizarPlaylist();
           mostrarStatus("Salvando nova ordem...");
 
-          for(let i=0;i<novaOrdem.length;i++){
-            const {error} = await supabaseClient
-              .from(TABELA_PLAYLIST)
-              .update({ordem:i+1})
-              .eq("id",novaOrdem[i].id)
-              .eq("codigo",CODIGO_FIXO);
-
-            if(error){
-              console.error(error);
-              mostrarStatus("Erro ao salvar a ordem.","erro");
-              await carregarPlaylist();
-              return;
-            }
+          try{
+            playlistAtual = await salvarPlaylistR2(playlistAtual);
+            renderizarPlaylist();
+            mostrarStatus("Ordem atualizada.","ok");
+          }catch(error){
+            console.error(error);
+            playlistAtual = ordemAnterior;
+            renderizarPlaylist();
+            mostrarStatus(error.message || "Erro ao salvar a ordem.","erro");
           }
-
-          mostrarStatus("Ordem atualizada.","ok");
         });
       });
     }
@@ -1389,86 +1456,47 @@
       btnSalvarEdicao.disabled = true;
       btnSalvarEdicao.textContent = "Salvando...";
 
-      const payloads = [
-        {
-          titulo_arquivo:nomeFinal,
-          nome:nomeFinal,
-          data_fim:dataVencimentoFinal.toISOString()
-        },
-        {
-          titulo_arquivo:nomeFinal,
-          data_fim:dataVencimentoFinal.toISOString()
-        },
-        {
-          nome:nomeFinal,
-          data_fim:dataVencimentoFinal.toISOString()
-        },
-        {
-          titulo_arquivo:nomeFinal,
-          fim_exibicao:dataVencimentoFinal.toISOString()
-        },
-        {
-          nome:nomeFinal,
-          fim_exibicao:dataVencimentoFinal.toISOString()
-        }
-      ];
+      try{
+        const listaEditada = playlistAtual.map((item)=>
+          String(item.id) === String(itemEmEdicao.id)
+            ? {
+                ...item,
+                nome:nomeFinal,
+                titulo_arquivo:nomeFinal,
+                data_fim:dataVencimentoFinal.toISOString()
+              }
+            : item
+        );
 
-      let erroFinal = null;
-
-      for(const payload of payloads){
-        const {error} = await supabaseClient
-          .from(TABELA_PLAYLIST)
-          .update(payload)
-          .eq("id",itemEmEdicao.id)
-          .eq("codigo",CODIGO_FIXO);
-
-        if(!error){
-          erroFinal = null;
-          break;
-        }
-
-        erroFinal = error;
+        playlistAtual = await salvarPlaylistR2(listaEditada);
+        fecharModalEditar();
+        renderizarPlaylist();
+        mostrarStatus("Conteúdo atualizado.","ok");
+      }catch(error){
+        console.error(error);
+        mostrarStatus(error.message || "Erro ao editar o conteúdo.","erro");
+      }finally{
+        btnSalvarEdicao.disabled = false;
+        btnSalvarEdicao.textContent = "Salvar alterações";
       }
-
-      btnSalvarEdicao.disabled = false;
-      btnSalvarEdicao.textContent = "Salvar alterações";
-
-      if(erroFinal){
-        console.error(erroFinal);
-        mostrarStatus("Erro ao editar o conteúdo.","erro");
-        return;
-      }
-
-      fecharModalEditar();
-      mostrarStatus("Conteúdo atualizado.","ok");
-      await carregarPlaylist();
     });
 
     window.excluirItem = async function(id,storagePath){
       if(!confirm("Deseja excluir este conteúdo?")) return;
 
-      const {error} = await supabaseClient
-        .from(TABELA_PLAYLIST)
-        .delete()
-        .eq("id",id)
-        .eq("codigo",CODIGO_FIXO);
+      try{
+        const novaLista = playlistAtual.filter((item)=>String(item.id) !== String(id));
+        playlistAtual = await salvarPlaylistR2(novaLista);
+        renderizarPlaylist();
 
-      if(error){
+        try{ await excluirMidiaR2(storagePath); }
+        catch(error){ console.warn("Playlist atualizada, mas a mídia não foi removida:",error); }
+
+        mostrarStatus("Conteúdo excluído.","ok");
+      }catch(error){
         console.error(error);
-        mostrarStatus("Erro ao excluir conteúdo.","erro");
-        return;
+        mostrarStatus(error.message || "Erro ao excluir conteúdo.","erro");
       }
-
-      if(storagePath){
-        const {error:storageError} = await supabaseClient.storage
-          .from(BUCKET)
-          .remove([storagePath]);
-
-        if(storageError) console.warn("Registro excluído, mas o arquivo não foi removido do bucket:",storageError);
-      }
-
-      mostrarStatus("Conteúdo excluído.","ok");
-      carregarPlaylist();
     };
 
     function dataLocalAgora(){
@@ -1494,18 +1522,6 @@
     modalAdicionar.addEventListener("click",(event)=>{
       if(event.target === modalAdicionar) fecharModal();
     });
-
-    async function obterProximaOrdem(){
-      const {data,error} = await supabaseClient
-        .from(TABELA_PLAYLIST)
-        .select("ordem")
-        .eq("codigo",CODIGO_FIXO)
-        .order("ordem",{ascending:false})
-        .limit(1);
-
-      if(error) return playlistAtual.length+1;
-      return Number(data?.[0]?.ordem || 0)+1;
-    }
 
     formAdicionar.addEventListener("submit",async(event)=>{
       event.preventDefault();
@@ -1542,69 +1558,41 @@
 
       try{
         const nomeLimpo = limparNomeArquivo(file.name);
-        storagePath = `playlists/${CODIGO_FIXO}/${Date.now()}-${nomeLimpo}`;
-
-        const {error:uploadError} = await supabaseClient.storage
-          .from(BUCKET)
-          .upload(storagePath,file,{
-            cacheControl:"86400",
-            upsert:false
-          });
-
-        if(uploadError) throw uploadError;
-
-        const {data:urlData} = supabaseClient.storage
-          .from(BUCKET)
-          .getPublicUrl(storagePath);
-
-        const ordem = await obterProximaOrdem();
+        const nomeR2 = `${Date.now()}-${nomeLimpo}`;
+        const upload = await enviarMidiaR2(file,nomeR2);
+        storagePath = upload.key || `midias/pontos/${CODIGO_FIXO}/${nomeR2}`;
         const tipo = detectarTipoArquivo(file);
 
         const payload = {
+          id:globalThis.crypto?.randomUUID
+            ? globalThis.crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
           codigo:CODIGO_FIXO,
           nome:file.name,
           titulo_arquivo:file.name,
-          video_url:urlData.publicUrl,
+          video_url:upload.publicUrl,
+          url:upload.publicUrl,
           storage_path:storagePath,
           codigo_cliente:null,
           tipo,
-          ordem,
+          ordem:playlistAtual.length+1,
+          created_at:new Date().toISOString(),
           data_inicio:new Date(dataPostagem.value).toISOString(),
           data_fim:new Date(dataVencimento.value).toISOString(),
           duracao:String(duracaoSelecionada)
         };
 
-        let {error:insertError} = await supabaseClient
-          .from(TABELA_PLAYLIST)
-          .insert([payload]);
-
-        /* Compatibilidade caso alguma coluna opcional ainda não exista. */
-        if(insertError){
-          const mensagem = String(insertError.message || "").toLowerCase();
-
-          if(mensagem.includes("data_inicio")){
-            delete payload.data_inicio;
-          }
-
-          if(mensagem.includes("duracao")){
-            delete payload.duracao;
-          }
-
-          if(mensagem.includes("data_inicio") || mensagem.includes("duracao")){
-            ({error:insertError} = await supabaseClient.from(TABELA_PLAYLIST).insert([payload]));
-          }
-        }
-
-        if(insertError) throw insertError;
+        playlistAtual = await salvarPlaylistR2([...playlistAtual,payload]);
 
         fecharModal();
         mostrarStatus("Conteúdo adicionado com sucesso.","ok");
-        await carregarPlaylist();
+        renderizarPlaylist();
       }catch(error){
         console.error(error);
 
         if(storagePath){
-          await supabaseClient.storage.from(BUCKET).remove([storagePath]);
+          try{ await excluirMidiaR2(storagePath); }
+          catch(cleanupError){ console.warn("Não foi possível limpar o upload incompleto:",cleanupError); }
         }
 
         mostrarStatus(error.message || "Erro ao enviar conteúdo.","erro");
