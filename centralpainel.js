@@ -2,10 +2,56 @@ const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const SENHA_PAINEL = "@helena";
 
-const CACHE_CENTRAL_KEY = "central_painel_cache_v2";
+const DUNATV_WORKER_URL = String(
+  window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev"
+).replace(/\/$/, "");
+
+const CACHE_CENTRAL_KEY = "central_painel_cache_v3_r2";
 const CACHE_CENTRAL_TTL = 30 * 60 * 1000;
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function obterTokenWorker() {
+  return String(
+    window.DUNATV_ADMIN_TOKEN ||
+    localStorage.getItem("dunatv_admin_token") ||
+    sessionStorage.getItem("dunatv_admin_token") ||
+    ""
+  ).trim();
+}
+
+async function requisitarWorker(caminho, opcoes = {}) {
+  const headers = new Headers(opcoes.headers || {});
+  const token = obterTokenWorker();
+
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (opcoes.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const resposta = await fetch(`${DUNATV_WORKER_URL}${caminho}`, {
+    ...opcoes,
+    headers
+  });
+
+  const texto = await resposta.text();
+  let dados = null;
+
+  if (texto) {
+    try {
+      dados = JSON.parse(texto);
+    } catch (_) {
+      dados = texto;
+    }
+  }
+
+  if (!resposta.ok) {
+    const mensagem = dados?.error || dados?.message || texto || `Erro HTTP ${resposta.status}`;
+    throw new Error(mensagem);
+  }
+
+  return dados;
+}
 
 let todosOsPontos = [];
 
@@ -107,10 +153,7 @@ async function carregarcentralpainel(opcoes = {}) {
 
     if (erroPontos) throw erroPontos;
 
-    const status = await buscarStatusPontos();
-
     let clientes = [];
-    let playlists = [];
 
     const respostaClientes = await supabaseClient
       .from("dadosclientes")
@@ -122,15 +165,10 @@ async function carregarcentralpainel(opcoes = {}) {
       clientes = respostaClientes.data || [];
     }
 
-    const respostaPlaylists = await supabaseClient
-      .from("playlists")
-      .select("codigo_cliente,data_fim,status,created_at");
-
-    if (respostaPlaylists.error) {
-      console.warn("Playlists não carregaram:", respostaPlaylists.error);
-    } else {
-      playlists = respostaPlaylists.data || [];
-    }
+    const [status, playlists] = await Promise.all([
+      buscarStatusPontosR2(),
+      buscarPlaylistsR2(pontos || [])
+    ]);
 
     const dados = {
       pontos: pontos || [],
@@ -160,25 +198,47 @@ function aplicarDadosCentral(dados) {
   atualizarGraficoComercial(clientesComStatusReal, contratos);
 }
 
-async function buscarStatusPontos() {
-  const consultas = [
-    { ordem: "ultimo_ping" },
-    { ordem: "data_hora" },
-    { ordem: "created_at" }
-  ];
-
-  for (const consulta of consultas) {
-    const { data, error } = await supabaseClient
-      .from("statuspontos")
-      .select("*")
-      .order(consulta.ordem, { ascending: false });
-
-    if (!error) return data || [];
-
-    console.warn(`Status não carregou usando ${consulta.ordem}:`, error);
+async function buscarStatusPontosR2() {
+  try {
+    const dados = await requisitarWorker("/api/status");
+    return Array.isArray(dados) ? dados : [];
+  } catch (erro) {
+    console.warn("Status não carregou do R2:", erro);
+    return [];
   }
+}
 
-  return [];
+async function buscarPlaylistsR2(pontos) {
+  const codigos = [...new Set(
+    (pontos || [])
+      .map(ponto => normalizarCodigo(ponto.codigo || ponto.codigo_ponto || ponto.ponto_codigo || ""))
+      .filter(Boolean)
+  )];
+
+  const resultados = await Promise.allSettled(
+    codigos.map(async codigo => {
+      const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(codigo)}`);
+      const itens = Array.isArray(documento) ? documento : documento?.items || [];
+
+      return itens.map(item => ({
+        ...item,
+        codigo_ponto: item.codigo_ponto || item.ponto_codigo || codigo
+      }));
+    })
+  );
+
+  const playlists = [];
+
+  resultados.forEach((resultado, indice) => {
+    if (resultado.status === "fulfilled") {
+      playlists.push(...resultado.value);
+      return;
+    }
+
+    console.warn(`Playlist ${codigos[indice]} não carregou do R2:`, resultado.reason);
+  });
+
+  return playlists;
 }
 
 function combinarPontosComStatus(pontos, status) {
@@ -214,7 +274,14 @@ function combinarPontosComStatus(pontos, status) {
       ...ponto,
       codigo_final: codigoPonto,
       status_final: pontoIndisponivel || statusCadastro === "desativado" ? "desativado" : statusAtual,
-      ultimo_ping_final: statusEncontrado?.ultimo_ping || statusEncontrado?.data_hora || ponto.ultimo_ping || ponto.updated_at || null
+      ultimo_ping_final:
+        statusEncontrado?.ultima_atualizacao ||
+        statusEncontrado?.atualizado_em ||
+        statusEncontrado?.ultimo_ping ||
+        statusEncontrado?.data_hora ||
+        ponto.ultimo_ping ||
+        ponto.updated_at ||
+        null
     };
   });
 }
