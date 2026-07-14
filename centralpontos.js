@@ -3,6 +3,9 @@ const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
 const TABELA_PONTOS = "pontos";
 
 const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev").replace(/\/$/, "");
+const DUNATV_R2_PUBLIC_URL = String(
+  window.DUNATV_R2_PUBLIC_URL || "https://pub-7b0265ccfa1f43c4bbc908e8cb61b544.r2.dev"
+).replace(/\/$/, "");
 
 function obterTokenWorker() {
   return String(
@@ -57,7 +60,8 @@ async function enviarMidiaR2(file, escopo, codigo, nomeArquivo) {
     { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file }
   );
 
-  const publicUrl = resultado?.publicUrl || resultado?.url || "";
+  let publicUrl = resultado?.publicUrl || resultado?.url || "";
+  if (publicUrl.startsWith("/")) publicUrl = `${DUNATV_R2_PUBLIC_URL}${publicUrl}`;
   if (!publicUrl) throw new Error("O R2 não devolveu a URL pública da mídia.");
 
   return { ...resultado, publicUrl };
