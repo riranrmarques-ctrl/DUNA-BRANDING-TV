@@ -1,15 +1,17 @@
 const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
-const BUCKET = "midias";
-
-const TABELA = "playlists";
 const TABELA_PONTOS = "pontos";
-const TABELA_STATUS_PONTOS = "statuspontos";
 
 const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev").replace(/\/$/, "");
 
 function obterTokenWorker() {
-  return String(window.DUNATV_ADMIN_TOKEN || sessionStorage.getItem("dunatv_worker_token") || "");
+  return String(
+    window.DUNATV_ADMIN_TOKEN ||
+    localStorage.getItem("dunatv_admin_token") ||
+    sessionStorage.getItem("dunatv_admin_token") ||
+    sessionStorage.getItem("dunatv_worker_token") ||
+    ""
+  ).trim();
 }
 
 async function requisitarWorker(path, options = {}) {
@@ -19,8 +21,20 @@ async function requisitarWorker(path, options = {}) {
 
   const resposta = await fetch(`${DUNATV_WORKER_URL}${path}`, { ...options, headers });
   const texto = await resposta.text();
-  const dados = texto ? JSON.parse(texto) : null;
-  if (!resposta.ok) throw new Error(dados?.error || `Falha na API (${resposta.status})`);
+  let dados = null;
+
+  if (texto) {
+    try {
+      dados = JSON.parse(texto);
+    } catch (_) {
+      dados = texto;
+    }
+  }
+
+  if (!resposta.ok) {
+    throw new Error(dados?.error || dados?.message || texto || `Falha na API (${resposta.status})`);
+  }
+
   return dados;
 }
 
@@ -38,15 +52,37 @@ async function salvarPlaylistR2(codigo, items) {
 }
 
 async function enviarMidiaR2(file, escopo, codigo, nomeArquivo) {
-  return requisitarWorker(
+  const resultado = await requisitarWorker(
     `/api/media/${encodeURIComponent(escopo)}/${encodeURIComponent(normalizarCodigo(codigo))}/${encodeURIComponent(nomeArquivo)}`,
     { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file }
   );
+
+  const publicUrl = resultado?.publicUrl || resultado?.url || "";
+  if (!publicUrl) throw new Error("O R2 não devolveu a URL pública da mídia.");
+
+  return { ...resultado, publicUrl };
 }
 
-const CACHE_PONTOS_KEY = "painel_pontos_cache_v11";
+async function excluirMidiaR2(storagePath) {
+  const key = String(storagePath || "").trim();
+  if (!key.startsWith("midias/")) return null;
+
+  return requisitarWorker(`/api/media?key=${encodeURIComponent(key)}`, {
+    method: "DELETE"
+  });
+}
+
+async function enviarStatusPontoR2(codigo, status = "ativo", detalhes = {}) {
+  return requisitarWorker(`/api/status/${encodeURIComponent(normalizarCodigo(codigo))}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status, ...detalhes })
+  });
+}
+
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v12_r2";
 const CACHE_PONTOS_TTL = 30 * 60 * 1000;
-const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v10_";
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v11_r2_";
 const CACHE_PLAYLIST_TTL = 2 * 60 * 1000;
 
 function limparCachesAntigos() {
@@ -61,7 +97,8 @@ function limparCachesAntigos() {
       "painel_pontos_cache_v7",
       "painel_pontos_cache_v8",
       "painel_pontos_cache_v9",
-      "painel_pontos_cache_v10"
+      "painel_pontos_cache_v10",
+      "painel_pontos_cache_v11"
     ].forEach((key) => sessionStorage.removeItem(key));
 
     Object.keys(sessionStorage).forEach((key) => {
@@ -74,7 +111,8 @@ function limparCachesAntigos() {
         key.startsWith("painel_playlist_cache_v6_") ||
         key.startsWith("painel_playlist_cache_v7_") ||
         key.startsWith("painel_playlist_cache_v8_") ||
-        key.startsWith("painel_playlist_cache_v9_")
+        key.startsWith("painel_playlist_cache_v9_") ||
+        key.startsWith("painel_playlist_cache_v10_")
       ) {
         sessionStorage.removeItem(key);
       }
@@ -212,6 +250,8 @@ function obterEnderecoPonto(ponto) {
 
 function obterUltimoPingPonto(ponto) {
   return (
+    ponto?.ultima_atualizacao ||
+    ponto?.atualizado_em ||
     ponto?.ultimo_ping ||
     ponto?.last_ping ||
     ponto?.updated_at ||
@@ -255,7 +295,14 @@ function normalizarStatusHistorico(item) {
 }
 
 function obterDataHistorico(item) {
-  return item?.ultimo_ping || item?.data_hora || item?.created_at || null;
+  return (
+    item?.ultima_atualizacao ||
+    item?.atualizado_em ||
+    item?.ultimo_ping ||
+    item?.data_hora ||
+    item?.created_at ||
+    null
+  );
 }
 
 function statusEhAtivo(status) {
@@ -495,29 +542,10 @@ function aplicarPosicaoImagem(el, posicao) {
   el.style.objectPosition = `${posicao.x}% ${posicao.y}%`;
 }
 
-async function uploadArquivoEmBucket(file, path, opcoes = {}) {
-  const { error } = await supabaseClient.storage
-    .from(BUCKET)
-    .upload(path, file, opcoes);
-
-  if (error) throw error;
-
-  const { data } = supabaseClient.storage.from(BUCKET).getPublicUrl(path);
-
-  return {
-    bucket: BUCKET,
-    publicUrl: data.publicUrl
-  };
-}
-
 async function uploadImagemPonto(file, codigo) {
   const extensao = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const nomeArquivo = `${codigo}/${Date.now()}.${extensao}`;
-
-  const resultado = await uploadArquivoEmBucket(file, nomeArquivo, {
-    cacheControl: "86400",
-    upsert: true
-  });
+  const nomeArquivo = `capa-${Date.now()}.${extensao}`;
+  const resultado = await enviarMidiaR2(file, "pontos", codigo, nomeArquivo);
 
   return resultado.publicUrl;
 }
@@ -1180,7 +1208,16 @@ function renderizarPlaylistDados(lista, historicoStatus) {
 async function buscarHistoricoStatusPonto(codigo) {
   try {
     const data = await requisitarWorker(`/api/status/${encodeURIComponent(normalizarCodigo(codigo))}`);
-    return data?.historico || (data?.atual ? [data.atual] : []);
+    const itens = [
+      data?.atual || null,
+      ...(Array.isArray(data?.historico) ? data.historico : [])
+    ].filter(Boolean);
+
+    return itens.sort((a, b) => {
+      const dataA = Date.parse(obterDataHistorico(a) || 0);
+      const dataB = Date.parse(obterDataHistorico(b) || 0);
+      return dataB - dataA;
+    });
   } catch (error) {
     console.warn("Historico de status no R2 nao carregou:", error);
     return [];
@@ -1284,7 +1321,16 @@ async function ativarExclusaoItens() {
       if (!confirmar) return;
 
       const items = await obterPlaylistR2(codigoSelecionado);
+      const removido = items.find((item) => String(item.id) === String(id));
       await salvarPlaylistR2(codigoSelecionado, items.filter((item) => String(item.id) !== String(id)));
+
+      if (removido?.storage_path) {
+        try {
+          await excluirMidiaR2(removido.storage_path);
+        } catch (error) {
+          console.warn("Item removido da playlist, mas a mídia não foi excluída do R2:", error);
+        }
+      }
 
       limparCachePlaylist(codigoSelecionado);
       setStatus("Item excluído", "ok");
