@@ -210,6 +210,73 @@
       .login-coluna{width:min(100%,420px);margin:auto}
     }
 
+    /* SELEÇÃO DE PASTAS */
+    #telaPastas{
+      width:min(1480px,calc(100% - 70px));
+      min-height:100vh;
+      margin:0 auto;
+      padding:36px 0 28px;
+    }
+
+    .pastas-intro{margin:6px 0 28px}
+    .pastas-intro h2{margin:0 0 7px;font-size:31px;letter-spacing:-.8px}
+    .pastas-intro p{margin:0;color:rgba(255,255,255,.78)}
+    .grade-pastas{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,390px));gap:22px}
+    .pasta-card{
+      overflow:hidden;
+      padding:16px;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:20px;
+      background:#f2f4fa;
+      color:#10131b;
+      box-shadow:var(--sombra);
+    }
+    .pasta-status{display:flex;align-items:center;gap:8px;margin-bottom:13px;font-size:14px;font-weight:900}
+    .pasta-status-ponto{width:12px;height:12px;border-radius:50%;background:#21c56d;box-shadow:0 0 0 4px rgba(33,197,109,.16)}
+    .pasta-imagem{display:block;width:100%;height:190px;object-fit:cover;border-radius:13px;background:#191919}
+    .pasta-card h3{margin:15px 1px 6px;font-size:24px;line-height:1.05}
+    .pasta-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+    .pasta-local{margin:0;color:#353945;font-size:14px;font-weight:700;line-height:1.35}
+    .pasta-codigo{padding:8px 11px;border:1px solid #cad2e2;border-radius:9px;background:#e2e8f3;font-size:13px;font-weight:900;letter-spacing:1px;white-space:nowrap}
+    .btn-abrir-pasta{width:100%;min-height:52px;border:0;border-radius:12px;background:linear-gradient(90deg,#ed101b,#c70812);color:#fff;font-weight:900;font-size:16px}
+
+    .topo-acoes{display:flex;align-items:center;gap:10px}
+    .btn-voltar-pastas{min-height:42px;padding:0 15px;border:1px solid #444;border-radius:10px;background:#171717;color:#fff;font-weight:800}
+
+    .controle-tv{
+      width:100%;
+      margin:22px 0 2px;
+      padding:18px;
+      border:1px solid #343434;
+      border-radius:16px;
+      background:#0b0b0b;
+    }
+    .controle-tv-topo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
+    .controle-tv-topo h3{margin:0;font-size:18px}
+    .estado-tv{padding:7px 10px;border-radius:999px;background:#242424;color:#ddd;font-size:12px;font-weight:900}
+    .botoes-energia{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+    .btn-energia{min-height:48px;border:0;border-radius:11px;color:#fff;font-weight:900}
+    .btn-ligar{background:#159b55}.btn-desligar{background:#c80d17}
+    .btn-energia:disabled{opacity:.55;cursor:wait}
+    .programacao-tv{padding-top:16px;border-top:1px solid #2c2c2c}
+    .programacao-linha{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:14px}
+    .programacao-linha strong{font-size:14px}.programacao-linha small{display:block;margin-top:4px;color:#aaa}
+    .switch{position:relative;width:52px;height:29px;flex:none}
+    .switch input{position:absolute;opacity:0;pointer-events:none}
+    .switch span{position:absolute;inset:0;border-radius:999px;background:#444;transition:.18s}
+    .switch span::after{content:"";position:absolute;width:21px;height:21px;left:4px;top:4px;border-radius:50%;background:#fff;transition:.18s}
+    .switch input:checked + span{background:#ed101b}.switch input:checked + span::after{transform:translateX(23px)}
+    .horarios-tv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px}
+    .horario-tv label{display:block;margin-bottom:6px;color:#bbb;font-size:12px;font-weight:800}
+    .horario-tv input{width:100%;height:44px;padding:0 12px;border:1px solid #3b3b3b;border-radius:10px;background:#181818;color:#fff;color-scheme:dark}
+    .btn-salvar-programacao{width:100%}
+
+    @media(max-width:700px){
+      #telaPastas,#painel{width:min(100% - 28px,1480px)}
+      .topo{align-items:flex-start}.topo-acoes{flex-direction:column;align-items:stretch}
+      .horarios-tv,.botoes-energia{grid-template-columns:1fr}
+    }
+
     /* PAINEL */
     #painel{
       width:min(1480px,calc(100% - 70px));
@@ -793,6 +860,40 @@
     <div class="login-creditos">Desenvolvido por <strong>DUNA BRANDING</strong></div>
   </section>
 
+  <section id="telaPastas" class="oculto">
+    <header class="topo">
+      <div class="topo-identidade">
+        <img src="selfit.png" class="logo-topo" alt="Selfit" />
+        <span class="divisor-topo" aria-hidden="true"></span>
+        <div>
+          <h1>Painel de Controle</h1>
+          <p>Selecione a pasta da TV que deseja gerenciar</p>
+        </div>
+      </div>
+      <button class="btn-sair" id="btnSairPastas" type="button"><span>⇥</span> Sair</button>
+    </header>
+
+    <div class="pastas-intro">
+      <h2>TVs e playlists</h2>
+      <p>Por enquanto, somente a pasta de publicidade está disponível.</p>
+    </div>
+
+    <div class="grade-pastas">
+      <article class="pasta-card">
+        <div class="pasta-status"><span class="pasta-status-ponto"></span><span id="statusPasta">Disponível</span></div>
+        <img class="pasta-imagem" id="imagemPasta" src="" alt="Imagem da unidade" />
+        <h3 id="nomePasta">TV Publicidade</h3>
+        <div class="pasta-meta">
+          <p class="pasta-local" id="localizacaoPasta">Selfit</p>
+          <span class="pasta-codigo">R6V0G8V</span>
+        </div>
+        <button class="btn-abrir-pasta" id="btnAbrirPasta" type="button">Abrir pasta</button>
+      </article>
+    </div>
+
+    <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
+  </section>
+
   <main id="painel" class="oculto">
     <header class="topo">
       <div class="topo-identidade">
@@ -803,7 +904,10 @@
           <p>Gerenciamento de conteúdo</p>
         </div>
       </div>
-      <button class="btn-sair" id="btnSair" type="button"><span>⇥</span> Sair</button>
+      <div class="topo-acoes">
+        <button class="btn-voltar-pastas" id="btnVoltarPastas" type="button">← Pastas</button>
+        <button class="btn-sair" id="btnSair" type="button"><span>⇥</span> Sair</button>
+      </div>
     </header>
 
     <section class="card unidade-card">
@@ -822,6 +926,44 @@
           <div class="codigo" id="codigoSala">R6V0G8V</div>
           <button class="btn-copiar" id="btnCopiar" type="button" title="Copiar código">⧉</button>
         </div>
+
+        <section class="controle-tv" aria-labelledby="tituloControleTv">
+          <div class="controle-tv-topo">
+            <h3 id="tituloControleTv">Controle da TV</h3>
+            <span class="estado-tv" id="estadoTv">Carregando...</span>
+          </div>
+
+          <div class="botoes-energia">
+            <button class="btn-energia btn-ligar" id="btnLigarTv" type="button">Ligar TV</button>
+            <button class="btn-energia btn-desligar" id="btnDesligarTv" type="button">Desligar TV</button>
+          </div>
+
+          <div class="programacao-tv">
+            <div class="programacao-linha">
+              <div>
+                <strong>Desligamento automático</strong>
+                <small>Ativa e encerra a reprodução todos os dias.</small>
+              </div>
+              <label class="switch" title="Ativar programação automática">
+                <input id="programacaoAutomatica" type="checkbox" />
+                <span></span>
+              </label>
+            </div>
+
+            <div class="horarios-tv">
+              <div class="horario-tv">
+                <label for="horarioAtivacao">Ativação</label>
+                <input id="horarioAtivacao" type="time" value="08:00" />
+              </div>
+              <div class="horario-tv">
+                <label for="horarioEncerramento">Encerramento</label>
+                <input id="horarioEncerramento" type="time" value="22:00" />
+              </div>
+            </div>
+
+            <button class="btn-principal btn-salvar-programacao" id="btnSalvarProgramacao" type="button">Salvar programação</button>
+          </div>
+        </section>
 
         <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
       </div>
@@ -998,8 +1140,32 @@
       return dados;
     }
 
+    function normalizarOperacao(valor={}){
+      const operacao = valor && typeof valor === "object" ? valor : {};
+      return {
+        automatico:operacao.automatico === true,
+        inicio:/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(operacao.inicio || "") ? operacao.inicio : "08:00",
+        encerramento:/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(operacao.encerramento || "") ? operacao.encerramento : "22:00",
+        dias:[0,1,2,3,4,5,6],
+        fuso:"America/Sao_Paulo",
+        comando:["ligar","desligar","automatico"].includes(operacao.comando) ? operacao.comando : "automatico",
+        comando_id:String(operacao.comando_id || ""),
+        comando_em:operacao.comando_em || null
+      };
+    }
+
+    function novoIdComando(){
+      return globalThis.crypto?.randomUUID
+        ? globalThis.crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
     async function obterPlaylistR2(){
       const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`);
+      if(!Array.isArray(documento)){
+        operacaoAtual = normalizarOperacao(documento?.operacao);
+        renderizarOperacao();
+      }
       return Array.isArray(documento) ? documento : (documento?.items || []);
     }
 
@@ -1016,9 +1182,13 @@
       const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`,{
         method:"PUT",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({items:lista})
+        body:JSON.stringify({items:lista,operacao:operacaoAtual})
       });
 
+      if(!Array.isArray(documento)){
+        operacaoAtual = normalizarOperacao(documento?.operacao || operacaoAtual);
+        renderizarOperacao();
+      }
       return Array.isArray(documento) ? documento : (documento?.items || lista);
     }
 
@@ -1046,11 +1216,19 @@
     }
 
     const telaLogin = document.getElementById("telaLogin");
+    const telaPastas = document.getElementById("telaPastas");
     const painel = document.getElementById("painel");
     const formLogin = document.getElementById("formLogin");
     const mensagemLogin = document.getElementById("mensagemLogin");
     const btnEntrar = document.getElementById("btnEntrar");
     const btnSair = document.getElementById("btnSair");
+    const btnSairPastas = document.getElementById("btnSairPastas");
+    const btnAbrirPasta = document.getElementById("btnAbrirPasta");
+    const btnVoltarPastas = document.getElementById("btnVoltarPastas");
+    const imagemPasta = document.getElementById("imagemPasta");
+    const nomePasta = document.getElementById("nomePasta");
+    const localizacaoPasta = document.getElementById("localizacaoPasta");
+    const statusPasta = document.getElementById("statusPasta");
 
     const imagemUnidade = document.getElementById("imagemUnidade");
     const nomeUnidade = document.getElementById("nomeUnidade");
@@ -1058,6 +1236,13 @@
     const corpoTabela = document.getElementById("corpoTabela");
     const btnCopiar = document.getElementById("btnCopiar");
     const btnPreview = document.getElementById("btnPreview");
+    const estadoTv = document.getElementById("estadoTv");
+    const btnLigarTv = document.getElementById("btnLigarTv");
+    const btnDesligarTv = document.getElementById("btnDesligarTv");
+    const programacaoAutomatica = document.getElementById("programacaoAutomatica");
+    const horarioAtivacao = document.getElementById("horarioAtivacao");
+    const horarioEncerramento = document.getElementById("horarioEncerramento");
+    const btnSalvarProgramacao = document.getElementById("btnSalvarProgramacao");
 
     const modalAdicionar = document.getElementById("modalAdicionar");
     const btnAbrirAdicionar = document.getElementById("btnAbrirAdicionar");
@@ -1080,6 +1265,7 @@
     const statusToast = document.getElementById("statusToast");
 
     let playlistAtual = [];
+    let operacaoAtual = normalizarOperacao();
     let itemEmEdicao = null;
 
     arquivoConteudo.addEventListener("change",()=>{
@@ -1162,8 +1348,110 @@
         .replace(/^-|-$/g,"");
     }
 
+    function dentroDoHorarioAutomatico(){
+      if(!operacaoAtual.automatico) return true;
+      const partes = new Intl.DateTimeFormat("pt-BR",{
+        timeZone:operacaoAtual.fuso,
+        hour:"2-digit",
+        minute:"2-digit",
+        hourCycle:"h23"
+      }).formatToParts(new Date());
+      const hora = Number(partes.find(item=>item.type === "hour")?.value || 0);
+      const minuto = Number(partes.find(item=>item.type === "minute")?.value || 0);
+      const atual = hora * 60 + minuto;
+      const [horaInicio,minutoInicio] = operacaoAtual.inicio.split(":").map(Number);
+      const [horaFim,minutoFim] = operacaoAtual.encerramento.split(":").map(Number);
+      const inicio = horaInicio * 60 + minutoInicio;
+      const fim = horaFim * 60 + minutoFim;
+      if(inicio === fim) return true;
+      return inicio < fim ? atual >= inicio && atual < fim : atual >= inicio || atual < fim;
+    }
+
+    function renderizarOperacao(){
+      if(!programacaoAutomatica) return;
+      programacaoAutomatica.checked = operacaoAtual.automatico;
+      horarioAtivacao.value = operacaoAtual.inicio;
+      horarioEncerramento.value = operacaoAtual.encerramento;
+
+      let resumo = "Controle manual";
+      if(operacaoAtual.automatico){
+        resumo = dentroDoHorarioAutomatico()
+          ? `Programada • ligada até ${operacaoAtual.encerramento}`
+          : `Programada • ativa às ${operacaoAtual.inicio}`;
+      }
+      if(operacaoAtual.comando === "ligar") resumo = "Comando para ligar enviado";
+      if(operacaoAtual.comando === "desligar") resumo = "Comando para desligar enviado";
+      estadoTv.textContent = resumo;
+      statusPasta.textContent = operacaoAtual.automatico
+        ? `Programação ${operacaoAtual.inicio}–${operacaoAtual.encerramento}`
+        : "Disponível";
+    }
+
+    async function enviarComandoTv(comando){
+      btnLigarTv.disabled = true;
+      btnDesligarTv.disabled = true;
+      try{
+        operacaoAtual = {
+          ...operacaoAtual,
+          comando,
+          comando_id:novoIdComando(),
+          comando_em:new Date().toISOString()
+        };
+        playlistAtual = await salvarPlaylistR2(playlistAtual);
+        mostrarStatus(
+          comando === "ligar"
+            ? "Comando para ligar enviado. A TV aplicará em até 10 segundos."
+            : "Comando para desligar enviado. A TV aplicará em até 10 segundos.",
+          "ok"
+        );
+      }catch(error){
+        console.error(error);
+        mostrarStatus(error.message || "Não foi possível enviar o comando.","erro");
+      }finally{
+        btnLigarTv.disabled = false;
+        btnDesligarTv.disabled = false;
+      }
+    }
+
+    async function salvarProgramacaoTv(){
+      btnSalvarProgramacao.disabled = true;
+      btnSalvarProgramacao.textContent = "Salvando...";
+      try{
+        operacaoAtual = normalizarOperacao({
+          ...operacaoAtual,
+          automatico:programacaoAutomatica.checked,
+          inicio:horarioAtivacao.value,
+          encerramento:horarioEncerramento.value,
+          comando:"automatico",
+          comando_id:novoIdComando(),
+          comando_em:new Date().toISOString()
+        });
+        playlistAtual = await salvarPlaylistR2(playlistAtual);
+        mostrarStatus(
+          operacaoAtual.automatico
+            ? `Programação salva: ${operacaoAtual.inicio} às ${operacaoAtual.encerramento}, todos os dias.`
+            : "Desligamento automático desativado.",
+          "ok"
+        );
+      }catch(error){
+        console.error(error);
+        mostrarStatus(error.message || "Não foi possível salvar a programação.","erro");
+      }finally{
+        btnSalvarProgramacao.disabled = false;
+        btnSalvarProgramacao.textContent = "Salvar programação";
+      }
+    }
+
+    async function abrirSelecaoPastas(){
+      telaLogin.classList.add("oculto");
+      painel.classList.add("oculto");
+      telaPastas.classList.remove("oculto");
+      await Promise.all([carregarDadosPonto(),obterPlaylistR2()]);
+    }
+
     async function abrirPainel(){
       telaLogin.classList.add("oculto");
+      telaPastas.classList.add("oculto");
       painel.classList.remove("oculto");
       await Promise.all([carregarDadosPonto(),carregarPlaylist()]);
     }
@@ -1181,7 +1469,7 @@
 
       if(usuario === GERENTE_USUARIO.toLowerCase() && senha === GERENTE_SENHA){
         sessionStorage.setItem(CHAVE_SESSAO,"1");
-        await abrirPainel();
+        await abrirSelecaoPastas();
       }else{
         mensagemLogin.textContent = "Usuário ou senha incorretos.";
       }
@@ -1190,10 +1478,18 @@
       btnEntrar.textContent = "Entrar";
     });
 
-    btnSair.addEventListener("click",()=>{
+    function sairDoPainel(){
       sessionStorage.removeItem(CHAVE_SESSAO);
       location.reload();
-    });
+    }
+
+    btnSair.addEventListener("click",sairDoPainel);
+    btnSairPastas.addEventListener("click",sairDoPainel);
+    btnAbrirPasta.addEventListener("click",abrirPainel);
+    btnVoltarPastas.addEventListener("click",abrirSelecaoPastas);
+    btnLigarTv.addEventListener("click",()=>enviarComandoTv("ligar"));
+    btnDesligarTv.addEventListener("click",()=>enviarComandoTv("desligar"));
+    btnSalvarProgramacao.addEventListener("click",salvarProgramacaoTv);
 
     btnCopiar.addEventListener("click",async()=>{
       try{
@@ -1232,6 +1528,10 @@
       localizacaoUnidade.textContent = [cidade,endereco].filter(Boolean).join(" | ");
       imagemUnidade.src = imagem;
       imagemUnidade.alt = nome;
+      nomePasta.textContent = nome;
+      localizacaoPasta.textContent = [cidade,endereco].filter(Boolean).join(" | ");
+      imagemPasta.src = imagem;
+      imagemPasta.alt = nome;
     }
 
 
@@ -1606,8 +1906,12 @@
       imagemUnidade.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
     });
 
+    imagemPasta.addEventListener("error",()=>{
+      imagemPasta.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
+    });
+
     if(sessionStorage.getItem(CHAVE_SESSAO) === "1"){
-      abrirPainel();
+      abrirSelecaoPastas();
     }
   </script>
 </body>
