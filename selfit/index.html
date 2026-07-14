@@ -1162,11 +1162,14 @@
 
     async function obterPlaylistR2(){
       const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`);
-      if(!Array.isArray(documento)){
-        operacaoAtual = normalizarOperacao(documento?.operacao);
-        renderizarOperacao();
-      }
-      return Array.isArray(documento) ? documento : (documento?.items || []);
+      const items = Array.isArray(documento) ? documento : (documento?.items || []);
+      const itemControle = items.find(item=>String(item?.id || "") === "__dunatv_operacao__");
+      const configuracao = !Array.isArray(documento) && documento?.operacao
+        ? documento.operacao
+        : itemControle?.operacao;
+      operacaoAtual = normalizarOperacao(configuracao);
+      renderizarOperacao();
+      return items.filter(item=>String(item?.id || "") !== "__dunatv_operacao__");
     }
 
     async function salvarPlaylistR2(items){
@@ -1179,17 +1182,26 @@
         ordem:index+1
       }));
 
+      const itemControle = {
+        id:"__dunatv_operacao__",
+        codigo:CODIGO_FIXO,
+        tipo:"controle",
+        nome:"Controle da TV",
+        ordem:lista.length+1,
+        operacao:operacaoAtual
+      };
+
       const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`,{
         method:"PUT",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({items:lista,operacao:operacaoAtual})
+        body:JSON.stringify({items:[...lista,itemControle],operacao:operacaoAtual})
       });
 
-      if(!Array.isArray(documento)){
-        operacaoAtual = normalizarOperacao(documento?.operacao || operacaoAtual);
-        renderizarOperacao();
-      }
-      return Array.isArray(documento) ? documento : (documento?.items || lista);
+      const itemsSalvos = Array.isArray(documento) ? documento : (documento?.items || lista);
+      const controleSalvo = itemsSalvos.find(item=>String(item?.id || "") === "__dunatv_operacao__");
+      operacaoAtual = normalizarOperacao(documento?.operacao || controleSalvo?.operacao || operacaoAtual);
+      renderizarOperacao();
+      return itemsSalvos.filter(item=>String(item?.id || "") !== "__dunatv_operacao__");
     }
 
     async function enviarMidiaR2(file,nomeArquivo){
