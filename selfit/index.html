@@ -1447,9 +1447,6 @@
       if(operacaoAtual.comando === "ligar") resumo = "Comando para ligar enviado";
       if(operacaoAtual.comando === "desligar") resumo = "Comando para desligar enviado";
       estadoTv.textContent = resumo;
-      statusPasta.textContent = operacaoAtual.automatico
-        ? `Programação ${operacaoAtual.inicio}–${operacaoAtual.encerramento}`
-        : "Disponível";
     }
 
     async function enviarComandoTv(comando){
@@ -1536,7 +1533,7 @@
       const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "";
       const imagem = ponto.imagem_url || ponto.imagem || ponto.foto_url || "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
       return `<article class="pasta-card">
-        <div class="pasta-status"><span class="pasta-status-ponto"></span><span>Disponível</span></div>
+        <div class="pasta-status"><span class="pasta-status-ponto"></span><span data-status-codigo="${escapeHtml(codigo)}">Disponível</span></div>
         <img class="pasta-imagem" src="${escapeHtml(imagem)}" alt="${escapeHtml(nome)}" onerror="this.src='https://placehold.co/1200x700/120000/ffffff?text=SELFIT'" />
         <h3>${escapeHtml(nome)}</h3>
         <div class="pasta-meta">
@@ -2093,4 +2090,3 @@
   </script>
 </body>
 </html>
- 
