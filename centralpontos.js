@@ -2037,6 +2037,34 @@ async function salvarEdicaoPonto() {
 function ativarDragPontos() {
   if (!pontosBox) return;
 
+  let cartaoMovido = null;
+  pontosBox.querySelectorAll(".card-ponto").forEach((card) => {
+    card.setAttribute("draggable", "true");
+    card.ondragstart = (event) => {
+      if (event.target.closest("button, a, input, textarea, select, .card-codigo")) {
+        event.preventDefault();
+        return;
+      }
+      cartaoMovido = card;
+      card.classList.add("card-movendo-suave");
+      event.dataTransfer.effectAllowed = "move";
+    };
+    card.ondragover = (event) => {
+      event.preventDefault();
+      if (!cartaoMovido || cartaoMovido === card) return;
+      const caixa = card.getBoundingClientRect();
+      const depois = event.clientY > caixa.top + caixa.height / 2 ||
+        (Math.abs(event.clientY - (caixa.top + caixa.height / 2)) < caixa.height / 3 && event.clientX > caixa.left + caixa.width / 2);
+      pontosBox.insertBefore(cartaoMovido, depois ? card.nextSibling : card);
+    };
+    card.ondragend = () => {
+      card.classList.remove("card-movendo-suave");
+      cartaoMovido = null;
+      salvarOrdemPontos();
+    };
+  });
+  return;
+
   let estadoDrag = null;
 
   function obterCardSobMouse(x, y) {
