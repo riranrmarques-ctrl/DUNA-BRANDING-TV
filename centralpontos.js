@@ -1,2658 +1,2533 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel da Unidade | Selfit</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    :root{
-      --vermelho:#ed101b;
-      --vermelho-escuro:#a80008;
-      --fundo:#050505;
-      --card:#111111;
-      --card-2:#171717;
-      --linha:#303030;
-      --texto:#ffffff;
-      --texto-2:#b9b9b9;
-      --sombra:0 22px 70px rgba(0,0,0,.42);
-    }
-
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      min-height:100vh;
-      font-family:Arial,Helvetica,sans-serif;
-      color:var(--texto);
-      background:
-        radial-gradient(circle at 75% 8%,rgba(255,70,70,.18),transparent 30%),
-        radial-gradient(circle at 15% 88%,rgba(150,0,0,.18),transparent 30%),
-        linear-gradient(145deg,#ed101b 0%,#b10812 45%,#730008 100%);
-      overflow-x:hidden;
-    }
-
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      width:480px;
-      height:480px;
-      border:1px solid rgba(220,0,0,.14);
-      border-radius:50%;
-      pointer-events:none;
-      z-index:-1;
-    }
-    body::before{right:-270px;top:75px;box-shadow:0 0 0 35px rgba(220,0,0,.035),0 0 0 75px rgba(220,0,0,.025)}
-    body::after{left:-320px;bottom:-250px;box-shadow:0 0 0 35px rgba(220,0,0,.025),0 0 0 75px rgba(220,0,0,.018)}
-
-    button,input{font:inherit}
-    button{cursor:pointer}
-
-    .oculto{display:none!important}
-
-    /* LOGIN */
-    #telaLogin{
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      padding:42px 24px 24px;
-    }
-
-    .login-layout{
-      width:min(100%,1080px);
-      margin:auto;
-      display:grid;
-      grid-template-columns:1fr 420px;
-      align-items:center;
-      gap:90px;
-    }
-
-    .login-logo-area{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:420px;
-    }
-
-    .login-logo{
-      width:min(100%,430px);
-      max-height:300px;
-      object-fit:contain;
-      filter:brightness(0) invert(1);
-    }
-
-    .login-coluna{
-      width:100%;
-    }
-
-    .login-card{
-      width:100%;
-      padding:32px;
-      border:1px solid rgba(255,255,255,.9);
-      border-radius:20px;
-      background:#ffffff;
-      color:#111111;
-      box-shadow:0 22px 70px rgba(0,0,0,.28);
-    }
-
-    .login-card h1{
-      margin:0 0 24px;
-      text-align:center;
-      color:#111111;
-      font-size:29px;
-      font-weight:900;
-      letter-spacing:-.8px;
-    }
-
-    .login-descricao{
-      margin:16px auto 0;
-      max-width:390px;
-      color:#ffffff;
-      text-align:center;
-      line-height:1.5;
-      font-size:14px;
-      font-weight:400;
-    }
-
-    .campo{
-      display:flex;
-      flex-direction:column;
-      gap:7px;
-      margin-bottom:14px;
-    }
-
-    .campo label{
-      color:#111111;
-      font-size:12px;
-      font-weight:800;
-    }
-
-    .campo input{
-      width:100%;
-      height:48px;
-      border:1px solid #d9d9d9;
-      border-radius:12px;
-      background:#f7f7f7;
-      color:#111111;
-      outline:none;
-      padding:0 15px;
-      transition:.18s ease;
-    }
-
-    .campo input::placeholder{
-      color:#8b8b8b;
-    }
-
-    .campo input:hover{
-      background:#ffffff;
-      border-color:#c8c8c8;
-    }
-
-    .campo input:focus{
-      background:#ffffff;
-      border-color:var(--vermelho);
-      box-shadow:0 0 0 3px rgba(237,16,27,.12);
-    }
-
-    .btn-principal{
-      border:0;
-      border-radius:11px;
-      background:linear-gradient(90deg,#ed101b,#d60914);
-      color:#ffffff;
-      font-weight:900;
-      min-height:46px;
-      padding:0 20px;
-      transition:.2s ease;
-    }
-
-    .btn-principal:hover{filter:brightness(1.12);transform:translateY(-1px)}
-    .btn-principal:disabled{opacity:.6;cursor:not-allowed;transform:none}
-
-    .login-card .btn-principal{
-      width:100%;
-      margin-top:1px;
-      background:linear-gradient(90deg,#ed101b,#d60914);
-      color:#ffffff;
-    }
-
-    .mensagem-login{
-      min-height:18px;
-      margin:12px 0 0!important;
-      color:#b00008!important;
-      font-size:13px!important;
-      text-align:center;
-    }
-
-    .login-creditos{
-      margin-top:34px;
-      text-align:center;
-      color:rgba(255,255,255,.85);
-      font-size:14px;
-    }
-
-    .login-creditos strong{
-      color:#ffffff;
-      font-weight:900;
-    }
-
-    @media(max-width:850px){
-      #telaLogin{padding-top:28px}
-      .login-layout{
-        grid-template-columns:1fr;
-        gap:28px;
-      }
-      .login-logo-area{min-height:auto}
-      .login-logo{width:min(76vw,300px);max-height:180px}
-      .login-coluna{width:min(100%,420px);margin:auto}
-    }
-
-    /* SELEÇÃO DE PASTAS */
-    #telaPastas{
-      width:min(1480px,calc(100% - 70px));
-      min-height:100vh;
-      margin:0 auto;
-      padding:36px 0 28px;
-    }
-
-    .pastas-intro{margin:6px 0 28px}
-    .pastas-intro h2{margin:0 0 7px;font-size:31px;letter-spacing:-.8px}
-    .pastas-intro p{margin:0;color:rgba(255,255,255,.78)}
-    .grade-pastas{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,390px));gap:22px}
-    .pasta-card{
-      overflow:hidden;
-      padding:16px;
-      border:1px solid rgba(255,255,255,.15);
-      border-radius:20px;
-      background:#f2f4fa;
-      color:#10131b;
-      box-shadow:var(--sombra);
-    }
-    .pasta-status{display:flex;align-items:center;gap:8px;margin-bottom:13px;font-size:14px;font-weight:900}
-    .pasta-status-ponto{width:12px;height:12px;border-radius:50%;background:#21c56d;box-shadow:0 0 0 4px rgba(33,197,109,.16)}
-    .pasta-status.inativo .pasta-status-ponto{background:#e20d19;box-shadow:0 0 0 4px rgba(226,13,25,.16)}
-    .pasta-status.inativo{color:#b20a13}
-    .pasta-imagem{display:block;width:100%;height:190px;object-fit:cover;border-radius:13px;background:#191919}
-    .pasta-card h3{margin:15px 1px 6px;font-size:24px;line-height:1.05}
-    .pasta-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
-    .pasta-local{margin:0;color:#353945;font-size:14px;font-weight:700;line-height:1.35}
-    .pasta-codigo{padding:8px 11px;border:1px solid #cad2e2;border-radius:9px;background:#e2e8f3;font-size:13px;font-weight:900;letter-spacing:1px;white-space:nowrap}
-    .btn-abrir-pasta{width:100%;min-height:52px;border:0;border-radius:12px;background:linear-gradient(90deg,#ed101b,#c70812);color:#fff;font-weight:900;font-size:16px}
-
-    .topo-acoes{display:flex;align-items:center;gap:10px}
-    .btn-adicionar-ponto{min-height:52px;padding:0 20px;border:1px solid #fff;border-radius:12px;background:#fff;color:#111;font-weight:900;font-size:16px}
-    .btn-voltar-pastas{min-height:42px;padding:0 18px;border:1px solid #fff;border-radius:10px;background:#fff;color:#111;font-weight:900}
-    button{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
-    button:not(:disabled):hover{filter:brightness(1.06)}
-    button.botao-clicado{animation:cliqueBotao .32s ease}
-    @keyframes cliqueBotao{
-      0%{transform:scale(1)}
-      42%{transform:scale(.94)}
-      100%{transform:scale(1)}
-    }
-    .icone-voltar{display:inline-block;margin-right:7px;font-size:20px;line-height:0;vertical-align:-2px;transition:transform .18s ease}
-    .btn-voltar-pastas:hover .icone-voltar{transform:translateX(-3px)}
-
-    .controle-tv{
-      width:100%;
-      margin:22px 0 2px;
-      padding:18px;
-      border:1px solid #343434;
-      border-radius:16px;
-      background:#0b0b0b;
-    }
-    .controle-tv-topo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
-    .controle-tv-topo h3{margin:0;font-size:18px}
-    .estado-tv{padding:7px 10px;border-radius:999px;background:#242424;color:#ddd;font-size:12px;font-weight:900}
-    .botoes-energia{margin-bottom:18px}
-    .controle-energia-unico{position:relative;width:100%;min-height:56px;border:0;border-radius:999px;background:#b90e18;color:#fff;font-size:17px;font-weight:900;cursor:pointer;transition:background .35s ease,opacity .2s ease;padding:0 70px}
-    .controle-energia-unico::before{content:"";position:absolute;left:7px;top:7px;width:42px;height:42px;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.3);transition:left .45s ease}
-    .controle-energia-unico.ligada{background:#159b55}
-    .controle-energia-unico.ligada::before{left:calc(100% - 49px)}
-    .controle-energia-unico.transicao{background:#d07b0c;cursor:wait}
-    .controle-energia-unico.transicao::before{animation:pulsarEnergia 1s ease-in-out infinite}
-    .controle-energia-unico.transicao.ligando::before{left:calc(100% - 49px)}
-    .controle-energia-unico:disabled{opacity:.82}
-    @keyframes pulsarEnergia{50%{opacity:.55;box-shadow:0 0 0 8px rgba(255,255,255,.16)}}
-    .programacao-tv{padding-top:16px;border-top:1px solid #2c2c2c}
-    .programacao-linha{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:14px}
-    .programacao-linha strong{font-size:14px}.programacao-linha small{display:block;margin-top:4px;color:#aaa}
-    .switch{position:relative;width:52px;height:29px;flex:none}
-    .switch input{position:absolute;opacity:0;pointer-events:none}
-    .switch span{position:absolute;inset:0;border-radius:999px;background:#444;transition:.18s}
-    .switch span::after{content:"";position:absolute;width:21px;height:21px;left:4px;top:4px;border-radius:50%;background:#fff;transition:.18s}
-    .switch input:checked + span{background:#ed101b}.switch input:checked + span::after{transform:translateX(23px)}
-    .horarios-tv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px}
-    .horario-tv label{display:block;margin-bottom:6px;color:#bbb;font-size:12px;font-weight:800}
-    .horario-tv input{width:100%;height:44px;padding:0 12px;border:1px solid #3b3b3b;border-radius:10px;background:#181818;color:#fff;color-scheme:dark}
-    .btn-salvar-programacao{width:100%}
-
-    @media(max-width:700px){
-      #telaPastas,#painel{width:min(100% - 28px,1480px)}
-      .topo{align-items:flex-start}.topo-acoes{flex-direction:column;align-items:stretch}
-      .horarios-tv,.botoes-energia{grid-template-columns:1fr}
-    }
-
-    /* PAINEL */
-    #painel{
-      width:min(1480px,calc(100% - 70px));
-      margin:0 auto;
-      padding:36px 0 28px;
-    }
-
-    .topo{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:20px;
-      margin-bottom:34px;
-    }
-
-    .topo-identidade{
-      display:flex;
-      align-items:center;
-      gap:16px;
-      min-width:0;
-    }
-
-    .logo-topo{
-      width:78px;
-      height:78px;
-      object-fit:contain;
-      flex:none;
-    }
-
-    .divisor-topo{
-      width:1px;
-      height:54px;
-      flex:none;
-      background:linear-gradient(to bottom,transparent,#666,transparent);
-    }
-
-    .topo h1{
-      margin:0 0 4px;
-      font-size:25px;
-      font-weight:900;
-      line-height:1.05;
-      letter-spacing:-.55px;
-    }
-
-    .topo p{
-      margin:0;
-      color:var(--texto-2);
-      font-size:12px;
-    }
-
-    .btn-sair{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-height:54px;
-      border:1px solid #1e1e1e;
-      border-radius:13px;
-      background:#090909;
-      color:#fff;
-      font-weight:800;
-      padding:0 16px;
-    }
-
-    .card{
-      border:0;
-      border-radius:24px;
-      background:transparent;
-      box-shadow:none;
-    }
-
-    .unidade-card{
-      display:grid;
-      grid-template-columns:1.35fr .9fr;
-      gap:34px;
-      padding:28px;
-      margin-bottom:24px;
-    }
-
-    .imagem-unidade-wrap{
-      min-height:410px;
-      border:3px solid rgba(255,255,255,.95);
-      border-radius:22px;
-      overflow:hidden;
-      background:#050505;
-    }
-
-    .imagem-unidade{
-      width:100%;
-      height:100%;
-      min-height:410px;
-      display:block;
-      object-fit:cover;
-    }
-
-    .dados-unidade{
-      display:flex;
-      flex-direction:column;
-      padding:24px 4px 2px;
-    }
-
-    .selo{
-      color:#ffffff;
-      font-weight:900;
-      font-size:17px;
-      margin-bottom:14px;
-    }
-
-    .nome-unidade{
-      margin:0 0 12px;
-      font-size:64px;
-      line-height:1;
-      letter-spacing:-2px;
-    }
-
-    .localizacao{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color:#dedede;
-      font-size:20px;
-      margin:5px 0 30px;
-    }
-
-    .pin{color:var(--vermelho);font-size:24px}
-
-    .divisor{display:none;}
-
-    .rotulo{
-      color:#ffffff;
-      font-size:12px;
-      font-weight:900;
-      margin-bottom:10px;
-    }
-
-    .codigo-linha{
-      display:flex;
-      align-items:stretch;
-      margin-bottom:28px;
-    }
-
-    .codigo{
-      min-width:145px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border:1px solid #565656;
-      border-radius:13px 0 0 13px;
-      background:#0d0d0d;
-      font-size:18px;
-      font-weight:900;
-      letter-spacing:1px;
-      padding:0 16px;
-    }
-
-    .btn-copiar{
-      width:66px;
-      border:1px solid #565656;
-      border-left:0;
-      border-radius:0 13px 13px 0;
-      background:#111;
-      color:#fff;
-      font-size:24px;
-    }
-
-    .btn-adicionar{
-      width:auto;
-      min-height:42px;
-      margin:0;
-      flex:none;
-      font-size:13px;
-      padding:0 18px;
-      background:#fff;
-      color:#111;
-      border:1px solid #fff;
-    }
-
-    .conteudos-card{padding:22px;margin-bottom:24px}
-    .linha-pasta td{background:#090909!important;color:#fff!important;border-color:#242424!important}
-    .linha-pasta td+td{border-left:0!important}
-    .linha-pasta .numero-ordem,.linha-pasta .drag-handle,.linha-pasta .nome-arquivo{color:#fff!important}
-    .linha-pasta .nome-arquivo{font-size:15px;letter-spacing:.2px}
-    .linha-pasta-info{display:block;margin-top:5px;color:#aaa;font-size:11px;font-weight:700}
-    .linha-pasta .acao{border-color:#3a3a3a;background:#181818;color:#fff}
-    .linha-pasta.drag-over td{background:#12452b!important;box-shadow:inset 0 0 0 2px #38d981}
-    .modal-card.modal-card-playlist{width:min(1450px,calc(100vw - 32px));max-width:none;max-height:92vh;overflow:auto}
-    .modal-card-playlist .tabela-wrap{width:100%;overflow:auto}
-    .modal-card-playlist table{min-width:960px}
-    .modal-card-playlist th,.modal-card-playlist td{padding-left:10px;padding-right:10px}
-    .modal-card-playlist .acao{padding:0 10px}
-    .playlist-interna-topo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
-    .playlist-interna-topo h3{margin:0}
-    .playlist-interna-acoes{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-    .resumo-tvs{padding:18px 20px;margin-bottom:24px;background:#101010;color:#fff}
-    .resumo-tvs-topo{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px}
-    .resumo-tvs-topo h3{margin:0;font-size:16px}
-    .metricas-tvs{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .metrica-tv{padding:7px 11px;border:1px solid #333;border-radius:999px;background:#181818;font-size:12px;font-weight:800}
-    .metrica-tv.online{color:#65e59b}.metrica-tv.offline{color:#ff7379}
-    .filtros-historico{display:grid;grid-template-columns:1fr 180px 180px auto;gap:10px;margin-bottom:14px}
-    .filtros-historico input,.filtros-historico select{min-height:42px;border:1px solid #363636;border-radius:10px;background:#181818;color:#fff;padding:0 12px;font-weight:700}
-    .btn-limpar-filtros{min-height:42px;padding:0 16px;border:1px solid #444;border-radius:10px;background:#fff;color:#111;font-weight:900}
-    .lista-tvs{display:grid;gap:8px}
-    .tv-resumo-item{display:grid;grid-template-columns:minmax(110px,1fr) minmax(130px,1fr) 90px 70px 100px;align-items:center;gap:12px;padding:10px 12px;border:1px solid #292929;border-radius:10px;background:#151515;font-size:12px}
-    .tv-resumo-nome{color:#fff;font-weight:900;min-height:1em}
-    .tv-resumo-status{font-weight:900;text-align:right}.tv-resumo-status.online{color:#65e59b}.tv-resumo-status.offline{color:#ff7379}.tv-resumo-ip{color:#ddd;font-weight:800;overflow-wrap:anywhere}
-
-    .cabecalho-conteudos{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
-      margin-bottom:18px;
-    }
-
-    .cabecalho-conteudos-texto{
-      min-width:0;
-    }
-
-    .acoes-cabecalho-conteudos{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;flex:none}
-    .btn-criar-pasta{background:#fff;color:#111;border-color:#fff}
-    .btn-criar-pasta:hover{background:#f0f0f0;color:#111}
-
-    .btn-preview{
-      min-width:132px;
-      min-height:42px;
-      flex:none;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      border:1px solid #3a3a3a;
-      border-radius:10px;
-      background:#111;
-      color:#fff;
-      font-weight:900;
-      font-size:13px;
-      padding:0 18px;
-      transition:.18s ease;
-    }
-
-    .btn-preview:hover{
-      background:#000;
-      transform:translateY(-1px);
-    }
-
-    .icone-tv{
-      width:60px;
-      height:60px;
-      flex:none;
-      display:grid;
-      place-items:center;
-      border-radius:14px;
-      background:linear-gradient(145deg,#e9000c,#b70008);
-      font-size:18px;
-    }
-
-    .cabecalho-conteudos h2{
-      margin:0 0 5px;
-      font-size:18px;
-    }
-
-    .cabecalho-conteudos p{
-      margin:0;
-      font-weight:400;
-      color:rgba(255,255,255,.72);
-    }
-
-    .tabela-wrap{
-      overflow:auto;
-      border:0;
-      border-radius:18px;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      min-width:900px;
-      background:#0f0f0f;
-    }
-
-    th{
-      height:48px;
-      padding:0 14px;
-      text-align:left;
-      color:#e8e8e8;
-      background:#181818;
-      border-bottom:1px solid #383838;
-      font-size:11px;
-    }
-
-    td{
-      padding:10px 14px;
-      border-right:1px solid #d9d9d9;
-      border-bottom:1px solid #d9d9d9;
-      vertical-align:middle;
-      font-size:13px;
-      background:#ffffff;
-      color:#1a1a1a;
-    }
-
-    tbody tr:hover td{
-      background:#f7f7f7;
-    }
-
-    tbody tr:last-child td{border-bottom:0}
-    td:last-child,th:last-child{border-right:0}
-
-    .coluna-ordem{
-      width:92px;
-      text-align:center;
-    }
-
-    .ordem-conteudo{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:12px;
-      color:#111;
-      font-weight:800;
-    }
-
-    .numero-ordem{
-      min-width:18px;
-      text-align:center;
-      font-size:13px;
-    }
-
-    .drag-handle{
-      width:auto;
-      height:auto;
-      margin:0;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      border:0;
-      border-radius:0;
-      background:transparent;
-      color:#111;
-      font-size:18px;
-      line-height:1;
-      cursor:grab;
-      user-select:none;
-      transition:.18s ease;
-    }
-
-    .drag-handle:hover{
-      color:#000;
-      transform:scale(1.08);
-    }
-
-    tr.arrastando{
-      opacity:.45;
-    }
-
-    tr.drag-over{
-      outline:1px solid var(--vermelho);
-      outline-offset:-1px;
-      background:#181010;
-    }
-
-    .nome-arquivo{
-      max-width:360px;
-      color:#111111;
-      font-weight:800;
-      font-size:13px;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-
-    .data-cell{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      white-space:nowrap;
-      color:#333;
-      font-size:12px;
-    }
-
-    .data-cell .hora{
-      color:#666;
-      font-size:11px;
-    }
-
-    .tipo-cell{white-space:nowrap;color:#333;font-size:12px;font-weight:600}
-
-    .acoes{
-      display:flex;
-      justify-content:flex-end;
-      gap:7px;
-      min-width:255px;
-      width:100%;
-    }
-
-    td:last-child,
-    th:last-child{
-      text-align:right;
-    }
-
-    .acao{
-      min-width:78px;
-      min-height:38px;
-      border:1px solid #303030;
-      border-radius:9px;
-      background:#181818;
-      color:#e8e8e8;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      font-size:11px;
-      padding:0 10px;
-    }
-
-    .acao span:first-child{font-size:14px}
-    .acao.excluir{
-      background:#ed101b;
-      border-color:#ed101b;
-      color:#111;
-      font-weight:800;
-    }
-    .acao.excluir:hover{
-      filter:brightness(1.05);
-    }
-    .vazio{padding:48px;text-align:center;color:#aaa}
-    .carregando{opacity:.7}
-
-    .rodape{
-      text-align:center;
-      color:rgba(255,255,255,.72);
-      padding:10px 0 0;
-      font-size:16px;
-    }
-    .rodape strong{color:#fff}
-
-    /* MODAL */
-    .modal{
-      position:fixed;
-      inset:0;
-      z-index:20;
-      display:grid;
-      place-items:center;
-      padding:20px;
-      background:rgba(0,0,0,.82);
-      backdrop-filter:blur(5px);
-    }
-
-    .modal-card{
-      width:min(100%,560px);
-      max-height:92vh;
-      overflow:auto;
-      border:1px solid #3b3b3b;
-      border-radius:20px;
-      padding:24px;
-      background:#151515;
-      box-shadow:0 25px 80px rgba(0,0,0,.6);
-    }
-
-    .modal-topo{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:15px;
-      margin-bottom:20px;
-    }
-
-    .modal-topo h3{margin:0;font-size:24px}
-    .btn-fechar{
-      width:42px;height:42px;border:1px solid #3d3d3d;border-radius:10px;background:#0c0c0c;color:#fff;font-size:21px
-    }
-
-    .grid-campos{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-    }
-
-    .campo-completo{grid-column:1/-1}
-    input[type="file"]{padding:11px;height:auto}
-
-    .agendamento-box{
-      grid-column:1/-1;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:14px;
-      padding:16px;
-      border:1px solid #383838;
-      border-radius:14px;
-      background:#101010;
-      animation:aparecerAgendamento .2s ease;
-    }
-
-    .agendamento-box.oculto{
-      display:none!important;
-    }
-
-    .agendamento-titulo{
-      grid-column:1/-1;
-      margin:0;
-      font-size:14px;
-      color:#f0f0f0;
-    }
-
-    .agendamento-aviso{
-      grid-column:1/-1;
-      margin:-3px 0 2px;
-      color:#8f8f8f;
-      font-size:12px;
-      line-height:1.45;
-    }
-
-    .campo select{
-      width:100%;
-      height:46px;
-      border:1px solid #3a3a3a;
-      border-radius:10px;
-      background:#0d0d0d;
-      color:#fff;
-      outline:none;
-      padding:0 14px;
-    }
-
-    .campo select:focus{
-      border-color:var(--vermelho);
-    }
-
-    #modalEditar .campo label{color:#fff!important}
-    .editar-linha-data-duracao{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .duracao-controles{display:flex;align-items:center;gap:10px}
-    .duracao-controles input{min-width:0;flex:1}
-    .atalho-duracao{min-width:66px;height:46px;flex:none;border:1px solid #4a4a4a;border-radius:10px;background:#242424;color:#fff;font-weight:900;cursor:pointer}
-    .atalho-duracao:hover,.atalho-duracao:focus-visible{border-color:var(--vermelho);background:var(--vermelho);outline:none}
-
-    @keyframes aparecerAgendamento{
-      from{opacity:0;transform:translateY(-4px)}
-      to{opacity:1;transform:translateY(0)}
-    }
-
-    .modal-acoes{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
-    .btn-secundario{
-      min-height:46px;
-      border:1px solid #3b3b3b;
-      border-radius:10px;
-      background:#202020;
-      color:#fff;
-      font-weight:800;
-      padding:0 18px;
-    }
-
-    .status-toast{
-      position:fixed;
-      right:22px;
-      bottom:22px;
-      z-index:30;
-      max-width:380px;
-      border:0;
-      border-radius:12px;
-      background:#111;
-      color:#fff;
-      padding:14px 18px;
-      box-shadow:0 16px 50px rgba(0,0,0,.5);
-    }
-    .status-toast.erro{border-color:#8d1d23;color:#ff7379}
-    .status-toast.ok{border-color:#176d3b;color:#71e59d}
-
-    @media(max-width:980px){
-      #painel{width:min(100% - 28px,1480px);padding-top:22px}
-      .logo-topo{width:64px;height:64px}
-      .divisor-topo{height:46px}
-      .topo h1{font-size:24px}
-      .unidade-card{grid-template-columns:1fr;padding:18px}
-      .imagem-unidade-wrap,.imagem-unidade{min-height:300px}
-      .nome-unidade{font-size:48px}
-      .dados-unidade{padding:12px 4px 2px}
-    }
-
-    @media(max-width:600px){
-      .topo{align-items:center}
-      .logo-topo{width:50px;height:50px}
-      .divisor-topo{height:38px}
-      .topo-identidade{gap:10px}
-      .topo h1{font-size:20px}
-      .topo p{font-size:11px}
-      .btn-sair{min-height:46px;padding:0 14px}
-      .unidade-card,.conteudos-card{border-radius:18px}
-      .nome-unidade{font-size:42px}
-      .grid-campos{grid-template-columns:1fr}
-      .campo-completo{grid-column:auto}
-      .agendamento-box{grid-template-columns:1fr}
-      .cabecalho-conteudos{align-items:flex-start;flex-direction:column}
-      .acoes-cabecalho-conteudos{width:100%;justify-content:flex-start}
-      .btn-adicionar{flex:1;padding:0 12px}
-      .btn-preview{min-width:108px;padding:0 12px}
-      .duracao-controles{flex-wrap:wrap}
-      .duracao-controles input{flex-basis:100%}
-      .atalho-duracao{flex:1}
-      .editar-linha-data-duracao{grid-template-columns:1fr}
-      .resumo-tvs-topo{align-items:flex-start;flex-direction:column}
-      .tv-resumo-item{grid-template-columns:1fr auto}.tv-resumo-ip{grid-column:auto}
-    }
-  </style>
-</head>
-
-<body>
-  <section id="telaLogin">
-    <div class="login-layout">
-      <div class="login-logo-area">
-        <img src="selfit.png" class="login-logo" alt="Selfit" />
-      </div>
-
-      <div class="login-coluna">
-        <form class="login-card" id="formLogin">
-          <h1>Painel de Controle</h1>
-
-          <div class="campo">
-            <label for="loginUsuario">Usuário</label>
-            <input id="loginUsuario" autocomplete="username" required />
-          </div>
-
-          <div class="campo">
-            <label for="loginSenha">Senha</label>
-            <input id="loginSenha" type="password" autocomplete="current-password" required />
-          </div>
-
-          <button class="btn-principal" id="btnEntrar" type="submit">Entrar</button>
-          <p class="mensagem-login" id="mensagemLogin"></p>
-        </form>
-
-        <p class="login-descricao">Acesso exclusivo do gerente. Entre para gerenciar os pontos e conteúdos das unidades da Selfit.</p>
-      </div>
-    </div>
-
-    <div class="login-creditos">Desenvolvido por <strong>DUNA BRANDING</strong></div>
-  </section>
-
-  <section id="telaPastas" class="oculto">
-    <header class="topo">
-      <div class="topo-identidade">
-        <img src="selfit.png" class="logo-topo" alt="Selfit" />
-        <span class="divisor-topo" aria-hidden="true"></span>
-        <div>
-          <h1>Painel de Controle</h1>
-          <p>Selecione a pasta da TV que deseja gerenciar</p>
-        </div>
-      </div>
-      <div class="topo-acoes">
-        <button class="btn-adicionar-ponto" id="btnAdicionarPonto" type="button">＋ Adicionar</button>
-        <button class="btn-sair" id="btnSairPastas" type="button"><span>⇥</span> Sair</button>
-      </div>
-    </header>
-
-    <div class="pastas-intro">
-      <h2>TVs e playlists</h2>
-      <p>Por enquanto, somente a pasta de publicidade está disponível.</p>
-    </div>
-
-    <div class="grade-pastas" id="gradePastas"></div>
-
-    <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
-  </section>
-
-  <main id="painel" class="oculto">
-    <header class="topo">
-      <div class="topo-identidade">
-        <img src="selfit.png" class="logo-topo" alt="Selfit" />
-        <span class="divisor-topo" aria-hidden="true"></span>
-        <div>
-          <h1>Painel de Controle</h1>
-          <p>Gerenciamento de conteúdo</p>
-        </div>
-      </div>
-      <div class="topo-acoes">
-        <button class="btn-voltar-pastas" id="btnVoltarPastas" type="button"><span class="icone-voltar">‹</span>Voltar</button>
-      </div>
-    </header>
-
-    <section class="card unidade-card">
-      <div class="imagem-unidade-wrap">
-        <img class="imagem-unidade" id="imagemUnidade" src="" alt="Imagem da unidade" />
-      </div>
-
-      <div class="dados-unidade">
-        <div class="selo">Unidade</div>
-        <h2 class="nome-unidade" id="nomeUnidade">Selfit</h2>
-        <div class="localizacao"><span class="pin">●</span><span id="localizacaoUnidade">Ilhéus | zona sul</span></div>
-        <div class="divisor"></div>
-        <div class="rotulo">CÓDIGO DA SALA</div>
-
-        <div class="codigo-linha">
-          <div class="codigo" id="codigoSala">R6V0G8V</div>
-          <button class="btn-copiar" id="btnCopiar" type="button" title="Copiar código">⧉</button>
-        </div>
-
-        <section class="controle-tv" aria-labelledby="tituloControleTv">
-          <div class="controle-tv-topo">
-            <h3 id="tituloControleTv">Controle da TV</h3>
-            <span class="estado-tv" id="estadoTv">Carregando...</span>
-          </div>
-
-          <div class="botoes-energia">
-            <button class="controle-energia-unico" id="btnAlternarTv" type="button" aria-live="polite">
-              <span id="textoEnergiaTv">Carregando...</span>
-            </button>
-          </div>
-
-          <div class="programacao-tv">
-            <div class="programacao-linha">
-              <div>
-                <strong>Desligamento automático</strong>
-                <small>Ativa e encerra a reprodução todos os dias.</small>
-              </div>
-              <label class="switch" title="Ativar programação automática">
-                <input id="programacaoAutomatica" type="checkbox" />
-                <span></span>
-              </label>
-            </div>
-
-            <div class="horarios-tv">
-              <div class="horario-tv">
-                <label for="horarioAtivacao">Ativação</label>
-                <input id="horarioAtivacao" type="time" value="08:00" />
-              </div>
-              <div class="horario-tv">
-                <label for="horarioEncerramento">Encerramento</label>
-                <input id="horarioEncerramento" type="time" value="22:00" />
-              </div>
-            </div>
-
-            <button class="btn-principal btn-salvar-programacao" id="btnSalvarProgramacao" type="button" disabled>Programação salva</button>
-          </div>
-        </section>
-
-      </div>
-    </section>
-
-    <section class="card conteudos-card">
-      <div class="cabecalho-conteudos">
-        <div class="cabecalho-conteudos-texto">
-          <h2>Conteúdos</h2>
-          <p>O gerente visualiza e administra somente este ponto.</p>
-        </div>
-
-        <div class="acoes-cabecalho-conteudos">
-          <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
-          <button class="btn-preview btn-criar-pasta" id="btnCriarPastaPlaylist" type="button"><span>＋</span><span>Nova pasta</span></button>
-          <button class="btn-preview" id="btnPreview" type="button"><span>◉</span><span>Preview</span></button>
-        </div>
-      </div>
-
-      <div class="tabela-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th class="coluna-ordem">ORDEM</th>
-              <th>NOME DO CONTEÚDO</th>
-              <th>POSTAGEM</th>
-              <th>VENCIMENTO</th>
-              <th>DURAÇÃO</th>
-              <th>TIPO</th>
-              <th>AÇÕES</th>
-            </tr>
-          </thead>
-          <tbody id="corpoTabela">
-            <tr><td colspan="7" class="vazio">Carregando conteúdos...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="card resumo-tvs" aria-labelledby="tituloResumoTvs">
-      <div class="resumo-tvs-topo">
-        <h3 id="tituloResumoTvs">Histórico de status das TVs</h3>
-        <div class="metricas-tvs">
-          <span class="metrica-tv" id="totalTvs">0 TVs</span>
-          <span class="metrica-tv online" id="totalTvsOnline">0 online</span>
-          <span class="metrica-tv offline" id="totalTvsOffline">0 offline</span>
-        </div>
-      </div>
-      <div class="filtros-historico">
-        <input id="filtroHistoricoIp" type="search" placeholder="Filtrar por IP" aria-label="Filtrar histórico por IP" />
-        <input id="filtroHistoricoData" type="date" aria-label="Filtrar histórico por data" />
-        <select id="filtroHistoricoStatus" aria-label="Filtrar histórico por status">
-          <option value="todos">Todos os status</option><option value="ativo">Ativas</option><option value="inativo">Inativas</option>
-        </select>
-        <button class="btn-limpar-filtros" id="btnLimparFiltrosHistorico" type="button">Limpar filtros</button>
-      </div>
-      <div class="lista-tvs" id="listaResumoTvs"><span class="tv-resumo-ip">Carregando...</span></div>
-    </section>
-
-    <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
-  </main>
-
-  <section class="modal oculto" id="modalPastaPlaylist">
-    <div class="modal-card">
-      <div class="modal-topo">
-        <h3 id="tituloModalPastaPlaylist">Criar pasta de playlist</h3>
-        <button class="btn-fechar" id="btnFecharPastaPlaylist" type="button">×</button>
-      </div>
-      <form id="formPastaPlaylist">
-        <div class="grid-campos">
-          <div class="campo campo-completo">
-            <label for="nomePastaPlaylist" style="color:#fff">Nome da pasta</label>
-            <input id="nomePastaPlaylist" type="text" maxlength="100" placeholder="Ex.: Promoções" required />
-          </div>
-          <div class="campo">
-            <label for="modoPastaPlaylist" style="color:#fff">Ordem de reprodução</label>
-            <select id="modoPastaPlaylist" required>
-              <option value="aleatorio">Aleatória, sem repetir</option>
-              <option value="sequencial">Sequencial</option>
-            </select>
-          </div>
-          <div class="campo">
-            <label for="quantidadePastaPlaylist" style="color:#fff">Arquivos por passagem</label>
-            <input id="quantidadePastaPlaylist" type="number" min="1" max="100" step="1" value="1" required />
-          </div>
-        </div>
-        <p class="agendamento-aviso">Depois de criar, use “Adicionar conteúdo” e escolha esta pasta como destino.</p>
-        <div class="modal-acoes">
-          <button class="btn-secundario" id="btnCancelarPastaPlaylist" type="button">Cancelar</button>
-          <button class="btn-principal" id="btnSalvarPastaPlaylist" type="submit">Criar pasta</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-  <section class="modal oculto" id="modalConteudosPasta">
-    <div class="modal-card modal-card-playlist">
-      <div class="playlist-interna-topo">
-        <div>
-          <h3 id="nomePastaAberta">Pasta</h3>
-          <p class="agendamento-aviso" id="resumoPastaAberta"></p>
-        </div>
-        <div class="playlist-interna-acoes">
-          <button class="btn-principal btn-adicionar" id="btnAdicionarConteudoPasta" type="button">＋ Adicionar conteúdo</button>
-          <button class="btn-fechar" id="btnFecharConteudosPasta" type="button">×</button>
-        </div>
-      </div>
-      <div class="tabela-wrap">
-        <table>
-          <thead><tr>
-            <th class="coluna-ordem">ORDEM</th><th>NOME DO CONTEÚDO</th><th>POSTAGEM</th><th>VENCIMENTO</th><th>DURAÇÃO</th><th>TIPO</th><th>AÇÕES</th>
-          </tr></thead>
-          <tbody id="corpoTabelaPasta"><tr><td colspan="7" class="vazio">Pasta vazia.</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <section class="modal oculto" id="modalAdicionarPonto">
-    <div class="modal-card">
-      <div class="modal-topo">
-        <h3>Adicionar ponto</h3>
-        <button class="btn-fechar" id="btnFecharAdicionarPonto" type="button">×</button>
-      </div>
-      <form id="formAdicionarPonto">
-        <div class="campo">
-          <label for="codigoNovoPonto" style="color:#fff">Código do ponto</label>
-          <input id="codigoNovoPonto" type="text" maxlength="30" placeholder="Ex.: R6V0G8V" autocomplete="off" required />
-        </div>
-        <p class="agendamento-aviso" id="mensagemAdicionarPonto"></p>
-        <div class="modal-acoes">
-          <button class="btn-secundario" id="btnCancelarAdicionarPonto" type="button">Cancelar</button>
-          <button class="btn-principal" id="btnBuscarAdicionarPonto" type="submit">Buscar e adicionar</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-  <section class="modal oculto" id="modalAdicionar">
-    <div class="modal-card">
-      <div class="modal-topo">
-        <h3>Adicionar conteúdo</h3>
-        <button class="btn-fechar" id="btnFecharModal" type="button">×</button>
-      </div>
-
-      <form id="formAdicionar">
-        <div class="grid-campos">
-          <div class="campo campo-completo">
-            <label for="arquivoConteudo">Arquivo</label>
-            <input id="arquivoConteudo" type="file" accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.txt" required />
-          </div>
-
-          <div class="campo campo-completo">
-            <label for="destinoConteudo">Destino</label>
-            <select id="destinoConteudo"><option value="principal">Playlist principal</option></select>
-          </div>
-
-          <div class="agendamento-box oculto" id="agendamentoBox">
-            <h4 class="agendamento-titulo">Configuração do conteúdo</h4>
-            <p class="agendamento-aviso">Escolha o período de exibição e a duração. Após o vencimento, o conteúdo será removido da playlist e do armazenamento.</p>
-
-            <div class="campo">
-              <label for="dataPostagem">Data de postagem</label>
-              <input id="dataPostagem" type="datetime-local" required />
-            </div>
-
-            <div class="campo">
-              <label for="dataVencimento">Data de vencimento</label>
-              <input id="dataVencimento" type="datetime-local" required />
-            </div>
-
-            <div class="campo campo-completo">
-              <label for="duracaoConteudo">Duração do vídeo (segundos)</label>
-              <div class="duracao-controles">
-                <input id="duracaoConteudo" type="number" min="1" max="86400" step="1" value="15" inputmode="numeric" required />
-                <button class="atalho-duracao" type="button" data-duracao="15">15s</button>
-                <button class="atalho-duracao" type="button" data-duracao="30">30s</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-acoes">
-          <button class="btn-secundario" id="btnCancelar" type="button">Cancelar</button>
-          <button class="btn-principal" id="btnEnviar" type="submit">Enviar conteúdo</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-
-  <section class="modal oculto" id="modalEditar">
-    <div class="modal-card">
-      <div class="modal-topo">
-        <h3>Editar conteúdo</h3>
-        <button class="btn-fechar" id="btnFecharModalEditar" type="button">×</button>
-      </div>
-
-      <form id="formEditar">
-        <div class="grid-campos">
-          <div class="campo campo-completo">
-            <label for="editarNomeConteudo">Nome do conteúdo</label>
-            <input id="editarNomeConteudo" type="text" maxlength="180" required />
-          </div>
-
-          <div class="editar-linha-data-duracao">
-            <div class="campo">
-              <label for="editarDataVencimento">Data de vencimento</label>
-              <input id="editarDataVencimento" type="date" required />
-            </div>
-            <div class="campo">
-              <label for="editarDuracaoConteudo">Duração do conteúdo</label>
-              <input id="editarDuracaoConteudo" type="text" inputmode="numeric" placeholder="00:00" maxlength="8" pattern="[0-9]{1,5}:[0-5][0-9]" required />
-            </div>
-          </div>
-
-          <div class="campo campo-completo">
-            <label for="editarDestinoConteudo">Mover para</label>
-            <select id="editarDestinoConteudo"><option value="principal">Playlist principal</option></select>
-          </div>
-        </div>
-
-        <div class="modal-acoes">
-          <button class="btn-secundario" id="btnCancelarEditar" type="button">Cancelar</button>
-          <button class="btn-principal" id="btnSalvarEdicao" type="submit">Salvar alterações</button>
-        </div>
-      </form>
-    </div>
-  </section>
-
-  <div class="status-toast oculto" id="statusToast"></div>
-
-  <script>
-    /*
-      LOGIN:
-      Troque a senha abaixo pela senha que será usada pela gerente.
-      O usuário já está definido como "indiara".
-    */
-    const GERENTE_USUARIO = "indiara";
-    const GERENTE_SENHA = "selfittv";
-
-    const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
-    const TABELA_PONTOS = "pontos";
-    let CODIGO_FIXO = "R6V0G8V";
-    const CHAVE_SESSAO = "painel_unidade_selfit_liberado";
-    const CHAVE_PONTOS = "painel_unidade_selfit_pontos";
-    const TEMPO_TRANSICAO_COMANDO_MS = 5000;
-
-    const DUNATV_WORKER_URL = String(
-      window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev"
-    ).replace(/\/$/,"");
-    const DUNATV_R2_PUBLIC_URL = String(
-      window.DUNATV_R2_PUBLIC_URL || "https://pub-7b0265ccfa1f43c4bbc908e8cb61b544.r2.dev"
-    ).replace(/\/$/,"");
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    function obterTokenWorker(){
-      return String(
-        window.DUNATV_ADMIN_TOKEN ||
-        localStorage.getItem("dunatv_admin_token") ||
-        sessionStorage.getItem("dunatv_admin_token") ||
-        sessionStorage.getItem("dunatv_worker_token") ||
-        ""
-      ).trim();
-    }
-
-    async function requisitarWorker(caminho,opcoes={}){
-      const headers = new Headers(opcoes.headers || {});
-      const token = obterTokenWorker();
-      if(token) headers.set("Authorization",`Bearer ${token}`);
-
-      const resposta = await fetch(`${DUNATV_WORKER_URL}${caminho}`,{
-        ...opcoes,
-        headers
-      });
-      const texto = await resposta.text();
-      let dados = null;
-
-      if(texto){
-        try{ dados = JSON.parse(texto); }
-        catch{ dados = texto; }
-      }
-
-      if(!resposta.ok){
-        throw new Error(dados?.error || dados?.message || texto || `Falha na API (${resposta.status})`);
-      }
-
-      return dados;
-    }
-
-    function normalizarOperacao(valor={}){
-      const operacao = valor && typeof valor === "object" ? valor : {};
-      return {
-        automatico:operacao.automatico === true,
-        inicio:/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(operacao.inicio || "") ? operacao.inicio : "08:00",
-        encerramento:/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(operacao.encerramento || "") ? operacao.encerramento : "22:00",
-        dias:[0,1,2,3,4,5,6],
-        fuso:"America/Sao_Paulo",
-        comando:["ligar","desligar","automatico"].includes(operacao.comando) ? operacao.comando : "automatico",
-        comando_id:String(operacao.comando_id || ""),
-        comando_em:operacao.comando_em || null
-      };
-    }
-
-    function novoIdComando(){
-      return globalThis.crypto?.randomUUID
-        ? globalThis.crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    }
-
-    async function obterPlaylistR2(){
-      const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`);
-      const items = Array.isArray(documento) ? documento : (documento?.items || []);
-      const itemControle = items.find(item=>String(item?.id || "") === "__dunatv_operacao__");
-      const configuracao = !Array.isArray(documento) && documento?.operacao
-        ? documento.operacao
-        : itemControle?.operacao;
-      operacaoAtual = normalizarOperacao(configuracao);
-      renderizarOperacao();
-      return items.filter(item=>String(item?.id || "") !== "__dunatv_operacao__");
-    }
-
-    async function salvarPlaylistR2(items){
-      const lista = (Array.isArray(items) ? items : []).map((item,index)=>({
-        ...item,
-        id:item.id || (globalThis.crypto?.randomUUID
-          ? globalThis.crypto.randomUUID()
-          : `${Date.now()}-${index}`),
-        codigo:CODIGO_FIXO,
-        ordem:index+1
-      }));
-
-      const itemControle = {
-        id:"__dunatv_operacao__",
-        codigo:CODIGO_FIXO,
-        tipo:"controle",
-        nome:"Controle da TV",
-        ordem:lista.length+1,
-        operacao:operacaoAtual
-      };
-
-      const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`,{
-        method:"PUT",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({items:[...lista,itemControle],operacao:operacaoAtual})
-      });
-
-      const itemsSalvos = Array.isArray(documento) ? documento : (documento?.items || lista);
-      const controleSalvo = itemsSalvos.find(item=>String(item?.id || "") === "__dunatv_operacao__");
-      operacaoAtual = normalizarOperacao(documento?.operacao || controleSalvo?.operacao || operacaoAtual);
-      renderizarOperacao();
-      return itemsSalvos.filter(item=>String(item?.id || "") !== "__dunatv_operacao__");
-    }
-
-    async function enviarMidiaR2(file,nomeArquivo){
-      const resultado = await requisitarWorker(
-        `/api/media/pontos/${encodeURIComponent(CODIGO_FIXO)}/${encodeURIComponent(nomeArquivo)}`,
-        {
-          method:"PUT",
-          headers:{"Content-Type":file.type || "application/octet-stream"},
-          body:file
-        }
-      );
-
-      let publicUrl = resultado?.publicUrl || resultado?.url || "";
-      if(publicUrl.startsWith("/")) publicUrl = `${DUNATV_R2_PUBLIC_URL}${publicUrl}`;
-      if(!publicUrl) throw new Error("O R2 não devolveu a URL pública da mídia.");
-
-      return {...resultado,publicUrl};
-    }
-
-    async function excluirMidiaR2(storagePath){
-      const key = String(storagePath || "").trim();
-      if(!key.startsWith("midias/")) return;
-      await requisitarWorker(`/api/media?key=${encodeURIComponent(key)}`,{method:"DELETE"});
-    }
-
-    const telaLogin = document.getElementById("telaLogin");
-    const telaPastas = document.getElementById("telaPastas");
-    const painel = document.getElementById("painel");
-    const formLogin = document.getElementById("formLogin");
-    const mensagemLogin = document.getElementById("mensagemLogin");
-    const btnEntrar = document.getElementById("btnEntrar");
-    const btnSairPastas = document.getElementById("btnSairPastas");
-    const btnVoltarPastas = document.getElementById("btnVoltarPastas");
-    const gradePastas = document.getElementById("gradePastas");
-    // Compatibilidade com versões antigas que ainda tentavam atualizar o cartão fixo.
-    const statusPasta = document.getElementById("statusPasta") || {textContent:""};
-    const btnAdicionarPonto = document.getElementById("btnAdicionarPonto");
-    const modalAdicionarPonto = document.getElementById("modalAdicionarPonto");
-    const btnFecharAdicionarPonto = document.getElementById("btnFecharAdicionarPonto");
-    const btnCancelarAdicionarPonto = document.getElementById("btnCancelarAdicionarPonto");
-    const formAdicionarPonto = document.getElementById("formAdicionarPonto");
-    const codigoNovoPonto = document.getElementById("codigoNovoPonto");
-    const mensagemAdicionarPonto = document.getElementById("mensagemAdicionarPonto");
-    const btnBuscarAdicionarPonto = document.getElementById("btnBuscarAdicionarPonto");
-
-    const imagemUnidade = document.getElementById("imagemUnidade");
-    const nomeUnidade = document.getElementById("nomeUnidade");
-    const localizacaoUnidade = document.getElementById("localizacaoUnidade");
-    const codigoSala = document.getElementById("codigoSala");
-    const corpoTabela = document.getElementById("corpoTabela");
-    const btnCopiar = document.getElementById("btnCopiar");
-    const btnPreview = document.getElementById("btnPreview");
-    const btnCriarPastaPlaylist = document.getElementById("btnCriarPastaPlaylist");
-    const modalPastaPlaylist = document.getElementById("modalPastaPlaylist");
-    const btnFecharPastaPlaylist = document.getElementById("btnFecharPastaPlaylist");
-    const btnCancelarPastaPlaylist = document.getElementById("btnCancelarPastaPlaylist");
-    const formPastaPlaylist = document.getElementById("formPastaPlaylist");
-    const tituloModalPastaPlaylist = document.getElementById("tituloModalPastaPlaylist");
-    const nomePastaPlaylist = document.getElementById("nomePastaPlaylist");
-    const modoPastaPlaylist = document.getElementById("modoPastaPlaylist");
-    const quantidadePastaPlaylist = document.getElementById("quantidadePastaPlaylist");
-    const btnSalvarPastaPlaylist = document.getElementById("btnSalvarPastaPlaylist");
-    const modalConteudosPasta = document.getElementById("modalConteudosPasta");
-    const btnFecharConteudosPasta = document.getElementById("btnFecharConteudosPasta");
-    const btnAdicionarConteudoPasta = document.getElementById("btnAdicionarConteudoPasta");
-    const nomePastaAberta = document.getElementById("nomePastaAberta");
-    const resumoPastaAberta = document.getElementById("resumoPastaAberta");
-    const corpoTabelaPasta = document.getElementById("corpoTabelaPasta");
-    const estadoTv = document.getElementById("estadoTv");
-    const btnAlternarTv = document.getElementById("btnAlternarTv");
-    const textoEnergiaTv = document.getElementById("textoEnergiaTv");
-    const programacaoAutomatica = document.getElementById("programacaoAutomatica");
-    const horarioAtivacao = document.getElementById("horarioAtivacao");
-    const horarioEncerramento = document.getElementById("horarioEncerramento");
-    const btnSalvarProgramacao = document.getElementById("btnSalvarProgramacao");
-    const totalTvs = document.getElementById("totalTvs");
-    const totalTvsOnline = document.getElementById("totalTvsOnline");
-    const totalTvsOffline = document.getElementById("totalTvsOffline");
-    const listaResumoTvs = document.getElementById("listaResumoTvs");
-    const filtroHistoricoIp = document.getElementById("filtroHistoricoIp");
-    const filtroHistoricoData = document.getElementById("filtroHistoricoData");
-    const filtroHistoricoStatus = document.getElementById("filtroHistoricoStatus");
-    const btnLimparFiltrosHistorico = document.getElementById("btnLimparFiltrosHistorico");
-    let historicoTvsAtual = [];
-
-    const modalAdicionar = document.getElementById("modalAdicionar");
-    const btnAbrirAdicionar = document.getElementById("btnAbrirAdicionar");
-    const btnFecharModal = document.getElementById("btnFecharModal");
-    const btnCancelar = document.getElementById("btnCancelar");
-    const formAdicionar = document.getElementById("formAdicionar");
-    const arquivoConteudo = document.getElementById("arquivoConteudo");
-    const destinoConteudo = document.getElementById("destinoConteudo");
-    const dataPostagem = document.getElementById("dataPostagem");
-    const dataVencimento = document.getElementById("dataVencimento");
-    const duracaoConteudo = document.getElementById("duracaoConteudo");
-    const atalhosDuracao = document.querySelectorAll("[data-duracao]");
-    const agendamentoBox = document.getElementById("agendamentoBox");
-    const btnEnviar = document.getElementById("btnEnviar");
-    const modalEditar = document.getElementById("modalEditar");
-    const btnFecharModalEditar = document.getElementById("btnFecharModalEditar");
-    const btnCancelarEditar = document.getElementById("btnCancelarEditar");
-    const formEditar = document.getElementById("formEditar");
-    const editarNomeConteudo = document.getElementById("editarNomeConteudo");
-    const editarDataVencimento = document.getElementById("editarDataVencimento");
-    const editarDuracaoConteudo = document.getElementById("editarDuracaoConteudo");
-    const editarDestinoConteudo = document.getElementById("editarDestinoConteudo");
-    const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
-    const statusToast = document.getElementById("statusToast");
-
-    let playlistAtual = [];
-    let operacaoAtual = normalizarOperacao();
-    let itemEmEdicao = null;
-    let pastaPlaylistEmEdicao = null;
-    let pastaAbertaId = null;
-    let itemEmEdicaoOrigemPasta = null;
-    let timerEstadoEnergia = null;
-
-    atalhosDuracao.forEach((botao)=>{
-      botao.addEventListener("click",()=>{
-        duracaoConteudo.value = botao.dataset.duracao;
-        duracaoConteudo.focus();
-      });
-    });
-
-    arquivoConteudo.addEventListener("change",()=>{
-      const possuiArquivo = arquivoConteudo.files && arquivoConteudo.files.length > 0;
-      agendamentoBox.classList.toggle("oculto",!possuiArquivo);
-
-      if(possuiArquivo){
-        dataPostagem.value = dataLocalAgora();
-
-        const vencimentoPadrao = new Date();
-        vencimentoPadrao.setDate(vencimentoPadrao.getDate()+30);
-        vencimentoPadrao.setMinutes(vencimentoPadrao.getMinutes()-vencimentoPadrao.getTimezoneOffset());
-        dataVencimento.value = vencimentoPadrao.toISOString().slice(0,16);
-
-        duracaoConteudo.value = "15";
+const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
+const TABELA_PONTOS = "pontos";
+
+const DUNATV_WORKER_URL = String(window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev").replace(/\/$/, "");
+const DUNATV_R2_PUBLIC_URL = String(
+  window.DUNATV_R2_PUBLIC_URL || "https://pub-7b0265ccfa1f43c4bbc908e8cb61b544.r2.dev"
+).replace(/\/$/, "");
+
+function obterTokenWorker() {
+  return String(
+    window.DUNATV_ADMIN_TOKEN ||
+    localStorage.getItem("dunatv_admin_token") ||
+    sessionStorage.getItem("dunatv_admin_token") ||
+    sessionStorage.getItem("dunatv_worker_token") ||
+    ""
+  ).trim();
+}
+
+async function requisitarWorker(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  const token = obterTokenWorker();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  const resposta = await fetch(`${DUNATV_WORKER_URL}${path}`, { ...options, headers });
+  const texto = await resposta.text();
+  let dados = null;
+
+  if (texto) {
+    try {
+      dados = JSON.parse(texto);
+    } catch (_) {
+      dados = texto;
+    }
+  }
+
+  if (!resposta.ok) {
+    throw new Error(dados?.error || dados?.message || texto || `Falha na API (${resposta.status})`);
+  }
+
+  return dados;
+}
+
+const PONTO_CONFIG_ID = "__dunatv_ponto_config__";
+const configuracoesPontos = {};
+
+function normalizarTipoPonto(valor) {
+  return String(valor || "").toLowerCase() === "tv_aberta" ? "tv_aberta" : "publicidade";
+}
+
+function itemConfiguracaoPonto(codigo, configuracao = {}) {
+  return { id:PONTO_CONFIG_ID, tipo:"configuracao_ponto", codigo:normalizarCodigo(codigo),
+    tipo_ponto:normalizarTipoPonto(configuracao.tipo_ponto), youtube_url:String(configuracao.youtube_url || "").trim(),
+    atualizado_em:new Date().toISOString() };
+}
+
+async function obterPlaylistR2(codigo) {
+  const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`);
+  const items = Array.isArray(documento) ? documento : documento?.items || [];
+  const config = (!Array.isArray(documento) && documento?.configuracao_ponto) || items.find(item=>String(item?.id || "") === PONTO_CONFIG_ID);
+  if(config) configuracoesPontos[normalizarCodigo(codigo)] = {...config,tipo_ponto:normalizarTipoPonto(config.tipo_ponto)};
+  return items.filter(item=>String(item?.id || "") !== PONTO_CONFIG_ID);
+}
+
+async function salvarPlaylistR2(codigo, items) {
+  const codigoFinal = normalizarCodigo(codigo);
+  const config = configuracoesPontos[codigoFinal];
+  const itensVisiveis = (Array.isArray(items) ? items : []).filter(item=>String(item?.id || "") !== PONTO_CONFIG_ID);
+  return requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items:itensVisiveis, configuracao_ponto:config ? itemConfiguracaoPonto(codigoFinal,config) : undefined })
+  });
+}
+
+async function salvarConfiguracaoPontoR2(codigo, configuracao) {
+  const codigoFinal = normalizarCodigo(codigo);
+  configuracoesPontos[codigoFinal] = {...itemConfiguracaoPonto(codigoFinal,configuracao)};
+  const items = await obterPlaylistR2(codigoFinal);
+  configuracoesPontos[codigoFinal] = {...itemConfiguracaoPonto(codigoFinal,configuracao)};
+  return salvarPlaylistR2(codigoFinal,items);
+}
+
+async function enviarMidiaR2(file, escopo, codigo, nomeArquivo) {
+  const resultado = await requisitarWorker(
+    `/api/media/${encodeURIComponent(escopo)}/${encodeURIComponent(normalizarCodigo(codigo))}/${encodeURIComponent(nomeArquivo)}`,
+    { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file }
+  );
+
+  let publicUrl = resultado?.publicUrl || resultado?.url || "";
+  if (publicUrl.startsWith("/")) publicUrl = `${DUNATV_R2_PUBLIC_URL}${publicUrl}`;
+  if (!publicUrl) throw new Error("O R2 não devolveu a URL pública da mídia.");
+
+  return { ...resultado, publicUrl };
+}
+
+async function excluirMidiaR2(storagePath) {
+  const key = String(storagePath || "").trim();
+  if (!key.startsWith("midias/")) return null;
+
+  return requisitarWorker(`/api/media?key=${encodeURIComponent(key)}`, {
+    method: "DELETE"
+  });
+}
+
+async function enviarStatusPontoR2(codigo, status = "ativo", detalhes = {}) {
+  return requisitarWorker(`/api/status/${encodeURIComponent(normalizarCodigo(codigo))}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status, ...detalhes })
+  });
+}
+
+const CACHE_PONTOS_KEY = "painel_pontos_cache_v12_r2";
+const CACHE_PONTOS_TTL = 30 * 60 * 1000;
+const CACHE_PLAYLIST_PREFIX = "painel_playlist_cache_v11_r2_";
+const CACHE_PLAYLIST_TTL = 2 * 60 * 1000;
+
+function limparCachesAntigos() {
+  try {
+    [
+      "painel_pontos_cache_v1",
+      "painel_pontos_cache_v2",
+      "painel_pontos_cache_v3",
+      "painel_pontos_cache_v4",
+      "painel_pontos_cache_v5",
+      "painel_pontos_cache_v6",
+      "painel_pontos_cache_v7",
+      "painel_pontos_cache_v8",
+      "painel_pontos_cache_v9",
+      "painel_pontos_cache_v10",
+      "painel_pontos_cache_v11"
+    ].forEach((key) => sessionStorage.removeItem(key));
+
+    Object.keys(sessionStorage).forEach((key) => {
+      if (
+        key.startsWith("painel_playlist_cache_v1_") ||
+        key.startsWith("painel_playlist_cache_v2_") ||
+        key.startsWith("painel_playlist_cache_v3_") ||
+        key.startsWith("painel_playlist_cache_v4_") ||
+        key.startsWith("painel_playlist_cache_v5_") ||
+        key.startsWith("painel_playlist_cache_v6_") ||
+        key.startsWith("painel_playlist_cache_v7_") ||
+        key.startsWith("painel_playlist_cache_v8_") ||
+        key.startsWith("painel_playlist_cache_v9_") ||
+        key.startsWith("painel_playlist_cache_v10_")
+      ) {
+        sessionStorage.removeItem(key);
       }
     });
+  } catch {
+    return;
+  }
+}
 
-    function escapeHtml(valor){
-      return String(valor ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-    }
+limparCachesAntigos();
 
-    function mostrarStatus(texto,tipo="normal"){
-      statusToast.textContent = texto;
-      statusToast.className = "status-toast " + tipo;
-      statusToast.classList.remove("oculto");
-      clearTimeout(mostrarStatus.timer);
-      mostrarStatus.timer = setTimeout(()=>statusToast.classList.add("oculto"),3200);
-    }
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    function formatarDataHora(valor){
-      if(!valor) return {data:"—",hora:""};
-      const data = new Date(valor);
-      if(Number.isNaN(data.getTime())) return {data:"—",hora:""};
-      return {
-        data:data.toLocaleDateString("pt-BR"),
-        hora:data.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
-      };
-    }
+if (sessionStorage.getItem("painelLiberado") !== "1") {
+  window.location.replace("centralpainel.html");
+}
 
-    function obterNomeArquivo(item){
-      if(item.titulo_arquivo) return item.titulo_arquivo;
-      if(item.nome) return item.nome;
-      if(item.storage_path){
-        const partes = String(item.storage_path).split("/");
-        return partes[partes.length-1];
+const statusEl = document.querySelector(".status-topo") || document.getElementById("status");
+const listaPontos = document.getElementById("listaPontos");
+const btnBaixarContrato = document.getElementById("btnBaixarContrato");
+const pontoDetalhe = document.getElementById("pontoDetalhe");
+const pontosBox = document.querySelector(".pontos-box");
+
+const codigoAtual = document.getElementById("codigoAtual");
+const tituloPasta = document.getElementById("tituloPasta");
+
+const btnVoltar = document.getElementById("btnVoltar");
+const btnCopiarCodigo = document.getElementById("btnCopiarCodigo");
+const btnEditarInfo = document.getElementById("btnEditarInfo");
+const btnToggleDisponibilidade = document.getElementById("btnToggleDisponibilidade");
+const btnNovoPonto = document.getElementById("btnNovoPonto");
+const btnUpgradePlaylist = document.getElementById("btnUpgradePlaylist");
+const inputUpgradePlaylist = document.getElementById("inputUpgradePlaylist");
+const btnDeletarPonto = document.getElementById("btnDeletarPonto");
+const btnCriarPastaPlaylist = document.getElementById("btnCriarPastaPlaylist");
+const areaTvAberta = document.getElementById("areaTvAberta");
+const youtubeUrlPonto = document.getElementById("youtubeUrlPonto");
+const btnSalvarYoutube = document.getElementById("btnSalvarYoutube");
+const modalNovoPonto = document.getElementById("modalNovoPonto");
+const btnConfirmarNovoPonto = document.getElementById("btnConfirmarNovoPonto");
+const btnCancelarNovoPonto = document.getElementById("btnCancelarNovoPonto");
+const modalAdicionarConteudoCentral = document.getElementById("modalAdicionarConteudoCentral");
+const arquivoConteudoCentral = document.getElementById("arquivoConteudoCentral");
+const postagemConteudoCentral = document.getElementById("postagemConteudoCentral");
+const vencimentoConteudoCentral = document.getElementById("vencimentoConteudoCentral");
+const duracaoConteudoCentral = document.getElementById("duracaoConteudoCentral");
+const destinoConteudoCentral = document.getElementById("destinoConteudoCentral");
+const btnSalvarConteudoCentral = document.getElementById("btnSalvarConteudoCentral");
+const btnCancelarConteudoCentral = document.getElementById("btnCancelarConteudoCentral");
+const modalPastaConteudosCentral = document.getElementById("modalPastaConteudosCentral");
+const tituloPastaConteudosCentral = document.getElementById("tituloPastaConteudosCentral");
+const resumoPastaConteudosCentral = document.getElementById("resumoPastaConteudosCentral");
+const listaPastaConteudosCentral = document.getElementById("listaPastaConteudosCentral");
+const btnFecharPastaConteudosCentral = document.getElementById("btnFecharPastaConteudosCentral");
+
+const modalEditar = document.getElementById("modalEditar");
+const editNome = document.getElementById("editNome");
+const editCidade = document.getElementById("editCidade");
+const editEndereco = document.getElementById("editEndereco");
+
+const editContratoInicio = document.getElementById("editContratoInicio");
+const editContratoFim = document.getElementById("editContratoFim");
+const editContratoParceriaSim = document.getElementById("editContratoParceriaSim");
+const editContratoParceriaNao = document.getElementById("editContratoParceriaNao");
+const editValorContrato = document.getElementById("editValorContrato");
+
+const editResponsavelNome = document.getElementById("editResponsavelNome");
+const editResponsavelCpf = document.getElementById("editResponsavelCpf");
+const editResponsavelTelefone = document.getElementById("editResponsavelTelefone");
+const editResponsavelEmail = document.getElementById("editResponsavelEmail");
+
+const previewImagem = document.getElementById("previewImagem");
+const inputImagem = document.getElementById("inputImagem");
+const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
+const btnFecharModal = document.getElementById("btnFecharModal");
+
+let codigoSelecionado = null;
+let pontosMap = {};
+let dragIndex = null;
+let arquivoImagemEdicao = null;
+let painelIniciado = false;
+let carregandoPontos = false;
+let carregandoPlaylist = false;
+let criandoNovoPonto = false;
+let tipoNovoPontoSelecionado = "publicidade";
+
+let posicaoImagemAtual = { x: 50, y: 50 };
+let arrastandoPreview = false;
+
+function setStatus(texto, tipo = "normal") {
+  if (!statusEl) return;
+
+  statusEl.textContent = texto;
+  statusEl.classList.remove("ok", "erro", "normal");
+  statusEl.classList.add(tipo);
+
+  if (!statusEl.classList.contains("status-box")) {
+    statusEl.classList.add("status-box");
+  }
+}
+
+function escapeHtml(texto) {
+  return String(texto || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function normalizarCodigo(codigo) {
+  return String(codigo || "").trim().toUpperCase();
+}
+
+function obterImagemPonto(ponto) {
+  return (
+    ponto?.imagem_url ||
+    ponto?.imagem ||
+    ponto?.foto_url ||
+    ponto?.imagem_ponto ||
+    "https://placehold.co/600x320/png"
+  );
+}
+
+function obterCodigoPonto(ponto) {
+  return normalizarCodigo(
+    ponto?.codigo ||
+    ponto?.codigo_ponto ||
+    ponto?.ponto_codigo ||
+    ponto?.codigo_visual ||
+    ponto?.id_ponto ||
+    ponto?.id ||
+    ""
+  );
+}
+
+function obterNomePonto(ponto, codigo) {
+  return (
+    ponto?.nome ||
+    ponto?.nome_local ||
+    ponto?.nome_painel ||
+    ponto?.titulo ||
+    ponto?.ambiente ||
+    codigo ||
+    "Carregando..."
+  );
+}
+
+function obterCidadePonto(ponto) {
+  return ponto?.cidade || ponto?.cidade_regiao || ponto?.municipio || ponto?.localidade || "";
+}
+
+function obterEnderecoPonto(ponto) {
+  return ponto?.endereco || ponto?.endereco_completo || ponto?.endereço || ponto?.local || "";
+}
+
+function obterUltimoPingPonto(ponto) {
+  return (
+    ponto?.ultima_atualizacao ||
+    ponto?.atualizado_em ||
+    ponto?.ultimo_ping ||
+    ponto?.last_ping ||
+    ponto?.updated_at ||
+    ponto?.data_ping ||
+    ponto?.created_at ||
+    null
+  );
+}
+
+function obterLocalizacaoPonto(cidade, endereco = "") {
+  const cidadeFinal = String(cidade || "").trim();
+  const enderecoFinal = String(endereco || "").trim();
+
+  if (cidadeFinal && enderecoFinal) {
+    return `<strong>${escapeHtml(cidadeFinal)}</strong> | ${escapeHtml(enderecoFinal)}`;
+  }
+
+  if (cidadeFinal) {
+    return `<strong>${escapeHtml(cidadeFinal)}</strong>`;
+  }
+
+  if (enderecoFinal) {
+    return escapeHtml(enderecoFinal);
+  }
+
+  return "Localização não definida";
+}
+
+function pontoEstaDisponivel(ponto) {
+  const statusCliente = String(ponto?.status || ponto?.situacao || "").toLowerCase().trim();
+
+  if (ponto?.disponivel === false) return false;
+  if (statusCliente === "inativo") return false;
+  return true;
+}
+
+function normalizarStatusHistorico(item) {
+  return String(item?.status || item?.evento || "")
+    .toLowerCase()
+    .trim();
+}
+
+function obterDataHistorico(item) {
+  return (
+    item?.ultima_atualizacao ||
+    item?.atualizado_em ||
+    item?.ultimo_ping ||
+    item?.data_hora ||
+    item?.created_at ||
+    null
+  );
+}
+
+function statusEhAtivo(status) {
+  const valor = String(status || "").toLowerCase().trim();
+  return valor === "ativo" || valor === "online" || valor === "conectou";
+}
+
+function statusEhInativo(status) {
+  const valor = String(status || "").toLowerCase().trim();
+  return valor === "inativo" || valor === "offline" || valor === "desconectou";
+}
+
+function calcularStatusInfo(ponto) {
+  if (!pontoEstaDisponivel(ponto)) {
+    return {
+      texto: "Indisponível",
+      detalhe: "Indisponível",
+      ativo: false,
+      classe: "indisponivel",
+      desde: null
+    };
+  }
+
+  const status = String(ponto?.status_evento || ponto?.status_final || ponto?.status || "")
+    .toLowerCase()
+    .trim();
+
+  const ultimoPing = ponto?.ultimo_ping || obterUltimoPingPonto(ponto);
+  const horario = ultimoPing ? formatarDataHora(ultimoPing) : "sem histórico";
+
+  if (statusEhAtivo(status)) {
+    return {
+      texto: "Ativo",
+      detalhe: `Ativo desde ${horario}`,
+      ativo: true,
+      classe: "ativo",
+      desde: ultimoPing
+    };
+  }
+
+  if (statusEhInativo(status)) {
+    return {
+      texto: "Inativo",
+      detalhe: `Inativo desde ${horario}`,
+      ativo: false,
+      classe: "inativo",
+      desde: ultimoPing
+    };
+  }
+
+  return {
+    texto: "Inativo",
+    detalhe: "Inativo desde sem histórico",
+    ativo: false,
+    classe: "inativo",
+    desde: null
+  };
+}
+
+function formatarData(valor) {
+  if (!valor) return "Sem data";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "Sem data";
+
+  return data.toLocaleDateString("pt-BR");
+}
+
+function formatarDataHora(valor) {
+  if (!valor) return "Sem data";
+
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) return "Sem data";
+
+  return data.toLocaleString("pt-BR");
+}
+
+function calcularStatusPorHistorico(historicoStatus = [], ponto = {}) {
+  if (!pontoEstaDisponivel(ponto)) {
+    return {
+      texto: "Indisponível",
+      detalhe: "Indisponível",
+      ativo: false,
+      classe: "indisponivel"
+    };
+  }
+
+  const ultimoEvento = Array.isArray(historicoStatus) ? historicoStatus[0] : null;
+  const status = normalizarStatusHistorico(ultimoEvento);
+  const dataEventoRaw = obterDataHistorico(ultimoEvento);
+  const horario = dataEventoRaw ? formatarDataHora(dataEventoRaw) : "sem histórico";
+
+  if (statusEhAtivo(status)) {
+    return {
+      texto: "Ativo",
+      detalhe: `Ativo desde ${horario}`,
+      ativo: true,
+      classe: "ativo"
+    };
+  }
+
+  if (statusEhInativo(status)) {
+    return {
+      texto: "Inativo",
+      detalhe: `Inativo desde ${horario}`,
+      ativo: false,
+      classe: "inativo"
+    };
+  }
+
+  return calcularStatusInfo(ponto);
+}
+
+function obterStatusPontoParaPainel(codigo, ponto) {
+  return calcularStatusInfo(ponto);
+}
+
+function atualizarStatusDetalhePonto(statusInfo) {
+  const statusPonto = document.getElementById("statusPonto");
+  if (!statusPonto || !statusInfo) return;
+
+  statusPonto.textContent = statusInfo.detalhe || statusInfo.texto;
+  statusPonto.classList.remove("ativo", "inativo", "indisponivel");
+  statusPonto.classList.add(statusInfo.classe);
+  statusPonto.dataset.status = String(statusInfo.texto || "").toLowerCase();
+}
+
+function itemEstaInativo(item) {
+  const dataFim = item?.data_fim || item?.fim_exibicao || null;
+  if (!dataFim) return false;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const fim = new Date(dataFim);
+  if (Number.isNaN(fim.getTime())) return false;
+
+  fim.setHours(23, 59, 59, 999);
+  return fim < hoje;
+}
+
+function obterTextoEventoConexao(item) {
+  const status = normalizarStatusHistorico(item);
+
+  if (statusEhAtivo(status)) return "Ativo";
+  if (statusEhInativo(status)) return "Inativo";
+
+  return status || "Sem status";
+}
+
+function lerCachePontos() {
+  try {
+    const bruto = sessionStorage.getItem(CACHE_PONTOS_KEY);
+    if (!bruto) return null;
+
+    const cache = JSON.parse(bruto);
+    const criadoEm = Number(cache.criadoEm || 0);
+    const pontos = Array.isArray(cache.pontos) ? cache.pontos : [];
+
+    if (!pontos.length) return null;
+
+    return {
+      pontos,
+      fresco: Date.now() - criadoEm < CACHE_PONTOS_TTL
+    };
+  } catch {
+    return null;
+  }
+}
+
+function salvarCachePontos(pontos) {
+  try {
+    sessionStorage.setItem(CACHE_PONTOS_KEY, JSON.stringify({
+      criadoEm: Date.now(),
+      pontos
+    }));
+  } catch {
+    return;
+  }
+}
+
+function obterChaveCachePlaylist(codigo) {
+  return `${CACHE_PLAYLIST_PREFIX}${codigo}`;
+}
+
+function lerCachePlaylist(codigo) {
+  try {
+    const bruto = sessionStorage.getItem(obterChaveCachePlaylist(codigo));
+    if (!bruto) return null;
+
+    const cache = JSON.parse(bruto);
+    const criadoEm = Number(cache.criadoEm || 0);
+
+    return {
+      playlist: Array.isArray(cache.playlist) ? cache.playlist : [],
+      historico: Array.isArray(cache.historico) ? cache.historico : [],
+      fresco: Date.now() - criadoEm < CACHE_PLAYLIST_TTL
+    };
+  } catch {
+    return null;
+  }
+}
+
+function salvarCachePlaylist(codigo, playlist, historico) {
+  try {
+    sessionStorage.setItem(obterChaveCachePlaylist(codigo), JSON.stringify({
+      criadoEm: Date.now(),
+      playlist,
+      historico
+    }));
+  } catch {
+    return;
+  }
+}
+
+function limparCachePlaylist(codigo) {
+  try {
+    sessionStorage.removeItem(obterChaveCachePlaylist(codigo));
+  } catch {
+    return;
+  }
+}
+
+function atualizarCachePonto(codigo, alteracoes) {
+  if (!codigo || !pontosMap[codigo]) return;
+
+  pontosMap[codigo] = {
+    ...pontosMap[codigo],
+    ...alteracoes
+  };
+
+  salvarCachePontos(Object.values(pontosMap));
+}
+
+function aplicarPosicaoImagem(el, posicao) {
+  if (!el || !posicao) return;
+  el.style.objectPosition = `${posicao.x}% ${posicao.y}%`;
+}
+
+async function uploadImagemPonto(file, codigo) {
+  const extensao = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const nomeArquivo = `capa-${Date.now()}.${extensao}`;
+  const resultado = await enviarMidiaR2(file, "pontos", codigo, nomeArquivo);
+
+  return resultado.publicUrl;
+}
+
+function limparNomeArquivo(nome) {
+  return String(nome || "arquivo")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function detectarTipoArquivoPlaylist(file) {
+  const nome = String(file?.name || "").toLowerCase();
+
+  if (
+    nome.endsWith(".jpg") ||
+    nome.endsWith(".jpeg") ||
+    nome.endsWith(".png") ||
+    nome.endsWith(".webp")
+  ) {
+    return "imagem";
+  }
+
+  if (nome.endsWith(".txt")) return "site";
+
+  return "video";
+}
+
+function gerarCodigoPontoAleatorio() {
+  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numeros = "0123456789";
+
+  return (
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)] +
+    numeros[Math.floor(Math.random() * numeros.length)] +
+    letras[Math.floor(Math.random() * letras.length)]
+  );
+}
+
+async function obterCodigoPontoUnico() {
+  const usadosLocais = new Set(Object.keys(pontosMap));
+
+  for (let tentativa = 0; tentativa < 80; tentativa++) {
+    const codigo = gerarCodigoPontoAleatorio();
+
+    if (usadosLocais.has(codigo)) continue;
+
+    const { data, error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .select("codigo")
+      .eq("codigo", codigo)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return codigo;
+  }
+
+  throw new Error("Não foi possível gerar um código de ponto único.");
+}
+
+async function criarNovoPonto(tipoPonto = "publicidade") {
+  if (criandoNovoPonto) return;
+
+  criandoNovoPonto = true;
+
+  if (btnNovoPonto) btnNovoPonto.disabled = true;
+
+  try {
+    setStatus("Criando novo ponto...", "normal");
+
+    const codigoLivre = await obterCodigoPontoUnico();
+
+    const payloads = [
+      {
+        codigo: codigoLivre,
+        nome: codigoLivre,
+        cidade: "",
+        endereco: "",
+        imagem_url: "https://placehold.co/600x320/png",
+        status: "ativo",
+        disponivel: true
+      },
+      {
+        codigo: codigoLivre,
+        nome_local: codigoLivre,
+        cidade_regiao: "",
+        endereco_completo: "",
+        imagem_url: "https://placehold.co/600x320/png",
+        status: "ativo",
+        disponivel: true
+      },
+      {
+        codigo: codigoLivre,
+        nome: codigoLivre
       }
-      return "Conteúdo";
-    }
+    ];
 
-    function obterUrl(item){
-      return item.video_url || item.arquivo_url || item.url || "";
-    }
+    let erroFinal = null;
 
-    function obterTipo(item){
-      const tipo = String(item.tipo || "").toLowerCase();
-      if(tipo === "imagem") return "Imagem";
-      if(tipo === "site" || tipo === "txt") return "Site";
-      return "Vídeo";
-    }
-
-    function detectarTipoArquivo(file){
-      const nome = file.name.toLowerCase();
-      if(/\.(jpg|jpeg|png|webp)$/.test(nome)) return "imagem";
-      if(nome.endsWith(".txt")) return "txt";
-      return "video";
-    }
-
-    function limparNomeArquivo(nome){
-      return String(nome || "arquivo")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g,"")
-        .replace(/[^a-zA-Z0-9._-]/g,"-")
-        .replace(/-+/g,"-")
-        .replace(/^-|-$/g,"");
-    }
-
-    function dentroDoHorarioAutomatico(){
-      if(!operacaoAtual.automatico) return true;
-      const partes = new Intl.DateTimeFormat("pt-BR",{
-        timeZone:operacaoAtual.fuso,
-        hour:"2-digit",
-        minute:"2-digit",
-        hourCycle:"h23"
-      }).formatToParts(new Date());
-      const hora = Number(partes.find(item=>item.type === "hour")?.value || 0);
-      const minuto = Number(partes.find(item=>item.type === "minute")?.value || 0);
-      const atual = hora * 60 + minuto;
-      const [horaInicio,minutoInicio] = operacaoAtual.inicio.split(":").map(Number);
-      const [horaFim,minutoFim] = operacaoAtual.encerramento.split(":").map(Number);
-      const inicio = horaInicio * 60 + minutoInicio;
-      const fim = horaFim * 60 + minutoFim;
-      if(inicio === fim) return true;
-      return inicio < fim ? atual >= inicio && atual < fim : atual >= inicio || atual < fim;
-    }
-
-    function renderizarOperacao(){
-      if(!programacaoAutomatica) return;
-      programacaoAutomatica.checked = operacaoAtual.automatico;
-      horarioAtivacao.value = operacaoAtual.inicio;
-      horarioEncerramento.value = operacaoAtual.encerramento;
-      btnSalvarProgramacao.disabled = true;
-      btnSalvarProgramacao.textContent = "Programação salva";
-
-      let resumo = "Controle manual";
-      if(operacaoAtual.automatico){
-        resumo = dentroDoHorarioAutomatico()
-          ? `Programada • ligada até ${operacaoAtual.encerramento}`
-          : `Programada • ativa às ${operacaoAtual.inicio}`;
-      }
-      if(operacaoAtual.comando === "ligar") resumo = "Comando para ligar enviado";
-      if(operacaoAtual.comando === "desligar") resumo = "Comando para desligar enviado";
-      estadoTv.textContent = resumo;
-      renderizarControleEnergia();
-    }
-
-    function estadoAtualEnergia(){
-      const comando = operacaoAtual.comando;
-      const enviadoEm = new Date(operacaoAtual.comando_em || 0).getTime();
-      const decorrido = enviadoEm ? Date.now()-enviadoEm : Infinity;
-      if((comando === "ligar" || comando === "desligar") && decorrido < TEMPO_TRANSICAO_COMANDO_MS){
-        return {estado:comando === "ligar" ? "ligando" : "desligando",restante:TEMPO_TRANSICAO_COMANDO_MS-decorrido};
-      }
-      if(comando === "ligar") return {estado:"ligada",restante:0};
-      if(comando === "desligar") return {estado:"desligada",restante:0};
-      return {estado:operacaoAtual.automatico && dentroDoHorarioAutomatico() ? "ligada" : "desligada",restante:0};
-    }
-
-    function renderizarControleEnergia(){
-      clearTimeout(timerEstadoEnergia);
-      const atual = estadoAtualEnergia();
-      const transicao = atual.estado === "ligando" || atual.estado === "desligando";
-      btnAlternarTv.className = "controle-energia-unico";
-      if(atual.estado === "ligada") btnAlternarTv.classList.add("ligada");
-      if(transicao) btnAlternarTv.classList.add("transicao",atual.estado);
-      btnAlternarTv.disabled = transicao;
-      textoEnergiaTv.textContent = {
-        ligada:"Ligada",
-        desligada:"Desligada",
-        ligando:"Ligando…",
-        desligando:"Desligando…"
-      }[atual.estado];
-      btnAlternarTv.setAttribute("aria-pressed",String(atual.estado === "ligada" || atual.estado === "ligando"));
-      if(transicao) timerEstadoEnergia = setTimeout(renderizarControleEnergia,Math.max(500,atual.restante+100));
-    }
-
-    async function enviarComandoTv(comando){
-      btnAlternarTv.disabled = true;
-      try{
-        operacaoAtual = {
-          ...operacaoAtual,
-          comando,
-          comando_id:novoIdComando(),
-          comando_em:new Date().toISOString()
-        };
-        playlistAtual = await salvarPlaylistR2(playlistAtual);
-        mostrarStatus(
-          comando === "ligar"
-            ? "Comando para ligar enviado."
-            : "Comando para desligar enviado.",
-          "ok"
-        );
-      }catch(error){
-        console.error(error);
-        mostrarStatus(error.message || "Não foi possível enviar o comando.","erro");
-      }finally{
-        renderizarControleEnergia();
-      }
-    }
-
-    async function salvarProgramacaoTv(){
-      btnSalvarProgramacao.disabled = true;
-      btnSalvarProgramacao.textContent = "Salvando...";
-      try{
-        operacaoAtual = normalizarOperacao({
-          ...operacaoAtual,
-          automatico:programacaoAutomatica.checked,
-          inicio:horarioAtivacao.value,
-          encerramento:horarioEncerramento.value,
-          comando:"automatico",
-          comando_id:novoIdComando(),
-          comando_em:new Date().toISOString()
-        });
-        playlistAtual = await salvarPlaylistR2(playlistAtual);
-        mostrarStatus(
-          operacaoAtual.automatico
-            ? `Programação salva: ${operacaoAtual.inicio} às ${operacaoAtual.encerramento}, todos os dias.`
-            : "Desligamento automático desativado.",
-          "ok"
-        );
-      }catch(error){
-        console.error(error);
-        mostrarStatus(error.message || "Não foi possível salvar a programação.","erro");
-        btnSalvarProgramacao.disabled = false;
-        btnSalvarProgramacao.textContent = "Salvar programação";
-      }finally{
-        if(btnSalvarProgramacao.textContent === "Salvando..."){
-          btnSalvarProgramacao.disabled = true;
-          btnSalvarProgramacao.textContent = "Programação salva";
-        }
-      }
-    }
-
-    function codigosPontosSalvos(){
-      try{
-        const salvos = JSON.parse(localStorage.getItem(CHAVE_PONTOS) || "[]");
-        return [...new Set(["R6V0G8V",...(Array.isArray(salvos) ? salvos : [])])];
-      }catch{
-        return ["R6V0G8V"];
-      }
-    }
-
-    async function buscarPontoPorCodigo(codigo){
-      const {data,error} = await supabaseClient
+    for (const payload of payloads) {
+      const { error } = await supabaseClient
         .from(TABELA_PONTOS)
-        .select("*")
-        .eq("codigo",codigo)
-        .maybeSingle();
-      if(error) throw error;
-      return data || null;
-    }
+        .insert([payload]);
 
-    async function buscarStatusTv(codigo){
-      try{
-        const dados = await requisitarWorker(`/api/status/${encodeURIComponent(codigo)}`);
-        return dados || {atual:null,dispositivos:[],historico:[]};
-      }catch(error){
-        console.warn(`Status indisponível para ${codigo}:`,error);
-        return null;
-      }
-    }
-
-    function obterStatusTv(ponto,statusRemoto=null){
-      const datas = [
-        statusRemoto?.ultima_atualizacao,
-        statusRemoto?.atualizado_em
-      ]
-        .filter(Boolean)
-        .map(valor=>new Date(valor).getTime())
-        .filter(Number.isFinite);
-      const ultimaAtualizacao = datas.length ? Math.max(...datas) : 0;
-      const ativo = statusRemoto?.status === "ativo" && ultimaAtualizacao > 0 && Date.now()-ultimaAtualizacao <= 30*60*1000;
-      return {ativo,texto:ativo ? "Ativo" : "Inativo"};
-    }
-
-    function obterIpTv(ponto,statusRemoto=null){
-      const dispositivo = ponto.dispositivo_reprodutor;
-      let dadosDispositivo = dispositivo;
-      if(typeof dispositivo === "string"){
-        try{dadosDispositivo = JSON.parse(dispositivo)}catch{dadosDispositivo = dispositivo}
-      }
-      return statusRemoto?.ip_publico || statusRemoto?.ip || statusRemoto?.endereco_ip ||
-        ponto.ip_publico || ponto.ip || ponto.endereco_ip || ponto.ip_address ||
-        (dadosDispositivo && typeof dadosDispositivo === "object"
-          ? dadosDispositivo.ip_publico || dadosDispositivo.ip || dadosDispositivo.ip_address
-          : "") || "IP não informado";
-    }
-
-    function formatarDataHoraHistorico(valor){
-      const data = new Date(valor);
-      if(Number.isNaN(data.getTime())) return {data:"",hora:""};
-      return {
-        hora:data.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),
-        data:data.toLocaleDateString("pt-BR")
-      };
-    }
-
-    function renderizarLinhasHistorico(){
-      const ipBusca = filtroHistoricoIp.value.trim().toLowerCase();
-      const dataBusca = filtroHistoricoData.value;
-      const statusBusca = filtroHistoricoStatus.value;
-      const itens = historicoTvsAtual.filter(item=>{
-        const instante = new Date(item.atualizado_em || item.ultima_atualizacao || 0);
-        const dataIso = Number.isNaN(instante.getTime()) ? "" : `${instante.getFullYear()}-${String(instante.getMonth()+1).padStart(2,"0")}-${String(instante.getDate()).padStart(2,"0")}`;
-        return (!ipBusca || String(item.ip_publico || "").toLowerCase().includes(ipBusca)) &&
-          (!dataBusca || dataIso === dataBusca) &&
-          (statusBusca === "todos" || item.status === statusBusca);
-      });
-      listaResumoTvs.innerHTML = itens.length ? itens.map(item=>{
-        const quando = formatarDataHoraHistorico(item.atualizado_em || item.ultima_atualizacao);
-        const ativo = item.status === "ativo";
-        return `<div class="tv-resumo-item">
-          <span class="tv-resumo-nome">${escapeHtml(item.nome_tv || "")}</span>
-          <span class="tv-resumo-ip">${escapeHtml(item.ip_publico || "IP não informado")}</span>
-          <span class="tv-resumo-status ${ativo ? "online" : "offline"}">${ativo ? "Ativa" : "Inativa"}</span>
-          <span>${escapeHtml(quando.hora)}</span><span>${escapeHtml(quando.data)}</span>
-        </div>`;
-      }).join("") : '<span class="tv-resumo-ip">Nenhum registro encontrado.</span>';
-    }
-
-    async function renderizarResumoTvs(){
-      listaResumoTvs.innerHTML = '<span class="tv-resumo-ip">Atualizando status...</span>';
-      const registros = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
-        try{
-          const [ponto,statusRemoto] = await Promise.all([buscarPontoPorCodigo(codigo),buscarStatusTv(codigo)]);
-          return {codigo,ponto,statusRemoto};
-        }catch{return {codigo,ponto:null,statusRemoto:null}}
-      }));
-      const tvs = registros.filter(item=>item.ponto).map(item=>({
-        ...item,
-        status:obterStatusTv(item.ponto,item.statusRemoto?.atual),
-        ip:obterIpTv(item.ponto,item.statusRemoto?.atual)
-      }));
-      const dispositivos = registros.flatMap(item=>Array.isArray(item.statusRemoto?.dispositivos) ? item.statusRemoto.dispositivos : []);
-      const online = dispositivos.filter(item=>item.status === "ativo").length;
-      const totalDispositivos = dispositivos.length || tvs.length;
-      totalTvs.textContent = `${totalDispositivos} ${totalDispositivos === 1 ? "TV" : "TVs"}`;
-      totalTvsOnline.textContent = `${online} online`;
-      totalTvsOffline.textContent = `${totalDispositivos-online} offline`;
-      historicoTvsAtual = registros.flatMap(item=>Array.isArray(item.statusRemoto?.historico) ? item.statusRemoto.historico : [])
-        .sort((a,b)=>new Date(b.atualizado_em || 0)-new Date(a.atualizado_em || 0));
-      renderizarLinhasHistorico();
-    }
-
-    function htmlCartaoPonto(ponto,codigo,statusRemoto=null){
-      const nome = ponto.nome || ponto.nome_local || ponto.titulo || "Selfit";
-      const cidade = ponto.cidade || ponto.cidade_regiao || ponto.municipio || "";
-      const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "";
-      const imagem = ponto.imagem_url || ponto.imagem || ponto.foto_url || "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
-      const statusTv = obterStatusTv(ponto,statusRemoto);
-      return `<article class="pasta-card">
-        <div class="pasta-status ${statusTv.ativo ? "ativo" : "inativo"}"><span class="pasta-status-ponto"></span><span>${statusTv.texto}</span></div>
-        <img class="pasta-imagem" src="${escapeHtml(imagem)}" alt="${escapeHtml(nome)}" onerror="this.src='https://placehold.co/1200x700/120000/ffffff?text=SELFIT'" />
-        <h3>${escapeHtml(nome)}</h3>
-        <div class="pasta-meta">
-          <p class="pasta-local">${escapeHtml([cidade,endereco].filter(Boolean).join(" | ") || "Selfit")}</p>
-          <span class="pasta-codigo">${escapeHtml(codigo)}</span>
-        </div>
-        <button class="btn-abrir-pasta" type="button" data-abrir-codigo="${escapeHtml(codigo)}">Abrir pasta</button>
-      </article>`;
-    }
-
-    async function renderizarPastas(){
-      gradePastas.innerHTML = '<p style="color:#fff">Carregando pontos...</p>';
-      const resultados = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
-        try{
-          const [ponto,statusRemoto] = await Promise.all([buscarPontoPorCodigo(codigo),buscarStatusTv(codigo)]);
-          return {codigo,ponto,statusRemoto};
-        }
-        catch(error){console.error(error);return {codigo,ponto:null,statusRemoto:null}}
-      }));
-      const encontrados = resultados.filter(item=>item.ponto);
-      gradePastas.innerHTML = encontrados.length
-        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo,item.statusRemoto?.atual)).join("")
-        : '<p style="color:#fff">Nenhum ponto encontrado.</p>';
-    }
-
-    async function abrirSelecaoPastas(){
-      telaLogin.classList.add("oculto");
-      painel.classList.add("oculto");
-      telaPastas.classList.remove("oculto");
-      await renderizarPastas();
-    }
-
-    async function abrirPainel(codigo=CODIGO_FIXO){
-      CODIGO_FIXO = String(codigo || "R6V0G8V").trim().toUpperCase();
-      codigoSala.textContent = CODIGO_FIXO;
-      telaLogin.classList.add("oculto");
-      telaPastas.classList.add("oculto");
-      painel.classList.remove("oculto");
-      await Promise.all([carregarDadosPonto(),carregarPlaylist(),renderizarResumoTvs()]);
-    }
-
-    formLogin.addEventListener("submit",async(event)=>{
-      event.preventDefault();
-      mensagemLogin.textContent = "";
-      btnEntrar.disabled = true;
-      btnEntrar.textContent = "Entrando...";
-
-      const usuario = document.getElementById("loginUsuario").value.trim().toLowerCase();
-      const senha = document.getElementById("loginSenha").value;
-
-      await new Promise(resolve=>setTimeout(resolve,350));
-
-      if(usuario === GERENTE_USUARIO.toLowerCase() && senha === GERENTE_SENHA){
-        sessionStorage.setItem(CHAVE_SESSAO,"1");
-        await abrirSelecaoPastas();
-      }else{
-        mensagemLogin.textContent = "Usuário ou senha incorretos.";
+      if (!error) {
+        erroFinal = null;
+        break;
       }
 
-      btnEntrar.disabled = false;
-      btnEntrar.textContent = "Entrar";
-    });
-
-    function sairDoPainel(){
-      sessionStorage.removeItem(CHAVE_SESSAO);
-      location.reload();
+      erroFinal = error;
+      console.warn("Falha ao criar ponto com payload:", payload, error);
     }
 
-    btnSairPastas.addEventListener("click",sairDoPainel);
-    btnVoltarPastas.addEventListener("click",abrirSelecaoPastas);
-    gradePastas.addEventListener("click",(event)=>{
-      const botao = event.target.closest("[data-abrir-codigo]");
-      if(botao) abrirPainel(botao.dataset.abrirCodigo);
-    });
-    btnAdicionarPonto.addEventListener("click",()=>{
-      formAdicionarPonto.reset();
-      mensagemAdicionarPonto.textContent = "";
-      modalAdicionarPonto.classList.remove("oculto");
-      setTimeout(()=>codigoNovoPonto.focus(),50);
-    });
-    function fecharAdicionarPonto(){modalAdicionarPonto.classList.add("oculto")}
-    btnFecharAdicionarPonto.addEventListener("click",fecharAdicionarPonto);
-    btnCancelarAdicionarPonto.addEventListener("click",fecharAdicionarPonto);
-    modalAdicionarPonto.addEventListener("click",event=>{if(event.target===modalAdicionarPonto) fecharAdicionarPonto()});
-    formAdicionarPonto.addEventListener("submit",async(event)=>{
-      event.preventDefault();
-      const codigo = codigoNovoPonto.value.trim().toUpperCase();
-      if(!codigo) return;
-      btnBuscarAdicionarPonto.disabled = true;
-      btnBuscarAdicionarPonto.textContent = "Buscando...";
-      mensagemAdicionarPonto.textContent = "Consultando o banco de dados...";
-      try{
-        const ponto = await buscarPontoPorCodigo(codigo);
-        if(!ponto){
-          mensagemAdicionarPonto.textContent = "Ponto não encontrado. Confira o código.";
-          return;
-        }
-        const codigos = [...new Set([...codigosPontosSalvos(),codigo])];
-        localStorage.setItem(CHAVE_PONTOS,JSON.stringify(codigos));
-        fecharAdicionarPonto();
-        await renderizarPastas();
-        mostrarStatus("Ponto adicionado com sucesso.","ok");
-      }catch(error){
-        console.error(error);
-        mensagemAdicionarPonto.textContent = "Não foi possível consultar o ponto.";
-      }finally{
-        btnBuscarAdicionarPonto.disabled = false;
-        btnBuscarAdicionarPonto.textContent = "Buscar e adicionar";
-      }
-    });
-    btnAlternarTv.addEventListener("click",()=>{
-      const atual = estadoAtualEnergia();
-      if(atual.estado === "ligando" || atual.estado === "desligando") return;
-      enviarComandoTv(atual.estado === "ligada" ? "desligar" : "ligar");
-    });
-    btnSalvarProgramacao.addEventListener("click",salvarProgramacaoTv);
-    [programacaoAutomatica,horarioAtivacao,horarioEncerramento].forEach((campo)=>{
-      campo.addEventListener("input",()=>{
-        btnSalvarProgramacao.disabled = false;
-        btnSalvarProgramacao.textContent = "Salvar programação";
-      });
-    });
+    if (erroFinal) throw erroFinal;
 
-    btnCopiar.addEventListener("click",async()=>{
-      try{
-        await navigator.clipboard.writeText(CODIGO_FIXO);
-        mostrarStatus("Código copiado.","ok");
-      }catch{
-        mostrarStatus("Não foi possível copiar o código.","erro");
-      }
-    });
+    await salvarConfiguracaoPontoR2(codigoLivre,{tipo_ponto:normalizarTipoPonto(tipoPonto),youtube_url:""});
+    limparCachePlaylist(codigoLivre);
+    sessionStorage.removeItem(CACHE_PONTOS_KEY);
 
-    btnPreview.addEventListener("click",()=>{
-      const urlPreview = `player.html?codigo=${encodeURIComponent(CODIGO_FIXO)}`;
-      window.open(urlPreview,"_blank","noopener");
-    });
+    await carregarPontosRemoto();
+    abrirPonto(codigoLivre);
+    setStatus(`Novo ponto ${codigoLivre} criado com sucesso`, "ok");
+  } catch (error) {
+    console.error(error);
+    setStatus("Erro ao criar novo ponto", "erro");
+  } finally {
+    criandoNovoPonto = false;
+    if (btnNovoPonto) btnNovoPonto.disabled = false;
+  }
+}
 
-    async function carregarDadosPonto(){
-      const {data,error} = await supabaseClient
+async function obterProximaOrdemPlaylist() {
+  const items = await obterPlaylistR2(codigoSelecionado);
+  return items.reduce((maior, item) => Math.max(maior, Number(item.ordem || 0)), 0) + 1;
+}
+
+async function enviarMaterialDiretoPlaylist(file) {
+  if (!codigoSelecionado) {
+    setStatus("Selecione um ponto primeiro", "erro");
+    return;
+  }
+
+  if (!file) {
+    setStatus("Selecione um arquivo", "erro");
+    return;
+  }
+
+  let path = "";
+
+  try {
+    setStatus("Enviando material...", "normal");
+
+    const nomeLimpo = limparNomeArquivo(file.name);
+    path = `pontos/${codigoSelecionado}/${Date.now()}-${nomeLimpo}`;
+    const tipo = detectarTipoArquivoPlaylist(file);
+
+    const uploadResultado = await enviarMidiaR2(file, "pontos", codigoSelecionado, `${Date.now()}-${nomeLimpo}`);
+
+    const ordem = await obterProximaOrdemPlaylist();
+
+    const payload = {
+      codigo: codigoSelecionado,
+      nome: file.name,
+      titulo_arquivo: file.name,
+      video_url: uploadResultado.publicUrl,
+      storage_path: uploadResultado.key,
+      codigo_cliente: null,
+      tipo,
+      ordem
+    };
+
+    payload.id = crypto.randomUUID();
+    const items = await obterPlaylistR2(codigoSelecionado);
+    await salvarPlaylistR2(codigoSelecionado, [...items, payload]);
+
+    limparCachePlaylist(codigoSelecionado);
+    await carregarPlaylist({ forcarAtualizacao: true });
+
+    setStatus("Material enviado para a playlist", "ok");
+  } catch (error) {
+    console.error("Erro ao enviar material:", error);
+
+    if (path) console.warn("O upload pode exigir limpeza manual no R2:", path);
+
+    setStatus(`Erro ao enviar material: ${error.message || "falha desconhecida"}`, "erro");
+  }
+}
+
+function obterChavePosicaoImagem(codigo) {
+  return `ponto_imagem_posicao_${codigo}`;
+}
+
+function salvarPosicaoImagem(codigo, posicao) {
+  if (!codigo) return;
+  sessionStorage.setItem(obterChavePosicaoImagem(codigo), JSON.stringify(posicao));
+}
+
+function lerPosicaoImagem(codigo) {
+  if (!codigo) return { x: 50, y: 50 };
+
+  try {
+    const salva = sessionStorage.getItem(obterChavePosicaoImagem(codigo));
+    if (!salva) return { x: 50, y: 50 };
+
+    const obj = JSON.parse(salva);
+    const x = Number(obj.x);
+    const y = Number(obj.y);
+
+    return {
+      x: Number.isFinite(x) ? x : 50,
+      y: Number.isFinite(y) ? y : 50
+    };
+  } catch {
+    return { x: 50, y: 50 };
+  }
+}
+
+function atualizarVisualDisponibilidade(disponivel) {
+  if (!btnToggleDisponibilidade) return;
+
+  const texto = btnToggleDisponibilidade.querySelector(".toggle-texto");
+
+  btnToggleDisponibilidade.classList.toggle("ativo", disponivel);
+  btnToggleDisponibilidade.setAttribute("aria-pressed", disponivel ? "true" : "false");
+
+  if (texto) {
+    texto.textContent = disponivel ? "Disponível" : "Indisponível";
+  }
+}
+
+async function alternarDisponibilidadePonto() {
+  if (!codigoSelecionado) return;
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const disponivelAtual = pontoEstaDisponivel(ponto);
+  const novoStatus = !disponivelAtual;
+
+  atualizarVisualDisponibilidade(novoStatus);
+  atualizarCachePonto(codigoSelecionado, {
+    disponivel: novoStatus,
+    status: novoStatus ? "ativo" : "inativo"
+  });
+
+  try {
+    setStatus(novoStatus ? "Marcando como disponível..." : "Marcando como indisponível...", "normal");
+
+    const tentativas = [
+      { disponivel: novoStatus },
+      { status: novoStatus ? "ativo" : "inativo" },
+      { disponivel: novoStatus, status: novoStatus ? "ativo" : "inativo" }
+    ];
+
+    let errorFinal = null;
+
+    for (const payload of tentativas) {
+      const { error } = await supabaseClient
         .from(TABELA_PONTOS)
-        .select("*")
-        .eq("codigo",CODIGO_FIXO)
-        .maybeSingle();
+        .update(payload)
+        .eq("codigo", codigoSelecionado);
 
-      if(error){
-        console.error(error);
-        mostrarStatus("Erro ao carregar os dados da unidade.","erro");
+      if (!error) {
+        errorFinal = null;
+        break;
+      }
+
+      errorFinal = error;
+      console.warn("Falha ao atualizar ponto com payload:", payload, error);
+    }
+
+    if (errorFinal) throw errorFinal;
+
+    sessionStorage.removeItem(CACHE_PONTOS_KEY);
+    renderizarCardsPontos(Object.values(pontosMap));
+
+    const statusInfo = obterStatusPontoParaPainel(codigoSelecionado, pontosMap[codigoSelecionado]);
+    atualizarStatusDetalhePonto(statusInfo);
+    setStatus(novoStatus ? "Ponto disponível" : "Ponto indisponível", "ok");
+  } catch (error) {
+    console.error("Erro ao atualizar disponibilidade:", error);
+
+    atualizarVisualDisponibilidade(disponivelAtual);
+    atualizarCachePonto(codigoSelecionado, {
+      disponivel: disponivelAtual,
+      status: disponivelAtual ? "ativo" : "inativo"
+    });
+
+    renderizarCardsPontos(Object.values(pontosMap));
+
+    const statusInfo = obterStatusPontoParaPainel(codigoSelecionado, pontosMap[codigoSelecionado]);
+    atualizarStatusDetalhePonto(statusInfo);
+    setStatus("Erro ao atualizar disponibilidade", "erro");
+  }
+}
+
+async function buscarStatusPontosRemoto() {
+  try {
+    const data = await requisitarWorker("/api/status");
+    return (data || []).reduce((mapa, item) => {
+      const codigo = normalizarCodigo(item?.ponto_codigo || item?.codigo || "");
+      if (codigo) mapa[codigo] = item;
+      return mapa;
+    }, {});
+  } catch (error) {
+    console.warn("Status dos pontos no R2 nao carregou:", error);
+    return {};
+  }
+}
+
+async function buscarPontosRemoto() {
+  const { data: pontosData, error: pontosError } = await supabaseClient
+    .from(TABELA_PONTOS)
+    .select("*")
+    .order("codigo", { ascending: true });
+
+  if (pontosError) throw pontosError;
+
+  const statusPorCodigo = await buscarStatusPontosRemoto();
+
+  return (pontosData || []).map((ponto) => {
+    const codigo = obterCodigoPonto(ponto);
+    const statusMaisRecente = statusPorCodigo[codigo];
+    const statusEvento = normalizarStatusHistorico(statusMaisRecente) || ponto.status || "";
+
+    return {
+      ...ponto,
+      codigo,
+      nome: obterNomePonto(ponto, codigo),
+      cidade: obterCidadePonto(ponto),
+      endereco: obterEnderecoPonto(ponto),
+      imagem_url: obterImagemPonto(ponto),
+      ultimo_ping: obterDataHistorico(statusMaisRecente) || obterUltimoPingPonto(ponto),
+      status_evento: statusEvento,
+      status_final: statusEvento,
+      disponivel: pontoEstaDisponivel(ponto)
+    };
+  });
+}
+
+function montarCardPonto(ponto) {
+  const codigo = obterCodigoPonto(ponto);
+  const nome = obterNomePonto(ponto, codigo);
+  const cidade = obterCidadePonto(ponto);
+  const endereco = obterEnderecoPonto(ponto);
+  const statusInfo = obterStatusPontoParaPainel(codigo, ponto);
+  const imagem = obterImagemPonto(ponto);
+
+  return `
+    <div class="card-ponto ${statusInfo.classe === "indisponivel" ? "card-indisponivel" : ""}" data-codigo="${escapeHtml(codigo)}">
+      <div class="card-status-topo">
+        <span class="status-bolinha ${statusInfo.classe}"></span>
+        <span class="card-status ${statusInfo.classe}">${escapeHtml(statusInfo.texto)}</span>
+      </div>
+
+      <div class="card-imagem-box">
+        <img
+          class="card-imagem"
+          src="${escapeHtml(imagem)}"
+          alt="${escapeHtml(nome)}"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+
+      <div class="card-conteudo">
+        <div class="card-nome"><strong>${escapeHtml(nome)}</strong></div>
+
+        <div class="card-info-linha">
+          <div class="card-cidade">${obterLocalizacaoPonto(cidade, endereco)}</div>
+
+          <div class="card-codigo-area">
+            <div class="card-codigo" title="Clique para copiar">${escapeHtml(codigo)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-acoes">
+        <button class="btn-abrir" data-codigo="${escapeHtml(codigo)}" type="button">Abrir pasta</button>
+      </div>
+    </div>
+  `;
+}
+
+function ativarEventosCardsRenderizados() {
+  document.querySelectorAll(".btn-abrir").forEach((btn) => {
+    btn.onclick = (event) => {
+      event.stopPropagation();
+      abrirPonto(btn.dataset.codigo);
+    };
+  });
+
+  document.querySelectorAll(".card-codigo").forEach((codigoEl) => {
+    codigoEl.onclick = async (event) => {
+      event.stopPropagation();
+
+      const card = codigoEl.closest(".card-ponto");
+      const codigo = String(card?.dataset.codigo || codigoEl.textContent || "").trim();
+
+      if (!codigo) return;
+
+      try {
+        await navigator.clipboard.writeText(codigo);
+        setStatus("Código copiado", "ok");
+      } catch {
+        setStatus("Erro ao copiar código", "erro");
+      }
+    };
+  });
+}
+
+function renderizarCardsPontos(lista) {
+  pontosMap = {};
+
+  const ordenados = [...lista].sort((a, b) => {
+    const ordemA = Number(a.ordem || 999999);
+    const ordemB = Number(b.ordem || 999999);
+
+    if (ordemA !== ordemB) return ordemA - ordemB;
+
+    return obterCodigoPonto(a).localeCompare(obterCodigoPonto(b), "pt-BR");
+  });
+
+  ordenados.forEach((ponto) => {
+    const codigo = obterCodigoPonto(ponto);
+    if (codigo) pontosMap[codigo] = ponto;
+  });
+
+  if (pontosBox) {
+    pontosBox.innerHTML = ordenados.map((ponto) => montarCardPonto(ponto)).join("");
+
+    ativarEventosCardsRenderizados();
+
+    document.querySelectorAll(".card-imagem").forEach((img) => {
+      img.setAttribute("draggable", "false");
+    });
+
+    ativarDragPontos();
+
+    document.querySelectorAll(".card-imagem").forEach((imagemEl) => {
+      const card = imagemEl.closest(".card-ponto");
+      const codigo = String(card?.dataset.codigo || "").trim();
+      aplicarPosicaoImagem(imagemEl, lerPosicaoImagem(codigo));
+    });
+  }
+}
+
+function abrirPonto(codigo) {
+  codigoSelecionado = normalizarCodigo(codigo);
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const nome = obterNomePonto(ponto, codigoSelecionado);
+  const cidade = obterCidadePonto(ponto);
+  const endereco = obterEnderecoPonto(ponto);
+
+  if (listaPontos) listaPontos.style.display = "none";
+  if (pontoDetalhe) pontoDetalhe.style.display = "block";
+
+  document.body.classList.add("modo-detalhe");
+
+  if (codigoAtual) {
+    codigoAtual.textContent = codigoSelecionado;
+    codigoAtual.title = "Clique para copiar";
+  }
+
+  if (tituloPasta) {
+    tituloPasta.innerHTML = `<strong>${escapeHtml(nome)}</strong>`;
+  }
+
+  const cidadePonto = document.getElementById("cidadePonto");
+  const enderecoPonto = document.getElementById("enderecoPonto");
+  const imagemPonto = document.getElementById("imagemPonto");
+
+  const statusInfo = obterStatusPontoParaPainel(codigoSelecionado, ponto);
+  const posicaoSalva = lerPosicaoImagem(codigoSelecionado);
+
+  atualizarVisualDisponibilidade(pontoEstaDisponivel(ponto));
+
+  if (cidadePonto) cidadePonto.innerHTML = obterLocalizacaoPonto(cidade, endereco);
+  if (enderecoPonto) enderecoPonto.textContent = endereco || "";
+
+  atualizarStatusDetalhePonto(statusInfo);
+
+  if (imagemPonto) {
+    imagemPonto.loading = "lazy";
+    imagemPonto.decoding = "async";
+    imagemPonto.src = obterImagemPonto(ponto);
+    imagemPonto.alt = nome;
+    aplicarPosicaoImagem(imagemPonto, posicaoSalva);
+  }
+
+  carregarPlaylist({ forcarAtualizacao: true });
+}
+
+function obterNomeArquivoPlaylist(item) {
+  if (item.titulo_arquivo && String(item.titulo_arquivo).trim()) {
+    return String(item.titulo_arquivo).trim();
+  }
+
+  if (item.storage_path) {
+    const partes = String(item.storage_path).split("/");
+    return partes[partes.length - 1] || "Arquivo";
+  }
+
+  if (item.video_url) {
+    const partes = String(item.video_url).split("/");
+    return partes[partes.length - 1]?.split("?")[0] || "Arquivo";
+  }
+
+  if (item.nome && String(item.nome).trim()) {
+    return String(item.nome).trim();
+  }
+
+  return "Arquivo";
+}
+
+function obterNomeClientePlaylist(item) {
+  if (item.nome_cliente && String(item.nome_cliente).trim()) {
+    return String(item.nome_cliente).trim();
+  }
+
+  if (item.nome && String(item.nome).trim()) {
+    return String(item.nome).trim();
+  }
+
+  if (item.codigo_cliente && String(item.codigo_cliente).trim()) {
+    return `Cliente ${String(item.codigo_cliente).trim()}`;
+  }
+
+  return "Cliente não informado";
+}
+
+function obterUrlDownloadPlaylist(item) {
+  return item.video_url || item.arquivo_url || item.url || "";
+}
+
+function montarItemPlaylist(item, index) {
+  const nomeArquivo = obterNomeArquivoPlaylist(item);
+  const nomeCliente = obterNomeClientePlaylist(item);
+  const urlDownload = obterUrlDownloadPlaylist(item);
+
+  return `
+    <div class="playlist-item" draggable="true" data-index="${index}" data-id="${item.id}">
+      <div class="playlist-item-linha">
+        <div class="playlist-item-handle" title="Arrastar">⋮⋮</div>
+
+        <div class="playlist-item-ordem">${index + 1}.</div>
+
+        <div class="playlist-item-nome" title="${escapeHtml(nomeCliente)} - ${escapeHtml(nomeArquivo)}">
+          <strong>${escapeHtml(nomeCliente)}</strong>
+          <small>${escapeHtml(nomeArquivo)}</small>
+        </div>
+
+        <div class="playlist-item-data playlist-item-postado">
+          ${formatarDataHora(item.created_at || item.data_inicio)}
+        </div>
+
+        <div class="playlist-item-data playlist-item-encerramento">
+          ${formatarData(item.data_fim)}
+        </div>
+
+        <div class="playlist-item-acoes-laterais">
+          <button class="playlist-acao btn-renomear-item" type="button" data-id="${item.id}" data-nome="${escapeHtml(nomeArquivo)}" title="Renomear">✎</button>
+          <a class="playlist-acao btn-baixar-item" href="${escapeHtml(urlDownload || "#")}" download target="_blank" rel="noopener" title="Baixar">↓</a>
+          <button class="playlist-acao btn-excluir-item" type="button" data-id="${item.id}" title="Excluir">×</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function montarItemHistoricoEncerramento(item, index) {
+  const nomeArquivo = obterNomeArquivoPlaylist(item);
+  const nomeCliente = obterNomeClientePlaylist(item);
+
+  return `
+    <div class="historico-item">
+      <span class="historico-item-ordem">${index + 1}.</span>
+      <span class="historico-item-nome">${escapeHtml(nomeCliente)} | ${escapeHtml(nomeArquivo)}</span>
+      <span class="historico-item-valor">${formatarData(item.data_fim)}</span>
+    </div>
+  `;
+}
+
+function montarItemHistoricoStatus(item, index) {
+  const textoEvento = obterTextoEventoConexao(item);
+  const eventoNormalizado = normalizarStatusHistorico(item);
+  const classe = statusEhAtivo(eventoNormalizado)
+    ? "ativo"
+    : statusEhInativo(eventoNormalizado)
+      ? "inativo"
+      : "";
+
+  const data = formatarDataHora(obterDataHistorico(item));
+
+  return `
+    <div class="historico-item">
+      <span class="historico-item-ordem">${index + 1}.</span>
+      <span class="historico-item-nome historico-status ${classe}">
+        ${escapeHtml(textoEvento)} em ${escapeHtml(data)}
+      </span>
+      <span class="historico-item-valor">${escapeHtml(data)}</span>
+    </div>
+  `;
+}
+
+function obterContainerHistoricoEncerramento() {
+  return (
+    document.getElementById("historicoEncerramento") ||
+    document.getElementById("playlistInativaEncerramento") ||
+    document.getElementById("playlistInativa")
+  );
+}
+
+function obterContainerHistoricoStatus() {
+  return (
+    document.getElementById("historicoStatus") ||
+    document.getElementById("playlistInativaStatus")
+  );
+}
+
+const pastasAbertasCentral = new Set();
+
+function atualizarTipoPontoDetalhe() {
+  const config = configuracoesPontos[codigoSelecionado] || {tipo_ponto:"publicidade",youtube_url:""};
+  const tvAberta = normalizarTipoPonto(config.tipo_ponto) === "tv_aberta";
+  const layout = document.querySelector(".playlist-layout-novo");
+  if(layout) layout.style.display = tvAberta ? "none" : "flex";
+  if(areaTvAberta) areaTvAberta.style.display = tvAberta ? "flex" : "none";
+  if(btnUpgradePlaylist) btnUpgradePlaylist.style.display = tvAberta ? "none" : "inline-flex";
+  if(btnCriarPastaPlaylist) btnCriarPastaPlaylist.style.display = tvAberta ? "none" : "inline-flex";
+  if(youtubeUrlPonto) youtubeUrlPonto.value = config.youtube_url || "";
+  const titulo = document.querySelector(".topbar-titulo");
+  if(titulo) titulo.textContent = tvAberta ? "Gerencie o canal de TV aberta" : "Gerencie e organize a sua playlist";
+}
+
+function formatarDuracaoCentral(valor){
+  const total=Math.max(1,Number(valor)||15),min=Math.floor(total/60),seg=Math.floor(total%60);
+  return `${String(min).padStart(2,"0")}:${String(seg).padStart(2,"0")}`;
+}
+
+function linhaConteudoCentral(item,index,pastaId=""){
+  const nome=obterNomeArquivoPlaylist(item),url=obterUrlDownloadPlaylist(item);
+  return `<tr draggable="${pastaId ? "false" : "true"}" data-item-id="${escapeHtml(item.id)}" data-index="${index}" data-pasta-id="${escapeHtml(pastaId)}">
+    <td>${index+1}</td><td>${escapeHtml(nome)}</td><td>${escapeHtml(formatarDataHora(item.data_inicio||item.created_at))}</td>
+    <td>${escapeHtml(formatarDataHora(item.data_fim))}</td><td>${escapeHtml(formatarDuracaoCentral(item.duracao))}</td><td>${escapeHtml(item.tipo||"Vídeo")}</td>
+    <td><div class="acoes-central"><a class="acao-central" href="${escapeHtml(url||"#")}" target="_blank" rel="noopener">Visualizar</a><button class="acao-central editar-central" data-id="${escapeHtml(item.id)}" data-pasta="${escapeHtml(pastaId)}">Editar</button><button class="acao-central excluir excluir-central" data-id="${escapeHtml(item.id)}" data-pasta="${escapeHtml(pastaId)}">Excluir</button></div></td></tr>`;
+}
+
+function renderizarPlaylistCentral(items){
+  const ativos=items.filter(item=>!itemEstaInativo(item));
+  const linhas=[];
+  ativos.forEach((item,index)=>{
+    if(item.tipo==="pasta"){
+      const filhos=Array.isArray(item.itens)?item.itens:[];
+      linhas.push(`<tr class="linha-pasta" data-folder-id="${escapeHtml(item.id)}"><td>${index+1}</td><td colspan="5"><strong>${escapeHtml(item.nome||"Pasta")}</strong><div class="pasta-detalhes">${item.modo_reproducao==="sequencial"?"Sequencial":"Aleatória"} • ${Number(item.quantidade_por_passagem)||1} por passagem • ${filhos.length} arquivo(s)</div></td><td><div class="acoes-central"><button class="acao-central abrir-pasta-central" data-id="${escapeHtml(item.id)}">${pastasAbertasCentral.has(String(item.id))?"Fechar":"Abrir"}</button><button class="acao-central configurar-pasta-central" data-id="${escapeHtml(item.id)}">Editar</button><button class="acao-central excluir excluir-pasta-central" data-id="${escapeHtml(item.id)}">Excluir</button></div></td></tr>`);
+    }else linhas.push(linhaConteudoCentral(item,index));
+  });
+  return `<table class="playlist-tabela-central"><thead><tr><th>ORDEM</th><th>NOME DO CONTEÚDO</th><th>POSTAGEM</th><th>VENCIMENTO</th><th>DURAÇÃO</th><th>TIPO</th><th>AÇÕES</th></tr></thead><tbody>${linhas.join("")||'<tr><td colspan="7" class="playlist-vazia">Nenhum conteúdo ativo</td></tr>'}</tbody></table>`;
+}
+
+function renderizarPlaylistDados(lista, historicoStatus) {
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const statusInfo = calcularStatusPorHistorico(historicoStatus, ponto);
+  atualizarStatusDetalhePonto(statusInfo);
+
+  const ativos = lista.filter((item) => !itemEstaInativo(item));
+  const inativos = lista.filter((item) => itemEstaInativo(item));
+
+  const playlistAtiva = document.getElementById("playlistAtiva");
+  const historicoEncerramento = obterContainerHistoricoEncerramento();
+  const historicoStatusEl = obterContainerHistoricoStatus();
+
+  if (playlistAtiva) {
+    playlistAtiva.innerHTML = renderizarPlaylistCentral(lista);
+  }
+
+  if (historicoEncerramento) {
+    historicoEncerramento.innerHTML = inativos.length
+      ? inativos.map((item, index) => montarItemHistoricoEncerramento(item, index)).join("")
+      : `<div class="playlist-vazia">Sem histórico</div>`;
+  }
+
+  if (historicoStatusEl) {
+    historicoStatusEl.innerHTML = historicoStatus.length
+      ? historicoStatus.map((item, index) => montarItemHistoricoStatus(item, index)).join("")
+      : `<div class="playlist-vazia">Sem histórico</div>`;
+  }
+
+  atualizarTipoPontoDetalhe();
+  ativarEventosPlaylistCentral();
+}
+
+async function criarPastaCentral(){
+  const nome=window.prompt("Nome da pasta:","Nova pasta"); if(!nome?.trim()) return;
+  const quantidade=Math.max(1,Math.min(100,Number(window.prompt("Quantos arquivos por passagem?","1"))||1));
+  const modo=window.confirm("Clique em OK para modo aleatório ou Cancelar para sequencial.")?"aleatorio":"sequencial";
+  const items=await obterPlaylistR2(codigoSelecionado);
+  items.push({id:crypto.randomUUID(),codigo:codigoSelecionado,tipo:"pasta",nome:nome.trim(),titulo_arquivo:nome.trim(),modo_reproducao:modo,quantidade_por_passagem:quantidade,evitar_repeticao:true,itens:[],ordem:items.length+1,created_at:new Date().toISOString()});
+  await salvarPlaylistR2(codigoSelecionado,items); limparCachePlaylist(codigoSelecionado); await carregarPlaylist({forcarAtualizacao:true}); setStatus("Pasta criada","ok");
+}
+
+async function editarItemCentral(id,pastaId=""){
+  const items=await obterPlaylistR2(codigoSelecionado); let alvo=null;
+  if(pastaId){const pasta=items.find(x=>String(x.id)===String(pastaId));alvo=pasta?.itens?.find(x=>String(x.id)===String(id));}else alvo=items.find(x=>String(x.id)===String(id));
+  if(!alvo)return;
+  const nome=window.prompt("Nome do conteúdo:",obterNomeArquivoPlaylist(alvo));if(nome===null)return;
+  const duracao=Number(window.prompt("Duração em segundos:",String(Number(alvo.duracao)||15)));if(!Number.isInteger(duracao)||duracao<1)return setStatus("Duração inválida","erro");
+  const dataAtual=alvo.data_fim?new Date(alvo.data_fim).toISOString().slice(0,10):"";
+  const vencimento=window.prompt("Vencimento (AAAA-MM-DD):",dataAtual);if(vencimento===null)return;
+  const dataFim=new Date(`${vencimento}T23:59:59`);if(Number.isNaN(dataFim.getTime()))return setStatus("Vencimento inválido","erro");
+  alvo.nome=nome.trim()||alvo.nome;alvo.titulo_arquivo=alvo.nome;alvo.duracao=String(duracao);alvo.data_fim=dataFim.toISOString();
+  await salvarPlaylistR2(codigoSelecionado,items);limparCachePlaylist(codigoSelecionado);carregarPlaylist({forcarAtualizacao:true});
+}
+
+async function excluirItemCentral(id,pastaId=""){
+  if(!window.confirm("Deseja excluir este conteúdo?"))return;
+  const items=await obterPlaylistR2(codigoSelecionado);let removido=null,nova=items;
+  if(pastaId){nova=items.map(p=>{if(String(p.id)!==String(pastaId))return p;removido=(p.itens||[]).find(x=>String(x.id)===String(id));return {...p,itens:(p.itens||[]).filter(x=>String(x.id)!==String(id))};});}
+  else{removido=items.find(x=>String(x.id)===String(id));nova=items.filter(x=>String(x.id)!==String(id));}
+  await salvarPlaylistR2(codigoSelecionado,nova);if(removido?.storage_path)try{await excluirMidiaR2(removido.storage_path)}catch(e){console.warn(e)}
+  limparCachePlaylist(codigoSelecionado);carregarPlaylist({forcarAtualizacao:true});
+}
+
+function ativarEventosPlaylistCentral(){
+  document.querySelectorAll(".abrir-pasta-central").forEach(btn=>btn.onclick=async()=>{const id=String(btn.dataset.id),items=await obterPlaylistR2(codigoSelecionado),p=items.find(x=>String(x.id)===id);if(!p)return;tituloPastaConteudosCentral.textContent=p.nome||"Pasta";resumoPastaConteudosCentral.textContent=`${p.modo_reproducao==="sequencial"?"Sequencial":"Aleatória"} • ${Number(p.quantidade_por_passagem)||1} por passagem • ${(p.itens||[]).length} arquivo(s)`;listaPastaConteudosCentral.innerHTML=`<table class="playlist-tabela-central"><thead><tr><th>ORDEM</th><th>NOME DO CONTEÚDO</th><th>POSTAGEM</th><th>VENCIMENTO</th><th>DURAÇÃO</th><th>TIPO</th><th>AÇÕES</th></tr></thead><tbody>${(p.itens||[]).map((f,i)=>linhaConteudoCentral(f,i,id)).join("")||'<tr><td colspan="7">Pasta vazia</td></tr>'}</tbody></table>`;modalPastaConteudosCentral.style.display="flex";document.querySelectorAll("#modalPastaConteudosCentral .editar-central").forEach(b=>b.onclick=()=>editarItemCentral(b.dataset.id,b.dataset.pasta));document.querySelectorAll("#modalPastaConteudosCentral .excluir-central").forEach(b=>b.onclick=async()=>{await excluirItemCentral(b.dataset.id,b.dataset.pasta);modalPastaConteudosCentral.style.display="none";});});
+  document.querySelectorAll(".configurar-pasta-central").forEach(btn=>btn.onclick=async()=>{const items=await obterPlaylistR2(codigoSelecionado),p=items.find(x=>String(x.id)===String(btn.dataset.id));if(!p)return;const nome=window.prompt("Nome da pasta:",p.nome||"");if(nome===null)return;const qtd=Number(window.prompt("Arquivos por passagem:",String(p.quantidade_por_passagem||1)));p.nome=nome.trim()||p.nome;p.titulo_arquivo=p.nome;p.quantidade_por_passagem=Math.max(1,Math.min(100,qtd||1));await salvarPlaylistR2(codigoSelecionado,items);limparCachePlaylist(codigoSelecionado);carregarPlaylist({forcarAtualizacao:true});});
+  document.querySelectorAll(".excluir-pasta-central").forEach(btn=>btn.onclick=async()=>{if(!window.confirm("Excluir a pasta e todo o conteúdo interno?"))return;const items=await obterPlaylistR2(codigoSelecionado),p=items.find(x=>String(x.id)===String(btn.dataset.id));await salvarPlaylistR2(codigoSelecionado,items.filter(x=>String(x.id)!==String(btn.dataset.id)));for(const f of p?.itens||[])if(f.storage_path)try{await excluirMidiaR2(f.storage_path)}catch(e){console.warn(e)}limparCachePlaylist(codigoSelecionado);carregarPlaylist({forcarAtualizacao:true});});
+  document.querySelectorAll(".editar-central").forEach(btn=>btn.onclick=()=>editarItemCentral(btn.dataset.id,btn.dataset.pasta));
+  document.querySelectorAll(".excluir-central").forEach(btn=>btn.onclick=()=>excluirItemCentral(btn.dataset.id,btn.dataset.pasta));
+  let draggedId="";
+  document.querySelectorAll('.playlist-tabela-central tr[draggable="true"]').forEach(row=>row.addEventListener("dragstart",()=>{draggedId=row.dataset.itemId||"";}));
+  document.querySelectorAll(".playlist-tabela-central .linha-pasta").forEach(row=>{row.addEventListener("dragover",e=>{e.preventDefault();row.classList.add("drag-over")});row.addEventListener("dragleave",()=>row.classList.remove("drag-over"));row.addEventListener("drop",async e=>{e.preventDefault();row.classList.remove("drag-over");if(!draggedId)return;const items=await obterPlaylistR2(codigoSelecionado),origem=items.find(x=>String(x.id)===draggedId),pasta=items.find(x=>String(x.id)===String(row.dataset.folderId));if(!origem||!pasta)return;pasta.itens=[...(pasta.itens||[]),origem];await salvarPlaylistR2(codigoSelecionado,items.filter(x=>String(x.id)!==draggedId));limparCachePlaylist(codigoSelecionado);carregarPlaylist({forcarAtualizacao:true});});});
+}
+
+async function buscarHistoricoStatusPonto(codigo) {
+  try {
+    const data = await requisitarWorker(`/api/status/${encodeURIComponent(normalizarCodigo(codigo))}`);
+    const itens = [
+      data?.atual || null,
+      ...(Array.isArray(data?.historico) ? data.historico : [])
+    ].filter(Boolean);
+
+    return itens.sort((a, b) => {
+      const dataA = Date.parse(obterDataHistorico(a) || 0);
+      const dataB = Date.parse(obterDataHistorico(b) || 0);
+      return dataB - dataA;
+    });
+  } catch (error) {
+    console.warn("Historico de status no R2 nao carregou:", error);
+    return [];
+  }
+}
+
+async function buscarPlaylistRemota(codigo) {
+  const [playlistData, historicoData] = await Promise.all([
+    obterPlaylistR2(codigo),
+    buscarHistoricoStatusPonto(codigo)
+  ]);
+
+  return {
+    playlist: playlistData || [],
+    historico: historicoData || []
+  };
+}
+
+async function carregarPlaylist(opcoes = {}) {
+  if (!codigoSelecionado || carregandoPlaylist) return;
+
+  const forcarAtualizacao = opcoes.forcarAtualizacao === true;
+  const codigo = codigoSelecionado;
+  const cache = lerCachePlaylist(codigo);
+
+  if (!forcarAtualizacao && cache) {
+    renderizarPlaylistDados(cache.playlist, cache.historico);
+    setStatus(cache.fresco ? "Painel Ativo" : "Playlist em cache. Atualização pendente.", cache.fresco ? "ok" : "normal");
+
+    if (cache.fresco) return;
+  } else if (!cache) {
+    setStatus("Carregando playlist...", "normal");
+  }
+
+  carregandoPlaylist = true;
+
+  try {
+    const dados = await buscarPlaylistRemota(codigo);
+
+    if (codigoSelecionado !== codigo) return;
+
+    salvarCachePlaylist(codigo, dados.playlist, dados.historico);
+    renderizarPlaylistDados(dados.playlist, dados.historico);
+    setStatus("Painel Ativo", "ok");
+  } catch (error) {
+    console.error(error);
+
+    if (cache) {
+      setStatus("Painel Ativo", "ok");
+      return;
+    }
+
+    setStatus("Erro ao carregar playlist", "erro");
+  } finally {
+    carregandoPlaylist = false;
+  }
+}
+
+function ativarRenomearItens() {
+  document.querySelectorAll(".btn-renomear-item").forEach((btn) => {
+    btn.onclick = async (event) => {
+      event.stopPropagation();
+
+      const id = btn.dataset.id;
+      const nomeAtual = btn.dataset.nome || "";
+
+      if (!id) return;
+
+      const novoNome = window.prompt("Digite o novo nome do arquivo:", nomeAtual);
+      if (novoNome === null) return;
+
+      const nomeFinal = novoNome.trim();
+
+      if (!nomeFinal) {
+        setStatus("Digite um nome válido", "erro");
         return;
       }
 
-      const ponto = data || {};
-      const nome = ponto.nome || ponto.nome_local || ponto.titulo || "Selfit";
-      const cidade = ponto.cidade || ponto.cidade_regiao || ponto.municipio || "Ilhéus";
-      const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "zona sul";
-      const imagem = ponto.imagem_url || ponto.imagem || ponto.foto_url || "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
+      const items = await obterPlaylistR2(codigoSelecionado);
+      const atualizados = items.map((item) => String(item.id) === String(id)
+        ? { ...item, titulo_arquivo: nomeFinal, nome: nomeFinal }
+        : item);
+      await salvarPlaylistR2(codigoSelecionado, atualizados);
 
-      nomeUnidade.textContent = nome;
-      localizacaoUnidade.textContent = [cidade,endereco].filter(Boolean).join(" | ");
-      imagemUnidade.src = imagem;
-      imagemUnidade.alt = nome;
-    }
+      limparCachePlaylist(codigoSelecionado);
+      setStatus("Arquivo renomeado", "ok");
+      carregarPlaylist({ forcarAtualizacao: true });
+    };
+  });
+}
 
+async function ativarExclusaoItens() {
+  document.querySelectorAll(".btn-excluir-item").forEach((btn) => {
+    btn.onclick = async (event) => {
+      event.stopPropagation();
 
-    async function excluirConteudosVencidos(lista){
-      const agora = Date.now();
-      const vencidos = (lista || []).filter((item)=>{
-        const fim = item.data_fim || item.fim_exibicao;
-        if(!fim) return false;
+      const id = btn.dataset.id;
+      if (!id) return;
 
-        const dataFim = new Date(fim);
-        return !Number.isNaN(dataFim.getTime()) && dataFim.getTime() <= agora;
-      });
+      const confirmar = window.confirm("Deseja excluir este item da playlist?");
+      if (!confirmar) return;
 
-      if(!vencidos.length) return lista || [];
+      const items = await obterPlaylistR2(codigoSelecionado);
+      const removido = items.find((item) => String(item.id) === String(id));
+      await salvarPlaylistR2(codigoSelecionado, items.filter((item) => String(item.id) !== String(id)));
 
-      const restantes = (lista || []).filter(
-        (item)=>!vencidos.some((vencido)=>String(vencido.id) === String(item.id))
-      );
-
-      try{
-        const listaSalva = await salvarPlaylistR2(restantes);
-        for(const item of vencidos){
-          try{ await excluirMidiaR2(item.storage_path); }
-          catch(error){ console.warn("Playlist atualizada, mas a mídia vencida não foi removida:",error); }
+      if (removido?.storage_path) {
+        try {
+          await excluirMidiaR2(removido.storage_path);
+        } catch (error) {
+          console.warn("Item removido da playlist, mas a mídia não foi excluída do R2:", error);
         }
-        return listaSalva;
-      }catch(error){
-        console.error("Erro ao remover conteúdos vencidos do R2:",error);
-        return lista || [];
       }
-    }
 
-    async function carregarPlaylist(){
-      corpoTabela.innerHTML = '<tr><td colspan="7" class="vazio">Carregando conteúdos...</td></tr>';
+      limparCachePlaylist(codigoSelecionado);
+      setStatus("Item excluído", "ok");
+      carregarPlaylist({ forcarAtualizacao: true });
+    };
+  });
+}
 
-      try{
-        const items = await obterPlaylistR2();
-        items.sort((a,b)=>Number(a.ordem || 0)-Number(b.ordem || 0));
-        playlistAtual = await excluirConteudosVencidos(items);
-        renderizarPlaylist();
-      }catch(error){
-        console.error(error);
-        corpoTabela.innerHTML = '<tr><td colspan="7" class="vazio">Erro ao carregar conteúdos.</td></tr>';
-        mostrarStatus(error.message || "Erro ao carregar a playlist do R2.","erro");
+function limparEstadosDrag() {
+  document.querySelectorAll("#playlistAtiva .playlist-item").forEach((el) => {
+    el.classList.remove("drag-over", "drop-animating");
+  });
+}
+
+function ativarDrag(lista) {
+  const items = document.querySelectorAll("#playlistAtiva .playlist-item");
+
+  items.forEach((item) => {
+    item.addEventListener("dragstart", () => {
+      dragIndex = Number(item.dataset.index);
+      item.classList.add("dragging");
+      document.body.classList.add("playlist-drag-ativa");
+    });
+
+    item.addEventListener("dragend", () => {
+      item.classList.remove("dragging");
+      document.body.classList.remove("playlist-drag-ativa");
+      limparEstadosDrag();
+      dragIndex = null;
+    });
+
+    item.addEventListener("dragover", (event) => {
+      event.preventDefault();
+
+      if (!item.classList.contains("drag-over")) {
+        limparEstadosDrag();
+        item.classList.add("drag-over");
       }
-    }
+    });
 
-    function renderizarPlaylist(){
-      if(!playlistAtual.length){
-        corpoTabela.innerHTML = '<tr><td colspan="7" class="vazio">Nenhum conteúdo cadastrado neste ponto.</td></tr>';
+    item.addEventListener("dragleave", () => {
+      item.classList.remove("drag-over");
+    });
+
+    item.addEventListener("drop", async () => {
+      item.classList.remove("drag-over");
+      item.classList.add("drop-animating");
+
+      const target = Number(item.dataset.index);
+
+      if (Number.isNaN(dragIndex) || Number.isNaN(target) || dragIndex === target) {
+        item.classList.remove("drop-animating");
         return;
       }
 
-      corpoTabela.innerHTML = playlistAtual.map((item,index)=>{
-        const postagem = formatarDataHora(item.created_at || item.data_inicio);
-        const vencimento = formatarDataHora(item.data_fim || item.fim_exibicao);
-        const nome = obterNomeArquivo(item);
-        const url = obterUrl(item);
-        const duracao = Number(item.duracao) || 15;
+      const novo = [...lista];
+      const movido = novo.splice(dragIndex, 1)[0];
+      novo.splice(target, 0, movido);
 
-        if(item.tipo === "pasta"){
-          const totalArquivos = Array.isArray(item.itens) ? item.itens.length : 0;
-          const modoPasta = item.modo_reproducao === "sequencial" ? "Sequencial" : "Aleatória sem repetição";
-          const quantidadePasta = Math.max(1,Number(item.quantidade_por_passagem)||1);
-          return `
-            <tr class="linha-pasta" draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
-              <td class="coluna-ordem"><div class="ordem-conteudo"><span class="numero-ordem">${index+1}</span><div class="drag-handle" title="Arraste para mudar a ordem">⠿</div></div></td>
-              <td colspan="5"><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}<span class="linha-pasta-info">${modoPasta} • ${quantidadePasta} por passagem • ${totalArquivos} ${totalArquivos===1?"arquivo":"arquivos"}</span></div></td>
-              <td><div class="acoes">
-                <button class="acao" type="button" onclick="abrirConteudosPasta('${escapeHtml(item.id)}')"><span>◉</span><span>Abrir</span></button>
-                <button class="acao" type="button" onclick="editarPastaPlaylist('${escapeHtml(item.id)}')"><span>✎</span><span>Editar</span></button>
-                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','')"><span>×</span><span>Excluir</span></button>
-              </div></td>
-            </tr>`;
+      await salvarPlaylistR2(codigoSelecionado, novo.map((entrada, index) => ({ ...entrada, ordem: index + 1 })));
+
+      limparCachePlaylist(codigoSelecionado);
+
+      setTimeout(() => {
+        item.classList.remove("drop-animating");
+      }, 220);
+
+      carregarPlaylist({ forcarAtualizacao: true });
+    });
+  });
+}
+
+function abrirModalEdicao() {
+  if (!codigoSelecionado || !modalEditar) return;
+
+  const ponto = pontosMap[codigoSelecionado] || {};
+  posicaoImagemAtual = lerPosicaoImagem(codigoSelecionado);
+
+  if (editNome) editNome.value = obterNomePonto(ponto, codigoSelecionado) || "";
+  if (editCidade) editCidade.value = obterCidadePonto(ponto) || "";
+  if (editEndereco) editEndereco.value = obterEnderecoPonto(ponto) || "";
+
+  if (editContratoInicio) editContratoInicio.value = dataIsoParaBr(ponto.contrato_data_inicio) || "";
+  if (editContratoFim) editContratoFim.value = dataIsoParaBr(ponto.contrato_data_fim) || "";
+
+  const contratoEhParceria = ponto.contrato_tipo === "parceria";
+
+  if (editContratoParceriaSim) editContratoParceriaSim.checked = contratoEhParceria;
+  if (editContratoParceriaNao) editContratoParceriaNao.checked = !contratoEhParceria;
+
+  if (editValorContrato) {
+    editValorContrato.value = ponto.contrato_valor || "";
+    editValorContrato.style.display = "block";
+  }
+
+  atualizarVisualParceria();
+
+  if (editResponsavelNome) editResponsavelNome.value = ponto.responsavel_nome || "";
+  if (editResponsavelCpf) editResponsavelCpf.value = ponto.responsavel_cpf || "";
+  if (editResponsavelTelefone) editResponsavelTelefone.value = ponto.responsavel_telefone || "";
+  if (editResponsavelEmail) editResponsavelEmail.value = ponto.responsavel_email || "";
+
+  if (previewImagem) {
+    previewImagem.src = obterImagemPonto(ponto);
+    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+  }
+
+  if (inputImagem) inputImagem.value = "";
+
+  arquivoImagemEdicao = null;
+  modalEditar.style.display = "flex";
+}
+
+function fecharModalEdicao() {
+  if (!modalEditar) return;
+
+  modalEditar.style.display = "none";
+  arquivoImagemEdicao = null;
+  arrastandoPreview = false;
+
+  if (inputImagem) inputImagem.value = "";
+}
+
+async function deletarPontoAtual() {
+  if (!codigoSelecionado) return;
+
+  const confirmar = window.confirm(`Deseja deletar o ponto ${codigoSelecionado}?`);
+  if (!confirmar) return;
+
+  try {
+    setStatus("Deletando ponto...", "normal");
+
+    await Promise.all([
+      requisitarWorker(`/api/playlist/${encodeURIComponent(codigoSelecionado)}`, { method: "DELETE" }),
+      requisitarWorker(`/api/status/${encodeURIComponent(codigoSelecionado)}`, { method: "DELETE" })
+    ]);
+
+    const { error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .delete()
+      .eq("codigo", codigoSelecionado);
+
+    if (error) throw error;
+
+    limparCachePlaylist(codigoSelecionado);
+    sessionStorage.removeItem(CACHE_PONTOS_KEY);
+
+    codigoSelecionado = null;
+
+    if (modalEditar) modalEditar.style.display = "none";
+    if (pontoDetalhe) pontoDetalhe.style.display = "none";
+    if (listaPontos) listaPontos.style.display = "block";
+
+    await carregarPontosRemoto();
+
+    setStatus("Ponto deletado", "ok");
+  } catch (error) {
+    console.error("Erro ao deletar ponto:", error);
+    setStatus("Erro ao deletar ponto", "erro");
+  }
+}
+
+async function baixarContratoAtual() {
+  if (!codigoSelecionado) return;
+
+  const janela = window.open("", "_blank");
+
+  if (!janela) {
+    setStatus("Permita pop-ups para abrir o contrato", "erro");
+    return;
+  }
+
+  janela.document.open();
+  janela.document.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Gerando contrato...</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 40px;
+          color: #111827;
         }
+      </style>
+    </head>
+    <body>
+      <h2>Gerando contrato...</h2>
+      <p>Aguarde um instante.</p>
+    </body>
+    </html>
+  `);
+  janela.document.close();
 
-        return `
-          <tr draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
-            <td class="coluna-ordem">
-              <div class="ordem-conteudo">
-                <span class="numero-ordem">${index + 1}</span>
-                <div class="drag-handle" title="Arraste para mudar a ordem">⠿</div>
-              </div>
-            </td>
-            <td><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
-            <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
-            <td><div class="data-cell"><span>${escapeHtml(vencimento.data)}</span><span class="hora">${escapeHtml(vencimento.hora)}</span></div></td>
-            <td class="tipo-cell">${escapeHtml(formatarDuracao(duracao))}</td>
-            <td class="tipo-cell">${escapeHtml(obterTipo(item))}</td>
-            <td>
-              <div class="acoes">
-                <button class="acao" type="button" onclick="baixarItem('${escapeHtml(url)}','${escapeHtml(nome)}')"><span>◉</span><span>Visualizar</span></button>
-                <button class="acao" type="button" onclick="abrirEdicaoItem('${escapeHtml(item.id)}')"><span>✎</span><span>Editar</span></button>
-                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','${escapeHtml(item.storage_path || "")}')"><span>×</span><span>Excluir</span></button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join("");
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const parceriaAtiva = editContratoParceriaSim ? editContratoParceriaSim.checked : false;
 
-      ativarOrdenacaoPlaylist();
+  const nome = editNome ? editNome.value.trim() : obterNomePonto(ponto, codigoSelecionado);
+  const cidade = editCidade ? editCidade.value.trim() : obterCidadePonto(ponto);
+  const endereco = editEndereco ? editEndereco.value.trim() : obterEnderecoPonto(ponto);
+
+  const dataInicio = editContratoInicio ? editContratoInicio.value.trim() : "";
+  const dataFim = editContratoFim ? editContratoFim.value.trim() : "";
+  const valorContrato = editValorContrato ? editValorContrato.value.trim() : "";
+
+  const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
+  const responsavelCpf = editResponsavelCpf ? editResponsCpfValor(editResponsavelCpf) : "";
+  const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
+  const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
+
+  const modeloComercial = parceriaAtiva
+    ? `Parceria - ${valorContrato || "___"}% por venda`
+    : `Valor fixo mensal - R$ ${valorContrato || "___"}`;
+
+  const clausulaRemuneracao = parceriaAtiva
+    ? `O CONTRATADO receberá participação de ${valorContrato || "___"}% sobre cada venda realizada pela CONTRATANTE relacionada ao espaço objeto deste contrato. A forma de apuração, periodicidade e pagamento serão definidos entre as partes.`
+    : `A CONTRATANTE pagará ao CONTRATADO o valor mensal de R$ ${valorContrato || "___"} pela cessão do espaço publicitário objeto deste contrato.`;
+
+  try {
+    setStatus("Gerando contrato...", "normal");
+
+    const { data: modelo, error } = await supabaseClient
+      .from("contratos_modelos")
+      .select("*")
+      .eq("tipo", "estabelecimento")
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!modelo || !modelo.html_modelo) {
+      janela.document.body.innerHTML = "<h2>Modelo de estabelecimento não encontrado.</h2>";
+      setStatus("Modelo de estabelecimento não encontrado", "erro");
+      return;
     }
 
-    function ativarOrdenacaoPlaylist(){
-      const linhas = [...corpoTabela.querySelectorAll("tr[draggable='true']")];
-      let indiceOrigem = null;
+    const dadosContratada = typeof modelo.dados_contratada === "string"
+      ? JSON.parse(modelo.dados_contratada || "{}")
+      : modelo.dados_contratada || {};
 
-      linhas.forEach((linha)=>{
-        linha.addEventListener("dragstart",(event)=>{
-          indiceOrigem = Number(linha.dataset.index);
-          linha.classList.add("arrastando");
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain",String(indiceOrigem));
-        });
+    const substituicoes = {
+      "{{titulo}}": modelo.titulo || "Contrato de Parceria com Estabelecimento",
+      "{{subtitulo}}": modelo.subtitulo || "Contrato de cessão de espaço publicitário para mídia digital.",
+      "{{empresa}}": dadosContratada.empresa || "Duna Branding",
+      "{{cnpj}}": dadosContratada.cnpj || "",
+      "{{telefone_empresa}}": dadosContratada.telefone || "",
+      "{{email_empresa}}": dadosContratada.email || "",
+      "{{endereco_empresa}}": dadosContratada.endereco || "",
+      "{{responsavel}}": dadosContratada.responsavel || "",
+      "{{assinatura_url}}": dadosContratada.assinatura_url || "assinatura.png",
 
-        linha.addEventListener("dragend",()=>{
-          linha.classList.remove("arrastando");
-          linhas.forEach(item=>item.classList.remove("drag-over"));
-          indiceOrigem = null;
-        });
+      "{{estabelecimento_nome}}": nome,
+      "{{estabelecimento_cpf_cnpj}}": responsavelCpf,
+      "{{estabelecimento_responsavel}}": responsavelNome,
+      "{{estabelecimento_telefone}}": responsavelTelefone,
+      "{{estabelecimento_email}}": responsavelEmail,
+      "{{estabelecimento_cidade}}": cidade,
+      "{{estabelecimento_endereco}}": endereco,
+      "{{data_inicio}}": dataInicio,
+      "{{data_fim}}": dataFim,
+      "{{modelo_comercial}}": modeloComercial,
+      "{{clausula_remuneracao}}": clausulaRemuneracao,
 
-        linha.addEventListener("dragover",(event)=>{
-          event.preventDefault();
-          event.dataTransfer.dropEffect = "move";
-          linhas.forEach(item=>item.classList.remove("drag-over"));
-          linha.classList.add("drag-over");
-        });
+      "{{cliente_nome}}": nome,
+      "{{cliente_cpf_cnpj}}": responsavelCpf,
+      "{{cliente_telefone}}": responsavelTelefone,
+      "{{cliente_email}}": responsavelEmail,
+      "{{ambiente}}": nome,
+      "{{pontos}}": nome,
+      "{{valor}}": valorContrato
+    };
 
-        linha.addEventListener("drop",async(event)=>{
-          event.preventDefault();
-          linha.classList.remove("drag-over");
+    let htmlContrato = modelo.html_modelo;
 
-          const indiceDestino = Number(linha.dataset.index);
+    Object.entries(substituicoes).forEach(([chave, valor]) => {
+      htmlContrato = htmlContrato.split(chave).join(escapeHtml(valor || ""));
+    });
 
-          if(
-            indiceOrigem === null ||
-            Number.isNaN(indiceOrigem) ||
-            Number.isNaN(indiceDestino) ||
-            indiceOrigem === indiceDestino
-          ) return;
+    janela.document.open();
+    janela.document.write(`
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>Contrato ${escapeHtml(nome)}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background: #eef3fb;
+            color: #111827;
+            margin: 0;
+            padding: 32px;
+          }
 
-          const itemOrigem = playlistAtual[indiceOrigem];
-          const itemDestino = playlistAtual[indiceDestino];
+          .pagina-contrato {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 44px;
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.14);
+          }
 
-          if(itemDestino?.tipo === "pasta" && itemOrigem?.tipo !== "pasta"){
-            const estadoAnterior = [...playlistAtual];
-            const novaLista = playlistAtual
-              .filter((_,index)=>index !== indiceOrigem)
-              .map(item=>{
-                if(String(item.id) !== String(itemDestino.id)) return item;
-                const itens = Array.isArray(item.itens) ? item.itens : [];
-                return {...item,itens:[...itens,{...itemOrigem,pasta_id:item.id,ordem:itens.length+1}]};
-              })
-              .map((item,index)=>({...item,ordem:index+1}));
-            playlistAtual = novaLista;
-            renderizarPlaylist();
-            mostrarStatus(`Movendo para ${obterNomeArquivo(itemDestino)}...`);
-            try{
-              playlistAtual = await salvarPlaylistR2(playlistAtual);
-              renderizarPlaylist();
-              mostrarStatus("Conteúdo movido para a pasta.","ok");
-            }catch(error){
-              console.error(error);playlistAtual=estadoAnterior;renderizarPlaylist();
-              mostrarStatus(error.message || "Erro ao mover o conteúdo.","erro");
+          .topo-contrato h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+          }
+
+          .topo-contrato p {
+            color: #64748b;
+            margin-bottom: 24px;
+          }
+
+          .bloco {
+            margin-bottom: 24px;
+          }
+
+          .bloco h2 {
+            font-size: 17px;
+            margin-bottom: 12px;
+            padding-left: 10px;
+            border-left: 4px solid #2563eb;
+          }
+
+          .bloco p {
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 10px;
+            text-align: justify;
+          }
+
+          .assinaturas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-top: 70px;
+            align-items: end;
+          }
+
+          .assinatura-box {
+            text-align: center;
+          }
+
+          .assinatura-img {
+            width: 260px;
+            max-width: 100%;
+            height: 90px;
+            object-fit: contain;
+            object-position: center bottom;
+            display: block;
+            margin: 0 auto -10px;
+          }
+
+          .linha-assinatura {
+            border-top: 1px solid #111827;
+            padding-top: 8px;
+            font-weight: 700;
+            font-size: 14px;
+          }
+
+          .acoes-contrato {
+            max-width: 900px;
+            margin: 18px auto 0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+          }
+
+          .acoes-contrato button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+
+          .btn-imprimir {
+            background: #2563eb;
+            color: #fff;
+          }
+
+          .btn-fechar {
+            background: #111827;
+            color: #fff;
+          }
+
+          @media print {
+            body {
+              background: #fff;
+              padding: 0;
             }
-            return;
+
+            .pagina-contrato {
+              box-shadow: none;
+              border-radius: 0;
+              max-width: none;
+              padding: 24px;
+            }
+
+            .acoes-contrato {
+              display: none;
+            }
           }
+        </style>
+      </head>
+      <body>
+        <div class="pagina-contrato">
+          ${htmlContrato}
+        </div>
 
-          const novaOrdem = [...playlistAtual];
-          const [movido] = novaOrdem.splice(indiceOrigem,1);
-          novaOrdem.splice(indiceDestino,0,movido);
+        <div class="acoes-contrato">
+          <button class="btn-imprimir" onclick="window.print()">Imprimir / PDF</button>
+          <button class="btn-fechar" onclick="window.close()">Fechar</button>
+        </div>
+      </body>
+      </html>
+    `);
+    janela.document.close();
 
-          const ordemAnterior = [...playlistAtual];
-          playlistAtual = novaOrdem.map((item,index)=>({...item,ordem:index+1}));
-          renderizarPlaylist();
-          mostrarStatus("Salvando nova ordem...");
+    setStatus("Contrato gerado", "ok");
+  } catch (error) {
+    console.error("Erro ao gerar contrato:", error);
+    janela.document.body.innerHTML = "<h2>Erro ao gerar contrato.</h2>";
+    setStatus("Erro ao gerar contrato", "erro");
+  }
+}
 
-          try{
-            playlistAtual = await salvarPlaylistR2(playlistAtual);
-            renderizarPlaylist();
-            mostrarStatus("Ordem atualizada.","ok");
-          }catch(error){
-            console.error(error);
-            playlistAtual = ordemAnterior;
-            renderizarPlaylist();
-            mostrarStatus(error.message || "Erro ao salvar a ordem.","erro");
-          }
-        });
-      });
-    }
+function editResponsCpfValor(input) {
+  return input ? input.value.trim() : "";
+}
 
-    window.baixarItem = function(url,nomeArquivo){
-      if(!url){
-        mostrarStatus("Este conteúdo não possui endereço para download.","erro");
-        return;
-      }
+async function salvarEdicaoPonto() {
+  if (!codigoSelecionado) return;
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = nomeArquivo || "conteudo";
-      link.target = "_blank";
-      link.rel = "noopener";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+  const ponto = pontosMap[codigoSelecionado] || {};
+  const nome = editNome ? editNome.value.trim() : "";
+  const cidade = editCidade ? editCidade.value.trim() : "";
+  const endereco = editEndereco ? editEndereco.value.trim() : "";
+
+  const contratoInicioBr = editContratoInicio ? editContratoInicio.value.trim() : "";
+  const contratoFimBr = editContratoFim ? editContratoFim.value.trim() : "";
+  const contratoInicio = dataBrParaIso(contratoInicioBr);
+  const contratoFim = dataBrParaIso(contratoFimBr);
+  const contratoParceria = editContratoParceriaSim ? editContratoParceriaSim.checked : false;
+  const valorContrato = contratoParceria ? "" : (editValorContrato ? editValorContrato.value.trim() : "");
+  const contratoTipo = contratoParceria ? "parceria" : "valor";
+
+  const responsavelNome = editResponsavelNome ? editResponsavelNome.value.trim() : "";
+  const responsavelCpf = editResponsavelCpf ? editResponsavelCpf.value.trim() : "";
+  const responsavelTelefone = editResponsavelTelefone ? editResponsavelTelefone.value.trim() : "";
+  const responsavelEmail = editResponsavelEmail ? editResponsavelEmail.value.trim() : "";
+
+  if (
+    !nome ||
+    !cidade ||
+    !endereco ||
+    !contratoInicio ||
+    !contratoFim ||
+    !responsavelNome ||
+    !responsavelCpf ||
+    !responsavelTelefone ||
+    !responsavelEmail
+  ) {
+    setStatus("Preencha todos os campos obrigatórios", "erro");
+    return;
+  }
+
+  if (!contratoParceria && !valorContrato) {
+    setStatus("Informe o valor/custo ou marque parceria", "erro");
+    return;
+  }
+
+  if (!emailValido(responsavelEmail)) {
+    setStatus("Digite um e-mail válido", "erro");
+    return;
+  }
+
+  try {
+    setStatus("Salvando informações...", "normal");
+
+    const payloadCompleto = {
+      nome,
+      cidade,
+      endereco,
+      contrato_data_inicio: contratoInicio,
+      contrato_data_fim: contratoFim,
+      contrato_tipo: contratoTipo,
+      contrato_valor: valorContrato,
+      responsavel_nome: responsavelNome,
+      responsavel_cpf: responsavelCpf,
+      responsavel_telefone: responsavelTelefone,
+      responsavel_email: responsavelEmail
     };
 
-    function valorDataLocal(valor){
-      if(!valor) return "";
-      const data = new Date(valor);
-      if(Number.isNaN(data.getTime())) return "";
-      data.setMinutes(data.getMinutes()-data.getTimezoneOffset());
-      return data.toISOString().slice(0,10);
+    const tentativaCompleta = await supabaseClient
+      .from(TABELA_PONTOS)
+      .update(payloadCompleto)
+      .eq("codigo", codigoSelecionado);
+
+    if (tentativaCompleta.error) {
+      console.error("Erro ao salvar dados completos do ponto:", tentativaCompleta.error);
+      setStatus("Erro ao salvar contrato/responsável. Verifique as colunas da tabela pontos.", "erro");
+      return;
     }
 
-    function formatarDuracao(totalSegundos){
-      const total = Math.max(0,Math.floor(Number(totalSegundos) || 0));
-      const minutos = Math.floor(total/60);
-      const segundos = total%60;
-      return `${String(minutos).padStart(2,"0")}:${String(segundos).padStart(2,"0")}`;
-    }
+    ponto.nome = nome;
+    ponto.nome_local = nome;
+    ponto.cidade = cidade;
+    ponto.cidade_regiao = cidade;
+    ponto.endereco = endereco;
+    ponto.endereco_completo = endereco;
+    ponto.contrato_data_inicio = contratoInicio;
+    ponto.contrato_data_fim = contratoFim;
+    ponto.contrato_tipo = contratoTipo;
+    ponto.contrato_valor = valorContrato;
+    ponto.responsavel_nome = responsavelNome;
+    ponto.responsavel_cpf = responsavelCpf;
+    ponto.responsavel_telefone = responsavelTelefone;
+    ponto.responsavel_email = responsavelEmail;
 
-    function duracaoParaSegundos(valor){
-      const partes = String(valor || "").trim().match(/^(\d{1,5}):([0-5]\d)$/);
-      if(!partes) return NaN;
-      return Number(partes[1])*60+Number(partes[2]);
-    }
+    if (arquivoImagemEdicao) {
+      setStatus("Enviando imagem...", "normal");
 
-    window.abrirEdicaoItem = function(id,pastaId=null){
-      const pastaOrigem = pastaId ? playlistAtual.find(conteudo=>String(conteudo.id)===String(pastaId)) : null;
-      const item = pastaOrigem
-        ? (Array.isArray(pastaOrigem.itens) ? pastaOrigem.itens.find(conteudo=>String(conteudo.id)===String(id)) : null)
-        : playlistAtual.find(conteudo=>String(conteudo.id) === String(id));
+      const imagemUrlFinal = await uploadImagemPonto(arquivoImagemEdicao, codigoSelecionado);
 
-      if(!item){
-        mostrarStatus("Conteúdo não encontrado.","erro");
-        return;
-      }
+      const payloadsImagem = [
+        { imagem_url: imagemUrlFinal },
+        { imagem: imagemUrlFinal }
+      ];
 
-      itemEmEdicao = item;
-      itemEmEdicaoOrigemPasta = pastaOrigem?.id || null;
-      editarNomeConteudo.value = obterNomeArquivo(item);
-      editarDataVencimento.value = valorDataLocal(item.data_fim || item.fim_exibicao);
-      editarDuracaoConteudo.value = formatarDuracao(Number(item.duracao) || 15);
-      editarDestinoConteudo.innerHTML = '<option value="principal">Playlist principal</option>' +
-        playlistAtual.filter(conteudo=>conteudo.tipo === "pasta").map(pasta=>
-          `<option value="${escapeHtml(pasta.id)}">Pasta: ${escapeHtml(obterNomeArquivo(pasta))}</option>`
-        ).join("");
-      editarDestinoConteudo.value = itemEmEdicaoOrigemPasta || "principal";
-      modalEditar.classList.remove("oculto");
-      setTimeout(()=>editarNomeConteudo.focus(),50);
-    };
+      let erroImagemFinal = null;
 
-    function fecharModalEditar(){
-      modalEditar.classList.add("oculto");
-      formEditar.reset();
-      itemEmEdicao = null;
-      itemEmEdicaoOrigemPasta = null;
-    }
+      for (const payload of payloadsImagem) {
+        const { error } = await supabaseClient
+          .from(TABELA_PONTOS)
+          .update(payload)
+          .eq("codigo", codigoSelecionado);
 
-    btnFecharModalEditar.addEventListener("click",fecharModalEditar);
-    btnCancelarEditar.addEventListener("click",fecharModalEditar);
-    modalEditar.addEventListener("click",(event)=>{
-      if(event.target === modalEditar) fecharModalEditar();
-    });
-
-    formEditar.addEventListener("submit",async(event)=>{
-      event.preventDefault();
-
-      if(!itemEmEdicao){
-        mostrarStatus("Nenhum conteúdo selecionado.","erro");
-        return;
-      }
-
-      const nomeFinal = editarNomeConteudo.value.trim();
-      const vencimentoFinal = editarDataVencimento.value;
-      const duracaoFinal = duracaoParaSegundos(editarDuracaoConteudo.value);
-      const destinoFinal = editarDestinoConteudo.value;
-
-      if(!nomeFinal){
-        mostrarStatus("Digite um nome válido.","erro");
-        return;
-      }
-
-      if(!vencimentoFinal){
-        mostrarStatus("Informe a data de vencimento.","erro");
-        return;
-      }
-
-      if(!Number.isInteger(duracaoFinal) || duracaoFinal < 1 || duracaoFinal > 86400){
-        mostrarStatus("Informe a duração no formato 00:00.","erro");
-        return;
-      }
-
-      const dataVencimentoFinal = new Date(`${vencimentoFinal}T23:59:59`);
-      if(Number.isNaN(dataVencimentoFinal.getTime())){
-        mostrarStatus("Informe uma data de vencimento válida.","erro");
-        return;
-      }
-
-      btnSalvarEdicao.disabled = true;
-      btnSalvarEdicao.textContent = "Salvando...";
-
-      try{
-        const itemAtualizado = {...itemEmEdicao,nome:nomeFinal,titulo_arquivo:nomeFinal,data_fim:dataVencimentoFinal.toISOString(),duracao:String(duracaoFinal)};
-        const origem = itemEmEdicaoOrigemPasta || "principal";
-        let listaEditada = playlistAtual;
-
-        if(String(origem) === String(destinoFinal)){
-          listaEditada = origem === "principal"
-            ? playlistAtual.map(item=>String(item.id)===String(itemEmEdicao.id)?itemAtualizado:item)
-            : playlistAtual.map(pasta=>String(pasta.id)===String(origem)
-                ? {...pasta,itens:(pasta.itens||[]).map(item=>String(item.id)===String(itemEmEdicao.id)?{...itemAtualizado,pasta_id:pasta.id}:item)}
-                : pasta);
-        }else{
-          listaEditada = origem === "principal"
-            ? playlistAtual.filter(item=>String(item.id)!==String(itemEmEdicao.id))
-            : playlistAtual.map(pasta=>String(pasta.id)===String(origem)
-                ? {...pasta,itens:(pasta.itens||[]).filter(item=>String(item.id)!==String(itemEmEdicao.id))}
-                : pasta);
-
-          if(destinoFinal === "principal"){
-            listaEditada = [...listaEditada,{...itemAtualizado,pasta_id:null,ordem:listaEditada.length+1}];
-          }else{
-            let pastaEncontrada = false;
-            listaEditada = listaEditada.map(pasta=>{
-              if(pasta.tipo!=="pasta" || String(pasta.id)!==String(destinoFinal)) return pasta;
-              pastaEncontrada=true;const itens=Array.isArray(pasta.itens)?pasta.itens:[];
-              return {...pasta,itens:[...itens,{...itemAtualizado,pasta_id:pasta.id,ordem:itens.length+1}]};
-            });
-            if(!pastaEncontrada) throw new Error("A pasta escolhida não foi encontrada.");
-          }
+        if (!error) {
+          erroImagemFinal = null;
+          break;
         }
 
-        playlistAtual = await salvarPlaylistR2(listaEditada);
-        fecharModalEditar();
-        renderizarPlaylist();
-        if(pastaAbertaId) renderizarConteudosPasta();
-        mostrarStatus(destinoFinal === "principal" ? "Conteúdo atualizado." : "Conteúdo movido para a pasta.","ok");
-      }catch(error){
-        console.error(error);
-        mostrarStatus(error.message || "Erro ao editar o conteúdo.","erro");
-      }finally{
-        btnSalvarEdicao.disabled = false;
-        btnSalvarEdicao.textContent = "Salvar alterações";
+        erroImagemFinal = error;
+        console.warn("Erro ao salvar imagem com payload:", payload, error);
       }
-    });
 
-    window.excluirItem = async function(id,storagePath){
-      if(!confirm("Deseja excluir este conteúdo?")) return;
+      if (erroImagemFinal) {
+        console.error("Erro ao salvar imagem:", erroImagemFinal);
+        setStatus("Erro ao salvar imagem", "erro");
+        return;
+      }
 
-      try{
-        const itemExcluido = playlistAtual.find((item)=>String(item.id) === String(id));
-        const novaLista = playlistAtual.filter((item)=>String(item.id) !== String(id));
-        playlistAtual = await salvarPlaylistR2(novaLista);
-        renderizarPlaylist();
+      ponto.imagem_url = imagemUrlFinal;
+    }
 
-        const caminhos = itemExcluido?.tipo === "pasta"
-          ? (Array.isArray(itemExcluido.itens) ? itemExcluido.itens.map(item=>item.storage_path).filter(Boolean) : [])
-          : [storagePath].filter(Boolean);
-        for(const caminho of caminhos){
-          try{ await excluirMidiaR2(caminho); }
-          catch(error){ console.warn("Playlist atualizada, mas uma mídia não foi removida:",error); }
+    pontosMap[codigoSelecionado] = ponto;
+    salvarPosicaoImagem(codigoSelecionado, posicaoImagemAtual);
+    salvarCachePontos(Object.values(pontosMap));
+
+    fecharModalEdicao();
+    abrirPonto(codigoSelecionado);
+    renderizarCardsPontos(Object.values(pontosMap));
+    setStatus("Atualizado com sucesso", "ok");
+  } catch (error) {
+    console.error("Erro geral ao salvar edição:", error);
+    setStatus("Erro ao salvar edição", "erro");
+  }
+}
+
+function ativarDragPontos() {
+  if (!pontosBox) return;
+
+  let estadoDrag = null;
+
+  function obterCardSobMouse(x, y) {
+    if (!estadoDrag) return null;
+
+    const elementos = document.elementsFromPoint(x, y);
+
+    for (const el of elementos) {
+      const card = el.closest?.(".card-ponto");
+
+      if (
+        card &&
+        pontosBox.contains(card) &&
+        card !== estadoDrag.placeholder &&
+        !card.classList.contains("card-ponto-placeholder")
+      ) {
+        return card;
+      }
+    }
+
+    return null;
+  }
+
+  function finalizarDrag() {
+    if (!estadoDrag) return;
+
+    const { cardOriginal, clone, placeholder } = estadoDrag;
+
+    cardOriginal.classList.remove("card-arrastando-original");
+
+    if (placeholder?.parentNode) {
+      placeholder.replaceWith(cardOriginal);
+    } else {
+      pontosBox.appendChild(cardOriginal);
+    }
+
+    clone?.remove();
+
+    document.body.classList.remove("arrastando-ponto");
+    pontosBox.classList.remove("drag-pontos-ativo");
+
+    estadoDrag = null;
+    salvarOrdemPontos();
+  }
+
+  pontosBox.querySelectorAll(".card-ponto").forEach((card) => {
+    card.setAttribute("draggable", "false");
+
+    card.onpointerdown = (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
+      if (event.target.closest("button, a, input, textarea, select, .card-codigo")) return;
+
+      const inicioX = event.clientX;
+      const inicioY = event.clientY;
+      const rect = card.getBoundingClientRect();
+
+      const mover = (moveEvent) => {
+        if (!estadoDrag) return;
+
+        moveEvent.preventDefault();
+
+        estadoDrag.clone.style.left = `${moveEvent.clientX - estadoDrag.offsetX}px`;
+        estadoDrag.clone.style.top = `${moveEvent.clientY - estadoDrag.offsetY}px`;
+
+        const cardAlvo = obterCardSobMouse(moveEvent.clientX, moveEvent.clientY);
+
+        if (!cardAlvo) return;
+
+        const alvoRect = cardAlvo.getBoundingClientRect();
+        const meioX = alvoRect.left + alvoRect.width / 2;
+        const meioY = alvoRect.top + alvoRect.height / 2;
+        const mesmaLinha = moveEvent.clientY >= alvoRect.top && moveEvent.clientY <= alvoRect.bottom;
+        const inserirDepois = mesmaLinha
+          ? moveEvent.clientX > meioX
+          : moveEvent.clientY > meioY;
+
+        if (inserirDepois) {
+          pontosBox.insertBefore(estadoDrag.placeholder, cardAlvo.nextSibling);
+        } else {
+          pontosBox.insertBefore(estadoDrag.placeholder, cardAlvo);
         }
+      };
 
-        mostrarStatus("Conteúdo excluído.","ok");
-      }catch(error){
-        console.error(error);
-        mostrarStatus(error.message || "Erro ao excluir conteúdo.","erro");
-      }
-    };
+      const iniciar = (moveEvent) => {
+        const distancia = Math.hypot(moveEvent.clientX - inicioX, moveEvent.clientY - inicioY);
+        if (distancia < 8) return;
 
-    function atualizarDestinosConteudo(destinoSelecionado="principal"){
-      const pastas = playlistAtual.filter(item=>item.tipo === "pasta");
-      destinoConteudo.innerHTML = '<option value="principal">Playlist principal</option>' +
-        pastas.map(pasta=>`<option value="${escapeHtml(pasta.id)}">Pasta: ${escapeHtml(obterNomeArquivo(pasta))}</option>`).join("");
-      destinoConteudo.value = pastas.some(pasta=>String(pasta.id) === String(destinoSelecionado)) ? String(destinoSelecionado) : "principal";
-    }
+        window.removeEventListener("pointermove", iniciar);
 
-    function abrirModalPastaPlaylist(pasta=null){
-      pastaPlaylistEmEdicao = pasta;
-      formPastaPlaylist.reset();
-      tituloModalPastaPlaylist.textContent = pasta ? "Editar pasta de playlist" : "Criar pasta de playlist";
-      btnSalvarPastaPlaylist.textContent = pasta ? "Salvar pasta" : "Criar pasta";
-      nomePastaPlaylist.value = pasta ? obterNomeArquivo(pasta) : "";
-      modoPastaPlaylist.value = pasta?.modo_reproducao || "aleatorio";
-      quantidadePastaPlaylist.value = String(Math.max(1,Number(pasta?.quantidade_por_passagem) || 1));
-      modalPastaPlaylist.classList.remove("oculto");
-      setTimeout(()=>nomePastaPlaylist.focus(),50);
-    }
+        const placeholder = document.createElement("div");
+        placeholder.className = "card-ponto card-ponto-placeholder";
+        placeholder.style.width = `${rect.width}px`;
+        placeholder.style.height = `${rect.height}px`;
 
-    function fecharModalPastaPlaylist(){
-      modalPastaPlaylist.classList.add("oculto");
-      pastaPlaylistEmEdicao = null;
-    }
+        const clone = card.cloneNode(true);
+        clone.classList.add("card-ponto-flutuante");
+        clone.style.width = `${rect.width}px`;
+        clone.style.height = `${rect.height}px`;
+        clone.style.left = `${rect.left}px`;
+        clone.style.top = `${rect.top}px`;
 
-    btnCriarPastaPlaylist.addEventListener("click",()=>abrirModalPastaPlaylist());
-    btnFecharPastaPlaylist.addEventListener("click",fecharModalPastaPlaylist);
-    btnCancelarPastaPlaylist.addEventListener("click",fecharModalPastaPlaylist);
-    modalPastaPlaylist.addEventListener("click",event=>{if(event.target === modalPastaPlaylist) fecharModalPastaPlaylist()});
+        pontosBox.insertBefore(placeholder, card);
+        card.classList.add("card-arrastando-original");
+        card.remove();
 
-    formPastaPlaylist.addEventListener("submit",async(event)=>{
-      event.preventDefault();
-      const nome = nomePastaPlaylist.value.trim();
-      const quantidade = Number(quantidadePastaPlaylist.value);
-      if(!nome || !Number.isInteger(quantidade) || quantidade < 1 || quantidade > 100){
-        mostrarStatus("Informe o nome e uma quantidade válida.","erro");
-        return;
-      }
-      btnSalvarPastaPlaylist.disabled = true;
-      try{
-        if(pastaPlaylistEmEdicao){
-          playlistAtual = playlistAtual.map(item=>String(item.id) === String(pastaPlaylistEmEdicao.id) ? {
-            ...item,nome,titulo_arquivo:nome,modo_reproducao:modoPastaPlaylist.value,quantidade_por_passagem:quantidade
-          } : item);
-        }else{
-          playlistAtual.push({
-            id:globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `pasta-${Date.now()}`,
-            codigo:CODIGO_FIXO,tipo:"pasta",nome,titulo_arquivo:nome,created_at:new Date().toISOString(),
-            ordem:playlistAtual.length+1,modo_reproducao:modoPastaPlaylist.value,quantidade_por_passagem:quantidade,itens:[]
-          });
-        }
-        playlistAtual = await salvarPlaylistR2(playlistAtual);
-        fecharModalPastaPlaylist();
-        renderizarPlaylist();
-        mostrarStatus("Pasta de playlist salva.","ok");
-      }catch(error){
-        console.error(error);mostrarStatus(error.message || "Erro ao salvar a pasta.","erro");
-      }finally{btnSalvarPastaPlaylist.disabled=false}
-    });
+        document.body.appendChild(clone);
 
-    window.editarPastaPlaylist = function(id){
-      const pasta = playlistAtual.find(item=>item.tipo === "pasta" && String(item.id) === String(id));
-      if(pasta) abrirModalPastaPlaylist(pasta);
-    };
+        document.body.classList.add("arrastando-ponto");
+        pontosBox.classList.add("drag-pontos-ativo");
 
-    window.adicionarNaPasta = function(id){
-      formAdicionar.reset();
-      atualizarDestinosConteudo(id);
-      agendamentoBox.classList.add("oculto");
-      modalAdicionar.classList.remove("oculto");
-    };
-
-    function obterPastaAberta(){
-      return playlistAtual.find(item=>item.tipo === "pasta" && String(item.id) === String(pastaAbertaId));
-    }
-
-    function renderizarConteudosPasta(){
-      const pasta = obterPastaAberta();
-      if(!pasta){fecharConteudosPasta();return}
-      const itens = Array.isArray(pasta.itens) ? pasta.itens : [];
-      nomePastaAberta.textContent = obterNomeArquivo(pasta);
-      const modo = pasta.modo_reproducao === "sequencial" ? "Sequencial" : "Aleatória sem repetição";
-      resumoPastaAberta.textContent = `${modo} • ${Math.max(1,Number(pasta.quantidade_por_passagem)||1)} por passagem • ${itens.length} arquivos`;
-      if(!itens.length){
-        corpoTabelaPasta.innerHTML = '<tr><td colspan="7" class="vazio">Nenhum conteúdo nesta pasta.</td></tr>';
-        return;
-      }
-      corpoTabelaPasta.innerHTML = itens.map((item,index)=>{
-        const postagem = formatarDataHora(item.created_at || item.data_inicio);
-        const vencimento = formatarDataHora(item.data_fim || item.fim_exibicao);
-        const nome = obterNomeArquivo(item);
-        const url = obterUrl(item);
-        return `<tr draggable="true" data-index="${index}">
-          <td class="coluna-ordem"><div class="ordem-conteudo"><span class="numero-ordem">${index+1}</span><div class="drag-handle">⠿</div></div></td>
-          <td><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
-          <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
-          <td><div class="data-cell"><span>${escapeHtml(vencimento.data)}</span><span class="hora">${escapeHtml(vencimento.hora)}</span></div></td>
-          <td class="tipo-cell">${escapeHtml(formatarDuracao(Number(item.duracao)||15))}</td>
-          <td class="tipo-cell">${escapeHtml(obterTipo(item))}</td>
-          <td><div class="acoes">
-            <button class="acao" type="button" onclick="baixarItem('${escapeHtml(url)}','${escapeHtml(nome)}')"><span>◉</span><span>Visualizar</span></button>
-            <button class="acao" type="button" onclick="abrirEdicaoItem('${escapeHtml(item.id)}','${escapeHtml(pasta.id)}')"><span>✎</span><span>Editar</span></button>
-            <button class="acao excluir" type="button" onclick="excluirItemPasta('${escapeHtml(pasta.id)}','${escapeHtml(item.id)}')"><span>×</span><span>Excluir</span></button>
-          </div></td>
-        </tr>`;
-      }).join("");
-      ativarOrdenacaoConteudosPasta();
-    }
-
-    function ativarOrdenacaoConteudosPasta(){
-      const linhas = [...corpoTabelaPasta.querySelectorAll("tr[draggable='true']")];
-      let origem = null;
-      linhas.forEach(linha=>{
-        linha.addEventListener("dragstart",()=>{origem=Number(linha.dataset.index);linha.classList.add("arrastando")});
-        linha.addEventListener("dragend",()=>linha.classList.remove("arrastando"));
-        linha.addEventListener("dragover",event=>event.preventDefault());
-        linha.addEventListener("drop",async(event)=>{
-          event.preventDefault();
-          const destino=Number(linha.dataset.index);
-          if(origem===null || origem===destino) return;
-          const pasta=obterPastaAberta();
-          const itens=[...(pasta.itens||[])];
-          const [movido]=itens.splice(origem,1);itens.splice(destino,0,movido);
-          playlistAtual=playlistAtual.map(item=>String(item.id)===String(pasta.id)?{...item,itens:itens.map((x,i)=>({...x,ordem:i+1}))}:item);
-          playlistAtual=await salvarPlaylistR2(playlistAtual);renderizarConteudosPasta();renderizarPlaylist();
-        });
-      });
-    }
-
-    window.abrirConteudosPasta = function(id){
-      pastaAbertaId=id;renderizarConteudosPasta();modalConteudosPasta.classList.remove("oculto");
-    };
-    function fecharConteudosPasta(){modalConteudosPasta.classList.add("oculto");pastaAbertaId=null}
-    btnFecharConteudosPasta.addEventListener("click",fecharConteudosPasta);
-    modalConteudosPasta.addEventListener("click",event=>{if(event.target===modalConteudosPasta) fecharConteudosPasta()});
-    btnAdicionarConteudoPasta.addEventListener("click",()=>{if(pastaAbertaId) window.adicionarNaPasta(pastaAbertaId)});
-
-    window.excluirItemPasta = async function(pastaId,itemId){
-      if(!confirm("Deseja excluir este conteúdo da pasta?")) return;
-      const pasta=playlistAtual.find(item=>String(item.id)===String(pastaId));
-      const item=(pasta?.itens||[]).find(conteudo=>String(conteudo.id)===String(itemId));
-      playlistAtual=playlistAtual.map(item=>String(item.id)===String(pastaId)?{...item,itens:(item.itens||[]).filter(conteudo=>String(conteudo.id)!==String(itemId))}:item);
-      playlistAtual=await salvarPlaylistR2(playlistAtual);
-      if(item?.storage_path){try{await excluirMidiaR2(item.storage_path)}catch(error){console.warn(error)}}
-      renderizarConteudosPasta();renderizarPlaylist();mostrarStatus("Conteúdo excluído.","ok");
-    };
-
-    function dataLocalAgora(){
-      const agora = new Date();
-      agora.setMinutes(agora.getMinutes()-agora.getTimezoneOffset());
-      return agora.toISOString().slice(0,16);
-    }
-
-    btnAbrirAdicionar.addEventListener("click",()=>{
-      formAdicionar.reset();
-      atualizarDestinosConteudo("principal");
-      agendamentoBox.classList.add("oculto");
-      modalAdicionar.classList.remove("oculto");
-    });
-
-    function fecharModal(){
-      modalAdicionar.classList.add("oculto");
-      formAdicionar.reset();
-      agendamentoBox.classList.add("oculto");
-    }
-
-    btnFecharModal.addEventListener("click",fecharModal);
-    btnCancelar.addEventListener("click",fecharModal);
-    modalAdicionar.addEventListener("click",(event)=>{
-      if(event.target === modalAdicionar) fecharModal();
-    });
-
-    formAdicionar.addEventListener("submit",async(event)=>{
-      event.preventDefault();
-
-      const file = arquivoConteudo.files[0];
-      if(!file){
-        mostrarStatus("Selecione um arquivo.","erro");
-        return;
-      }
-
-      if(!dataPostagem.value || !dataVencimento.value){
-        mostrarStatus("Informe a data de postagem e o vencimento.","erro");
-        return;
-      }
-
-      const inicioSelecionado = new Date(dataPostagem.value);
-      const fimSelecionado = new Date(dataVencimento.value);
-
-      if(fimSelecionado <= inicioSelecionado){
-        mostrarStatus("O vencimento deve ser posterior à postagem.","erro");
-        return;
-      }
-
-      const duracaoSelecionada = Number(duracaoConteudo.value);
-      if(!Number.isInteger(duracaoSelecionada) || duracaoSelecionada < 1 || duracaoSelecionada > 86400){
-        mostrarStatus("Informe uma duração válida em segundos.","erro");
-        return;
-      }
-
-      btnEnviar.disabled = true;
-      btnEnviar.textContent = "Enviando...";
-
-      let storagePath = "";
-
-      try{
-        const nomeLimpo = limparNomeArquivo(file.name);
-        const nomeR2 = `${Date.now()}-${nomeLimpo}`;
-        const upload = await enviarMidiaR2(file,nomeR2);
-        storagePath = upload.key || `midias/pontos/${CODIGO_FIXO}/${nomeR2}`;
-        const tipo = detectarTipoArquivo(file);
-
-        const payload = {
-          id:globalThis.crypto?.randomUUID
-            ? globalThis.crypto.randomUUID()
-            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          codigo:CODIGO_FIXO,
-          nome:file.name,
-          titulo_arquivo:file.name,
-          video_url:upload.publicUrl,
-          url:upload.publicUrl,
-          storage_path:storagePath,
-          codigo_cliente:null,
-          tipo,
-          ordem:playlistAtual.length+1,
-          created_at:new Date().toISOString(),
-          data_inicio:new Date(dataPostagem.value).toISOString(),
-          data_fim:new Date(dataVencimento.value).toISOString(),
-          duracao:String(duracaoSelecionada)
+        estadoDrag = {
+          cardOriginal: card,
+          clone,
+          placeholder,
+          offsetX: moveEvent.clientX - rect.left,
+          offsetY: moveEvent.clientY - rect.top
         };
 
-        const destino = destinoConteudo.value;
-        if(destino === "principal"){
-          playlistAtual = await salvarPlaylistR2([...playlistAtual,payload]);
-        }else{
-          let pastaEncontrada = false;
-          const listaComArquivo = playlistAtual.map(item=>{
-            if(item.tipo !== "pasta" || String(item.id) !== String(destino)) return item;
-            pastaEncontrada = true;
-            const itens = Array.isArray(item.itens) ? item.itens : [];
-            return {...item,itens:[...itens,{...payload,ordem:itens.length+1,pasta_id:item.id}]};
-          });
-          if(!pastaEncontrada) throw new Error("A pasta de destino não foi encontrada.");
-          playlistAtual = await salvarPlaylistR2(listaComArquivo);
-        }
+        mover(moveEvent);
+      };
 
-        fecharModal();
-        mostrarStatus(destino === "principal" ? "Conteúdo adicionado com sucesso." : "Conteúdo adicionado à pasta.","ok");
-        renderizarPlaylist();
-      }catch(error){
-        console.error(error);
+      const soltar = () => {
+        window.removeEventListener("pointermove", iniciar);
+        window.removeEventListener("pointermove", mover);
+        window.removeEventListener("pointerup", soltar);
+        window.removeEventListener("pointercancel", soltar);
+        finalizarDrag();
+      };
 
-        if(storagePath){
-          try{ await excluirMidiaR2(storagePath); }
-          catch(cleanupError){ console.warn("Não foi possível limpar o upload incompleto:",cleanupError); }
-        }
+      window.addEventListener("pointermove", iniciar);
+      window.addEventListener("pointermove", mover);
+      window.addEventListener("pointerup", soltar);
+      window.addEventListener("pointercancel", soltar);
+    };
+  });
+}
 
-        mostrarStatus(error.message || "Erro ao enviar conteúdo.","erro");
-      }finally{
-        btnEnviar.disabled = false;
-        btnEnviar.textContent = "Enviar conteúdo";
-      }
-    });
+async function salvarOrdemPontos() {
+  const cards = [...document.querySelectorAll(".pontos-box .card-ponto:not(.card-ponto-placeholder)")];
 
-    imagemUnidade.addEventListener("error",()=>{
-      imagemUnidade.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
-    });
+  const atualizacoes = cards
+    .map((card, index) => ({
+      codigo: String(card.dataset.codigo || "").trim(),
+      ordem: index + 1
+    }))
+    .filter((item) => item.codigo);
 
-    document.addEventListener("click",(event)=>{
-      const botao = event.target.closest("button");
-      if(!botao || botao.disabled) return;
-      botao.classList.remove("botao-clicado");
-      void botao.offsetWidth;
-      botao.classList.add("botao-clicado");
-      setTimeout(()=>botao.classList.remove("botao-clicado"),340);
-    });
-
-    [filtroHistoricoIp,filtroHistoricoData,filtroHistoricoStatus].forEach(campo=>{
-      campo.addEventListener(campo.tagName === "INPUT" && campo.type === "search" ? "input" : "change",renderizarLinhasHistorico);
-    });
-    btnLimparFiltrosHistorico.addEventListener("click",()=>{
-      filtroHistoricoIp.value=""; filtroHistoricoData.value=""; filtroHistoricoStatus.value="todos";
-      renderizarLinhasHistorico();
-    });
-
-    setInterval(()=>{
-      if(!telaPastas.classList.contains("oculto")) renderizarPastas();
-      if(!painel.classList.contains("oculto")) renderizarResumoTvs();
-    },10*60*1000);
-
-    if(sessionStorage.getItem(CHAVE_SESSAO) === "1"){
-      abrirSelecaoPastas();
+  atualizacoes.forEach((item) => {
+    if (pontosMap[item.codigo]) {
+      pontosMap[item.codigo].ordem = item.ordem;
     }
-  </script>
-</body>
-</html>
+  });
+
+  salvarCachePontos(Object.values(pontosMap));
+  setStatus("Salvando ordem dos pontos...", "normal");
+
+  for (const item of atualizacoes) {
+    const { error } = await supabaseClient
+      .from(TABELA_PONTOS)
+      .update({ ordem: item.ordem })
+      .eq("codigo", item.codigo);
+
+    if (error) {
+      console.error(error);
+      setStatus("Erro ao salvar ordem dos pontos", "erro");
+      return;
+    }
+  }
+
+  setStatus("Ordem dos pontos salva", "ok");
+}
+
+async function carregarPontosRemoto() {
+  if (carregandoPontos) return;
+  carregandoPontos = true;
+
+  try {
+    const pontos = await buscarPontosRemoto();
+
+    salvarCachePontos(pontos);
+    renderizarCardsPontos(pontos);
+    setStatus("Painel Ativo", "ok");
+  } catch (error) {
+    console.error(error);
+    setStatus("Erro ao carregar pontos", "erro");
+  } finally {
+    carregandoPontos = false;
+  }
+}
+
+async function iniciarPainel() {
+  if (painelIniciado) return;
+  painelIniciado = true;
+
+  const cache = lerCachePontos();
+
+  if (cache?.pontos?.length) {
+    renderizarCardsPontos(cache.pontos);
+    setStatus(cache.fresco ? "Painel Ativo" : "Atualizando painel...", cache.fresco ? "ok" : "normal");
+
+    if (cache.fresco) return;
+
+    carregarPontosRemoto();
+    return;
+  }
+
+  setStatus("Carregando pontos...", "normal");
+  await carregarPontosRemoto();
+}
+
+function somenteNumeros(valor) {
+  return String(valor || "").replace(/\D/g, "");
+}
+
+function formatarTelefone(valor) {
+  const n = somenteNumeros(valor).slice(0, 11);
+
+  if (n.length <= 2) return n;
+  if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
+
+  return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
+}
+
+function formatarCpfCnpj(valor) {
+  const n = somenteNumeros(valor).slice(0, 14);
+
+  if (n.length <= 11) {
+    return n
+      .replace(/^(\d{3})(\d)/, "$1.$2")
+      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  }
+
+  return n
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+function formatarDataBr(valor) {
+  const n = somenteNumeros(valor).slice(0, 8);
+
+  if (n.length <= 2) return n;
+  if (n.length <= 4) return `${n.slice(0, 2)}/${n.slice(2)}`;
+
+  return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
+}
+
+function dataBrParaIso(valor) {
+  const partes = String(valor || "").split("/");
+  if (partes.length !== 3) return "";
+
+  const [dia, mes, ano] = partes;
+  if (!dia || !mes || !ano || ano.length !== 4) return "";
+
+  return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+}
+
+function dataIsoParaBr(valor) {
+  if (!valor) return "";
+
+  const partes = String(valor).split("-");
+  if (partes.length !== 3) return "";
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function emailValido(valor) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(valor || "").trim());
+}
+
+function atualizarVisualParceria() {
+  if (!editValorContrato || !editContratoParceriaSim || !editContratoParceriaNao) return;
+
+  const parceriaAtiva = editContratoParceriaSim.checked;
+
+  editValorContrato.disabled = parceriaAtiva;
+  editValorContrato.placeholder = parceriaAtiva ? "Parceria ativada" : "Valor / custo";
+
+  if (parceriaAtiva) {
+    editValorContrato.value = "";
+  }
+}
+
+if (btnVoltar) {
+  btnVoltar.onclick = () => {
+    if (listaPontos) listaPontos.style.display = "block";
+    if (pontoDetalhe) pontoDetalhe.style.display = "none";
+
+    codigoSelecionado = null;
+    document.body.classList.remove("modo-detalhe");
+  };
+}
+
+if (btnCopiarCodigo) {
+  btnCopiarCodigo.style.display = "none";
+
+  btnCopiarCodigo.onclick = async () => {
+    if (!codigoSelecionado) return;
+
+    try {
+      await navigator.clipboard.writeText(codigoSelecionado);
+      setStatus("Código copiado", "ok");
+    } catch {
+      setStatus("Erro ao copiar código", "erro");
+    }
+  };
+}
+
+if (codigoAtual) {
+  codigoAtual.onclick = async () => {
+    if (!codigoSelecionado) return;
+
+    try {
+      await navigator.clipboard.writeText(codigoSelecionado);
+      setStatus("Código copiado", "ok");
+    } catch {
+      setStatus("Erro ao copiar código", "erro");
+    }
+  };
+}
+
+if (btnEditarInfo) {
+  btnEditarInfo.onclick = () => abrirModalEdicao();
+}
+
+if (btnToggleDisponibilidade) {
+  btnToggleDisponibilidade.onclick = () => alternarDisponibilidadePonto();
+}
+
+if (btnUpgradePlaylist && inputUpgradePlaylist) {
+  btnUpgradePlaylist.onclick = () => {
+    if(!modalAdicionarConteudoCentral)return;
+    const agora=new Date(),fim=new Date(Date.now()+30*24*60*60*1000);
+    const local=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    postagemConteudoCentral.value=local(agora);vencimentoConteudoCentral.value=local(fim);duracaoConteudoCentral.value="15";arquivoConteudoCentral.value="";
+    obterPlaylistR2(codigoSelecionado).then(items=>{destinoConteudoCentral.innerHTML='<option value="principal">Playlist principal</option>'+items.filter(x=>x.tipo==="pasta").map(x=>`<option value="${escapeHtml(x.id)}">${escapeHtml(x.nome)}</option>`).join("");modalAdicionarConteudoCentral.style.display="flex";});
+  };
+
+  inputUpgradePlaylist.onchange = async (event) => {
+    const file = event.target.files?.[0];
+    await enviarMaterialDiretoPlaylist(file);
+    inputUpgradePlaylist.value = "";
+  };
+}
+
+if (btnNovoPonto) {
+  btnNovoPonto.onclick = () => {tipoNovoPontoSelecionado="publicidade";document.querySelectorAll("[data-tipo-ponto]").forEach(x=>x.classList.toggle("selecionado",x.dataset.tipoPonto==="publicidade"));if(modalNovoPonto)modalNovoPonto.style.display="flex";};
+}
+
+document.querySelectorAll("[data-tipo-ponto]").forEach(btn=>btn.onclick=()=>{tipoNovoPontoSelecionado=normalizarTipoPonto(btn.dataset.tipoPonto);document.querySelectorAll("[data-tipo-ponto]").forEach(x=>x.classList.toggle("selecionado",x===btn));});
+if(btnCancelarNovoPonto)btnCancelarNovoPonto.onclick=()=>modalNovoPonto.style.display="none";
+if(btnConfirmarNovoPonto)btnConfirmarNovoPonto.onclick=async()=>{modalNovoPonto.style.display="none";await criarNovoPonto(tipoNovoPontoSelecionado);};
+if(btnCriarPastaPlaylist)btnCriarPastaPlaylist.onclick=criarPastaCentral;
+document.querySelectorAll("[data-duracao-central]").forEach(btn=>btn.onclick=()=>duracaoConteudoCentral.value=btn.dataset.duracaoCentral);
+if(btnCancelarConteudoCentral)btnCancelarConteudoCentral.onclick=()=>modalAdicionarConteudoCentral.style.display="none";
+if(btnFecharPastaConteudosCentral)btnFecharPastaConteudosCentral.onclick=()=>modalPastaConteudosCentral.style.display="none";
+if(modalPastaConteudosCentral)modalPastaConteudosCentral.addEventListener("click",e=>{if(e.target===modalPastaConteudosCentral)modalPastaConteudosCentral.style.display="none";});
+if(btnSalvarConteudoCentral)btnSalvarConteudoCentral.onclick=async()=>{
+  const file=arquivoConteudoCentral.files?.[0],inicio=postagemConteudoCentral.value,fim=vencimentoConteudoCentral.value,duracao=Number(duracaoConteudoCentral.value);
+  if(!file||!inicio||!fim)return setStatus("Selecione o arquivo e as datas","erro");if(new Date(fim)<=new Date(inicio))return setStatus("O vencimento deve ser posterior à postagem","erro");if(!Number.isInteger(duracao)||duracao<1)return setStatus("Duração inválida","erro");
+  btnSalvarConteudoCentral.disabled=true;try{setStatus("Enviando conteúdo...","normal");const nome=limparNomeArquivo(file.name),upload=await enviarMidiaR2(file,"pontos",codigoSelecionado,`${Date.now()}-${nome}`),items=await obterPlaylistR2(codigoSelecionado);const payload={id:crypto.randomUUID(),codigo:codigoSelecionado,nome:file.name,titulo_arquivo:file.name,video_url:upload.publicUrl,url:upload.publicUrl,storage_path:upload.key,tipo:detectarTipoArquivoPlaylist(file),data_inicio:new Date(inicio).toISOString(),data_fim:new Date(fim).toISOString(),created_at:new Date().toISOString(),duracao:String(duracao),ordem:items.length+1};const destino=destinoConteudoCentral.value;if(destino==="principal")items.push(payload);else{const pasta=items.find(x=>String(x.id)===String(destino));if(!pasta)throw new Error("Pasta não encontrada");pasta.itens=[...(pasta.itens||[]),payload];}await salvarPlaylistR2(codigoSelecionado,items);modalAdicionarConteudoCentral.style.display="none";limparCachePlaylist(codigoSelecionado);await carregarPlaylist({forcarAtualizacao:true});setStatus("Conteúdo adicionado","ok");}catch(e){console.error(e);setStatus(e.message||"Erro ao adicionar conteúdo","erro");}finally{btnSalvarConteudoCentral.disabled=false;}
+};
+if(btnSalvarYoutube)btnSalvarYoutube.onclick=async()=>{const url=String(youtubeUrlPonto.value||"").trim();if(url&&!/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(url))return setStatus("Informe um link válido do YouTube","erro");await salvarConfiguracaoPontoR2(codigoSelecionado,{tipo_ponto:"tv_aberta",youtube_url:url});limparCachePlaylist(codigoSelecionado);setStatus("Link do YouTube salvo","ok");};
+
+if (btnFecharModal) {
+  btnFecharModal.onclick = () => fecharModalEdicao();
+}
+
+if (btnBaixarContrato) {
+  btnBaixarContrato.onclick = baixarContratoAtual;
+}
+
+if (btnDeletarPonto) {
+  btnDeletarPonto.onclick = deletarPontoAtual;
+}
+
+if (modalEditar) {
+  modalEditar.addEventListener("click", (event) => {
+    if (event.target === modalEditar) {
+      fecharModalEdicao();
+    }
+  });
+}
+
+if (inputImagem) {
+  inputImagem.addEventListener("change", (event) => {
+    const arquivo = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+    if (!arquivo) return;
+
+    arquivoImagemEdicao = arquivo;
+    posicaoImagemAtual = { x: 50, y: 50 };
+
+    const reader = new FileReader();
+
+    reader.onload = (evento) => {
+      if (previewImagem) {
+        previewImagem.src = evento.target.result;
+        aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+      }
+    };
+
+    reader.readAsDataURL(arquivo);
+  });
+}
+
+if (previewImagem) {
+  previewImagem.style.cursor = "grab";
+
+  previewImagem.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    arrastandoPreview = true;
+    previewImagem.style.cursor = "grabbing";
+  });
+
+  window.addEventListener("mouseup", () => {
+    arrastandoPreview = false;
+
+    if (previewImagem) {
+      previewImagem.style.cursor = "grab";
+    }
+  });
+
+  previewImagem.addEventListener("mousemove", (event) => {
+    if (!arrastandoPreview) return;
+
+    const rect = previewImagem.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    let x = ((event.clientX - rect.left) / rect.width) * 100;
+    let y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    x = Math.max(0, Math.min(100, x));
+    y = Math.max(0, Math.min(100, y));
+
+    posicaoImagemAtual = { x, y };
+    aplicarPosicaoImagem(previewImagem, posicaoImagemAtual);
+  });
+
+  previewImagem.addEventListener("dragstart", (event) => {
+    event.preventDefault();
+  });
+}
+
+if (btnSalvarEdicao) {
+  btnSalvarEdicao.onclick = salvarEdicaoPonto;
+}
+
+if (editContratoInicio) {
+  editContratoInicio.addEventListener("input", () => {
+    editContratoInicio.value = formatarDataBr(editContratoInicio.value);
+  });
+}
+
+if (editContratoFim) {
+  editContratoFim.addEventListener("input", () => {
+    editContratoFim.value = formatarDataBr(editContratoFim.value);
+  });
+}
+
+if (editResponsavelTelefone) {
+  editResponsavelTelefone.addEventListener("input", () => {
+    editResponsavelTelefone.value = formatarTelefone(editResponsavelTelefone.value);
+  });
+}
+
+if (editResponsavelCpf) {
+  editResponsavelCpf.addEventListener("input", () => {
+    editResponsavelCpf.value = formatarCpfCnpj(editResponsavelCpf.value);
+  });
+}
+
+if (editContratoParceriaSim) {
+  editContratoParceriaSim.onchange = atualizarVisualParceria;
+}
+
+if (editContratoParceriaNao) {
+  editContratoParceriaNao.onchange = atualizarVisualParceria;
+}
+
+window.addEventListener("focus", () => {
+  if (codigoSelecionado) {
+    carregarPlaylist({ forcarAtualizacao: true });
+  }
+});
+
+setInterval(() => {
+  if (codigoSelecionado) {
+    carregarPlaylist({ forcarAtualizacao: true });
+  }
+}, 30000);
+
+setStatus("Painel Ativo", "ok");
+iniciarPainel();
