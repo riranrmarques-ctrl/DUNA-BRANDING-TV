@@ -245,6 +245,16 @@
     .topo-acoes{display:flex;align-items:center;gap:10px}
     .btn-adicionar-ponto{min-height:52px;padding:0 20px;border:1px solid #fff;border-radius:12px;background:#fff;color:#111;font-weight:900;font-size:16px}
     .btn-voltar-pastas{min-height:42px;padding:0 18px;border:1px solid #fff;border-radius:10px;background:#fff;color:#111;font-weight:900}
+    button{transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}
+    button:not(:disabled):hover{filter:brightness(1.06)}
+    button.botao-clicado{animation:cliqueBotao .32s ease}
+    @keyframes cliqueBotao{
+      0%{transform:scale(1)}
+      42%{transform:scale(.94)}
+      100%{transform:scale(1)}
+    }
+    .icone-voltar{display:inline-block;margin-right:7px;font-size:20px;line-height:0;vertical-align:-2px;transition:transform .18s ease}
+    .btn-voltar-pastas:hover .icone-voltar{transform:translateX(-3px)}
 
     .controle-tv{
       width:100%;
@@ -954,7 +964,7 @@
         </div>
       </div>
       <div class="topo-acoes">
-        <button class="btn-voltar-pastas" id="btnVoltarPastas" type="button">← Pastas</button>
+        <button class="btn-voltar-pastas" id="btnVoltarPastas" type="button"><span class="icone-voltar">‹</span>Voltar</button>
       </div>
     </header>
 
@@ -1025,8 +1035,8 @@
         </div>
 
         <div class="acoes-cabecalho-conteudos">
-          <button class="btn-preview btn-criar-pasta" id="btnCriarPastaPlaylist" type="button"><span>＋</span><span>Nova pasta</span></button>
           <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
+          <button class="btn-preview btn-criar-pasta" id="btnCriarPastaPlaylist" type="button"><span>＋</span><span>Nova pasta</span></button>
           <button class="btn-preview" id="btnPreview" type="button"><span>◉</span><span>Preview</span></button>
         </div>
       </div>
@@ -2570,6 +2580,15 @@
 
     imagemUnidade.addEventListener("error",()=>{
       imagemUnidade.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
+    });
+
+    document.addEventListener("click",(event)=>{
+      const botao = event.target.closest("button");
+      if(!botao || botao.disabled) return;
+      botao.classList.remove("botao-clicado");
+      void botao.offsetWidth;
+      botao.classList.add("botao-clicado");
+      setTimeout(()=>botao.classList.remove("botao-clicado"),340);
     });
 
     setInterval(()=>{
