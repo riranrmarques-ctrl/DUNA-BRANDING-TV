@@ -4,6 +4,46 @@
   box-sizing: border-box;
 }
 
+/* Refinamento visual: estrutura Selfit com identidade Duna */
+body.modo-detalhe .painel-shell{width:min(1540px,calc(100% - 36px));max-width:none}
+body.modo-detalhe .playlist-box{max-width:none;margin-top:20px;padding:30px;border-radius:30px;background:linear-gradient(145deg,rgba(5,13,30,.98),rgba(3,9,22,.98));box-shadow:0 28px 80px rgba(0,0,0,.28)}
+body.modo-detalhe .playlist-topbar-novo{padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+body.modo-detalhe .playlist-topo-flex{align-items:stretch;gap:30px}
+body.modo-detalhe .playlist-imagem-box{width:min(58%,820px)}
+body.modo-detalhe #imagemPonto{height:100%;min-height:390px;aspect-ratio:16/9;border:2px solid rgba(255,255,255,.12);border-radius:22px;box-shadow:0 18px 45px rgba(0,0,0,.28)}
+body.modo-detalhe .playlist-header-textos{justify-content:center;padding:22px 0}
+body.modo-detalhe #tituloPasta{font-size:clamp(2.1rem,4vw,4rem);margin-bottom:14px}
+body.modo-detalhe .playlist-info-item{font-size:1.08rem}
+body.modo-detalhe .playlist-codigo-linha{margin:20px 0 16px}
+body.modo-detalhe #codigoAtual{padding:8px 14px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:#0c172d;color:#fff}
+body.modo-detalhe .playlist-acoes-topo{gap:12px}
+body.modo-detalhe .playlist-acoes-topo button{min-height:48px;border-radius:12px;padding:0 20px}
+body.modo-detalhe .playlist-secao{padding:20px;border-radius:22px;background:linear-gradient(145deg,rgba(13,24,46,.94),rgba(7,16,34,.96));border:1px solid rgba(130,155,220,.13);box-shadow:0 16px 38px rgba(0,0,0,.15)}
+body.modo-detalhe .playlist-secao-topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+body.modo-detalhe .playlist-secao-topo h4{font-size:21px;letter-spacing:.1px}
+body.modo-detalhe .playlist-lista{border-radius:18px}
+body.modo-detalhe .playlist-tabela-central{border-collapse:separate;border-spacing:0;background:#0a1428;color:#edf3ff;border:1px solid rgba(145,169,225,.14);border-radius:18px}
+body.modo-detalhe .playlist-tabela-central th{padding:16px 14px;background:#111d35;color:#dfe8ff;border-bottom:1px solid rgba(255,255,255,.09);font-size:11px;letter-spacing:.25px}
+body.modo-detalhe .playlist-tabela-central th:first-child{border-radius:17px 0 0 0}
+body.modo-detalhe .playlist-tabela-central th:last-child{border-radius:0 17px 0 0;text-align:right}
+body.modo-detalhe .playlist-tabela-central td{padding:15px 14px;background:#0c172c;color:#f5f7ff;border-bottom:1px solid rgba(255,255,255,.065);font-size:13px}
+body.modo-detalhe .playlist-tabela-central tbody tr:nth-child(even):not(.linha-pasta) td{background:#0f1c34}
+body.modo-detalhe .playlist-tabela-central tbody tr:hover:not(.linha-pasta) td{background:#142543}
+body.modo-detalhe .playlist-tabela-central tbody tr:last-child td{border-bottom:0}
+body.modo-detalhe .playlist-tabela-central td:nth-child(2){font-size:14px;font-weight:850}
+body.modo-detalhe .playlist-tabela-central .linha-pasta td{padding-top:18px;padding-bottom:18px;background:linear-gradient(90deg,#162852,#111d38)!important;color:#fff;border-top:1px solid rgba(112,139,255,.35);border-bottom:1px solid rgba(112,139,255,.28)}
+body.modo-detalhe .playlist-tabela-central .linha-pasta strong{font-size:15px}
+body.modo-detalhe .playlist-tabela-central .pasta-detalhes{color:#b9c9ed;margin-top:6px}
+body.modo-detalhe .acoes-central{gap:8px}
+body.modo-detalhe .acao-central{min-height:40px;padding:0 13px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:#18243b;color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .16s ease,background .16s ease,box-shadow .16s ease}
+body.modo-detalhe .acao-central:hover{transform:translateY(-2px);background:#243657;box-shadow:0 8px 18px rgba(0,0,0,.22)}
+body.modo-detalhe .acao-central.excluir{border-color:rgba(255,83,94,.35);background:#d92734}
+body.modo-detalhe .acao-central.excluir:hover{background:#ef3341}
+body.modo-detalhe .linha-pasta .acao-central.abrir,body.modo-detalhe .abrir-pasta-central{background:#5667f1;border-color:#7180ff}
+body.modo-detalhe .playlist-coluna-historico{margin-top:4px}
+body.modo-detalhe .historico-item{background:#0d1930;border-color:rgba(255,255,255,.07)}
+@media(max-width:980px){body.modo-detalhe .playlist-topo-flex{flex-direction:column}body.modo-detalhe .playlist-imagem-box{width:100%}body.modo-detalhe #imagemPonto{min-height:280px}body.modo-detalhe .playlist-header-textos{padding:8px 0}body.modo-detalhe .playlist-coluna-historico{grid-template-columns:1fr}}
+
 :root {
   --bg-1: #020817;
   --bg-2: #071633;
