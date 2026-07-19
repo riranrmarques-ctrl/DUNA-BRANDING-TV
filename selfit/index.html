@@ -468,6 +468,7 @@
     .linha-pasta .numero-ordem,.linha-pasta .drag-handle,.linha-pasta .nome-arquivo{color:#fff!important}
     .linha-pasta .nome-arquivo{font-size:15px;letter-spacing:.2px}
     .linha-pasta .acao{border-color:#3a3a3a;background:#181818;color:#fff}
+    .linha-pasta.drag-over td{background:#12452b!important;box-shadow:inset 0 0 0 2px #38d981}
     .modal-card-playlist{width:min(1250px,calc(100vw - 34px));max-height:88vh;overflow:auto}
     .playlist-interna-topo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
     .playlist-interna-topo h3{margin:0}
@@ -2034,9 +2035,11 @@
       let indiceOrigem = null;
 
       linhas.forEach((linha)=>{
-        linha.addEventListener("dragstart",()=>{
+        linha.addEventListener("dragstart",(event)=>{
           indiceOrigem = Number(linha.dataset.index);
           linha.classList.add("arrastando");
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain",String(indiceOrigem));
         });
 
         linha.addEventListener("dragend",()=>{
@@ -2047,6 +2050,7 @@
 
         linha.addEventListener("dragover",(event)=>{
           event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
           linhas.forEach(item=>item.classList.remove("drag-over"));
           linha.classList.add("drag-over");
         });
@@ -2063,6 +2067,33 @@
             Number.isNaN(indiceDestino) ||
             indiceOrigem === indiceDestino
           ) return;
+
+          const itemOrigem = playlistAtual[indiceOrigem];
+          const itemDestino = playlistAtual[indiceDestino];
+
+          if(itemDestino?.tipo === "pasta" && itemOrigem?.tipo !== "pasta"){
+            const estadoAnterior = [...playlistAtual];
+            const novaLista = playlistAtual
+              .filter((_,index)=>index !== indiceOrigem)
+              .map(item=>{
+                if(String(item.id) !== String(itemDestino.id)) return item;
+                const itens = Array.isArray(item.itens) ? item.itens : [];
+                return {...item,itens:[...itens,{...itemOrigem,pasta_id:item.id,ordem:itens.length+1}]};
+              })
+              .map((item,index)=>({...item,ordem:index+1}));
+            playlistAtual = novaLista;
+            renderizarPlaylist();
+            mostrarStatus(`Movendo para ${obterNomeArquivo(itemDestino)}...`);
+            try{
+              playlistAtual = await salvarPlaylistR2(playlistAtual);
+              renderizarPlaylist();
+              mostrarStatus("Conteúdo movido para a pasta.","ok");
+            }catch(error){
+              console.error(error);playlistAtual=estadoAnterior;renderizarPlaylist();
+              mostrarStatus(error.message || "Erro ao mover o conteúdo.","erro");
+            }
+            return;
+          }
 
           const novaOrdem = [...playlistAtual];
           const [movido] = novaOrdem.splice(indiceOrigem,1);
