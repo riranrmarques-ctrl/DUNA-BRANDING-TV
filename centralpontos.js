@@ -44,6 +44,22 @@ async function requisitarWorker(path, options = {}) {
 const PONTO_CONFIG_ID = "__dunatv_ponto_config__";
 const OPERACAO_INTERNA_ID = "__dunatv_operacao__";
 const configuracoesPontos = {};
+const operacoesPontos = {};
+const TEMPO_TRANSICAO_COMANDO_MS = 5000;
+
+function normalizarOperacaoCentral(valor = {}) {
+  const operacao = valor && typeof valor === "object" ? valor : {};
+  return {
+    automatico: operacao.automatico === true,
+    inicio: /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(operacao.inicio || "") ? operacao.inicio : "08:00",
+    encerramento: /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(operacao.encerramento || "") ? operacao.encerramento : "22:00",
+    dias: [0,1,2,3,4,5,6],
+    fuso: "America/Sao_Paulo",
+    comando: ["ligar","desligar","automatico"].includes(operacao.comando) ? operacao.comando : "automatico",
+    comando_id: String(operacao.comando_id || ""),
+    comando_em: operacao.comando_em || null
+  };
+}
 
 function normalizarTipoPonto(valor) {
   return String(valor || "").toLowerCase() === "tv_aberta" ? "tv_aberta" : "publicidade";
@@ -56,21 +72,27 @@ function itemConfiguracaoPonto(codigo, configuracao = {}) {
 }
 
 async function obterPlaylistR2(codigo) {
-  const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`);
+  const codigoFinal = normalizarCodigo(codigo);
+  const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(codigoFinal)}`);
   const items = Array.isArray(documento) ? documento : documento?.items || [];
   const config = (!Array.isArray(documento) && documento?.configuracao_ponto) || items.find(item=>String(item?.id || "") === PONTO_CONFIG_ID);
-  if(config) configuracoesPontos[normalizarCodigo(codigo)] = {...config,tipo_ponto:normalizarTipoPonto(config.tipo_ponto)};
+  const controle = items.find(item=>String(item?.id || "") === OPERACAO_INTERNA_ID);
+  if(config) configuracoesPontos[codigoFinal] = {...config,tipo_ponto:normalizarTipoPonto(config.tipo_ponto)};
+  operacoesPontos[codigoFinal] = normalizarOperacaoCentral((!Array.isArray(documento) && documento?.operacao) || controle?.operacao);
+  if(codigoFinal === normalizarCodigo(codigoSelecionado)) renderizarOperacaoCentral();
   return items.filter(item=>![PONTO_CONFIG_ID,OPERACAO_INTERNA_ID].includes(String(item?.id || "")) && item?.tipo !== "controle");
 }
 
 async function salvarPlaylistR2(codigo, items) {
   const codigoFinal = normalizarCodigo(codigo);
   const config = configuracoesPontos[codigoFinal];
+  const operacao = normalizarOperacaoCentral(operacoesPontos[codigoFinal]);
   const itensVisiveis = (Array.isArray(items) ? items : []).filter(item=>![PONTO_CONFIG_ID,OPERACAO_INTERNA_ID].includes(String(item?.id || "")) && item?.tipo !== "controle");
+  const itemControle = {id:OPERACAO_INTERNA_ID,tipo:"controle",codigo:codigoFinal,nome:"Controle da TV",ordem:itensVisiveis.length+1,operacao};
   return requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items:itensVisiveis, configuracao_ponto:config ? itemConfiguracaoPonto(codigoFinal,config) : undefined })
+    body: JSON.stringify({ items:[...itensVisiveis,itemControle], configuracao_ponto:config ? itemConfiguracaoPonto(codigoFinal,config) : undefined, operacao })
   });
 }
 
@@ -180,6 +202,14 @@ const btnUpgradePlaylist = document.getElementById("btnUpgradePlaylist");
 const inputUpgradePlaylist = document.getElementById("inputUpgradePlaylist");
 const btnDeletarPonto = document.getElementById("btnDeletarPonto");
 const btnCriarPastaPlaylist = document.getElementById("btnCriarPastaPlaylist");
+const btnPreviewCentral = document.getElementById("btnPreviewCentral");
+const estadoTvCentral = document.getElementById("estadoTvCentral");
+const btnAlternarTvCentral = document.getElementById("btnAlternarTvCentral");
+const textoEnergiaTvCentral = document.getElementById("textoEnergiaTvCentral");
+const programacaoAutomaticaCentral = document.getElementById("programacaoAutomaticaCentral");
+const horarioAtivacaoCentral = document.getElementById("horarioAtivacaoCentral");
+const horarioEncerramentoCentral = document.getElementById("horarioEncerramentoCentral");
+const btnSalvarProgramacaoCentral = document.getElementById("btnSalvarProgramacaoCentral");
 const areaTvAberta = document.getElementById("areaTvAberta");
 const youtubeUrlPonto = document.getElementById("youtubeUrlPonto");
 const btnSalvarYoutube = document.getElementById("btnSalvarYoutube");
@@ -969,15 +999,13 @@ function montarCardPonto(ponto) {
       </div>
 
       <div class="card-conteudo">
-        <div class="card-nome"><strong>${escapeHtml(nome)}</strong></div>
-
-        <div class="card-info-linha">
-          <div class="card-cidade">${obterLocalizacaoPonto(cidade, endereco)}</div>
-
+        <div class="card-titulo-linha">
+          <div class="card-nome"><strong>${escapeHtml(nome)}</strong></div>
           <div class="card-codigo-area">
             <div class="card-codigo" title="Clique para copiar">${escapeHtml(codigo)}</div>
           </div>
         </div>
+        <div class="card-info-linha"><div class="card-cidade">${obterLocalizacaoPonto(cidade, endereco)}</div></div>
       </div>
 
       <div class="card-acoes">
@@ -1081,8 +1109,8 @@ function abrirPonto(codigo) {
 
   atualizarVisualDisponibilidade(pontoEstaDisponivel(ponto));
 
-  if (cidadePonto) cidadePonto.innerHTML = obterLocalizacaoPonto(cidade, endereco);
-  if (enderecoPonto) enderecoPonto.textContent = endereco || "";
+  if (cidadePonto) cidadePonto.textContent = [cidade,endereco].filter(Boolean).join(" | ");
+  if (enderecoPonto) enderecoPonto.textContent = "";
 
   atualizarStatusDetalhePonto(statusInfo);
 
@@ -1225,6 +1253,90 @@ function obterContainerHistoricoStatus() {
 }
 
 const pastasAbertasCentral = new Set();
+let timerEstadoEnergiaCentral = null;
+
+function novoIdComandoCentral(){
+  return globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function dentroDoHorarioAutomaticoCentral(operacao){
+  if(!operacao.automatico) return false;
+  const partes = new Intl.DateTimeFormat("pt-BR",{timeZone:operacao.fuso,hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());
+  const atual = Number(partes.find(x=>x.type === "hour")?.value || 0) * 60 + Number(partes.find(x=>x.type === "minute")?.value || 0);
+  const [hi,mi] = operacao.inicio.split(":").map(Number), [hf,mf] = operacao.encerramento.split(":").map(Number);
+  const inicio = hi * 60 + mi, fim = hf * 60 + mf;
+  return inicio === fim || (inicio < fim ? atual >= inicio && atual < fim : atual >= inicio || atual < fim);
+}
+
+function estadoAtualEnergiaCentral(operacao){
+  const enviadoEm = new Date(operacao.comando_em || 0).getTime();
+  const decorrido = enviadoEm ? Date.now() - enviadoEm : Infinity;
+  if(["ligar","desligar"].includes(operacao.comando) && decorrido < TEMPO_TRANSICAO_COMANDO_MS){
+    return {estado:operacao.comando === "ligar" ? "ligando" : "desligando",restante:TEMPO_TRANSICAO_COMANDO_MS-decorrido};
+  }
+  if(operacao.comando === "ligar") return {estado:"ligada",restante:0};
+  if(operacao.comando === "desligar") return {estado:"desligada",restante:0};
+  return {estado:dentroDoHorarioAutomaticoCentral(operacao) ? "ligada" : "desligada",restante:0};
+}
+
+function renderizarOperacaoCentral(){
+  if(!btnAlternarTvCentral || !codigoSelecionado) return;
+  const operacao = normalizarOperacaoCentral(operacoesPontos[normalizarCodigo(codigoSelecionado)]);
+  operacoesPontos[normalizarCodigo(codigoSelecionado)] = operacao;
+  programacaoAutomaticaCentral.checked = operacao.automatico;
+  horarioAtivacaoCentral.value = operacao.inicio;
+  horarioEncerramentoCentral.value = operacao.encerramento;
+  btnSalvarProgramacaoCentral.disabled = true;
+  btnSalvarProgramacaoCentral.textContent = "Programação salva";
+  estadoTvCentral.textContent = operacao.automatico
+    ? (dentroDoHorarioAutomaticoCentral(operacao) ? `Programada • ligada até ${operacao.encerramento}` : `Programada • ativa às ${operacao.inicio}`)
+    : "Controle manual";
+  if(operacao.comando === "ligar") estadoTvCentral.textContent = "Comando para ligar enviado";
+  if(operacao.comando === "desligar") estadoTvCentral.textContent = "Comando para desligar enviado";
+  clearTimeout(timerEstadoEnergiaCentral);
+  const atual = estadoAtualEnergiaCentral(operacao), transicao = ["ligando","desligando"].includes(atual.estado);
+  btnAlternarTvCentral.className = "controle-energia-central";
+  if(atual.estado === "ligada") btnAlternarTvCentral.classList.add("ligada");
+  if(transicao) btnAlternarTvCentral.classList.add("transicao",atual.estado);
+  btnAlternarTvCentral.disabled = transicao;
+  textoEnergiaTvCentral.textContent = {ligada:"Ligada",desligada:"Desligada",ligando:"Ligando…",desligando:"Desligando…"}[atual.estado];
+  btnAlternarTvCentral.setAttribute("aria-pressed",String(["ligada","ligando"].includes(atual.estado)));
+  if(transicao) timerEstadoEnergiaCentral = setTimeout(renderizarOperacaoCentral,Math.max(300,atual.restante+80));
+}
+
+async function enviarComandoTvCentral(){
+  if(!codigoSelecionado) return;
+  const codigo = normalizarCodigo(codigoSelecionado);
+  const items = await obterPlaylistR2(codigo);
+  const atual = estadoAtualEnergiaCentral(normalizarOperacaoCentral(operacoesPontos[codigo]));
+  if(["ligando","desligando"].includes(atual.estado)) return;
+  operacoesPontos[codigo] = {...normalizarOperacaoCentral(operacoesPontos[codigo]),comando:atual.estado === "ligada" ? "desligar" : "ligar",comando_id:novoIdComandoCentral(),comando_em:new Date().toISOString()};
+  renderizarOperacaoCentral();
+  try{
+    await salvarPlaylistR2(codigo,items);
+    setStatus(operacoesPontos[codigo].comando === "ligar" ? "Comando para ligar enviado." : "Comando para desligar enviado.","ok");
+  }catch(error){
+    setStatus(error.message || "Não foi possível enviar o comando.","erro");
+    renderizarOperacaoCentral();
+  }
+}
+
+async function salvarProgramacaoTvCentral(){
+  if(!codigoSelecionado) return;
+  const codigo = normalizarCodigo(codigoSelecionado), items = await obterPlaylistR2(codigo);
+  operacoesPontos[codigo] = normalizarOperacaoCentral({...operacoesPontos[codigo],automatico:programacaoAutomaticaCentral.checked,inicio:horarioAtivacaoCentral.value,encerramento:horarioEncerramentoCentral.value,comando:"automatico",comando_id:novoIdComandoCentral(),comando_em:new Date().toISOString()});
+  btnSalvarProgramacaoCentral.disabled = true;
+  btnSalvarProgramacaoCentral.textContent = "Salvando...";
+  try{
+    await salvarPlaylistR2(codigo,items);
+    setStatus(operacoesPontos[codigo].automatico ? "Programação salva." : "Programação automática desativada.","ok");
+    renderizarOperacaoCentral();
+  }catch(error){
+    setStatus(error.message || "Não foi possível salvar a programação.","erro");
+    btnSalvarProgramacaoCentral.disabled = false;
+    btnSalvarProgramacaoCentral.textContent = "Salvar programação";
+  }
+}
 
 function atualizarTipoPontoDetalhe() {
   const config = configuracoesPontos[codigoSelecionado] || {tipo_ponto:"publicidade",youtube_url:""};
@@ -2420,6 +2532,18 @@ document.querySelectorAll("[data-tipo-ponto]").forEach(btn=>btn.onclick=()=>{tip
 if(btnCancelarNovoPonto)btnCancelarNovoPonto.onclick=()=>modalNovoPonto.style.display="none";
 if(btnConfirmarNovoPonto)btnConfirmarNovoPonto.onclick=async()=>{modalNovoPonto.style.display="none";await criarNovoPonto(tipoNovoPontoSelecionado);};
 if(btnCriarPastaPlaylist)btnCriarPastaPlaylist.onclick=criarPastaCentral;
+if(btnPreviewCentral)btnPreviewCentral.onclick=async()=>{
+  try{
+    const items=await obterPlaylistR2(codigoSelecionado),todos=[];
+    items.forEach(item=>item.tipo === "pasta" ? todos.push(...(item.itens||[])) : todos.push(item));
+    const primeiro=todos.find(item=>obterUrlDownloadPlaylist(item));
+    if(!primeiro) throw new Error("Nenhum conteúdo disponível para preview.");
+    window.open(obterUrlDownloadPlaylist(primeiro),"_blank","noopener");
+  }catch(error){setStatus(error.message||"Não foi possível abrir o preview.","erro");}
+};
+if(btnAlternarTvCentral)btnAlternarTvCentral.onclick=()=>enviarComandoTvCentral();
+if(btnSalvarProgramacaoCentral)btnSalvarProgramacaoCentral.onclick=()=>salvarProgramacaoTvCentral();
+[programacaoAutomaticaCentral,horarioAtivacaoCentral,horarioEncerramentoCentral].filter(Boolean).forEach(campo=>campo.addEventListener("input",()=>{btnSalvarProgramacaoCentral.disabled=false;btnSalvarProgramacaoCentral.textContent="Salvar programação";}));
 document.querySelectorAll("[data-duracao-central]").forEach(btn=>btn.onclick=()=>duracaoConteudoCentral.value=btn.dataset.duracaoCentral);
 if(btnCancelarConteudoCentral)btnCancelarConteudoCentral.onclick=()=>modalAdicionarConteudoCentral.style.display="none";
 if(btnFecharPastaConteudosCentral)btnFecharPastaConteudosCentral.onclick=()=>modalPastaConteudosCentral.style.display="none";
