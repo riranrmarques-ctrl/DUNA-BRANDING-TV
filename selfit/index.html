@@ -485,7 +485,9 @@
       min-width:0;
     }
 
-    .acoes-cabecalho-conteudos{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:none}
+    .acoes-cabecalho-conteudos{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;flex:none}
+    .btn-criar-pasta{background:#fff;color:#111;border-color:#fff}
+    .btn-criar-pasta:hover{background:#f0f0f0;color:#111}
 
     .btn-preview{
       min-width:132px;
@@ -1008,7 +1010,7 @@
         </div>
 
         <div class="acoes-cabecalho-conteudos">
-          <button class="btn-preview" id="btnCriarPastaPlaylist" type="button"><span>▣</span><span>Criar pasta</span></button>
+          <button class="btn-preview btn-criar-pasta" id="btnCriarPastaPlaylist" type="button"><span>＋</span><span>Nova pasta</span></button>
           <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
           <button class="btn-preview" id="btnPreview" type="button"><span>◉</span><span>Preview</span></button>
         </div>
@@ -1178,6 +1180,11 @@
               <label for="editarDuracaoConteudo">Duração do conteúdo</label>
               <input id="editarDuracaoConteudo" type="text" inputmode="numeric" placeholder="00:00" maxlength="8" pattern="[0-9]{1,5}:[0-5][0-9]" required />
             </div>
+          </div>
+
+          <div class="campo campo-completo">
+            <label for="editarDestinoConteudo">Mover para</label>
+            <select id="editarDestinoConteudo"><option value="principal">Playlist principal</option></select>
           </div>
         </div>
 
@@ -1406,6 +1413,7 @@
     const editarNomeConteudo = document.getElementById("editarNomeConteudo");
     const editarDataVencimento = document.getElementById("editarDataVencimento");
     const editarDuracaoConteudo = document.getElementById("editarDuracaoConteudo");
+    const editarDestinoConteudo = document.getElementById("editarDestinoConteudo");
     const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
     const statusToast = document.getElementById("statusToast");
 
@@ -2093,6 +2101,11 @@
       editarNomeConteudo.value = obterNomeArquivo(item);
       editarDataVencimento.value = valorDataLocal(item.data_fim || item.fim_exibicao);
       editarDuracaoConteudo.value = formatarDuracao(Number(item.duracao) || 15);
+      editarDestinoConteudo.innerHTML = '<option value="principal">Playlist principal</option>' +
+        playlistAtual.filter(conteudo=>conteudo.tipo === "pasta").map(pasta=>
+          `<option value="${escapeHtml(pasta.id)}">Pasta: ${escapeHtml(obterNomeArquivo(pasta))}</option>`
+        ).join("");
+      editarDestinoConteudo.value = "principal";
       modalEditar.classList.remove("oculto");
       setTimeout(()=>editarNomeConteudo.focus(),50);
     };
@@ -2120,6 +2133,7 @@
       const nomeFinal = editarNomeConteudo.value.trim();
       const vencimentoFinal = editarDataVencimento.value;
       const duracaoFinal = duracaoParaSegundos(editarDuracaoConteudo.value);
+      const destinoFinal = editarDestinoConteudo.value;
 
       if(!nomeFinal){
         mostrarStatus("Digite um nome válido.","erro");
@@ -2146,22 +2160,35 @@
       btnSalvarEdicao.textContent = "Salvando...";
 
       try{
-        const listaEditada = playlistAtual.map((item)=>
+        let itemAtualizado = null;
+        let listaEditada = playlistAtual.map((item)=>
           String(item.id) === String(itemEmEdicao.id)
-            ? {
+            ? (itemAtualizado = {
                 ...item,
                 nome:nomeFinal,
                 titulo_arquivo:nomeFinal,
                 data_fim:dataVencimentoFinal.toISOString(),
                 duracao:String(duracaoFinal)
-              }
+              })
             : item
         );
+
+        if(destinoFinal !== "principal"){
+          listaEditada = listaEditada.filter(item=>String(item.id) !== String(itemEmEdicao.id));
+          let pastaEncontrada = false;
+          listaEditada = listaEditada.map(item=>{
+            if(item.tipo !== "pasta" || String(item.id) !== String(destinoFinal)) return item;
+            pastaEncontrada = true;
+            const itens = Array.isArray(item.itens) ? item.itens : [];
+            return {...item,itens:[...itens,{...itemAtualizado,pasta_id:item.id,ordem:itens.length+1}]};
+          });
+          if(!pastaEncontrada) throw new Error("A pasta escolhida não foi encontrada.");
+        }
 
         playlistAtual = await salvarPlaylistR2(listaEditada);
         fecharModalEditar();
         renderizarPlaylist();
-        mostrarStatus("Conteúdo atualizado.","ok");
+        mostrarStatus(destinoFinal === "principal" ? "Conteúdo atualizado." : "Conteúdo movido para a pasta.","ok");
       }catch(error){
         console.error(error);
         mostrarStatus(error.message || "Erro ao editar o conteúdo.","erro");
