@@ -42,6 +42,7 @@ async function requisitarWorker(path, options = {}) {
 }
 
 const PONTO_CONFIG_ID = "__dunatv_ponto_config__";
+const OPERACAO_INTERNA_ID = "__dunatv_operacao__";
 const configuracoesPontos = {};
 
 function normalizarTipoPonto(valor) {
@@ -59,13 +60,13 @@ async function obterPlaylistR2(codigo) {
   const items = Array.isArray(documento) ? documento : documento?.items || [];
   const config = (!Array.isArray(documento) && documento?.configuracao_ponto) || items.find(item=>String(item?.id || "") === PONTO_CONFIG_ID);
   if(config) configuracoesPontos[normalizarCodigo(codigo)] = {...config,tipo_ponto:normalizarTipoPonto(config.tipo_ponto)};
-  return items.filter(item=>String(item?.id || "") !== PONTO_CONFIG_ID);
+  return items.filter(item=>![PONTO_CONFIG_ID,OPERACAO_INTERNA_ID].includes(String(item?.id || "")) && item?.tipo !== "controle");
 }
 
 async function salvarPlaylistR2(codigo, items) {
   const codigoFinal = normalizarCodigo(codigo);
   const config = configuracoesPontos[codigoFinal];
-  const itensVisiveis = (Array.isArray(items) ? items : []).filter(item=>String(item?.id || "") !== PONTO_CONFIG_ID);
+  const itensVisiveis = (Array.isArray(items) ? items : []).filter(item=>![PONTO_CONFIG_ID,OPERACAO_INTERNA_ID].includes(String(item?.id || "")) && item?.tipo !== "controle");
   return requisitarWorker(`/api/playlist/${encodeURIComponent(normalizarCodigo(codigo))}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -1248,7 +1249,7 @@ function linhaConteudoCentral(item,index,pastaId=""){
   return `<tr draggable="${pastaId ? "false" : "true"}" data-item-id="${escapeHtml(item.id)}" data-index="${index}" data-pasta-id="${escapeHtml(pastaId)}">
     <td>${index+1}</td><td>${escapeHtml(nome)}</td><td>${escapeHtml(formatarDataHora(item.data_inicio||item.created_at))}</td>
     <td>${escapeHtml(formatarDataHora(item.data_fim))}</td><td>${escapeHtml(formatarDuracaoCentral(item.duracao))}</td><td>${escapeHtml(item.tipo||"Vídeo")}</td>
-    <td><div class="acoes-central"><a class="acao-central" href="${escapeHtml(url||"#")}" target="_blank" rel="noopener">Visualizar</a><button class="acao-central editar-central" data-id="${escapeHtml(item.id)}" data-pasta="${escapeHtml(pastaId)}">Editar</button><button class="acao-central excluir excluir-central" data-id="${escapeHtml(item.id)}" data-pasta="${escapeHtml(pastaId)}">Excluir</button></div></td></tr>`;
+    <td><div class="acoes-central"><a class="acao-central" href="${escapeHtml(url||"#")}" target="_blank" rel="noopener">◉ Visualizar</a><button class="acao-central editar-central" data-id="${escapeHtml(item.id)}" data-pasta="${escapeHtml(pastaId)}">✎ Editar</button><button class="acao-central excluir excluir-central" data-id="${escapeHtml(item.id)}" data-pasta="${escapeHtml(pastaId)}">× Excluir</button></div></td></tr>`;
 }
 
 function renderizarPlaylistCentral(items){
@@ -1257,7 +1258,7 @@ function renderizarPlaylistCentral(items){
   ativos.forEach((item,index)=>{
     if(item.tipo==="pasta"){
       const filhos=Array.isArray(item.itens)?item.itens:[];
-      linhas.push(`<tr class="linha-pasta" data-folder-id="${escapeHtml(item.id)}"><td>${index+1}</td><td colspan="5"><strong>${escapeHtml(item.nome||"Pasta")}</strong><div class="pasta-detalhes">${item.modo_reproducao==="sequencial"?"Sequencial":"Aleatória"} • ${Number(item.quantidade_por_passagem)||1} por passagem • ${filhos.length} arquivo(s)</div></td><td><div class="acoes-central"><button class="acao-central abrir-pasta-central" data-id="${escapeHtml(item.id)}">${pastasAbertasCentral.has(String(item.id))?"Fechar":"Abrir"}</button><button class="acao-central configurar-pasta-central" data-id="${escapeHtml(item.id)}">Editar</button><button class="acao-central excluir excluir-pasta-central" data-id="${escapeHtml(item.id)}">Excluir</button></div></td></tr>`);
+      linhas.push(`<tr class="linha-pasta" data-folder-id="${escapeHtml(item.id)}"><td>${index+1}</td><td colspan="5"><strong>${escapeHtml(item.nome||"Pasta")}</strong><div class="pasta-detalhes">${item.modo_reproducao==="sequencial"?"Sequencial":"Aleatória"} • ${Number(item.quantidade_por_passagem)||1} por passagem • ${filhos.length} arquivo(s)</div></td><td><div class="acoes-central"><button class="acao-central abrir-pasta-central" data-id="${escapeHtml(item.id)}">→ Abrir</button><button class="acao-central configurar-pasta-central" data-id="${escapeHtml(item.id)}">✎ Editar</button><button class="acao-central excluir excluir-pasta-central" data-id="${escapeHtml(item.id)}">× Excluir</button></div></td></tr>`);
     }else linhas.push(linhaConteudoCentral(item,index));
   });
   return `<table class="playlist-tabela-central"><thead><tr><th>ORDEM</th><th>NOME DO CONTEÚDO</th><th>POSTAGEM</th><th>VENCIMENTO</th><th>DURAÇÃO</th><th>TIPO</th><th>AÇÕES</th></tr></thead><tbody>${linhas.join("")||'<tr><td colspan="7" class="playlist-vazia">Nenhum conteúdo ativo</td></tr>'}</tbody></table>`;
