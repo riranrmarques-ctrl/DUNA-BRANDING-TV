@@ -2653,3 +2653,107 @@ body.modo-detalhe .tv-aberta-box {
     width: 100%!important;
   }
 }
+
+.topo-fixo.novo-topo {
+  min-height: 112px!important;
+  padding-top: 28px!important;
+  padding-bottom: 20px!important;
+}
+.topo-centro {
+  display: none!important;
+}
+.topo-direita {
+  position: static!important;
+  transform: none!important;
+  border: 0!important;
+}
+.topo-direita .logo-topo-img {
+  width: 150px!important;
+  max-height: 74px!important;
+}
+.topo-esquerda {
+  position: static!important;
+  transform: none!important;
+  margin-left: auto!important;
+  visibility: visible!important;
+  pointer-events: auto!important;
+}
+.lista-cabecalho-selfit {
+  margin-top: 8px!important;
+  margin-bottom: 26px!important;
+}
+.lista-cabecalho-selfit h2 {
+  font-size: clamp(2.3rem,3.6vw,3.8rem)!important;
+}
+.pontos-box {
+  grid-template-columns: repeat(auto-fill,minmax(340px,480px))!important;
+  align-items: start!important;
+}
+.card-ponto {
+  width: 100%!important;
+  max-width: 480px!important;
+  padding: 16px!important;
+}
+.card-imagem-box {
+  aspect-ratio: 1.88/1!important;
+}
+.card-conteudo {
+  padding-top: 13px!important;
+}
+.card-nome strong {
+  font-size: 24px!important;
+}
+body.modo-detalhe .topo-centro {
+  display: none!important;
+}
+body.modo-detalhe .topo-esquerda {
+  visibility: hidden!important;
+  pointer-events: none!important;
+}
+@media(max-width:650px) {
+  .topo-fixo.novo-topo {
+    flex-wrap: nowrap!important;
+  }
+  .topo-esquerda {
+    width: auto!important;
+  }
+  .menu-topo-btn {
+    width: auto!important;
+    min-width: 120px!important;
+  }
+  .topo-direita .logo-topo-img {
+    width: 120px!important;
+  }
+  .card-ponto {
+    max-width: none!important;
+  }
+}
+
+.pontos-box {
+  grid-template-columns: repeat(4,minmax(0,1fr))!important;
+  gap: 22px!important;
+}
+.card-ponto {
+  max-width: none!important;
+}
+.card-nome strong {
+  font-size: 21px!important;
+}
+.card-cidade {
+  font-size: 13px!important;
+}
+@media(max-width:1350px) {
+  .pontos-box {
+    grid-template-columns: repeat(3,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:980px) {
+  .pontos-box {
+    grid-template-columns: repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:620px) {
+  .pontos-box {
+    grid-template-columns: 1fr!important;
+  }
+}
