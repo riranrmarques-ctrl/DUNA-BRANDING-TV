@@ -442,10 +442,12 @@
     }
 
     .btn-adicionar{
-      width:100%;
-      min-height:66px;
-      margin-top:auto;
-      font-size:19px;
+      width:auto;
+      min-height:42px;
+      margin:0;
+      flex:none;
+      font-size:13px;
+      padding:0 18px;
     }
 
     .conteudos-card{padding:22px;margin-bottom:24px}
@@ -460,6 +462,14 @@
 
     .cabecalho-conteudos-texto{
       min-width:0;
+    }
+
+    .acoes-cabecalho-conteudos{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:10px;
+      flex:none;
     }
 
     .btn-preview{
@@ -766,6 +776,37 @@
       border-color:var(--vermelho);
     }
 
+    .duracao-controles{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .duracao-controles input{
+      min-width:0;
+      flex:1;
+    }
+
+    .atalho-duracao{
+      min-width:66px;
+      height:46px;
+      flex:none;
+      border:1px solid #4a4a4a;
+      border-radius:10px;
+      background:#242424;
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+
+    .atalho-duracao:hover,
+    .atalho-duracao:focus-visible{
+      border-color:var(--vermelho);
+      background:var(--vermelho);
+      outline:none;
+    }
+
     @keyframes aparecerAgendamento{
       from{opacity:0;transform:translateY(-4px)}
       to{opacity:1;transform:translateY(0)}
@@ -822,8 +863,13 @@
       .grid-campos{grid-template-columns:1fr}
       .campo-completo{grid-column:auto}
       .agendamento-box{grid-template-columns:1fr}
-      .cabecalho-conteudos{align-items:flex-start}
+      .cabecalho-conteudos{align-items:flex-start;flex-direction:column}
+      .acoes-cabecalho-conteudos{width:100%;justify-content:flex-start}
+      .btn-adicionar{flex:1;padding:0 12px}
       .btn-preview{min-width:108px;padding:0 12px}
+      .duracao-controles{flex-wrap:wrap}
+      .duracao-controles input{flex-basis:100%}
+      .atalho-duracao{flex:1}
     }
   </style>
 </head>
@@ -965,7 +1011,6 @@
           </div>
         </section>
 
-        <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
       </div>
     </section>
 
@@ -976,10 +1021,14 @@
           <p>O gerente visualiza e administra somente este ponto.</p>
         </div>
 
-        <button class="btn-preview" id="btnPreview" type="button">
-          <span>◉</span>
-          <span>Preview</span>
-        </button>
+        <div class="acoes-cabecalho-conteudos">
+          <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
+
+          <button class="btn-preview" id="btnPreview" type="button">
+            <span>◉</span>
+            <span>Preview</span>
+          </button>
+        </div>
       </div>
 
       <div class="tabela-wrap">
@@ -990,12 +1039,13 @@
               <th>NOME DO CONTEÚDO</th>
               <th>POSTAGEM</th>
               <th>VENCIMENTO</th>
+              <th>DURAÇÃO</th>
               <th>TIPO</th>
               <th>AÇÕES</th>
             </tr>
           </thead>
           <tbody id="corpoTabela">
-            <tr><td colspan="6" class="vazio">Carregando conteúdos...</td></tr>
+            <tr><td colspan="7" class="vazio">Carregando conteúdos...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1033,12 +1083,12 @@
             </div>
 
             <div class="campo campo-completo">
-              <label for="duracaoConteudo">Duração do conteúdo</label>
-              <select id="duracaoConteudo" required>
-                <option value="15">15 segundos</option>
-                <option value="20">20 segundos</option>
-                <option value="30">30 segundos</option>
-              </select>
+              <label for="duracaoConteudo">Duração do vídeo (segundos)</label>
+              <div class="duracao-controles">
+                <input id="duracaoConteudo" type="number" min="1" max="86400" step="1" value="15" inputmode="numeric" required />
+                <button class="atalho-duracao" type="button" data-duracao="15">15s</button>
+                <button class="atalho-duracao" type="button" data-duracao="30">30s</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1069,6 +1119,11 @@
           <div class="campo campo-completo">
             <label for="editarDataVencimento">Data de vencimento</label>
             <input id="editarDataVencimento" type="datetime-local" required />
+          </div>
+
+          <div class="campo campo-completo">
+            <label for="editarDuracaoConteudo">Duração do conteúdo (segundos)</label>
+            <input id="editarDuracaoConteudo" type="number" min="1" max="86400" step="1" inputmode="numeric" required />
           </div>
         </div>
 
@@ -1265,6 +1320,7 @@
     const dataPostagem = document.getElementById("dataPostagem");
     const dataVencimento = document.getElementById("dataVencimento");
     const duracaoConteudo = document.getElementById("duracaoConteudo");
+    const atalhosDuracao = document.querySelectorAll("[data-duracao]");
     const agendamentoBox = document.getElementById("agendamentoBox");
     const btnEnviar = document.getElementById("btnEnviar");
     const modalEditar = document.getElementById("modalEditar");
@@ -1273,12 +1329,20 @@
     const formEditar = document.getElementById("formEditar");
     const editarNomeConteudo = document.getElementById("editarNomeConteudo");
     const editarDataVencimento = document.getElementById("editarDataVencimento");
+    const editarDuracaoConteudo = document.getElementById("editarDuracaoConteudo");
     const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
     const statusToast = document.getElementById("statusToast");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
     let itemEmEdicao = null;
+
+    atalhosDuracao.forEach((botao)=>{
+      botao.addEventListener("click",()=>{
+        duracaoConteudo.value = botao.dataset.duracao;
+        duracaoConteudo.focus();
+      });
+    });
 
     arquivoConteudo.addEventListener("change",()=>{
       const possuiArquivo = arquivoConteudo.files && arquivoConteudo.files.length > 0;
@@ -1577,7 +1641,7 @@
     }
 
     async function carregarPlaylist(){
-      corpoTabela.innerHTML = '<tr><td colspan="6" class="vazio">Carregando conteúdos...</td></tr>';
+      corpoTabela.innerHTML = '<tr><td colspan="7" class="vazio">Carregando conteúdos...</td></tr>';
 
       try{
         const items = await obterPlaylistR2();
@@ -1586,14 +1650,14 @@
         renderizarPlaylist();
       }catch(error){
         console.error(error);
-        corpoTabela.innerHTML = '<tr><td colspan="6" class="vazio">Erro ao carregar conteúdos.</td></tr>';
+        corpoTabela.innerHTML = '<tr><td colspan="7" class="vazio">Erro ao carregar conteúdos.</td></tr>';
         mostrarStatus(error.message || "Erro ao carregar a playlist do R2.","erro");
       }
     }
 
     function renderizarPlaylist(){
       if(!playlistAtual.length){
-        corpoTabela.innerHTML = '<tr><td colspan="6" class="vazio">Nenhum conteúdo cadastrado neste ponto.</td></tr>';
+        corpoTabela.innerHTML = '<tr><td colspan="7" class="vazio">Nenhum conteúdo cadastrado neste ponto.</td></tr>';
         return;
       }
 
@@ -1602,6 +1666,7 @@
         const vencimento = formatarDataHora(item.data_fim || item.fim_exibicao);
         const nome = obterNomeArquivo(item);
         const url = obterUrl(item);
+        const duracao = Number(item.duracao) || 15;
 
         return `
           <tr draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
@@ -1614,6 +1679,7 @@
             <td><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
             <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
             <td><div class="data-cell"><span>${escapeHtml(vencimento.data)}</span><span class="hora">${escapeHtml(vencimento.hora)}</span></div></td>
+            <td class="tipo-cell">${escapeHtml(duracao)}s</td>
             <td class="tipo-cell">${escapeHtml(obterTipo(item))}</td>
             <td>
               <div class="acoes">
@@ -1722,6 +1788,7 @@
       itemEmEdicao = item;
       editarNomeConteudo.value = obterNomeArquivo(item);
       editarDataVencimento.value = valorDatetimeLocal(item.data_fim || item.fim_exibicao);
+      editarDuracaoConteudo.value = String(Number(item.duracao) || 15);
       modalEditar.classList.remove("oculto");
       setTimeout(()=>editarNomeConteudo.focus(),50);
     };
@@ -1748,6 +1815,7 @@
 
       const nomeFinal = editarNomeConteudo.value.trim();
       const vencimentoFinal = editarDataVencimento.value;
+      const duracaoFinal = Number(editarDuracaoConteudo.value);
 
       if(!nomeFinal){
         mostrarStatus("Digite um nome válido.","erro");
@@ -1756,6 +1824,11 @@
 
       if(!vencimentoFinal){
         mostrarStatus("Informe a data de vencimento.","erro");
+        return;
+      }
+
+      if(!Number.isInteger(duracaoFinal) || duracaoFinal < 1 || duracaoFinal > 86400){
+        mostrarStatus("Informe uma duração válida em segundos.","erro");
         return;
       }
 
@@ -1775,7 +1848,8 @@
                 ...item,
                 nome:nomeFinal,
                 titulo_arquivo:nomeFinal,
-                data_fim:dataVencimentoFinal.toISOString()
+                data_fim:dataVencimentoFinal.toISOString(),
+                duracao:String(duracaoFinal)
               }
             : item
         );
@@ -1858,8 +1932,8 @@
       }
 
       const duracaoSelecionada = Number(duracaoConteudo.value);
-      if(![15,20,30].includes(duracaoSelecionada)){
-        mostrarStatus("Escolha uma duração válida.","erro");
+      if(!Number.isInteger(duracaoSelecionada) || duracaoSelecionada < 1 || duracaoSelecionada > 86400){
+        mostrarStatus("Informe uma duração válida em segundos.","erro");
         return;
       }
 
