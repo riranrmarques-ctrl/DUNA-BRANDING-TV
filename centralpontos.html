@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0">
 
   <title>Duna Branding | Pontos</title>
-  <link rel="stylesheet" href="centralpontos.css?v=202">
+  <link rel="stylesheet" href="centralpontos.css?v=203">
 </head>
 
 <body>
@@ -43,7 +43,7 @@
       <div class="pontos-box"></div>
 
       <div class="novo-ponto-area">
-        <button id="btnNovoPonto" class="btn-novo-ponto">+ Novo ponto</button>
+        <button id="btnNovoPonto" class="btn-novo-ponto">+ Nova pasta</button>
       </div>
 
       <div class="assinatura-duna">
@@ -93,12 +93,18 @@
 
             <div class="playlist-acoes-topo">
               <button id="btnEditarInfo" class="btn-secundario">Editar informações</button>
-              <button id="btnUpgradePlaylist" class="btn-upgrade-playlist">upgrade</button>
+              <button id="btnUpgradePlaylist" class="btn-upgrade-playlist">＋ Adicionar conteúdo</button>
+              <button id="btnCriarPastaPlaylist" class="btn-secundario">＋ Criar pasta</button>
               <input id="inputUpgradePlaylist" type="file" hidden>
             </div>
 
           </div>
         </div>
+      </div>
+
+      <div id="areaTvAberta" class="tv-aberta-box" style="display:none;">
+        <div><h3>TV aberta</h3><p>Informe o link do YouTube que será exibido neste ponto.</p></div>
+        <div class="tv-aberta-form"><input id="youtubeUrlPonto" type="url" placeholder="https://www.youtube.com/watch?v=..."><button id="btnSalvarYoutube" type="button">Salvar link</button></div>
       </div>
 
       <div class="playlist-layout-novo">
@@ -134,6 +140,38 @@
 
     </div>
 
+  </div>
+
+  <div id="modalNovoPonto" class="modal-editar" style="display:none;">
+    <div class="modal-conteudo modal-tipo-ponto">
+      <h3>Criar nova pasta</h3><p class="modal-ajuda">Selecione como esta pasta será utilizada.</p>
+      <div class="tipos-ponto-grid">
+        <button type="button" class="tipo-ponto-opcao selecionado" data-tipo-ponto="publicidade"><strong>Publicidade</strong><span>Playlist de vídeos, imagens e pastas.</span></button>
+        <button type="button" class="tipo-ponto-opcao" data-tipo-ponto="tv_aberta"><strong>TV aberta</strong><span>Exibição por link do YouTube.</span></button>
+      </div>
+      <div class="edit-botoes"><button id="btnConfirmarNovoPonto" type="button">Criar pasta</button><button id="btnCancelarNovoPonto" type="button">Cancelar</button></div>
+    </div>
+  </div>
+
+  <div id="modalAdicionarConteudoCentral" class="modal-editar" style="display:none;">
+    <div class="modal-conteudo modal-conteudo-material">
+      <h3>Adicionar conteúdo</h3>
+      <div class="modal-grid-material">
+        <label>Arquivo<input id="arquivoConteudoCentral" type="file" accept="video/*,image/*,.txt" required></label>
+        <label>Postagem<input id="postagemConteudoCentral" type="datetime-local" required></label>
+        <label>Vencimento<input id="vencimentoConteudoCentral" type="datetime-local" required></label>
+        <label>Duração do conteúdo<div class="duracao-central"><input id="duracaoConteudoCentral" type="number" min="1" max="86400" value="15" required><button type="button" data-duracao-central="15">15s</button><button type="button" data-duracao-central="30">30s</button></div></label>
+        <label>Destino<select id="destinoConteudoCentral"><option value="principal">Playlist principal</option></select></label>
+      </div>
+      <div class="edit-botoes"><button id="btnSalvarConteudoCentral" type="button">Adicionar</button><button id="btnCancelarConteudoCentral" type="button">Cancelar</button></div>
+    </div>
+  </div>
+
+  <div id="modalPastaConteudosCentral" class="modal-editar" style="display:none;">
+    <div class="modal-conteudo modal-pasta-central">
+      <div class="modal-pasta-topo"><div><h3 id="tituloPastaConteudosCentral">Pasta</h3><p id="resumoPastaConteudosCentral"></p></div><button id="btnFecharPastaConteudosCentral" type="button">×</button></div>
+      <div id="listaPastaConteudosCentral" class="playlist-lista"></div>
+    </div>
   </div>
   
  <!-- MODAL EDITAR -->
@@ -212,7 +250,7 @@
 </div>
   
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="centralpontos.js?v=201"></script>
+<script src="centralpontos.js?v=202"></script>
 
 </body>
 </html>
