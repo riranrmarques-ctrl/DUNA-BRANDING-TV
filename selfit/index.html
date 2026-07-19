@@ -469,7 +469,11 @@
     .linha-pasta .nome-arquivo{font-size:15px;letter-spacing:.2px}
     .linha-pasta .acao{border-color:#3a3a3a;background:#181818;color:#fff}
     .linha-pasta.drag-over td{background:#12452b!important;box-shadow:inset 0 0 0 2px #38d981}
-    .modal-card-playlist{width:min(1250px,calc(100vw - 34px));max-height:88vh;overflow:auto}
+    .modal-card.modal-card-playlist{width:min(1450px,calc(100vw - 32px));max-width:none;max-height:92vh;overflow:auto}
+    .modal-card-playlist .tabela-wrap{width:100%;overflow:auto}
+    .modal-card-playlist table{min-width:960px}
+    .modal-card-playlist th,.modal-card-playlist td{padding-left:10px;padding-right:10px}
+    .modal-card-playlist .acao{padding:0 10px}
     .playlist-interna-topo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
     .playlist-interna-topo h3{margin:0}
     .playlist-interna-acoes{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
@@ -1102,8 +1106,6 @@
           <p class="agendamento-aviso" id="resumoPastaAberta"></p>
         </div>
         <div class="playlist-interna-acoes">
-          <button class="btn-secundario" id="btnConfigurarPastaAberta" type="button">Configurar</button>
-          <button class="btn-secundario" id="btnExcluirPastaAberta" type="button">Excluir pasta</button>
           <button class="btn-principal btn-adicionar" id="btnAdicionarConteudoPasta" type="button">＋ Adicionar conteúdo</button>
           <button class="btn-fechar" id="btnFecharConteudosPasta" type="button">×</button>
         </div>
@@ -1419,8 +1421,6 @@
     const modalConteudosPasta = document.getElementById("modalConteudosPasta");
     const btnFecharConteudosPasta = document.getElementById("btnFecharConteudosPasta");
     const btnAdicionarConteudoPasta = document.getElementById("btnAdicionarConteudoPasta");
-    const btnConfigurarPastaAberta = document.getElementById("btnConfigurarPastaAberta");
-    const btnExcluirPastaAberta = document.getElementById("btnExcluirPastaAberta");
     const nomePastaAberta = document.getElementById("nomePastaAberta");
     const resumoPastaAberta = document.getElementById("resumoPastaAberta");
     const corpoTabelaPasta = document.getElementById("corpoTabelaPasta");
@@ -1999,6 +1999,8 @@
               <td colspan="5"><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
               <td><div class="acoes">
                 <button class="acao" type="button" onclick="abrirConteudosPasta('${escapeHtml(item.id)}')"><span>→</span><span>Abrir</span></button>
+                <button class="acao" type="button" onclick="editarPastaPlaylist('${escapeHtml(item.id)}')"><span>✎</span><span>Configurar</span></button>
+                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','')"><span>×</span><span>Excluir pasta</span></button>
               </div></td>
             </tr>`;
         }
@@ -2434,8 +2436,6 @@
     btnFecharConteudosPasta.addEventListener("click",fecharConteudosPasta);
     modalConteudosPasta.addEventListener("click",event=>{if(event.target===modalConteudosPasta) fecharConteudosPasta()});
     btnAdicionarConteudoPasta.addEventListener("click",()=>{if(pastaAbertaId) window.adicionarNaPasta(pastaAbertaId)});
-    btnConfigurarPastaAberta.addEventListener("click",()=>{const pasta=obterPastaAberta();if(pasta) abrirModalPastaPlaylist(pasta)});
-    btnExcluirPastaAberta.addEventListener("click",async()=>{const id=pastaAbertaId;if(!id)return;fecharConteudosPasta();await window.excluirItem(id,"")});
 
     window.excluirItemPasta = async function(pastaId,itemId){
       if(!confirm("Deseja excluir este conteúdo da pasta?")) return;
