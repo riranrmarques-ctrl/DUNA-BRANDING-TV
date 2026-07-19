@@ -467,6 +467,7 @@
     .linha-pasta td+td{border-left:0!important}
     .linha-pasta .numero-ordem,.linha-pasta .drag-handle,.linha-pasta .nome-arquivo{color:#fff!important}
     .linha-pasta .nome-arquivo{font-size:15px;letter-spacing:.2px}
+    .linha-pasta-info{display:block;margin-top:5px;color:#aaa;font-size:11px;font-weight:700}
     .linha-pasta .acao{border-color:#3a3a3a;background:#181818;color:#fff}
     .linha-pasta.drag-over td{background:#12452b!important;box-shadow:inset 0 0 0 2px #38d981}
     .modal-card.modal-card-playlist{width:min(1450px,calc(100vw - 32px));max-width:none;max-height:92vh;overflow:auto}
@@ -1993,14 +1994,17 @@
         const duracao = Number(item.duracao) || 15;
 
         if(item.tipo === "pasta"){
+          const totalArquivos = Array.isArray(item.itens) ? item.itens.length : 0;
+          const modoPasta = item.modo_reproducao === "sequencial" ? "Sequencial" : "Aleatória sem repetição";
+          const quantidadePasta = Math.max(1,Number(item.quantidade_por_passagem)||1);
           return `
             <tr class="linha-pasta" draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
               <td class="coluna-ordem"><div class="ordem-conteudo"><span class="numero-ordem">${index+1}</span><div class="drag-handle" title="Arraste para mudar a ordem">⠿</div></div></td>
-              <td colspan="5"><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
+              <td colspan="5"><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}<span class="linha-pasta-info">${modoPasta} • ${quantidadePasta} por passagem • ${totalArquivos} ${totalArquivos===1?"arquivo":"arquivos"}</span></div></td>
               <td><div class="acoes">
-                <button class="acao" type="button" onclick="abrirConteudosPasta('${escapeHtml(item.id)}')"><span>→</span><span>Abrir</span></button>
-                <button class="acao" type="button" onclick="editarPastaPlaylist('${escapeHtml(item.id)}')"><span>✎</span><span>Configurar</span></button>
-                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','')"><span>×</span><span>Excluir pasta</span></button>
+                <button class="acao" type="button" onclick="abrirConteudosPasta('${escapeHtml(item.id)}')"><span>◉</span><span>Abrir</span></button>
+                <button class="acao" type="button" onclick="editarPastaPlaylist('${escapeHtml(item.id)}')"><span>✎</span><span>Editar</span></button>
+                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','')"><span>×</span><span>Excluir</span></button>
               </div></td>
             </tr>`;
         }
