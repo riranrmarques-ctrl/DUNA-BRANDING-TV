@@ -1261,6 +1261,7 @@
     let CODIGO_FIXO = "R6V0G8V";
     const CHAVE_SESSAO = "painel_unidade_selfit_liberado";
     const CHAVE_PONTOS = "painel_unidade_selfit_pontos";
+    const TEMPO_TRANSICAO_COMANDO_MS = 5000;
 
     const DUNATV_WORKER_URL = String(
       window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev"
@@ -1609,8 +1610,8 @@
       const comando = operacaoAtual.comando;
       const enviadoEm = new Date(operacaoAtual.comando_em || 0).getTime();
       const decorrido = enviadoEm ? Date.now()-enviadoEm : Infinity;
-      if((comando === "ligar" || comando === "desligar") && decorrido < 60000){
-        return {estado:comando === "ligar" ? "ligando" : "desligando",restante:60000-decorrido};
+      if((comando === "ligar" || comando === "desligar") && decorrido < TEMPO_TRANSICAO_COMANDO_MS){
+        return {estado:comando === "ligar" ? "ligando" : "desligando",restante:TEMPO_TRANSICAO_COMANDO_MS-decorrido};
       }
       if(comando === "ligar") return {estado:"ligada",restante:0};
       if(comando === "desligar") return {estado:"desligada",restante:0};
@@ -1647,8 +1648,8 @@
         playlistAtual = await salvarPlaylistR2(playlistAtual);
         mostrarStatus(
           comando === "ligar"
-            ? "Ligando a TV. A ação pode levar até 1 minuto."
-            : "Desligando a TV. A ação pode levar até 1 minuto.",
+            ? "Comando para ligar enviado."
+            : "Comando para desligar enviado.",
           "ok"
         );
       }catch(error){
