@@ -463,6 +463,15 @@
     }
 
     .conteudos-card{padding:22px;margin-bottom:24px}
+    .linha-pasta td{background:#090909!important;color:#fff!important;border-color:#242424!important}
+    .linha-pasta td+td{border-left:0!important}
+    .linha-pasta .numero-ordem,.linha-pasta .drag-handle,.linha-pasta .nome-arquivo{color:#fff!important}
+    .linha-pasta .nome-arquivo{font-size:15px;letter-spacing:.2px}
+    .linha-pasta .acao{border-color:#3a3a3a;background:#181818;color:#fff}
+    .modal-card-playlist{width:min(1250px,calc(100vw - 34px));max-height:88vh;overflow:auto}
+    .playlist-interna-topo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
+    .playlist-interna-topo h3{margin:0}
+    .playlist-interna-acoes{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .resumo-tvs{padding:18px 20px;margin-bottom:24px;background:#101010;color:#fff}
     .resumo-tvs-topo{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px}
     .resumo-tvs-topo h3{margin:0;font-size:16px}
@@ -1084,6 +1093,31 @@
     </div>
   </section>
 
+  <section class="modal oculto" id="modalConteudosPasta">
+    <div class="modal-card modal-card-playlist">
+      <div class="playlist-interna-topo">
+        <div>
+          <h3 id="nomePastaAberta">Pasta</h3>
+          <p class="agendamento-aviso" id="resumoPastaAberta"></p>
+        </div>
+        <div class="playlist-interna-acoes">
+          <button class="btn-secundario" id="btnConfigurarPastaAberta" type="button">Configurar</button>
+          <button class="btn-secundario" id="btnExcluirPastaAberta" type="button">Excluir pasta</button>
+          <button class="btn-principal btn-adicionar" id="btnAdicionarConteudoPasta" type="button">＋ Adicionar conteúdo</button>
+          <button class="btn-fechar" id="btnFecharConteudosPasta" type="button">×</button>
+        </div>
+      </div>
+      <div class="tabela-wrap">
+        <table>
+          <thead><tr>
+            <th class="coluna-ordem">ORDEM</th><th>NOME DO CONTEÚDO</th><th>POSTAGEM</th><th>VENCIMENTO</th><th>DURAÇÃO</th><th>TIPO</th><th>AÇÕES</th>
+          </tr></thead>
+          <tbody id="corpoTabelaPasta"><tr><td colspan="7" class="vazio">Pasta vazia.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <section class="modal oculto" id="modalAdicionarPonto">
     <div class="modal-card">
       <div class="modal-topo">
@@ -1381,6 +1415,14 @@
     const modoPastaPlaylist = document.getElementById("modoPastaPlaylist");
     const quantidadePastaPlaylist = document.getElementById("quantidadePastaPlaylist");
     const btnSalvarPastaPlaylist = document.getElementById("btnSalvarPastaPlaylist");
+    const modalConteudosPasta = document.getElementById("modalConteudosPasta");
+    const btnFecharConteudosPasta = document.getElementById("btnFecharConteudosPasta");
+    const btnAdicionarConteudoPasta = document.getElementById("btnAdicionarConteudoPasta");
+    const btnConfigurarPastaAberta = document.getElementById("btnConfigurarPastaAberta");
+    const btnExcluirPastaAberta = document.getElementById("btnExcluirPastaAberta");
+    const nomePastaAberta = document.getElementById("nomePastaAberta");
+    const resumoPastaAberta = document.getElementById("resumoPastaAberta");
+    const corpoTabelaPasta = document.getElementById("corpoTabelaPasta");
     const estadoTv = document.getElementById("estadoTv");
     const btnAlternarTv = document.getElementById("btnAlternarTv");
     const textoEnergiaTv = document.getElementById("textoEnergiaTv");
@@ -1421,6 +1463,8 @@
     let operacaoAtual = normalizarOperacao();
     let itemEmEdicao = null;
     let pastaPlaylistEmEdicao = null;
+    let pastaAbertaId = null;
+    let itemEmEdicaoOrigemPasta = null;
     let timerEstadoEnergia = null;
 
     atalhosDuracao.forEach((botao)=>{
@@ -1948,21 +1992,12 @@
         const duracao = Number(item.duracao) || 15;
 
         if(item.tipo === "pasta"){
-          const itensPasta = Array.isArray(item.itens) ? item.itens : [];
-          const modo = item.modo_reproducao === "sequencial" ? "Sequencial" : "Aleatória";
-          const quantidade = Math.max(1,Number(item.quantidade_por_passagem) || 1);
           return `
-            <tr draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
+            <tr class="linha-pasta" draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
               <td class="coluna-ordem"><div class="ordem-conteudo"><span class="numero-ordem">${index+1}</span><div class="drag-handle" title="Arraste para mudar a ordem">⠿</div></div></td>
-              <td><div class="nome-arquivo" title="${escapeHtml(nome)}">▣ ${escapeHtml(nome)} <small>(${itensPasta.length} arquivos)</small></div></td>
-              <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
-              <td><div class="data-cell"><span>—</span></div></td>
-              <td class="tipo-cell">${quantidade} por passagem</td>
-              <td class="tipo-cell">Pasta • ${modo}</td>
+              <td colspan="5"><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
               <td><div class="acoes">
-                <button class="acao" type="button" onclick="adicionarNaPasta('${escapeHtml(item.id)}')"><span>＋</span><span>Adicionar</span></button>
-                <button class="acao" type="button" onclick="editarPastaPlaylist('${escapeHtml(item.id)}')"><span>✎</span><span>Editar</span></button>
-                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','')"><span>×</span><span>Excluir</span></button>
+                <button class="acao" type="button" onclick="abrirConteudosPasta('${escapeHtml(item.id)}')"><span>→</span><span>Abrir</span></button>
               </div></td>
             </tr>`;
         }
@@ -2089,8 +2124,11 @@
       return Number(partes[1])*60+Number(partes[2]);
     }
 
-    window.abrirEdicaoItem = function(id){
-      const item = playlistAtual.find(conteudo=>String(conteudo.id) === String(id));
+    window.abrirEdicaoItem = function(id,pastaId=null){
+      const pastaOrigem = pastaId ? playlistAtual.find(conteudo=>String(conteudo.id)===String(pastaId)) : null;
+      const item = pastaOrigem
+        ? (Array.isArray(pastaOrigem.itens) ? pastaOrigem.itens.find(conteudo=>String(conteudo.id)===String(id)) : null)
+        : playlistAtual.find(conteudo=>String(conteudo.id) === String(id));
 
       if(!item){
         mostrarStatus("Conteúdo não encontrado.","erro");
@@ -2098,6 +2136,7 @@
       }
 
       itemEmEdicao = item;
+      itemEmEdicaoOrigemPasta = pastaOrigem?.id || null;
       editarNomeConteudo.value = obterNomeArquivo(item);
       editarDataVencimento.value = valorDataLocal(item.data_fim || item.fim_exibicao);
       editarDuracaoConteudo.value = formatarDuracao(Number(item.duracao) || 15);
@@ -2105,7 +2144,7 @@
         playlistAtual.filter(conteudo=>conteudo.tipo === "pasta").map(pasta=>
           `<option value="${escapeHtml(pasta.id)}">Pasta: ${escapeHtml(obterNomeArquivo(pasta))}</option>`
         ).join("");
-      editarDestinoConteudo.value = "principal";
+      editarDestinoConteudo.value = itemEmEdicaoOrigemPasta || "principal";
       modalEditar.classList.remove("oculto");
       setTimeout(()=>editarNomeConteudo.focus(),50);
     };
@@ -2114,6 +2153,7 @@
       modalEditar.classList.add("oculto");
       formEditar.reset();
       itemEmEdicao = null;
+      itemEmEdicaoOrigemPasta = null;
     }
 
     btnFecharModalEditar.addEventListener("click",fecharModalEditar);
@@ -2160,34 +2200,40 @@
       btnSalvarEdicao.textContent = "Salvando...";
 
       try{
-        let itemAtualizado = null;
-        let listaEditada = playlistAtual.map((item)=>
-          String(item.id) === String(itemEmEdicao.id)
-            ? (itemAtualizado = {
-                ...item,
-                nome:nomeFinal,
-                titulo_arquivo:nomeFinal,
-                data_fim:dataVencimentoFinal.toISOString(),
-                duracao:String(duracaoFinal)
-              })
-            : item
-        );
+        const itemAtualizado = {...itemEmEdicao,nome:nomeFinal,titulo_arquivo:nomeFinal,data_fim:dataVencimentoFinal.toISOString(),duracao:String(duracaoFinal)};
+        const origem = itemEmEdicaoOrigemPasta || "principal";
+        let listaEditada = playlistAtual;
 
-        if(destinoFinal !== "principal"){
-          listaEditada = listaEditada.filter(item=>String(item.id) !== String(itemEmEdicao.id));
-          let pastaEncontrada = false;
-          listaEditada = listaEditada.map(item=>{
-            if(item.tipo !== "pasta" || String(item.id) !== String(destinoFinal)) return item;
-            pastaEncontrada = true;
-            const itens = Array.isArray(item.itens) ? item.itens : [];
-            return {...item,itens:[...itens,{...itemAtualizado,pasta_id:item.id,ordem:itens.length+1}]};
-          });
-          if(!pastaEncontrada) throw new Error("A pasta escolhida não foi encontrada.");
+        if(String(origem) === String(destinoFinal)){
+          listaEditada = origem === "principal"
+            ? playlistAtual.map(item=>String(item.id)===String(itemEmEdicao.id)?itemAtualizado:item)
+            : playlistAtual.map(pasta=>String(pasta.id)===String(origem)
+                ? {...pasta,itens:(pasta.itens||[]).map(item=>String(item.id)===String(itemEmEdicao.id)?{...itemAtualizado,pasta_id:pasta.id}:item)}
+                : pasta);
+        }else{
+          listaEditada = origem === "principal"
+            ? playlistAtual.filter(item=>String(item.id)!==String(itemEmEdicao.id))
+            : playlistAtual.map(pasta=>String(pasta.id)===String(origem)
+                ? {...pasta,itens:(pasta.itens||[]).filter(item=>String(item.id)!==String(itemEmEdicao.id))}
+                : pasta);
+
+          if(destinoFinal === "principal"){
+            listaEditada = [...listaEditada,{...itemAtualizado,pasta_id:null,ordem:listaEditada.length+1}];
+          }else{
+            let pastaEncontrada = false;
+            listaEditada = listaEditada.map(pasta=>{
+              if(pasta.tipo!=="pasta" || String(pasta.id)!==String(destinoFinal)) return pasta;
+              pastaEncontrada=true;const itens=Array.isArray(pasta.itens)?pasta.itens:[];
+              return {...pasta,itens:[...itens,{...itemAtualizado,pasta_id:pasta.id,ordem:itens.length+1}]};
+            });
+            if(!pastaEncontrada) throw new Error("A pasta escolhida não foi encontrada.");
+          }
         }
 
         playlistAtual = await salvarPlaylistR2(listaEditada);
         fecharModalEditar();
         renderizarPlaylist();
+        if(pastaAbertaId) renderizarConteudosPasta();
         mostrarStatus(destinoFinal === "principal" ? "Conteúdo atualizado." : "Conteúdo movido para a pasta.","ok");
       }catch(error){
         console.error(error);
@@ -2291,6 +2337,83 @@
       atualizarDestinosConteudo(id);
       agendamentoBox.classList.add("oculto");
       modalAdicionar.classList.remove("oculto");
+    };
+
+    function obterPastaAberta(){
+      return playlistAtual.find(item=>item.tipo === "pasta" && String(item.id) === String(pastaAbertaId));
+    }
+
+    function renderizarConteudosPasta(){
+      const pasta = obterPastaAberta();
+      if(!pasta){fecharConteudosPasta();return}
+      const itens = Array.isArray(pasta.itens) ? pasta.itens : [];
+      nomePastaAberta.textContent = obterNomeArquivo(pasta);
+      const modo = pasta.modo_reproducao === "sequencial" ? "Sequencial" : "Aleatória sem repetição";
+      resumoPastaAberta.textContent = `${modo} • ${Math.max(1,Number(pasta.quantidade_por_passagem)||1)} por passagem • ${itens.length} arquivos`;
+      if(!itens.length){
+        corpoTabelaPasta.innerHTML = '<tr><td colspan="7" class="vazio">Nenhum conteúdo nesta pasta.</td></tr>';
+        return;
+      }
+      corpoTabelaPasta.innerHTML = itens.map((item,index)=>{
+        const postagem = formatarDataHora(item.created_at || item.data_inicio);
+        const vencimento = formatarDataHora(item.data_fim || item.fim_exibicao);
+        const nome = obterNomeArquivo(item);
+        const url = obterUrl(item);
+        return `<tr draggable="true" data-index="${index}">
+          <td class="coluna-ordem"><div class="ordem-conteudo"><span class="numero-ordem">${index+1}</span><div class="drag-handle">⠿</div></div></td>
+          <td><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
+          <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
+          <td><div class="data-cell"><span>${escapeHtml(vencimento.data)}</span><span class="hora">${escapeHtml(vencimento.hora)}</span></div></td>
+          <td class="tipo-cell">${escapeHtml(formatarDuracao(Number(item.duracao)||15))}</td>
+          <td class="tipo-cell">${escapeHtml(obterTipo(item))}</td>
+          <td><div class="acoes">
+            <button class="acao" type="button" onclick="baixarItem('${escapeHtml(url)}','${escapeHtml(nome)}')"><span>◉</span><span>Visualizar</span></button>
+            <button class="acao" type="button" onclick="abrirEdicaoItem('${escapeHtml(item.id)}','${escapeHtml(pasta.id)}')"><span>✎</span><span>Editar</span></button>
+            <button class="acao excluir" type="button" onclick="excluirItemPasta('${escapeHtml(pasta.id)}','${escapeHtml(item.id)}')"><span>×</span><span>Excluir</span></button>
+          </div></td>
+        </tr>`;
+      }).join("");
+      ativarOrdenacaoConteudosPasta();
+    }
+
+    function ativarOrdenacaoConteudosPasta(){
+      const linhas = [...corpoTabelaPasta.querySelectorAll("tr[draggable='true']")];
+      let origem = null;
+      linhas.forEach(linha=>{
+        linha.addEventListener("dragstart",()=>{origem=Number(linha.dataset.index);linha.classList.add("arrastando")});
+        linha.addEventListener("dragend",()=>linha.classList.remove("arrastando"));
+        linha.addEventListener("dragover",event=>event.preventDefault());
+        linha.addEventListener("drop",async(event)=>{
+          event.preventDefault();
+          const destino=Number(linha.dataset.index);
+          if(origem===null || origem===destino) return;
+          const pasta=obterPastaAberta();
+          const itens=[...(pasta.itens||[])];
+          const [movido]=itens.splice(origem,1);itens.splice(destino,0,movido);
+          playlistAtual=playlistAtual.map(item=>String(item.id)===String(pasta.id)?{...item,itens:itens.map((x,i)=>({...x,ordem:i+1}))}:item);
+          playlistAtual=await salvarPlaylistR2(playlistAtual);renderizarConteudosPasta();renderizarPlaylist();
+        });
+      });
+    }
+
+    window.abrirConteudosPasta = function(id){
+      pastaAbertaId=id;renderizarConteudosPasta();modalConteudosPasta.classList.remove("oculto");
+    };
+    function fecharConteudosPasta(){modalConteudosPasta.classList.add("oculto");pastaAbertaId=null}
+    btnFecharConteudosPasta.addEventListener("click",fecharConteudosPasta);
+    modalConteudosPasta.addEventListener("click",event=>{if(event.target===modalConteudosPasta) fecharConteudosPasta()});
+    btnAdicionarConteudoPasta.addEventListener("click",()=>{if(pastaAbertaId) window.adicionarNaPasta(pastaAbertaId)});
+    btnConfigurarPastaAberta.addEventListener("click",()=>{const pasta=obterPastaAberta();if(pasta) abrirModalPastaPlaylist(pasta)});
+    btnExcluirPastaAberta.addEventListener("click",async()=>{const id=pastaAbertaId;if(!id)return;fecharConteudosPasta();await window.excluirItem(id,"")});
+
+    window.excluirItemPasta = async function(pastaId,itemId){
+      if(!confirm("Deseja excluir este conteúdo da pasta?")) return;
+      const pasta=playlistAtual.find(item=>String(item.id)===String(pastaId));
+      const item=(pasta?.itens||[]).find(conteudo=>String(conteudo.id)===String(itemId));
+      playlistAtual=playlistAtual.map(item=>String(item.id)===String(pastaId)?{...item,itens:(item.itens||[]).filter(conteudo=>String(conteudo.id)!==String(itemId))}:item);
+      playlistAtual=await salvarPlaylistR2(playlistAtual);
+      if(item?.storage_path){try{await excluirMidiaR2(item.storage_path)}catch(error){console.warn(error)}}
+      renderizarConteudosPasta();renderizarPlaylist();mostrarStatus("Conteúdo excluído.","ok");
     };
 
     function dataLocalAgora(){
