@@ -241,7 +241,8 @@
     .btn-abrir-pasta{width:100%;min-height:52px;border:0;border-radius:12px;background:linear-gradient(90deg,#ed101b,#c70812);color:#fff;font-weight:900;font-size:16px}
 
     .topo-acoes{display:flex;align-items:center;gap:10px}
-    .btn-voltar-pastas{min-height:42px;padding:0 15px;border:1px solid #444;border-radius:10px;background:#171717;color:#fff;font-weight:800}
+    .btn-adicionar-ponto{min-height:52px;padding:0 20px;border:1px solid #fff;border-radius:12px;background:#fff;color:#111;font-weight:900;font-size:16px}
+    .btn-voltar-pastas{min-height:42px;padding:0 18px;border:1px solid #fff;border-radius:10px;background:#fff;color:#111;font-weight:900}
 
     .controle-tv{
       width:100%;
@@ -448,6 +449,9 @@
       flex:none;
       font-size:13px;
       padding:0 18px;
+      background:#fff;
+      color:#111;
+      border:1px solid #fff;
     }
 
     .conteudos-card{padding:22px;margin-bottom:24px}
@@ -464,13 +468,7 @@
       min-width:0;
     }
 
-    .acoes-cabecalho-conteudos{
-      display:flex;
-      align-items:center;
-      justify-content:flex-end;
-      gap:10px;
-      flex:none;
-    }
+    .acoes-cabecalho-conteudos{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:none}
 
     .btn-preview{
       min-width:132px;
@@ -482,8 +480,8 @@
       gap:8px;
       border:1px solid #3a3a3a;
       border-radius:10px;
-      background:#f4f4f4;
-      color:#090909;
+      background:#111;
+      color:#fff;
       font-weight:900;
       font-size:13px;
       padding:0 18px;
@@ -491,7 +489,7 @@
     }
 
     .btn-preview:hover{
-      background:#fff;
+      background:#000;
       transform:translateY(-1px);
     }
 
@@ -776,36 +774,12 @@
       border-color:var(--vermelho);
     }
 
-    .duracao-controles{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-
-    .duracao-controles input{
-      min-width:0;
-      flex:1;
-    }
-
-    .atalho-duracao{
-      min-width:66px;
-      height:46px;
-      flex:none;
-      border:1px solid #4a4a4a;
-      border-radius:10px;
-      background:#242424;
-      color:#fff;
-      font-weight:900;
-      cursor:pointer;
-      transition:.18s ease;
-    }
-
-    .atalho-duracao:hover,
-    .atalho-duracao:focus-visible{
-      border-color:var(--vermelho);
-      background:var(--vermelho);
-      outline:none;
-    }
+    #modalEditar .campo label{color:#fff!important}
+    .editar-linha-data-duracao{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .duracao-controles{display:flex;align-items:center;gap:10px}
+    .duracao-controles input{min-width:0;flex:1}
+    .atalho-duracao{min-width:66px;height:46px;flex:none;border:1px solid #4a4a4a;border-radius:10px;background:#242424;color:#fff;font-weight:900;cursor:pointer}
+    .atalho-duracao:hover,.atalho-duracao:focus-visible{border-color:var(--vermelho);background:var(--vermelho);outline:none}
 
     @keyframes aparecerAgendamento{
       from{opacity:0;transform:translateY(-4px)}
@@ -870,6 +844,7 @@
       .duracao-controles{flex-wrap:wrap}
       .duracao-controles input{flex-basis:100%}
       .atalho-duracao{flex:1}
+      .editar-linha-data-duracao{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -916,7 +891,10 @@
           <p>Selecione a pasta da TV que deseja gerenciar</p>
         </div>
       </div>
-      <button class="btn-sair" id="btnSairPastas" type="button"><span>⇥</span> Sair</button>
+      <div class="topo-acoes">
+        <button class="btn-adicionar-ponto" id="btnAdicionarPonto" type="button">＋ Adicionar</button>
+        <button class="btn-sair" id="btnSairPastas" type="button"><span>⇥</span> Sair</button>
+      </div>
     </header>
 
     <div class="pastas-intro">
@@ -924,18 +902,7 @@
       <p>Por enquanto, somente a pasta de publicidade está disponível.</p>
     </div>
 
-    <div class="grade-pastas">
-      <article class="pasta-card">
-        <div class="pasta-status"><span class="pasta-status-ponto"></span><span id="statusPasta">Disponível</span></div>
-        <img class="pasta-imagem" id="imagemPasta" src="" alt="Imagem da unidade" />
-        <h3 id="nomePasta">TV Publicidade</h3>
-        <div class="pasta-meta">
-          <p class="pasta-local" id="localizacaoPasta">Selfit</p>
-          <span class="pasta-codigo">R6V0G8V</span>
-        </div>
-        <button class="btn-abrir-pasta" id="btnAbrirPasta" type="button">Abrir pasta</button>
-      </article>
-    </div>
+    <div class="grade-pastas" id="gradePastas"></div>
 
     <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
   </section>
@@ -952,7 +919,6 @@
       </div>
       <div class="topo-acoes">
         <button class="btn-voltar-pastas" id="btnVoltarPastas" type="button">← Pastas</button>
-        <button class="btn-sair" id="btnSair" type="button"><span>⇥</span> Sair</button>
       </div>
     </header>
 
@@ -1007,7 +973,7 @@
               </div>
             </div>
 
-            <button class="btn-principal btn-salvar-programacao" id="btnSalvarProgramacao" type="button">Salvar programação</button>
+            <button class="btn-principal btn-salvar-programacao" id="btnSalvarProgramacao" type="button" disabled>Programação salva</button>
           </div>
         </section>
 
@@ -1023,11 +989,7 @@
 
         <div class="acoes-cabecalho-conteudos">
           <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
-
-          <button class="btn-preview" id="btnPreview" type="button">
-            <span>◉</span>
-            <span>Preview</span>
-          </button>
+          <button class="btn-preview" id="btnPreview" type="button"><span>◉</span><span>Preview</span></button>
         </div>
       </div>
 
@@ -1053,6 +1015,26 @@
 
     <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
   </main>
+
+  <section class="modal oculto" id="modalAdicionarPonto">
+    <div class="modal-card">
+      <div class="modal-topo">
+        <h3>Adicionar ponto</h3>
+        <button class="btn-fechar" id="btnFecharAdicionarPonto" type="button">×</button>
+      </div>
+      <form id="formAdicionarPonto">
+        <div class="campo">
+          <label for="codigoNovoPonto" style="color:#fff">Código do ponto</label>
+          <input id="codigoNovoPonto" type="text" maxlength="30" placeholder="Ex.: R6V0G8V" autocomplete="off" required />
+        </div>
+        <p class="agendamento-aviso" id="mensagemAdicionarPonto"></p>
+        <div class="modal-acoes">
+          <button class="btn-secundario" id="btnCancelarAdicionarPonto" type="button">Cancelar</button>
+          <button class="btn-principal" id="btnBuscarAdicionarPonto" type="submit">Buscar e adicionar</button>
+        </div>
+      </form>
+    </div>
+  </section>
 
   <section class="modal oculto" id="modalAdicionar">
     <div class="modal-card">
@@ -1116,14 +1098,15 @@
             <input id="editarNomeConteudo" type="text" maxlength="180" required />
           </div>
 
-          <div class="campo campo-completo">
-            <label for="editarDataVencimento">Data de vencimento</label>
-            <input id="editarDataVencimento" type="datetime-local" required />
-          </div>
-
-          <div class="campo campo-completo">
-            <label for="editarDuracaoConteudo">Duração do conteúdo (segundos)</label>
-            <input id="editarDuracaoConteudo" type="number" min="1" max="86400" step="1" inputmode="numeric" required />
+          <div class="editar-linha-data-duracao">
+            <div class="campo">
+              <label for="editarDataVencimento">Data de vencimento</label>
+              <input id="editarDataVencimento" type="date" required />
+            </div>
+            <div class="campo">
+              <label for="editarDuracaoConteudo">Duração do conteúdo</label>
+              <input id="editarDuracaoConteudo" type="text" inputmode="numeric" placeholder="00:00" maxlength="8" pattern="[0-9]{1,5}:[0-5][0-9]" required />
+            </div>
           </div>
         </div>
 
@@ -1149,8 +1132,9 @@
     const SUPABASE_URL = "https://hhqqwjjdhzxqjuyazjwk.supabase.co";
     const SUPABASE_KEY = "sb_publishable_8yHAzibYZJbW9PfdrOumkg_R7u2HWly";
     const TABELA_PONTOS = "pontos";
-    const CODIGO_FIXO = "R6V0G8V";
+    let CODIGO_FIXO = "R6V0G8V";
     const CHAVE_SESSAO = "painel_unidade_selfit_liberado";
+    const CHAVE_PONTOS = "painel_unidade_selfit_pontos";
 
     const DUNATV_WORKER_URL = String(
       window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev"
@@ -1288,14 +1272,17 @@
     const formLogin = document.getElementById("formLogin");
     const mensagemLogin = document.getElementById("mensagemLogin");
     const btnEntrar = document.getElementById("btnEntrar");
-    const btnSair = document.getElementById("btnSair");
     const btnSairPastas = document.getElementById("btnSairPastas");
-    const btnAbrirPasta = document.getElementById("btnAbrirPasta");
     const btnVoltarPastas = document.getElementById("btnVoltarPastas");
-    const imagemPasta = document.getElementById("imagemPasta");
-    const nomePasta = document.getElementById("nomePasta");
-    const localizacaoPasta = document.getElementById("localizacaoPasta");
-    const statusPasta = document.getElementById("statusPasta");
+    const gradePastas = document.getElementById("gradePastas");
+    const btnAdicionarPonto = document.getElementById("btnAdicionarPonto");
+    const modalAdicionarPonto = document.getElementById("modalAdicionarPonto");
+    const btnFecharAdicionarPonto = document.getElementById("btnFecharAdicionarPonto");
+    const btnCancelarAdicionarPonto = document.getElementById("btnCancelarAdicionarPonto");
+    const formAdicionarPonto = document.getElementById("formAdicionarPonto");
+    const codigoNovoPonto = document.getElementById("codigoNovoPonto");
+    const mensagemAdicionarPonto = document.getElementById("mensagemAdicionarPonto");
+    const btnBuscarAdicionarPonto = document.getElementById("btnBuscarAdicionarPonto");
 
     const imagemUnidade = document.getElementById("imagemUnidade");
     const nomeUnidade = document.getElementById("nomeUnidade");
@@ -1448,6 +1435,8 @@
       programacaoAutomatica.checked = operacaoAtual.automatico;
       horarioAtivacao.value = operacaoAtual.inicio;
       horarioEncerramento.value = operacaoAtual.encerramento;
+      btnSalvarProgramacao.disabled = true;
+      btnSalvarProgramacao.textContent = "Programação salva";
 
       let resumo = "Controle manual";
       if(operacaoAtual.automatico){
@@ -1512,20 +1501,73 @@
       }catch(error){
         console.error(error);
         mostrarStatus(error.message || "Não foi possível salvar a programação.","erro");
-      }finally{
         btnSalvarProgramacao.disabled = false;
         btnSalvarProgramacao.textContent = "Salvar programação";
+      }finally{
+        if(btnSalvarProgramacao.textContent === "Salvando..."){
+          btnSalvarProgramacao.disabled = true;
+          btnSalvarProgramacao.textContent = "Programação salva";
+        }
       }
+    }
+
+    function codigosPontosSalvos(){
+      try{
+        const salvos = JSON.parse(localStorage.getItem(CHAVE_PONTOS) || "[]");
+        return [...new Set(["R6V0G8V",...(Array.isArray(salvos) ? salvos : [])])];
+      }catch{
+        return ["R6V0G8V"];
+      }
+    }
+
+    async function buscarPontoPorCodigo(codigo){
+      const {data,error} = await supabaseClient
+        .from(TABELA_PONTOS)
+        .select("*")
+        .eq("codigo",codigo)
+        .maybeSingle();
+      if(error) throw error;
+      return data || null;
+    }
+
+    function htmlCartaoPonto(ponto,codigo){
+      const nome = ponto.nome || ponto.nome_local || ponto.titulo || "Selfit";
+      const cidade = ponto.cidade || ponto.cidade_regiao || ponto.municipio || "";
+      const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "";
+      const imagem = ponto.imagem_url || ponto.imagem || ponto.foto_url || "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
+      return `<article class="pasta-card">
+        <div class="pasta-status"><span class="pasta-status-ponto"></span><span>Disponível</span></div>
+        <img class="pasta-imagem" src="${escapeHtml(imagem)}" alt="${escapeHtml(nome)}" onerror="this.src='https://placehold.co/1200x700/120000/ffffff?text=SELFIT'" />
+        <h3>${escapeHtml(nome)}</h3>
+        <div class="pasta-meta">
+          <p class="pasta-local">${escapeHtml([cidade,endereco].filter(Boolean).join(" | ") || "Selfit")}</p>
+          <span class="pasta-codigo">${escapeHtml(codigo)}</span>
+        </div>
+        <button class="btn-abrir-pasta" type="button" data-abrir-codigo="${escapeHtml(codigo)}">Abrir pasta</button>
+      </article>`;
+    }
+
+    async function renderizarPastas(){
+      gradePastas.innerHTML = '<p style="color:#fff">Carregando pontos...</p>';
+      const resultados = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
+        try{return {codigo,ponto:await buscarPontoPorCodigo(codigo)}}
+        catch(error){console.error(error);return {codigo,ponto:null}}
+      }));
+      const encontrados = resultados.filter(item=>item.ponto);
+      gradePastas.innerHTML = encontrados.length
+        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo)).join("")
+        : '<p style="color:#fff">Nenhum ponto encontrado.</p>';
     }
 
     async function abrirSelecaoPastas(){
       telaLogin.classList.add("oculto");
       painel.classList.add("oculto");
       telaPastas.classList.remove("oculto");
-      await Promise.all([carregarDadosPonto(),obterPlaylistR2()]);
+      await renderizarPastas();
     }
 
-    async function abrirPainel(){
+    async function abrirPainel(codigo=CODIGO_FIXO){
+      CODIGO_FIXO = String(codigo || "R6V0G8V").trim().toUpperCase();
       telaLogin.classList.add("oculto");
       telaPastas.classList.add("oculto");
       painel.classList.remove("oculto");
@@ -1559,13 +1601,57 @@
       location.reload();
     }
 
-    btnSair.addEventListener("click",sairDoPainel);
     btnSairPastas.addEventListener("click",sairDoPainel);
-    btnAbrirPasta.addEventListener("click",abrirPainel);
     btnVoltarPastas.addEventListener("click",abrirSelecaoPastas);
+    gradePastas.addEventListener("click",(event)=>{
+      const botao = event.target.closest("[data-abrir-codigo]");
+      if(botao) abrirPainel(botao.dataset.abrirCodigo);
+    });
+    btnAdicionarPonto.addEventListener("click",()=>{
+      formAdicionarPonto.reset();
+      mensagemAdicionarPonto.textContent = "";
+      modalAdicionarPonto.classList.remove("oculto");
+      setTimeout(()=>codigoNovoPonto.focus(),50);
+    });
+    function fecharAdicionarPonto(){modalAdicionarPonto.classList.add("oculto")}
+    btnFecharAdicionarPonto.addEventListener("click",fecharAdicionarPonto);
+    btnCancelarAdicionarPonto.addEventListener("click",fecharAdicionarPonto);
+    modalAdicionarPonto.addEventListener("click",event=>{if(event.target===modalAdicionarPonto) fecharAdicionarPonto()});
+    formAdicionarPonto.addEventListener("submit",async(event)=>{
+      event.preventDefault();
+      const codigo = codigoNovoPonto.value.trim().toUpperCase();
+      if(!codigo) return;
+      btnBuscarAdicionarPonto.disabled = true;
+      btnBuscarAdicionarPonto.textContent = "Buscando...";
+      mensagemAdicionarPonto.textContent = "Consultando o banco de dados...";
+      try{
+        const ponto = await buscarPontoPorCodigo(codigo);
+        if(!ponto){
+          mensagemAdicionarPonto.textContent = "Ponto não encontrado. Confira o código.";
+          return;
+        }
+        const codigos = [...new Set([...codigosPontosSalvos(),codigo])];
+        localStorage.setItem(CHAVE_PONTOS,JSON.stringify(codigos));
+        fecharAdicionarPonto();
+        await renderizarPastas();
+        mostrarStatus("Ponto adicionado com sucesso.","ok");
+      }catch(error){
+        console.error(error);
+        mensagemAdicionarPonto.textContent = "Não foi possível consultar o ponto.";
+      }finally{
+        btnBuscarAdicionarPonto.disabled = false;
+        btnBuscarAdicionarPonto.textContent = "Buscar e adicionar";
+      }
+    });
     btnLigarTv.addEventListener("click",()=>enviarComandoTv("ligar"));
     btnDesligarTv.addEventListener("click",()=>enviarComandoTv("desligar"));
     btnSalvarProgramacao.addEventListener("click",salvarProgramacaoTv);
+    [programacaoAutomatica,horarioAtivacao,horarioEncerramento].forEach((campo)=>{
+      campo.addEventListener("input",()=>{
+        btnSalvarProgramacao.disabled = false;
+        btnSalvarProgramacao.textContent = "Salvar programação";
+      });
+    });
 
     btnCopiar.addEventListener("click",async()=>{
       try{
@@ -1604,10 +1690,6 @@
       localizacaoUnidade.textContent = [cidade,endereco].filter(Boolean).join(" | ");
       imagemUnidade.src = imagem;
       imagemUnidade.alt = nome;
-      nomePasta.textContent = nome;
-      localizacaoPasta.textContent = [cidade,endereco].filter(Boolean).join(" | ");
-      imagemPasta.src = imagem;
-      imagemPasta.alt = nome;
     }
 
 
@@ -1679,11 +1761,11 @@
             <td><div class="nome-arquivo" title="${escapeHtml(nome)}">${escapeHtml(nome)}</div></td>
             <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
             <td><div class="data-cell"><span>${escapeHtml(vencimento.data)}</span><span class="hora">${escapeHtml(vencimento.hora)}</span></div></td>
-            <td class="tipo-cell">${escapeHtml(duracao)}s</td>
+            <td class="tipo-cell">${escapeHtml(formatarDuracao(duracao))}</td>
             <td class="tipo-cell">${escapeHtml(obterTipo(item))}</td>
             <td>
               <div class="acoes">
-                <button class="acao" type="button" onclick="baixarItem('${escapeHtml(url)}','${escapeHtml(nome)}')"><span>↓</span><span>Download</span></button>
+                <button class="acao" type="button" onclick="baixarItem('${escapeHtml(url)}','${escapeHtml(nome)}')"><span>◉</span><span>Visualizar</span></button>
                 <button class="acao" type="button" onclick="abrirEdicaoItem('${escapeHtml(item.id)}')"><span>✎</span><span>Editar</span></button>
                 <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','${escapeHtml(item.storage_path || "")}')"><span>×</span><span>Excluir</span></button>
               </div>
@@ -1769,12 +1851,25 @@
       link.remove();
     };
 
-    function valorDatetimeLocal(valor){
+    function valorDataLocal(valor){
       if(!valor) return "";
       const data = new Date(valor);
       if(Number.isNaN(data.getTime())) return "";
       data.setMinutes(data.getMinutes()-data.getTimezoneOffset());
-      return data.toISOString().slice(0,16);
+      return data.toISOString().slice(0,10);
+    }
+
+    function formatarDuracao(totalSegundos){
+      const total = Math.max(0,Math.floor(Number(totalSegundos) || 0));
+      const minutos = Math.floor(total/60);
+      const segundos = total%60;
+      return `${String(minutos).padStart(2,"0")}:${String(segundos).padStart(2,"0")}`;
+    }
+
+    function duracaoParaSegundos(valor){
+      const partes = String(valor || "").trim().match(/^(\d{1,5}):([0-5]\d)$/);
+      if(!partes) return NaN;
+      return Number(partes[1])*60+Number(partes[2]);
     }
 
     window.abrirEdicaoItem = function(id){
@@ -1787,8 +1882,8 @@
 
       itemEmEdicao = item;
       editarNomeConteudo.value = obterNomeArquivo(item);
-      editarDataVencimento.value = valorDatetimeLocal(item.data_fim || item.fim_exibicao);
-      editarDuracaoConteudo.value = String(Number(item.duracao) || 15);
+      editarDataVencimento.value = valorDataLocal(item.data_fim || item.fim_exibicao);
+      editarDuracaoConteudo.value = formatarDuracao(Number(item.duracao) || 15);
       modalEditar.classList.remove("oculto");
       setTimeout(()=>editarNomeConteudo.focus(),50);
     };
@@ -1815,7 +1910,7 @@
 
       const nomeFinal = editarNomeConteudo.value.trim();
       const vencimentoFinal = editarDataVencimento.value;
-      const duracaoFinal = Number(editarDuracaoConteudo.value);
+      const duracaoFinal = duracaoParaSegundos(editarDuracaoConteudo.value);
 
       if(!nomeFinal){
         mostrarStatus("Digite um nome válido.","erro");
@@ -1828,11 +1923,11 @@
       }
 
       if(!Number.isInteger(duracaoFinal) || duracaoFinal < 1 || duracaoFinal > 86400){
-        mostrarStatus("Informe uma duração válida em segundos.","erro");
+        mostrarStatus("Informe a duração no formato 00:00.","erro");
         return;
       }
 
-      const dataVencimentoFinal = new Date(vencimentoFinal);
+      const dataVencimentoFinal = new Date(`${vencimentoFinal}T23:59:59`);
       if(Number.isNaN(dataVencimentoFinal.getTime())){
         mostrarStatus("Informe uma data de vencimento válida.","erro");
         return;
@@ -1990,10 +2085,6 @@
 
     imagemUnidade.addEventListener("error",()=>{
       imagemUnidade.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
-    });
-
-    imagemPasta.addEventListener("error",()=>{
-      imagemPasta.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
     });
 
     if(sessionStorage.getItem(CHAVE_SESSAO) === "1"){
