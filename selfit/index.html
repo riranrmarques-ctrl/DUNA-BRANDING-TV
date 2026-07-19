@@ -1275,6 +1275,8 @@
     const btnSairPastas = document.getElementById("btnSairPastas");
     const btnVoltarPastas = document.getElementById("btnVoltarPastas");
     const gradePastas = document.getElementById("gradePastas");
+    // Compatibilidade com versões antigas que ainda tentavam atualizar o cartão fixo.
+    const statusPasta = document.getElementById("statusPasta") || {textContent:""};
     const btnAdicionarPonto = document.getElementById("btnAdicionarPonto");
     const modalAdicionarPonto = document.getElementById("modalAdicionarPonto");
     const btnFecharAdicionarPonto = document.getElementById("btnFecharAdicionarPonto");
