@@ -233,6 +233,8 @@
     }
     .pasta-status{display:flex;align-items:center;gap:8px;margin-bottom:13px;font-size:14px;font-weight:900}
     .pasta-status-ponto{width:12px;height:12px;border-radius:50%;background:#21c56d;box-shadow:0 0 0 4px rgba(33,197,109,.16)}
+    .pasta-status.inativo .pasta-status-ponto{background:#e20d19;box-shadow:0 0 0 4px rgba(226,13,25,.16)}
+    .pasta-status.inativo{color:#b20a13}
     .pasta-imagem{display:block;width:100%;height:190px;object-fit:cover;border-radius:13px;background:#191919}
     .pasta-card h3{margin:15px 1px 6px;font-size:24px;line-height:1.05}
     .pasta-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
@@ -255,10 +257,16 @@
     .controle-tv-topo{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
     .controle-tv-topo h3{margin:0;font-size:18px}
     .estado-tv{padding:7px 10px;border-radius:999px;background:#242424;color:#ddd;font-size:12px;font-weight:900}
-    .botoes-energia{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
-    .btn-energia{min-height:48px;border:0;border-radius:11px;color:#fff;font-weight:900}
-    .btn-ligar{background:#159b55}.btn-desligar{background:#c80d17}
-    .btn-energia:disabled{opacity:.55;cursor:wait}
+    .botoes-energia{margin-bottom:18px}
+    .controle-energia-unico{position:relative;width:100%;min-height:56px;border:0;border-radius:999px;background:#b90e18;color:#fff;font-size:17px;font-weight:900;cursor:pointer;transition:background .35s ease,opacity .2s ease;padding:0 70px}
+    .controle-energia-unico::before{content:"";position:absolute;left:7px;top:7px;width:42px;height:42px;border-radius:50%;background:#fff;box-shadow:0 3px 12px rgba(0,0,0,.3);transition:left .45s ease}
+    .controle-energia-unico.ligada{background:#159b55}
+    .controle-energia-unico.ligada::before{left:calc(100% - 49px)}
+    .controle-energia-unico.transicao{background:#d07b0c;cursor:wait}
+    .controle-energia-unico.transicao::before{animation:pulsarEnergia 1s ease-in-out infinite}
+    .controle-energia-unico.transicao.ligando::before{left:calc(100% - 49px)}
+    .controle-energia-unico:disabled{opacity:.82}
+    @keyframes pulsarEnergia{50%{opacity:.55;box-shadow:0 0 0 8px rgba(255,255,255,.16)}}
     .programacao-tv{padding-top:16px;border-top:1px solid #2c2c2c}
     .programacao-linha{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:14px}
     .programacao-linha strong{font-size:14px}.programacao-linha small{display:block;margin-top:4px;color:#aaa}
@@ -455,6 +463,15 @@
     }
 
     .conteudos-card{padding:22px;margin-bottom:24px}
+    .resumo-tvs{padding:18px 20px;margin-bottom:24px;background:#101010;color:#fff}
+    .resumo-tvs-topo{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px}
+    .resumo-tvs-topo h3{margin:0;font-size:16px}
+    .metricas-tvs{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .metrica-tv{padding:7px 11px;border:1px solid #333;border-radius:999px;background:#181818;font-size:12px;font-weight:800}
+    .metrica-tv.online{color:#65e59b}.metrica-tv.offline{color:#ff7379}
+    .lista-tvs{display:grid;gap:8px}
+    .tv-resumo-item{display:grid;grid-template-columns:100px 90px 1fr;align-items:center;gap:12px;padding:10px 12px;border:1px solid #292929;border-radius:10px;background:#151515;font-size:12px}
+    .tv-resumo-codigo{font-weight:900;letter-spacing:.7px}.tv-resumo-status{font-weight:900}.tv-resumo-status.online{color:#65e59b}.tv-resumo-status.offline{color:#ff7379}.tv-resumo-ip{color:#bbb;overflow-wrap:anywhere}
 
     .cabecalho-conteudos{
       display:flex;
@@ -845,6 +862,8 @@
       .duracao-controles input{flex-basis:100%}
       .atalho-duracao{flex:1}
       .editar-linha-data-duracao{grid-template-columns:1fr}
+      .resumo-tvs-topo{align-items:flex-start;flex-direction:column}
+      .tv-resumo-item{grid-template-columns:1fr 1fr}.tv-resumo-ip{grid-column:1/-1}
     }
   </style>
 </head>
@@ -946,8 +965,9 @@
           </div>
 
           <div class="botoes-energia">
-            <button class="btn-energia btn-ligar" id="btnLigarTv" type="button">Ligar TV</button>
-            <button class="btn-energia btn-desligar" id="btnDesligarTv" type="button">Desligar TV</button>
+            <button class="controle-energia-unico" id="btnAlternarTv" type="button" aria-live="polite">
+              <span id="textoEnergiaTv">Carregando...</span>
+            </button>
           </div>
 
           <div class="programacao-tv">
@@ -1011,6 +1031,18 @@
           </tbody>
         </table>
       </div>
+    </section>
+
+    <section class="card resumo-tvs" aria-labelledby="tituloResumoTvs">
+      <div class="resumo-tvs-topo">
+        <h3 id="tituloResumoTvs">TVs conectadas</h3>
+        <div class="metricas-tvs">
+          <span class="metrica-tv" id="totalTvs">0 TVs</span>
+          <span class="metrica-tv online" id="totalTvsOnline">0 online</span>
+          <span class="metrica-tv offline" id="totalTvsOffline">0 offline</span>
+        </div>
+      </div>
+      <div class="lista-tvs" id="listaResumoTvs"><span class="tv-resumo-ip">Carregando...</span></div>
     </section>
 
     <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
@@ -1289,16 +1321,21 @@
     const imagemUnidade = document.getElementById("imagemUnidade");
     const nomeUnidade = document.getElementById("nomeUnidade");
     const localizacaoUnidade = document.getElementById("localizacaoUnidade");
+    const codigoSala = document.getElementById("codigoSala");
     const corpoTabela = document.getElementById("corpoTabela");
     const btnCopiar = document.getElementById("btnCopiar");
     const btnPreview = document.getElementById("btnPreview");
     const estadoTv = document.getElementById("estadoTv");
-    const btnLigarTv = document.getElementById("btnLigarTv");
-    const btnDesligarTv = document.getElementById("btnDesligarTv");
+    const btnAlternarTv = document.getElementById("btnAlternarTv");
+    const textoEnergiaTv = document.getElementById("textoEnergiaTv");
     const programacaoAutomatica = document.getElementById("programacaoAutomatica");
     const horarioAtivacao = document.getElementById("horarioAtivacao");
     const horarioEncerramento = document.getElementById("horarioEncerramento");
     const btnSalvarProgramacao = document.getElementById("btnSalvarProgramacao");
+    const totalTvs = document.getElementById("totalTvs");
+    const totalTvsOnline = document.getElementById("totalTvsOnline");
+    const totalTvsOffline = document.getElementById("totalTvsOffline");
+    const listaResumoTvs = document.getElementById("listaResumoTvs");
 
     const modalAdicionar = document.getElementById("modalAdicionar");
     const btnAbrirAdicionar = document.getElementById("btnAbrirAdicionar");
@@ -1325,6 +1362,7 @@
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
     let itemEmEdicao = null;
+    let timerEstadoEnergia = null;
 
     atalhosDuracao.forEach((botao)=>{
       botao.addEventListener("click",()=>{
@@ -1449,11 +1487,41 @@
       if(operacaoAtual.comando === "ligar") resumo = "Comando para ligar enviado";
       if(operacaoAtual.comando === "desligar") resumo = "Comando para desligar enviado";
       estadoTv.textContent = resumo;
+      renderizarControleEnergia();
+    }
+
+    function estadoAtualEnergia(){
+      const comando = operacaoAtual.comando;
+      const enviadoEm = new Date(operacaoAtual.comando_em || 0).getTime();
+      const decorrido = enviadoEm ? Date.now()-enviadoEm : Infinity;
+      if((comando === "ligar" || comando === "desligar") && decorrido < 60000){
+        return {estado:comando === "ligar" ? "ligando" : "desligando",restante:60000-decorrido};
+      }
+      if(comando === "ligar") return {estado:"ligada",restante:0};
+      if(comando === "desligar") return {estado:"desligada",restante:0};
+      return {estado:operacaoAtual.automatico && dentroDoHorarioAutomatico() ? "ligada" : "desligada",restante:0};
+    }
+
+    function renderizarControleEnergia(){
+      clearTimeout(timerEstadoEnergia);
+      const atual = estadoAtualEnergia();
+      const transicao = atual.estado === "ligando" || atual.estado === "desligando";
+      btnAlternarTv.className = "controle-energia-unico";
+      if(atual.estado === "ligada") btnAlternarTv.classList.add("ligada");
+      if(transicao) btnAlternarTv.classList.add("transicao",atual.estado);
+      btnAlternarTv.disabled = transicao;
+      textoEnergiaTv.textContent = {
+        ligada:"Ligada",
+        desligada:"Desligada",
+        ligando:"Ligando…",
+        desligando:"Desligando…"
+      }[atual.estado];
+      btnAlternarTv.setAttribute("aria-pressed",String(atual.estado === "ligada" || atual.estado === "ligando"));
+      if(transicao) timerEstadoEnergia = setTimeout(renderizarControleEnergia,Math.max(500,atual.restante+100));
     }
 
     async function enviarComandoTv(comando){
-      btnLigarTv.disabled = true;
-      btnDesligarTv.disabled = true;
+      btnAlternarTv.disabled = true;
       try{
         operacaoAtual = {
           ...operacaoAtual,
@@ -1464,16 +1532,15 @@
         playlistAtual = await salvarPlaylistR2(playlistAtual);
         mostrarStatus(
           comando === "ligar"
-            ? "Comando para ligar enviado. A TV aplicará em até 10 segundos."
-            : "Comando para desligar enviado. A TV aplicará em até 10 segundos.",
+            ? "Ligando a TV. A ação pode levar até 1 minuto."
+            : "Desligando a TV. A ação pode levar até 1 minuto.",
           "ok"
         );
       }catch(error){
         console.error(error);
         mostrarStatus(error.message || "Não foi possível enviar o comando.","erro");
       }finally{
-        btnLigarTv.disabled = false;
-        btnDesligarTv.disabled = false;
+        renderizarControleEnergia();
       }
     }
 
@@ -1529,13 +1596,63 @@
       return data || null;
     }
 
+    function obterStatusTv(ponto){
+      const datas = [
+        ponto.ultimo_heartbeat_reprodutor,
+        ponto.ultimo_ping,
+        ponto.atualizado_em,
+        ponto.updated_at
+      ]
+        .filter(Boolean)
+        .map(valor=>new Date(valor).getTime())
+        .filter(Number.isFinite);
+      const ultimaAtualizacao = datas.length ? Math.max(...datas) : 0;
+      const ativo = ultimaAtualizacao > 0 && Date.now()-ultimaAtualizacao <= 5*60*1000;
+      return {ativo,texto:ativo ? "Ativo" : "Inativo"};
+    }
+
+    function obterIpTv(ponto){
+      const dispositivo = ponto.dispositivo_reprodutor;
+      let dadosDispositivo = dispositivo;
+      if(typeof dispositivo === "string"){
+        try{dadosDispositivo = JSON.parse(dispositivo)}catch{dadosDispositivo = dispositivo}
+      }
+      return ponto.ip_publico || ponto.ip || ponto.endereco_ip || ponto.ip_address ||
+        (dadosDispositivo && typeof dadosDispositivo === "object"
+          ? dadosDispositivo.ip_publico || dadosDispositivo.ip || dadosDispositivo.ip_address
+          : "") || "IP não informado";
+    }
+
+    async function renderizarResumoTvs(){
+      listaResumoTvs.innerHTML = '<span class="tv-resumo-ip">Atualizando status...</span>';
+      const registros = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
+        try{return {codigo,ponto:await buscarPontoPorCodigo(codigo)}}catch{return {codigo,ponto:null}}
+      }));
+      const tvs = registros.filter(item=>item.ponto).map(item=>({
+        ...item,
+        status:obterStatusTv(item.ponto),
+        ip:obterIpTv(item.ponto)
+      }));
+      const online = tvs.filter(item=>item.status.ativo).length;
+      totalTvs.textContent = `${tvs.length} ${tvs.length === 1 ? "TV" : "TVs"}`;
+      totalTvsOnline.textContent = `${online} online`;
+      totalTvsOffline.textContent = `${tvs.length-online} offline`;
+      listaResumoTvs.innerHTML = tvs.length ? tvs.map(item=>`
+        <div class="tv-resumo-item">
+          <span class="tv-resumo-codigo">${escapeHtml(item.codigo)}</span>
+          <span class="tv-resumo-status ${item.status.ativo ? "online" : "offline"}">${item.status.ativo ? "Online" : "Offline"}</span>
+          <span class="tv-resumo-ip">${escapeHtml(item.ip)}</span>
+        </div>`).join("") : '<span class="tv-resumo-ip">Nenhuma TV cadastrada.</span>';
+    }
+
     function htmlCartaoPonto(ponto,codigo){
       const nome = ponto.nome || ponto.nome_local || ponto.titulo || "Selfit";
       const cidade = ponto.cidade || ponto.cidade_regiao || ponto.municipio || "";
       const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "";
       const imagem = ponto.imagem_url || ponto.imagem || ponto.foto_url || "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
+      const statusTv = obterStatusTv(ponto);
       return `<article class="pasta-card">
-        <div class="pasta-status"><span class="pasta-status-ponto"></span><span data-status-codigo="${escapeHtml(codigo)}">Disponível</span></div>
+        <div class="pasta-status ${statusTv.ativo ? "ativo" : "inativo"}"><span class="pasta-status-ponto"></span><span>${statusTv.texto}</span></div>
         <img class="pasta-imagem" src="${escapeHtml(imagem)}" alt="${escapeHtml(nome)}" onerror="this.src='https://placehold.co/1200x700/120000/ffffff?text=SELFIT'" />
         <h3>${escapeHtml(nome)}</h3>
         <div class="pasta-meta">
@@ -1567,10 +1684,11 @@
 
     async function abrirPainel(codigo=CODIGO_FIXO){
       CODIGO_FIXO = String(codigo || "R6V0G8V").trim().toUpperCase();
+      codigoSala.textContent = CODIGO_FIXO;
       telaLogin.classList.add("oculto");
       telaPastas.classList.add("oculto");
       painel.classList.remove("oculto");
-      await Promise.all([carregarDadosPonto(),carregarPlaylist()]);
+      await Promise.all([carregarDadosPonto(),carregarPlaylist(),renderizarResumoTvs()]);
     }
 
     formLogin.addEventListener("submit",async(event)=>{
@@ -1642,8 +1760,11 @@
         btnBuscarAdicionarPonto.textContent = "Buscar e adicionar";
       }
     });
-    btnLigarTv.addEventListener("click",()=>enviarComandoTv("ligar"));
-    btnDesligarTv.addEventListener("click",()=>enviarComandoTv("desligar"));
+    btnAlternarTv.addEventListener("click",()=>{
+      const atual = estadoAtualEnergia();
+      if(atual.estado === "ligando" || atual.estado === "desligando") return;
+      enviarComandoTv(atual.estado === "ligada" ? "desligar" : "ligar");
+    });
     btnSalvarProgramacao.addEventListener("click",salvarProgramacaoTv);
     [programacaoAutomatica,horarioAtivacao,horarioEncerramento].forEach((campo)=>{
       campo.addEventListener("input",()=>{
@@ -2085,6 +2206,11 @@
     imagemUnidade.addEventListener("error",()=>{
       imagemUnidade.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
     });
+
+    setInterval(()=>{
+      if(!telaPastas.classList.contains("oculto")) renderizarPastas();
+      if(!painel.classList.contains("oculto")) renderizarResumoTvs();
+    },60000);
 
     if(sessionStorage.getItem(CHAVE_SESSAO) === "1"){
       abrirSelecaoPastas();
