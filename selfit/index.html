@@ -1725,11 +1725,7 @@
     function obterStatusTv(ponto,statusRemoto=null){
       const datas = [
         statusRemoto?.ultima_atualizacao,
-        statusRemoto?.atualizado_em,
-        ponto.ultimo_heartbeat_reprodutor,
-        ponto.ultimo_ping,
-        ponto.atualizado_em,
-        ponto.updated_at
+        statusRemoto?.atualizado_em
       ]
         .filter(Boolean)
         .map(valor=>new Date(valor).getTime())
@@ -2595,7 +2591,7 @@
     setInterval(()=>{
       if(!telaPastas.classList.contains("oculto")) renderizarPastas();
       if(!painel.classList.contains("oculto")) renderizarResumoTvs();
-    },60000);
+    },10*60*1000);
 
     if(sessionStorage.getItem(CHAVE_SESSAO) === "1"){
       abrirSelecaoPastas();
