@@ -1008,6 +1008,7 @@
         </div>
 
         <div class="acoes-cabecalho-conteudos">
+          <button class="btn-preview" id="btnCriarPastaPlaylist" type="button"><span>▣</span><span>Criar pasta</span></button>
           <button class="btn-principal btn-adicionar" id="btnAbrirAdicionar" type="button">＋ &nbsp; Adicionar conteúdo</button>
           <button class="btn-preview" id="btnPreview" type="button"><span>◉</span><span>Preview</span></button>
         </div>
@@ -1048,6 +1049,39 @@
     <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
   </main>
 
+  <section class="modal oculto" id="modalPastaPlaylist">
+    <div class="modal-card">
+      <div class="modal-topo">
+        <h3 id="tituloModalPastaPlaylist">Criar pasta de playlist</h3>
+        <button class="btn-fechar" id="btnFecharPastaPlaylist" type="button">×</button>
+      </div>
+      <form id="formPastaPlaylist">
+        <div class="grid-campos">
+          <div class="campo campo-completo">
+            <label for="nomePastaPlaylist" style="color:#fff">Nome da pasta</label>
+            <input id="nomePastaPlaylist" type="text" maxlength="100" placeholder="Ex.: Promoções" required />
+          </div>
+          <div class="campo">
+            <label for="modoPastaPlaylist" style="color:#fff">Ordem de reprodução</label>
+            <select id="modoPastaPlaylist" required>
+              <option value="aleatorio">Aleatória, sem repetir</option>
+              <option value="sequencial">Sequencial</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="quantidadePastaPlaylist" style="color:#fff">Arquivos por passagem</label>
+            <input id="quantidadePastaPlaylist" type="number" min="1" max="100" step="1" value="1" required />
+          </div>
+        </div>
+        <p class="agendamento-aviso">Depois de criar, use “Adicionar conteúdo” e escolha esta pasta como destino.</p>
+        <div class="modal-acoes">
+          <button class="btn-secundario" id="btnCancelarPastaPlaylist" type="button">Cancelar</button>
+          <button class="btn-principal" id="btnSalvarPastaPlaylist" type="submit">Criar pasta</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
   <section class="modal oculto" id="modalAdicionarPonto">
     <div class="modal-card">
       <div class="modal-topo">
@@ -1080,6 +1114,11 @@
           <div class="campo campo-completo">
             <label for="arquivoConteudo">Arquivo</label>
             <input id="arquivoConteudo" type="file" accept=".mp4,.webm,.mov,.jpg,.jpeg,.png,.webp,.txt" required />
+          </div>
+
+          <div class="campo campo-completo">
+            <label for="destinoConteudo">Destino</label>
+            <select id="destinoConteudo"><option value="principal">Playlist principal</option></select>
           </div>
 
           <div class="agendamento-box oculto" id="agendamentoBox">
@@ -1325,6 +1364,16 @@
     const corpoTabela = document.getElementById("corpoTabela");
     const btnCopiar = document.getElementById("btnCopiar");
     const btnPreview = document.getElementById("btnPreview");
+    const btnCriarPastaPlaylist = document.getElementById("btnCriarPastaPlaylist");
+    const modalPastaPlaylist = document.getElementById("modalPastaPlaylist");
+    const btnFecharPastaPlaylist = document.getElementById("btnFecharPastaPlaylist");
+    const btnCancelarPastaPlaylist = document.getElementById("btnCancelarPastaPlaylist");
+    const formPastaPlaylist = document.getElementById("formPastaPlaylist");
+    const tituloModalPastaPlaylist = document.getElementById("tituloModalPastaPlaylist");
+    const nomePastaPlaylist = document.getElementById("nomePastaPlaylist");
+    const modoPastaPlaylist = document.getElementById("modoPastaPlaylist");
+    const quantidadePastaPlaylist = document.getElementById("quantidadePastaPlaylist");
+    const btnSalvarPastaPlaylist = document.getElementById("btnSalvarPastaPlaylist");
     const estadoTv = document.getElementById("estadoTv");
     const btnAlternarTv = document.getElementById("btnAlternarTv");
     const textoEnergiaTv = document.getElementById("textoEnergiaTv");
@@ -1343,6 +1392,7 @@
     const btnCancelar = document.getElementById("btnCancelar");
     const formAdicionar = document.getElementById("formAdicionar");
     const arquivoConteudo = document.getElementById("arquivoConteudo");
+    const destinoConteudo = document.getElementById("destinoConteudo");
     const dataPostagem = document.getElementById("dataPostagem");
     const dataVencimento = document.getElementById("dataVencimento");
     const duracaoConteudo = document.getElementById("duracaoConteudo");
@@ -1362,6 +1412,7 @@
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
     let itemEmEdicao = null;
+    let pastaPlaylistEmEdicao = null;
     let timerEstadoEnergia = null;
 
     atalhosDuracao.forEach((botao)=>{
@@ -1888,6 +1939,26 @@
         const url = obterUrl(item);
         const duracao = Number(item.duracao) || 15;
 
+        if(item.tipo === "pasta"){
+          const itensPasta = Array.isArray(item.itens) ? item.itens : [];
+          const modo = item.modo_reproducao === "sequencial" ? "Sequencial" : "Aleatória";
+          const quantidade = Math.max(1,Number(item.quantidade_por_passagem) || 1);
+          return `
+            <tr draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
+              <td class="coluna-ordem"><div class="ordem-conteudo"><span class="numero-ordem">${index+1}</span><div class="drag-handle" title="Arraste para mudar a ordem">⠿</div></div></td>
+              <td><div class="nome-arquivo" title="${escapeHtml(nome)}">▣ ${escapeHtml(nome)} <small>(${itensPasta.length} arquivos)</small></div></td>
+              <td><div class="data-cell"><span>${escapeHtml(postagem.data)}</span><span class="hora">${escapeHtml(postagem.hora)}</span></div></td>
+              <td><div class="data-cell"><span>—</span></div></td>
+              <td class="tipo-cell">${quantidade} por passagem</td>
+              <td class="tipo-cell">Pasta • ${modo}</td>
+              <td><div class="acoes">
+                <button class="acao" type="button" onclick="adicionarNaPasta('${escapeHtml(item.id)}')"><span>＋</span><span>Adicionar</span></button>
+                <button class="acao" type="button" onclick="editarPastaPlaylist('${escapeHtml(item.id)}')"><span>✎</span><span>Editar</span></button>
+                <button class="acao excluir" type="button" onclick="excluirItem('${escapeHtml(item.id)}','')"><span>×</span><span>Excluir</span></button>
+              </div></td>
+            </tr>`;
+        }
+
         return `
           <tr draggable="true" data-id="${escapeHtml(item.id)}" data-index="${index}">
             <td class="coluna-ordem">
@@ -2104,18 +2175,95 @@
       if(!confirm("Deseja excluir este conteúdo?")) return;
 
       try{
+        const itemExcluido = playlistAtual.find((item)=>String(item.id) === String(id));
         const novaLista = playlistAtual.filter((item)=>String(item.id) !== String(id));
         playlistAtual = await salvarPlaylistR2(novaLista);
         renderizarPlaylist();
 
-        try{ await excluirMidiaR2(storagePath); }
-        catch(error){ console.warn("Playlist atualizada, mas a mídia não foi removida:",error); }
+        const caminhos = itemExcluido?.tipo === "pasta"
+          ? (Array.isArray(itemExcluido.itens) ? itemExcluido.itens.map(item=>item.storage_path).filter(Boolean) : [])
+          : [storagePath].filter(Boolean);
+        for(const caminho of caminhos){
+          try{ await excluirMidiaR2(caminho); }
+          catch(error){ console.warn("Playlist atualizada, mas uma mídia não foi removida:",error); }
+        }
 
         mostrarStatus("Conteúdo excluído.","ok");
       }catch(error){
         console.error(error);
         mostrarStatus(error.message || "Erro ao excluir conteúdo.","erro");
       }
+    };
+
+    function atualizarDestinosConteudo(destinoSelecionado="principal"){
+      const pastas = playlistAtual.filter(item=>item.tipo === "pasta");
+      destinoConteudo.innerHTML = '<option value="principal">Playlist principal</option>' +
+        pastas.map(pasta=>`<option value="${escapeHtml(pasta.id)}">Pasta: ${escapeHtml(obterNomeArquivo(pasta))}</option>`).join("");
+      destinoConteudo.value = pastas.some(pasta=>String(pasta.id) === String(destinoSelecionado)) ? String(destinoSelecionado) : "principal";
+    }
+
+    function abrirModalPastaPlaylist(pasta=null){
+      pastaPlaylistEmEdicao = pasta;
+      formPastaPlaylist.reset();
+      tituloModalPastaPlaylist.textContent = pasta ? "Editar pasta de playlist" : "Criar pasta de playlist";
+      btnSalvarPastaPlaylist.textContent = pasta ? "Salvar pasta" : "Criar pasta";
+      nomePastaPlaylist.value = pasta ? obterNomeArquivo(pasta) : "";
+      modoPastaPlaylist.value = pasta?.modo_reproducao || "aleatorio";
+      quantidadePastaPlaylist.value = String(Math.max(1,Number(pasta?.quantidade_por_passagem) || 1));
+      modalPastaPlaylist.classList.remove("oculto");
+      setTimeout(()=>nomePastaPlaylist.focus(),50);
+    }
+
+    function fecharModalPastaPlaylist(){
+      modalPastaPlaylist.classList.add("oculto");
+      pastaPlaylistEmEdicao = null;
+    }
+
+    btnCriarPastaPlaylist.addEventListener("click",()=>abrirModalPastaPlaylist());
+    btnFecharPastaPlaylist.addEventListener("click",fecharModalPastaPlaylist);
+    btnCancelarPastaPlaylist.addEventListener("click",fecharModalPastaPlaylist);
+    modalPastaPlaylist.addEventListener("click",event=>{if(event.target === modalPastaPlaylist) fecharModalPastaPlaylist()});
+
+    formPastaPlaylist.addEventListener("submit",async(event)=>{
+      event.preventDefault();
+      const nome = nomePastaPlaylist.value.trim();
+      const quantidade = Number(quantidadePastaPlaylist.value);
+      if(!nome || !Number.isInteger(quantidade) || quantidade < 1 || quantidade > 100){
+        mostrarStatus("Informe o nome e uma quantidade válida.","erro");
+        return;
+      }
+      btnSalvarPastaPlaylist.disabled = true;
+      try{
+        if(pastaPlaylistEmEdicao){
+          playlistAtual = playlistAtual.map(item=>String(item.id) === String(pastaPlaylistEmEdicao.id) ? {
+            ...item,nome,titulo_arquivo:nome,modo_reproducao:modoPastaPlaylist.value,quantidade_por_passagem:quantidade
+          } : item);
+        }else{
+          playlistAtual.push({
+            id:globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `pasta-${Date.now()}`,
+            codigo:CODIGO_FIXO,tipo:"pasta",nome,titulo_arquivo:nome,created_at:new Date().toISOString(),
+            ordem:playlistAtual.length+1,modo_reproducao:modoPastaPlaylist.value,quantidade_por_passagem:quantidade,itens:[]
+          });
+        }
+        playlistAtual = await salvarPlaylistR2(playlistAtual);
+        fecharModalPastaPlaylist();
+        renderizarPlaylist();
+        mostrarStatus("Pasta de playlist salva.","ok");
+      }catch(error){
+        console.error(error);mostrarStatus(error.message || "Erro ao salvar a pasta.","erro");
+      }finally{btnSalvarPastaPlaylist.disabled=false}
+    });
+
+    window.editarPastaPlaylist = function(id){
+      const pasta = playlistAtual.find(item=>item.tipo === "pasta" && String(item.id) === String(id));
+      if(pasta) abrirModalPastaPlaylist(pasta);
+    };
+
+    window.adicionarNaPasta = function(id){
+      formAdicionar.reset();
+      atualizarDestinosConteudo(id);
+      agendamentoBox.classList.add("oculto");
+      modalAdicionar.classList.remove("oculto");
     };
 
     function dataLocalAgora(){
@@ -2126,6 +2274,7 @@
 
     btnAbrirAdicionar.addEventListener("click",()=>{
       formAdicionar.reset();
+      atualizarDestinosConteudo("principal");
       agendamentoBox.classList.add("oculto");
       modalAdicionar.classList.remove("oculto");
     });
@@ -2201,10 +2350,23 @@
           duracao:String(duracaoSelecionada)
         };
 
-        playlistAtual = await salvarPlaylistR2([...playlistAtual,payload]);
+        const destino = destinoConteudo.value;
+        if(destino === "principal"){
+          playlistAtual = await salvarPlaylistR2([...playlistAtual,payload]);
+        }else{
+          let pastaEncontrada = false;
+          const listaComArquivo = playlistAtual.map(item=>{
+            if(item.tipo !== "pasta" || String(item.id) !== String(destino)) return item;
+            pastaEncontrada = true;
+            const itens = Array.isArray(item.itens) ? item.itens : [];
+            return {...item,itens:[...itens,{...payload,ordem:itens.length+1,pasta_id:item.id}]};
+          });
+          if(!pastaEncontrada) throw new Error("A pasta de destino não foi encontrada.");
+          playlistAtual = await salvarPlaylistR2(listaComArquivo);
+        }
 
         fecharModal();
-        mostrarStatus("Conteúdo adicionado com sucesso.","ok");
+        mostrarStatus(destino === "principal" ? "Conteúdo adicionado com sucesso." : "Conteúdo adicionado à pasta.","ok");
         renderizarPlaylist();
       }catch(error){
         console.error(error);
