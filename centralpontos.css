@@ -2757,3 +2757,160 @@ body.modo-detalhe .topo-esquerda {
     grid-template-columns: 1fr!important;
   }
 }
+
+.topo-fixo.novo-topo {
+  padding: 28px max(48px,calc((100vw - 1540px) / 2)) 22px!important;
+}
+.topo-direita {
+  display: flex!important;
+  align-items: center!important;
+  gap: 18px!important;
+  flex: 1!important;
+}
+.divisor-duna {
+  width: 1px;
+  height: 58px;
+  background: rgba(255,255,255,.32);
+  flex: none;
+}
+.topo-centro {
+  position: static!important;
+  inset: auto!important;
+  transform: none!important;
+  display: block!important;
+  width: auto!important;
+  padding: 0!important;
+  border: 0!important;
+  text-align: left!important;
+}
+.topo-centro h1 {
+  margin: 0 0 5px!important;
+  font-size: clamp(1.8rem,2.5vw,2.6rem)!important;
+  line-height: 1!important;
+}
+.topo-centro p {
+  margin: 0!important;
+  font-size: 14px!important;
+  color: #c7d5f1!important;
+}
+.topo-esquerda {
+  display: flex!important;
+  align-items: center!important;
+  gap: 10px!important;
+}
+.topo-esquerda .btn-novo-ponto {
+  min-width: 154px!important;
+  width: auto!important;
+  height: 52px!important;
+  margin: 0!important;
+  padding: 0 18px!important;
+  border: 1px solid rgba(255,255,255,.3)!important;
+  border-radius: 13px!important;
+  background: #0a1731!important;
+  color: #fff!important;
+  font-size: 15px!important;
+}
+.painel-shell,
+body.modo-detalhe .painel-shell {
+  width: calc(100% - 180px)!important;
+  max-width: 1540px!important;
+  margin-left: auto!important;
+  margin-right: auto!important;
+}
+#listaPontos {
+  padding-top: 14px!important;
+}
+.pontos-box {
+  gap: 14px!important;
+}
+.card-ponto {
+  padding: 10px!important;
+  border-radius: 18px!important;
+}
+.card-status-topo {
+  margin: 0 2px 8px!important;
+}
+.card-imagem-box {
+  border-radius: 13px!important;
+}
+.card-conteudo {
+  padding: 8px 2px 0!important;
+}
+.card-nome {
+  margin: 0!important;
+}
+.card-nome strong {
+  font-size: 19px!important;
+  line-height: 1.05!important;
+}
+.card-info-linha {
+  margin-top: 5px!important;
+  gap: 6px!important;
+}
+.card-cidade {
+  font-size: 12px!important;
+  line-height: 1.15!important;
+}
+.card-codigo {
+  padding: 7px 9px!important;
+  border-radius: 8px!important;
+  font-size: 11px!important;
+}
+.btn-abrir {
+  height: 44px!important;
+  margin-top: 9px!important;
+  border-radius: 10px!important;
+  font-size: 14px!important;
+}
+.card-ponto[draggable="true"] {
+  cursor: grab!important;
+  transition: transform .16s ease,box-shadow .16s ease,opacity .16s ease!important;
+}
+.card-ponto[draggable="true"]:active {
+  cursor: grabbing!important;
+}
+.card-ponto.card-movendo-suave {
+  opacity: .48!important;
+  transform: scale(.985)!important;
+  box-shadow: 0 10px 25px rgba(0,0,0,.18)!important;
+}
+.card-ponto-flutuante,
+.card-ponto-placeholder {
+  display: none!important;
+}
+body.modo-detalhe .topo-centro {
+  display: block!important;
+}
+body.modo-detalhe .topo-esquerda {
+  visibility: hidden!important;
+  pointer-events: none!important;
+}
+@media(max-width:1200px) {
+  .painel-shell,
+  body.modo-detalhe .painel-shell {
+    width: calc(100% - 80px)!important;
+  }
+}
+@media(max-width:760px) {
+  .topo-fixo.novo-topo {
+    padding-left: 18px!important;
+    padding-right: 18px!important;
+  }
+  .divisor-duna {
+    height: 44px;
+  }
+  .topo-centro h1 {
+    font-size: 1.45rem!important;
+  }
+  .topo-centro p {
+    display: none!important;
+  }
+  .topo-esquerda .btn-novo-ponto {
+    min-width: 0!important;
+    padding: 0 12px!important;
+  }
+  .painel-shell,
+  body.modo-detalhe .painel-shell {
+    width: calc(100% - 28px)!important;
+  }
+}
