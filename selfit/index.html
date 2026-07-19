@@ -470,8 +470,8 @@
     .metrica-tv{padding:7px 11px;border:1px solid #333;border-radius:999px;background:#181818;font-size:12px;font-weight:800}
     .metrica-tv.online{color:#65e59b}.metrica-tv.offline{color:#ff7379}
     .lista-tvs{display:grid;gap:8px}
-    .tv-resumo-item{display:grid;grid-template-columns:100px 90px 1fr;align-items:center;gap:12px;padding:10px 12px;border:1px solid #292929;border-radius:10px;background:#151515;font-size:12px}
-    .tv-resumo-codigo{font-weight:900;letter-spacing:.7px}.tv-resumo-status{font-weight:900}.tv-resumo-status.online{color:#65e59b}.tv-resumo-status.offline{color:#ff7379}.tv-resumo-ip{color:#bbb;overflow-wrap:anywhere}
+    .tv-resumo-item{display:grid;grid-template-columns:1fr 90px;align-items:center;gap:12px;padding:10px 12px;border:1px solid #292929;border-radius:10px;background:#151515;font-size:12px}
+    .tv-resumo-status{font-weight:900;text-align:right}.tv-resumo-status.online{color:#65e59b}.tv-resumo-status.offline{color:#ff7379}.tv-resumo-ip{color:#ddd;font-weight:800;overflow-wrap:anywhere}
 
     .cabecalho-conteudos{
       display:flex;
@@ -863,7 +863,7 @@
       .atalho-duracao{flex:1}
       .editar-linha-data-duracao{grid-template-columns:1fr}
       .resumo-tvs-topo{align-items:flex-start;flex-direction:column}
-      .tv-resumo-item{grid-template-columns:1fr 1fr}.tv-resumo-ip{grid-column:1/-1}
+      .tv-resumo-item{grid-template-columns:1fr auto}.tv-resumo-ip{grid-column:auto}
     }
   </style>
 </head>
@@ -1596,8 +1596,20 @@
       return data || null;
     }
 
-    function obterStatusTv(ponto){
+    async function buscarStatusTv(codigo){
+      try{
+        const dados = await requisitarWorker(`/api/status/${encodeURIComponent(codigo)}`);
+        return dados?.atual || null;
+      }catch(error){
+        console.warn(`Status indisponível para ${codigo}:`,error);
+        return null;
+      }
+    }
+
+    function obterStatusTv(ponto,statusRemoto=null){
       const datas = [
+        statusRemoto?.ultima_atualizacao,
+        statusRemoto?.atualizado_em,
         ponto.ultimo_heartbeat_reprodutor,
         ponto.ultimo_ping,
         ponto.atualizado_em,
@@ -1607,17 +1619,18 @@
         .map(valor=>new Date(valor).getTime())
         .filter(Number.isFinite);
       const ultimaAtualizacao = datas.length ? Math.max(...datas) : 0;
-      const ativo = ultimaAtualizacao > 0 && Date.now()-ultimaAtualizacao <= 5*60*1000;
+      const ativo = statusRemoto?.status === "ativo" && ultimaAtualizacao > 0 && Date.now()-ultimaAtualizacao <= 30*60*1000;
       return {ativo,texto:ativo ? "Ativo" : "Inativo"};
     }
 
-    function obterIpTv(ponto){
+    function obterIpTv(ponto,statusRemoto=null){
       const dispositivo = ponto.dispositivo_reprodutor;
       let dadosDispositivo = dispositivo;
       if(typeof dispositivo === "string"){
         try{dadosDispositivo = JSON.parse(dispositivo)}catch{dadosDispositivo = dispositivo}
       }
-      return ponto.ip_publico || ponto.ip || ponto.endereco_ip || ponto.ip_address ||
+      return statusRemoto?.ip_publico || statusRemoto?.ip || statusRemoto?.endereco_ip ||
+        ponto.ip_publico || ponto.ip || ponto.endereco_ip || ponto.ip_address ||
         (dadosDispositivo && typeof dadosDispositivo === "object"
           ? dadosDispositivo.ip_publico || dadosDispositivo.ip || dadosDispositivo.ip_address
           : "") || "IP não informado";
@@ -1626,12 +1639,15 @@
     async function renderizarResumoTvs(){
       listaResumoTvs.innerHTML = '<span class="tv-resumo-ip">Atualizando status...</span>';
       const registros = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
-        try{return {codigo,ponto:await buscarPontoPorCodigo(codigo)}}catch{return {codigo,ponto:null}}
+        try{
+          const [ponto,statusRemoto] = await Promise.all([buscarPontoPorCodigo(codigo),buscarStatusTv(codigo)]);
+          return {codigo,ponto,statusRemoto};
+        }catch{return {codigo,ponto:null,statusRemoto:null}}
       }));
       const tvs = registros.filter(item=>item.ponto).map(item=>({
         ...item,
-        status:obterStatusTv(item.ponto),
-        ip:obterIpTv(item.ponto)
+        status:obterStatusTv(item.ponto,item.statusRemoto),
+        ip:obterIpTv(item.ponto,item.statusRemoto)
       }));
       const online = tvs.filter(item=>item.status.ativo).length;
       totalTvs.textContent = `${tvs.length} ${tvs.length === 1 ? "TV" : "TVs"}`;
@@ -1639,18 +1655,17 @@
       totalTvsOffline.textContent = `${tvs.length-online} offline`;
       listaResumoTvs.innerHTML = tvs.length ? tvs.map(item=>`
         <div class="tv-resumo-item">
-          <span class="tv-resumo-codigo">${escapeHtml(item.codigo)}</span>
-          <span class="tv-resumo-status ${item.status.ativo ? "online" : "offline"}">${item.status.ativo ? "Online" : "Offline"}</span>
           <span class="tv-resumo-ip">${escapeHtml(item.ip)}</span>
+          <span class="tv-resumo-status ${item.status.ativo ? "online" : "offline"}">${item.status.ativo ? "Online" : "Offline"}</span>
         </div>`).join("") : '<span class="tv-resumo-ip">Nenhuma TV cadastrada.</span>';
     }
 
-    function htmlCartaoPonto(ponto,codigo){
+    function htmlCartaoPonto(ponto,codigo,statusRemoto=null){
       const nome = ponto.nome || ponto.nome_local || ponto.titulo || "Selfit";
       const cidade = ponto.cidade || ponto.cidade_regiao || ponto.municipio || "";
       const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "";
       const imagem = ponto.imagem_url || ponto.imagem || ponto.foto_url || "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
-      const statusTv = obterStatusTv(ponto);
+      const statusTv = obterStatusTv(ponto,statusRemoto);
       return `<article class="pasta-card">
         <div class="pasta-status ${statusTv.ativo ? "ativo" : "inativo"}"><span class="pasta-status-ponto"></span><span>${statusTv.texto}</span></div>
         <img class="pasta-imagem" src="${escapeHtml(imagem)}" alt="${escapeHtml(nome)}" onerror="this.src='https://placehold.co/1200x700/120000/ffffff?text=SELFIT'" />
@@ -1666,12 +1681,15 @@
     async function renderizarPastas(){
       gradePastas.innerHTML = '<p style="color:#fff">Carregando pontos...</p>';
       const resultados = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
-        try{return {codigo,ponto:await buscarPontoPorCodigo(codigo)}}
-        catch(error){console.error(error);return {codigo,ponto:null}}
+        try{
+          const [ponto,statusRemoto] = await Promise.all([buscarPontoPorCodigo(codigo),buscarStatusTv(codigo)]);
+          return {codigo,ponto,statusRemoto};
+        }
+        catch(error){console.error(error);return {codigo,ponto:null,statusRemoto:null}}
       }));
       const encontrados = resultados.filter(item=>item.ponto);
       gradePastas.innerHTML = encontrados.length
-        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo)).join("")
+        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo,item.statusRemoto)).join("")
         : '<p style="color:#fff">Nenhum ponto encontrado.</p>';
     }
 
