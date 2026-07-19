@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0">
 
   <title>Duna Branding | Pontos</title>
-  <link rel="stylesheet" href="centralpontos.css?v=207">
+  <link rel="stylesheet" href="centralpontos.css?v=209">
 </head>
 
 <body>
@@ -69,7 +69,10 @@
 
           <div class="playlist-header-textos">
 
-            <h2 id="tituloPasta"></h2>
+            <div class="titulo-pasta-linha">
+              <h2 id="tituloPasta"></h2>
+              <button id="btnEditarInfo" class="btn-editar-ponto-icone" type="button" title="Editar informações" aria-label="Editar informações">✎</button>
+            </div>
 
             <div class="playlist-info-extra">
               <div id="cidadePonto" class="playlist-info-item"></div>
@@ -85,16 +88,32 @@
               <span id="codigoAtual"></span>
             </div>
 
-            <div class="playlist-acoes-topo">
-              <button id="btnEditarInfo" class="btn-secundario">Editar informações</button>
-              <button id="btnUpgradePlaylist" class="btn-upgrade-playlist">＋ Adicionar conteúdo</button>
-              <button id="btnCriarPastaPlaylist" class="btn-secundario">＋ Criar pasta</button>
-              <input id="inputUpgradePlaylist" type="file" hidden>
-            </div>
-
           </div>
         </div>
       </div>
+
+      <section class="controle-tv-central" aria-labelledby="tituloControleTvCentral">
+        <div class="controle-tv-central-topo">
+          <div>
+            <h3 id="tituloControleTvCentral">Controle da TV</h3>
+            <span id="estadoTvCentral" class="estado-tv-central">Carregando...</span>
+          </div>
+          <button id="btnAlternarTvCentral" class="controle-energia-central" type="button" aria-pressed="false">
+            <span id="textoEnergiaTvCentral">Carregando...</span>
+          </button>
+        </div>
+        <div class="programacao-tv-central">
+          <label class="programacao-chave-central">
+            <span><strong>Programado</strong><small>Ativação e encerramento automáticos.</small></span>
+            <span class="switch-central"><input id="programacaoAutomaticaCentral" type="checkbox"><i></i></span>
+          </label>
+          <div class="horarios-tv-central">
+            <label>Ativação<input id="horarioAtivacaoCentral" type="time" value="08:00"></label>
+            <label>Encerramento<input id="horarioEncerramentoCentral" type="time" value="22:00"></label>
+          </div>
+          <button id="btnSalvarProgramacaoCentral" class="btn-salvar-programacao-central" type="button" disabled>Programação salva</button>
+        </div>
+      </section>
 
       <div id="areaTvAberta" class="tv-aberta-box" style="display:none;">
         <div><h3>TV aberta</h3><p>Informe o link do YouTube que será exibido neste ponto.</p></div>
@@ -107,6 +126,12 @@
           <div class="playlist-secao playlist-secao-ativa">
             <div class="playlist-secao-topo">
               <h4>Conteúdos</h4>
+              <div class="acoes-conteudos-central">
+                <button id="btnUpgradePlaylist" class="btn-upgrade-playlist">＋ Adicionar conteúdo</button>
+                <button id="btnCriarPastaPlaylist" class="btn-secundario">＋ Criar pasta</button>
+                <button id="btnPreviewCentral" class="btn-preview-central" type="button">◉ Preview</button>
+                <input id="inputUpgradePlaylist" type="file" hidden>
+              </div>
             </div>
             <div id="playlistAtiva" class="playlist-lista"></div>
           </div>
@@ -244,7 +269,7 @@
 </div>
   
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="centralpontos.js?v=205"></script>
+<script src="centralpontos.js?v=207"></script>
 
 </body>
 </html>
