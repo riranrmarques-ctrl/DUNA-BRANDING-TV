@@ -1341,6 +1341,7 @@ async function salvarProgramacaoTvCentral(){
 function atualizarTipoPontoDetalhe() {
   const config = configuracoesPontos[codigoSelecionado] || {tipo_ponto:"publicidade",youtube_url:""};
   const tvAberta = normalizarTipoPonto(config.tipo_ponto) === "tv_aberta";
+  document.body.classList.toggle("modo-tv-aberta",tvAberta);
   const layout = document.querySelector(".playlist-layout-novo");
   if(layout) layout.style.display = tvAberta ? "none" : "flex";
   if(areaTvAberta) areaTvAberta.style.display = tvAberta ? "flex" : "none";
@@ -2485,7 +2486,7 @@ if (btnVoltar) {
     if (pontoDetalhe) pontoDetalhe.style.display = "none";
 
     codigoSelecionado = null;
-    document.body.classList.remove("modo-detalhe");
+    document.body.classList.remove("modo-detalhe","modo-tv-aberta");
   };
 }
 
@@ -2498,6 +2499,11 @@ if (btnCopiarCodigo) {
     try {
       await navigator.clipboard.writeText(codigoSelecionado);
       setStatus("Código copiado", "ok");
+      const codigoCopiado = codigoSelecionado;
+      codigoAtual.textContent = "COPIADO";
+      setTimeout(() => {
+        if (codigoSelecionado === codigoCopiado) codigoAtual.textContent = codigoCopiado;
+      }, 900);
     } catch {
       setStatus("Erro ao copiar código", "erro");
     }
@@ -2549,14 +2555,9 @@ document.querySelectorAll("[data-tipo-ponto]").forEach(btn=>btn.onclick=()=>{tip
 if(btnCancelarNovoPonto)btnCancelarNovoPonto.onclick=()=>modalNovoPonto.style.display="none";
 if(btnConfirmarNovoPonto)btnConfirmarNovoPonto.onclick=async()=>{modalNovoPonto.style.display="none";await criarNovoPonto(tipoNovoPontoSelecionado);};
 if(btnCriarPastaPlaylist)btnCriarPastaPlaylist.onclick=criarPastaCentral;
-if(btnPreviewCentral)btnPreviewCentral.onclick=async()=>{
-  try{
-    const items=await obterPlaylistR2(codigoSelecionado),todos=[];
-    items.forEach(item=>item.tipo === "pasta" ? todos.push(...(item.itens||[])) : todos.push(item));
-    const primeiro=todos.find(item=>obterUrlDownloadPlaylist(item));
-    if(!primeiro) throw new Error("Nenhum conteúdo disponível para preview.");
-    window.open(obterUrlDownloadPlaylist(primeiro),"_blank","noopener");
-  }catch(error){setStatus(error.message||"Não foi possível abrir o preview.","erro");}
+if(btnPreviewCentral)btnPreviewCentral.onclick=()=>{
+  if(!codigoSelecionado)return;
+  window.open(`player.html?codigo=${encodeURIComponent(codigoSelecionado)}`,"_blank","noopener");
 };
 if(btnAlternarTvCentral)btnAlternarTvCentral.onclick=()=>enviarComandoTvCentral();
 if(btnSalvarProgramacaoCentral)btnSalvarProgramacaoCentral.onclick=()=>salvarProgramacaoTvCentral();
