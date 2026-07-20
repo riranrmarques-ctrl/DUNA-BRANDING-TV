@@ -984,8 +984,8 @@ function montarCardPonto(ponto) {
   return `
     <div class="card-ponto ${statusInfo.classe === "indisponivel" ? "card-indisponivel" : ""}" data-codigo="${escapeHtml(codigo)}">
       <div class="card-status-topo">
-        <span class="status-bolinha ${statusInfo.classe}"></span>
-        <span class="card-status ${statusInfo.classe}">${escapeHtml(statusInfo.texto)}</span>
+        <div class="card-status-grupo"><span class="status-bolinha ${statusInfo.classe}"></span><span class="card-status ${statusInfo.classe}">${escapeHtml(statusInfo.texto)}</span></div>
+        <button class="card-drag-handle" type="button" aria-label="Mover pasta" title="Segure e arraste para reorganizar">⠿</button>
       </div>
 
       <div class="card-imagem-box">
@@ -2150,30 +2150,47 @@ function ativarDragPontos() {
   if (!pontosBox) return;
 
   let cartaoMovido = null;
+  let ordemAlterada = false;
+
+  const moverSobre = (event) => {
+    if (!cartaoMovido) return;
+    event.preventDefault();
+    const alvo = document.elementsFromPoint(event.clientX,event.clientY)
+      .map(el=>el.closest?.(".card-ponto"))
+      .find(card=>card && card !== cartaoMovido && pontosBox.contains(card));
+    if (!alvo) return;
+    const caixa = alvo.getBoundingClientRect();
+    const mesmaLinha = event.clientY >= caixa.top && event.clientY <= caixa.bottom;
+    const depois = mesmaLinha ? event.clientX > caixa.left + caixa.width / 2 : event.clientY > caixa.top + caixa.height / 2;
+    pontosBox.insertBefore(cartaoMovido,depois ? alvo.nextSibling : alvo);
+    ordemAlterada = true;
+  };
+
+  const finalizar = async () => {
+    if (!cartaoMovido) return;
+    cartaoMovido.classList.remove("card-movendo-suave");
+    document.body.classList.remove("reorganizando-cards");
+    cartaoMovido = null;
+    if (ordemAlterada) await salvarOrdemPontos();
+    ordemAlterada = false;
+  };
+
   pontosBox.querySelectorAll(".card-ponto").forEach((card) => {
-    card.setAttribute("draggable", "true");
-    card.ondragstart = (event) => {
-      if (event.target.closest("button, a, input, textarea, select, .card-codigo")) {
-        event.preventDefault();
-        return;
-      }
-      cartaoMovido = card;
-      card.classList.add("card-movendo-suave");
-      event.dataTransfer.effectAllowed = "move";
-    };
-    card.ondragover = (event) => {
+    card.setAttribute("draggable", "false");
+    const alca = card.querySelector(".card-drag-handle");
+    if(!alca) return;
+    alca.onpointerdown = (event) => {
+      if(event.button !== undefined && event.button !== 0) return;
       event.preventDefault();
-      if (!cartaoMovido || cartaoMovido === card) return;
-      const caixa = card.getBoundingClientRect();
-      const depois = event.clientY > caixa.top + caixa.height / 2 ||
-        (Math.abs(event.clientY - (caixa.top + caixa.height / 2)) < caixa.height / 3 && event.clientX > caixa.left + caixa.width / 2);
-      pontosBox.insertBefore(cartaoMovido, depois ? card.nextSibling : card);
+      cartaoMovido = card;
+      ordemAlterada = false;
+      card.classList.add("card-movendo-suave");
+      document.body.classList.add("reorganizando-cards");
+      try{alca.setPointerCapture(event.pointerId);}catch(_){ }
     };
-    card.ondragend = () => {
-      card.classList.remove("card-movendo-suave");
-      cartaoMovido = null;
-      salvarOrdemPontos();
-    };
+    alca.onpointermove = moverSobre;
+    alca.onpointerup = finalizar;
+    alca.onpointercancel = finalizar;
   });
   return;
 
