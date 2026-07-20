@@ -473,6 +473,16 @@
     }
 
     .conteudos-card{padding:22px;margin-bottom:24px}
+    .tv-aberta-card{padding:24px;margin-bottom:24px}
+    .tv-aberta-topo{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
+    .tv-aberta-topo h2{font-size:22px;margin-bottom:5px}.tv-aberta-topo p{color:#aaa;font-size:13px}
+    .tv-aberta-selo{padding:8px 12px;border-radius:999px;background:#242424;color:#fff;font-size:11px;font-weight:900;white-space:nowrap}
+    .tv-aberta-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+    .tv-aberta-form input{width:100%;height:50px;padding:0 15px;border:1px solid #393939;border-radius:11px;background:#181818;color:#fff;font-size:14px;outline:none}
+    .tv-aberta-form input:focus{border-color:#ed101b;box-shadow:0 0 0 3px rgba(237,16,27,.16)}
+    .tv-aberta-form button{min-width:150px;border:0;border-radius:11px;background:#ed101b;color:#fff;font-weight:900;padding:0 20px;cursor:pointer;transition:.18s ease}
+    .tv-aberta-form button:hover{transform:translateY(-1px);background:#ff1b28}.tv-aberta-form button:active{transform:scale(.97)}
+    .tv-aberta-ajuda{margin-top:10px;color:#8f8f8f;font-size:12px}
     .linha-pasta td{background:#090909!important;color:#fff!important;border-color:#242424!important}
     .linha-pasta td+td{border-left:0!important}
     .linha-pasta .numero-ordem,.linha-pasta .drag-handle,.linha-pasta .nome-arquivo{color:#fff!important}
@@ -494,8 +504,12 @@
     .metricas-tvs{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .metrica-tv{padding:7px 11px;border:1px solid #333;border-radius:999px;background:#181818;font-size:12px;font-weight:800}
     .metrica-tv.online{color:#65e59b}.metrica-tv.offline{color:#ff7379}
+    .filtros-historico{display:grid;grid-template-columns:1fr 180px 180px auto;gap:10px;margin-bottom:14px}
+    .filtros-historico input,.filtros-historico select{min-height:42px;border:1px solid #363636;border-radius:10px;background:#181818;color:#fff;padding:0 12px;font-weight:700}
+    .btn-limpar-filtros{min-height:42px;padding:0 16px;border:1px solid #444;border-radius:10px;background:#fff;color:#111;font-weight:900}
     .lista-tvs{display:grid;gap:8px}
-    .tv-resumo-item{display:grid;grid-template-columns:1fr 90px;align-items:center;gap:12px;padding:10px 12px;border:1px solid #292929;border-radius:10px;background:#151515;font-size:12px}
+    .tv-resumo-item{display:grid;grid-template-columns:minmax(110px,1fr) minmax(130px,1fr) 90px 70px 100px;align-items:center;gap:12px;padding:10px 12px;border:1px solid #292929;border-radius:10px;background:#151515;font-size:12px}
+    .tv-resumo-nome{color:#fff;font-weight:900;min-height:1em}
     .tv-resumo-status{font-weight:900;text-align:right}.tv-resumo-status.online{color:#65e59b}.tv-resumo-status.offline{color:#ff7379}.tv-resumo-ip{color:#ddd;font-weight:800;overflow-wrap:anywhere}
 
     .cabecalho-conteudos{
@@ -877,6 +891,7 @@
       .topo p{font-size:11px}
       .btn-sair{min-height:46px;padding:0 14px}
       .unidade-card,.conteudos-card{border-radius:18px}
+      .tv-aberta-card{border-radius:18px}.tv-aberta-topo{flex-direction:column}.tv-aberta-form{grid-template-columns:1fr}.tv-aberta-form button{height:48px}
       .nome-unidade{font-size:42px}
       .grid-campos{grid-template-columns:1fr}
       .campo-completo{grid-column:auto}
@@ -945,7 +960,7 @@
 
     <div class="pastas-intro">
       <h2>TVs e playlists</h2>
-      <p>Por enquanto, somente a pasta de publicidade está disponível.</p>
+      <p>Selecione um ponto de publicidade ou TV aberta para gerenciar.</p>
     </div>
 
     <div class="grade-pastas" id="gradePastas"></div>
@@ -1027,7 +1042,7 @@
       </div>
     </section>
 
-    <section class="card conteudos-card">
+    <section class="card conteudos-card" id="conteudosCard">
       <div class="cabecalho-conteudos">
         <div class="cabecalho-conteudos-texto">
           <h2>Conteúdos</h2>
@@ -1061,14 +1076,34 @@
       </div>
     </section>
 
+    <section class="card tv-aberta-card oculto" id="tvAbertaCard">
+      <div class="tv-aberta-topo">
+        <div><h2>TV aberta</h2><p>Defina o vídeo do YouTube que este ponto reproduzirá.</p></div>
+        <span class="tv-aberta-selo">YOUTUBE</span>
+      </div>
+      <div class="tv-aberta-form">
+        <input id="youtubeUrlPonto" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." aria-label="Link do YouTube" />
+        <button id="btnSalvarYoutube" type="button">Salvar link</button>
+      </div>
+      <p class="tv-aberta-ajuda">Quando a TV estiver ligada, este link será reproduzido continuamente.</p>
+    </section>
+
     <section class="card resumo-tvs" aria-labelledby="tituloResumoTvs">
       <div class="resumo-tvs-topo">
-        <h3 id="tituloResumoTvs">TVs conectadas</h3>
+        <h3 id="tituloResumoTvs">Histórico de status das TVs</h3>
         <div class="metricas-tvs">
           <span class="metrica-tv" id="totalTvs">0 TVs</span>
           <span class="metrica-tv online" id="totalTvsOnline">0 online</span>
           <span class="metrica-tv offline" id="totalTvsOffline">0 offline</span>
         </div>
+      </div>
+      <div class="filtros-historico">
+        <input id="filtroHistoricoIp" type="search" placeholder="Filtrar por IP" aria-label="Filtrar histórico por IP" />
+        <input id="filtroHistoricoData" type="date" aria-label="Filtrar histórico por data" />
+        <select id="filtroHistoricoStatus" aria-label="Filtrar histórico por status">
+          <option value="todos">Todos os status</option><option value="ativo">Ativas</option><option value="inativo">Inativas</option>
+        </select>
+        <button class="btn-limpar-filtros" id="btnLimparFiltrosHistorico" type="button">Limpar filtros</button>
       </div>
       <div class="lista-tvs" id="listaResumoTvs"><span class="tv-resumo-ip">Carregando...</span></div>
     </section>
@@ -1262,6 +1297,19 @@
     const CHAVE_SESSAO = "painel_unidade_selfit_liberado";
     const CHAVE_PONTOS = "painel_unidade_selfit_pontos";
     const TEMPO_TRANSICAO_COMANDO_MS = 5000;
+    const PONTO_CONFIG_ID = "__dunatv_ponto_config__";
+
+    function normalizarConfiguracaoPonto(valor={}){
+      const configuracao = valor && typeof valor === "object" ? valor : {};
+      return {
+        id:PONTO_CONFIG_ID,
+        tipo:"configuracao_ponto",
+        codigo:CODIGO_FIXO,
+        tipo_ponto:String(configuracao.tipo_ponto || "").toLowerCase() === "tv_aberta" ? "tv_aberta" : "publicidade",
+        youtube_url:String(configuracao.youtube_url || "").trim(),
+        atualizado_em:configuracao.atualizado_em || null
+      };
+    }
 
     const DUNATV_WORKER_URL = String(
       window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev"
@@ -1330,16 +1378,21 @@
       const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`);
       const items = Array.isArray(documento) ? documento : (documento?.items || []);
       const itemControle = items.find(item=>String(item?.id || "") === "__dunatv_operacao__");
+      const itemConfiguracao = items.find(item=>String(item?.id || "") === PONTO_CONFIG_ID || item?.tipo === "configuracao_ponto");
       const configuracao = !Array.isArray(documento) && documento?.operacao
         ? documento.operacao
         : itemControle?.operacao;
       operacaoAtual = normalizarOperacao(configuracao);
+      configuracaoPontoAtual = normalizarConfiguracaoPonto((!Array.isArray(documento) && documento?.configuracao_ponto) || itemConfiguracao);
       renderizarOperacao();
-      return items.filter(item=>String(item?.id || "") !== "__dunatv_operacao__");
+      aplicarModoPonto();
+      return items.filter(item=>!["__dunatv_operacao__",PONTO_CONFIG_ID].includes(String(item?.id || "")) && item?.tipo !== "controle" && item?.tipo !== "configuracao_ponto");
     }
 
     async function salvarPlaylistR2(items){
-      const lista = (Array.isArray(items) ? items : []).map((item,index)=>({
+      const lista = (Array.isArray(items) ? items : [])
+        .filter(item=>!["__dunatv_operacao__",PONTO_CONFIG_ID].includes(String(item?.id || "")) && item?.tipo !== "controle" && item?.tipo !== "configuracao_ponto")
+        .map((item,index)=>({
         ...item,
         id:item.id || (globalThis.crypto?.randomUUID
           ? globalThis.crypto.randomUUID()
@@ -1360,14 +1413,17 @@
       const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`,{
         method:"PUT",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({items:[...lista,itemControle],operacao:operacaoAtual})
+        body:JSON.stringify({items:[...lista,itemControle],operacao:operacaoAtual,configuracao_ponto:{...configuracaoPontoAtual,codigo:CODIGO_FIXO,atualizado_em:new Date().toISOString()}})
       });
 
       const itemsSalvos = Array.isArray(documento) ? documento : (documento?.items || lista);
       const controleSalvo = itemsSalvos.find(item=>String(item?.id || "") === "__dunatv_operacao__");
       operacaoAtual = normalizarOperacao(documento?.operacao || controleSalvo?.operacao || operacaoAtual);
       renderizarOperacao();
-      return itemsSalvos.filter(item=>String(item?.id || "") !== "__dunatv_operacao__");
+      const configuracaoSalva = !Array.isArray(documento) && documento?.configuracao_ponto;
+      if(configuracaoSalva) configuracaoPontoAtual = normalizarConfiguracaoPonto(configuracaoSalva);
+      aplicarModoPonto();
+      return itemsSalvos.filter(item=>!["__dunatv_operacao__",PONTO_CONFIG_ID].includes(String(item?.id || "")) && item?.tipo !== "controle" && item?.tipo !== "configuracao_ponto");
     }
 
     async function enviarMidiaR2(file,nomeArquivo){
@@ -1447,6 +1503,11 @@
     const totalTvsOnline = document.getElementById("totalTvsOnline");
     const totalTvsOffline = document.getElementById("totalTvsOffline");
     const listaResumoTvs = document.getElementById("listaResumoTvs");
+    const filtroHistoricoIp = document.getElementById("filtroHistoricoIp");
+    const filtroHistoricoData = document.getElementById("filtroHistoricoData");
+    const filtroHistoricoStatus = document.getElementById("filtroHistoricoStatus");
+    const btnLimparFiltrosHistorico = document.getElementById("btnLimparFiltrosHistorico");
+    let historicoTvsAtual = [];
 
     const modalAdicionar = document.getElementById("modalAdicionar");
     const btnAbrirAdicionar = document.getElementById("btnAbrirAdicionar");
@@ -1471,14 +1532,60 @@
     const editarDestinoConteudo = document.getElementById("editarDestinoConteudo");
     const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
     const statusToast = document.getElementById("statusToast");
+    const conteudosCard = document.getElementById("conteudosCard");
+    const tvAbertaCard = document.getElementById("tvAbertaCard");
+    const youtubeUrlPonto = document.getElementById("youtubeUrlPonto");
+    const btnSalvarYoutube = document.getElementById("btnSalvarYoutube");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
+    let configuracaoPontoAtual = normalizarConfiguracaoPonto();
     let itemEmEdicao = null;
     let pastaPlaylistEmEdicao = null;
     let pastaAbertaId = null;
     let itemEmEdicaoOrigemPasta = null;
     let timerEstadoEnergia = null;
+
+    function aplicarModoPonto(){
+      const tvAberta = configuracaoPontoAtual.tipo_ponto === "tv_aberta";
+      conteudosCard.classList.toggle("oculto",tvAberta);
+      tvAbertaCard.classList.toggle("oculto",!tvAberta);
+      youtubeUrlPonto.value = configuracaoPontoAtual.youtube_url || "";
+    }
+
+    function urlYoutubeValida(valor){
+      try{
+        const url = new URL(String(valor || "").trim());
+        const host = url.hostname.toLowerCase().replace(/^www\./,"");
+        return ["youtube.com","m.youtube.com","youtu.be","youtube-nocookie.com"].includes(host);
+      }catch{
+        return false;
+      }
+    }
+
+    async function salvarYoutubePonto(){
+      const link = youtubeUrlPonto.value.trim();
+      if(!urlYoutubeValida(link)){
+        mostrarStatus("Informe um link válido do YouTube.","erro");
+        youtubeUrlPonto.focus();
+        return;
+      }
+
+      btnSalvarYoutube.disabled = true;
+      btnSalvarYoutube.textContent = "Salvando...";
+      try{
+        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,tipo_ponto:"tv_aberta",youtube_url:link,atualizado_em:new Date().toISOString()});
+        playlistAtual = await salvarPlaylistR2(playlistAtual);
+        aplicarModoPonto();
+        mostrarStatus("Link do YouTube salvo.","ok");
+      }catch(error){
+        console.error(error);
+        mostrarStatus(error.message || "Não foi possível salvar o link do YouTube.","erro");
+      }finally{
+        btnSalvarYoutube.disabled = false;
+        btnSalvarYoutube.textContent = "Salvar link";
+      }
+    }
 
     atalhosDuracao.forEach((botao)=>{
       botao.addEventListener("click",()=>{
@@ -1715,7 +1822,7 @@
     async function buscarStatusTv(codigo){
       try{
         const dados = await requisitarWorker(`/api/status/${encodeURIComponent(codigo)}`);
-        return dados?.atual || null;
+        return dados || {atual:null,dispositivos:[],historico:[]};
       }catch(error){
         console.warn(`Status indisponível para ${codigo}:`,error);
         return null;
@@ -1748,6 +1855,38 @@
           : "") || "IP não informado";
     }
 
+    function formatarDataHoraHistorico(valor){
+      const data = new Date(valor);
+      if(Number.isNaN(data.getTime())) return {data:"",hora:""};
+      return {
+        hora:data.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),
+        data:data.toLocaleDateString("pt-BR")
+      };
+    }
+
+    function renderizarLinhasHistorico(){
+      const ipBusca = filtroHistoricoIp.value.trim().toLowerCase();
+      const dataBusca = filtroHistoricoData.value;
+      const statusBusca = filtroHistoricoStatus.value;
+      const itens = historicoTvsAtual.filter(item=>{
+        const instante = new Date(item.atualizado_em || item.ultima_atualizacao || 0);
+        const dataIso = Number.isNaN(instante.getTime()) ? "" : `${instante.getFullYear()}-${String(instante.getMonth()+1).padStart(2,"0")}-${String(instante.getDate()).padStart(2,"0")}`;
+        return (!ipBusca || String(item.ip_publico || "").toLowerCase().includes(ipBusca)) &&
+          (!dataBusca || dataIso === dataBusca) &&
+          (statusBusca === "todos" || item.status === statusBusca);
+      });
+      listaResumoTvs.innerHTML = itens.length ? itens.map(item=>{
+        const quando = formatarDataHoraHistorico(item.atualizado_em || item.ultima_atualizacao);
+        const ativo = item.status === "ativo";
+        return `<div class="tv-resumo-item">
+          <span class="tv-resumo-nome">${escapeHtml(item.nome_tv || "")}</span>
+          <span class="tv-resumo-ip">${escapeHtml(item.ip_publico || "IP não informado")}</span>
+          <span class="tv-resumo-status ${ativo ? "online" : "offline"}">${ativo ? "Ativa" : "Inativa"}</span>
+          <span>${escapeHtml(quando.hora)}</span><span>${escapeHtml(quando.data)}</span>
+        </div>`;
+      }).join("") : '<span class="tv-resumo-ip">Nenhum registro encontrado.</span>';
+    }
+
     async function renderizarResumoTvs(){
       listaResumoTvs.innerHTML = '<span class="tv-resumo-ip">Atualizando status...</span>';
       const registros = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
@@ -1758,18 +1897,18 @@
       }));
       const tvs = registros.filter(item=>item.ponto).map(item=>({
         ...item,
-        status:obterStatusTv(item.ponto,item.statusRemoto),
-        ip:obterIpTv(item.ponto,item.statusRemoto)
+        status:obterStatusTv(item.ponto,item.statusRemoto?.atual),
+        ip:obterIpTv(item.ponto,item.statusRemoto?.atual)
       }));
-      const online = tvs.filter(item=>item.status.ativo).length;
-      totalTvs.textContent = `${tvs.length} ${tvs.length === 1 ? "TV" : "TVs"}`;
+      const dispositivos = registros.flatMap(item=>Array.isArray(item.statusRemoto?.dispositivos) ? item.statusRemoto.dispositivos : []);
+      const online = dispositivos.filter(item=>item.status === "ativo").length;
+      const totalDispositivos = dispositivos.length || tvs.length;
+      totalTvs.textContent = `${totalDispositivos} ${totalDispositivos === 1 ? "TV" : "TVs"}`;
       totalTvsOnline.textContent = `${online} online`;
-      totalTvsOffline.textContent = `${tvs.length-online} offline`;
-      listaResumoTvs.innerHTML = tvs.length ? tvs.map(item=>`
-        <div class="tv-resumo-item">
-          <span class="tv-resumo-ip">${escapeHtml(item.ip)}</span>
-          <span class="tv-resumo-status ${item.status.ativo ? "online" : "offline"}">${item.status.ativo ? "Online" : "Offline"}</span>
-        </div>`).join("") : '<span class="tv-resumo-ip">Nenhuma TV cadastrada.</span>';
+      totalTvsOffline.textContent = `${totalDispositivos-online} offline`;
+      historicoTvsAtual = registros.flatMap(item=>Array.isArray(item.statusRemoto?.historico) ? item.statusRemoto.historico : [])
+        .sort((a,b)=>new Date(b.atualizado_em || 0)-new Date(a.atualizado_em || 0));
+      renderizarLinhasHistorico();
     }
 
     function htmlCartaoPonto(ponto,codigo,statusRemoto=null){
@@ -1801,7 +1940,7 @@
       }));
       const encontrados = resultados.filter(item=>item.ponto);
       gradePastas.innerHTML = encontrados.length
-        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo,item.statusRemoto)).join("")
+        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo,item.statusRemoto?.atual)).join("")
         : '<p style="color:#fff">Nenhum ponto encontrado.</p>';
     }
 
@@ -1814,6 +1953,8 @@
 
     async function abrirPainel(codigo=CODIGO_FIXO){
       CODIGO_FIXO = String(codigo || "R6V0G8V").trim().toUpperCase();
+      configuracaoPontoAtual = normalizarConfiguracaoPonto();
+      aplicarModoPonto();
       codigoSala.textContent = CODIGO_FIXO;
       telaLogin.classList.add("oculto");
       telaPastas.classList.add("oculto");
@@ -2370,6 +2511,13 @@
         console.error(error);mostrarStatus(error.message || "Erro ao salvar a pasta.","erro");
       }finally{btnSalvarPastaPlaylist.disabled=false}
     });
+    btnSalvarYoutube.addEventListener("click",salvarYoutubePonto);
+    youtubeUrlPonto.addEventListener("keydown",(event)=>{
+      if(event.key === "Enter"){
+        event.preventDefault();
+        salvarYoutubePonto();
+      }
+    });
 
     window.editarPastaPlaylist = function(id){
       const pasta = playlistAtual.find(item=>item.tipo === "pasta" && String(item.id) === String(id));
@@ -2586,6 +2734,14 @@
       void botao.offsetWidth;
       botao.classList.add("botao-clicado");
       setTimeout(()=>botao.classList.remove("botao-clicado"),340);
+    });
+
+    [filtroHistoricoIp,filtroHistoricoData,filtroHistoricoStatus].forEach(campo=>{
+      campo.addEventListener(campo.tagName === "INPUT" && campo.type === "search" ? "input" : "change",renderizarLinhasHistorico);
+    });
+    btnLimparFiltrosHistorico.addEventListener("click",()=>{
+      filtroHistoricoIp.value=""; filtroHistoricoData.value=""; filtroHistoricoStatus.value="todos";
+      renderizarLinhasHistorico();
     });
 
     setInterval(()=>{
