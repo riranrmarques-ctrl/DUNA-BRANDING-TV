@@ -1311,6 +1311,23 @@
       };
     }
 
+    function inferirTipoPontoCadastro(ponto={}){
+      const camposTipo = [ponto.tipo_ponto,ponto.tipo_pasta,ponto.tipo_exibicao,ponto.modalidade,ponto.categoria]
+        .filter(Boolean)
+        .join(" ")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .toLowerCase()
+        .replace(/[_-]+/g," ");
+      if(/\btv\s*aberta\b/.test(camposTipo)) return "tv_aberta";
+
+      const nome = String(ponto.nome || ponto.nome_local || ponto.titulo || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .toLowerCase();
+      return /(^|[|/\-\s])tv($|[|/\-\s])/.test(nome) ? "tv_aberta" : "";
+    }
+
     const DUNATV_WORKER_URL = String(
       window.DUNATV_WORKER_URL || "https://icy-block-ad5b.audiovisualduna.workers.dev"
     ).replace(/\/$/,"");
@@ -1384,6 +1401,7 @@
         : itemControle?.operacao;
       operacaoAtual = normalizarOperacao(configuracao);
       configuracaoPontoAtual = normalizarConfiguracaoPonto((!Array.isArray(documento) && documento?.configuracao_ponto) || itemConfiguracao);
+      if(tipoPontoCadastroAtual === "tv_aberta") configuracaoPontoAtual.tipo_ponto = "tv_aberta";
       renderizarOperacao();
       aplicarModoPonto();
       return items.filter(item=>!["__dunatv_operacao__",PONTO_CONFIG_ID].includes(String(item?.id || "")) && item?.tipo !== "controle" && item?.tipo !== "configuracao_ponto");
@@ -1540,6 +1558,7 @@
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
     let configuracaoPontoAtual = normalizarConfiguracaoPonto();
+    let tipoPontoCadastroAtual = "";
     let itemEmEdicao = null;
     let pastaPlaylistEmEdicao = null;
     let pastaAbertaId = null;
@@ -1953,6 +1972,7 @@
 
     async function abrirPainel(codigo=CODIGO_FIXO){
       CODIGO_FIXO = String(codigo || "R6V0G8V").trim().toUpperCase();
+      tipoPontoCadastroAtual = "";
       configuracaoPontoAtual = normalizarConfiguracaoPonto();
       aplicarModoPonto();
       codigoSala.textContent = CODIGO_FIXO;
@@ -2072,6 +2092,11 @@
       }
 
       const ponto = data || {};
+      tipoPontoCadastroAtual = inferirTipoPontoCadastro(ponto);
+      if(tipoPontoCadastroAtual === "tv_aberta"){
+        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,tipo_ponto:"tv_aberta"});
+        aplicarModoPonto();
+      }
       const nome = ponto.nome || ponto.nome_local || ponto.titulo || "Selfit";
       const cidade = ponto.cidade || ponto.cidade_regiao || ponto.municipio || "Ilhéus";
       const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "zona sul";
