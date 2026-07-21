@@ -541,6 +541,15 @@
     .dunatv-plus-iniciar{display:flex;align-items:center;gap:11px;margin-top:16px;padding:14px;border:1px solid #293247;border-radius:14px;background:#0c1220;color:#dce3ee}.dunatv-plus-iniciar input{width:20px;height:20px;accent-color:#ed101b}
     .dunatv-plus-youtube-acoes{display:none;gap:10px;margin-top:12px;flex-wrap:wrap}.dunatv-plus-youtube-acoes.visivel{display:flex}.dunatv-plus-youtube-acoes a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;background:#242d40;color:#fff;text-decoration:none;font-weight:800}
     .dunatv-plus-preview{display:none;margin-top:14px;aspect-ratio:16/9;max-width:720px;border:1px solid #35415a;border-radius:14px;overflow:hidden;background:#080d17}.dunatv-plus-preview.visivel{display:block}.dunatv-plus-preview iframe{width:100%;height:100%;border:0}
+    .tv-aberta-card{position:relative;overflow:hidden;background:radial-gradient(circle at 18% 15%,#d40012 0,#8e0009 28%,#390003 70%,#190001 100%);border:1px solid rgba(255,255,255,.16);box-shadow:0 24px 60px rgba(35,0,0,.35)}
+    .tv-aberta-card::after{content:"";position:absolute;width:330px;height:330px;border-radius:50%;right:-150px;bottom:-190px;background:rgba(255,20,40,.13);pointer-events:none}.tv-aberta-card>*{position:relative;z-index:1}
+    .dunatv-plus-legenda{margin:2px 0 12px;text-align:center;color:#fff;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+    .dunatv-plus-controle{margin-top:0}.dunatv-plus-modo{display:grid;grid-template-columns:58px minmax(0,1fr) 34px;align-items:center;column-gap:14px;min-height:90px;border:1px solid rgba(255,255,255,.14);border-radius:13px;background:rgba(30,0,2,.76);padding:14px 18px;box-shadow:none}.dunatv-plus-modo strong{font-size:17px;margin:0}.dunatv-plus-modo small{margin-top:5px;font-size:12px}.dunatv-plus-modo.selecionado{border-color:#fff!important;background:linear-gradient(135deg,#ee0019,#96000b)!important;box-shadow:0 0 22px rgba(255,35,52,.58);transform:none!important}
+    .dunatv-plus-icone{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:rgba(255,0,25,.25);font-size:25px}.dunatv-plus-seta{width:27px;height:27px;border:2px solid rgba(255,255,255,.75);border-radius:50%;display:grid;place-items:center;font-size:17px}.dunatv-plus-texto{min-width:0}
+    .dunatv-plus-canal{border-color:rgba(255,255,255,.13);background:rgba(28,0,2,.72)}.dunatv-plus-canal-linha input{border-color:rgba(255,255,255,.16);background:rgba(12,0,1,.72)}.dunatv-plus-canal-linha button{background:#ed0018}
+    .dunatv-plus-subtitulo{margin:16px 0 10px;color:#fff;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.dunatv-plus-atalhos{margin-top:0}.dunatv-plus-atalho{background:linear-gradient(145deg,rgba(78,0,5,.9),rgba(38,0,2,.88));border-color:rgba(255,255,255,.13);min-height:88px}.dunatv-plus-atalho:hover{border-color:#ff6571;transform:translateY(-2px)}.dunatv-plus-atalho small{color:#d9bfc1}
+    .dunatv-plus-logo{width:38px;height:38px;margin:0 auto 7px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fff,#aeb4c1);color:#8b0010;font-size:17px;font-weight:900;box-shadow:0 5px 15px rgba(0,0,0,.35)}
+    .dunatv-plus-rapidas{margin:18px 0 8px;color:#fff;font-size:16px;font-weight:900}.dunatv-plus-iniciar,.dunatv-plus-dispositivos{border-color:rgba(255,255,255,.13);background:rgba(24,0,2,.74)}.dunatv-plus-link input{background:rgba(12,0,1,.72);border-color:rgba(255,255,255,.16)}
     .tipo-ponto-selo{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#e8edf5;color:#252d3b;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
     .tipo-ponto-selo.tv-aberta{background:#171f31;color:#ff6673}
 
@@ -1098,21 +1107,23 @@
         <div><h2>Controle Duna TV+</h2><p>Escolha o modo que todas as TVs deste ponto devem abrir.</p></div>
         <span class="tv-aberta-selo">TV ABERTA</span>
       </div>
+      <div class="dunatv-plus-legenda">Escolha o modo de controle</div>
       <div class="dunatv-plus-controle">
-        <button class="dunatv-plus-modo tv" id="btnModoTvAberta" type="button"><strong>● TV ABERTA</strong><small>Abre os canais ao vivo da televisão.</small></button>
-        <button class="dunatv-plus-modo youtube" id="btnModoYoutube" type="button"><strong>▶ YOUTUBE</strong><small>Abre o YouTube na página inicial ou no link informado.</small></button>
+        <button class="dunatv-plus-modo tv" id="btnModoTvAberta" type="button"><span class="dunatv-plus-icone">▣</span><span class="dunatv-plus-texto"><strong>TV ABERTA</strong><small>Abre os canais ao vivo da televisão.</small></span><span class="dunatv-plus-seta">›</span></button>
+        <button class="dunatv-plus-modo youtube" id="btnModoYoutube" type="button"><span class="dunatv-plus-icone">▶</span><span class="dunatv-plus-texto"><strong>YOUTUBE</strong><small>Escolha um vídeo e envie para as TVs.</small></span><span class="dunatv-plus-seta">›</span></button>
       </div>
       <div class="dunatv-plus-canal" id="grupoCanalTv">
         <div class="dunatv-plus-canal-linha">
           <input id="numeroCanalTv" type="text" inputmode="decimal" maxlength="8" placeholder="Digite o canal, exemplo: 5.1" aria-label="Numero do canal de TV" />
           <button id="btnAplicarCanal" type="button">Exibir nas TVs</button>
         </div>
+        <div class="dunatv-plus-subtitulo">Atalhos de canais</div>
         <div class="dunatv-plus-atalhos" id="atalhosCanaisTv">
-          <button class="dunatv-plus-atalho" type="button" data-canal="5.1">Globo<small>5.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="7.1">Record<small>7.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="4.1">SBT<small>4.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="13.1">Band<small>13.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="9.1">RedeTV!<small>9.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="5.1"><span class="dunatv-plus-logo">G</span>Globo<small>5.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="7.1"><span class="dunatv-plus-logo">R</span>Record<small>7.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="4.1"><span class="dunatv-plus-logo">S</span>SBT<small>4.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="13.1"><span class="dunatv-plus-logo">B</span>Band<small>13.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="9.1"><span class="dunatv-plus-logo">R</span>RedeTV!<small>9.1</small></button>
         </div>
       </div>
       <div class="dunatv-plus-link" id="grupoYoutubePonto">
@@ -1124,6 +1135,7 @@
         <button class="dunatv-plus-atalho" id="btnPreviewYoutube" type="button">Ver antes</button>
       </div>
       <div class="dunatv-plus-preview" id="previewYoutubePonto"></div>
+      <div class="dunatv-plus-rapidas">⚡ Ações rápidas</div>
       <label class="dunatv-plus-iniciar"><input id="reabrirAoLigar" type="checkbox" checked /><span><strong>Reabrir automaticamente ao ligar</strong><br><small>Abre sempre o último canal ou vídeo escolhido, até que este controle seja mudado.</small></span></label>
       <div class="dunatv-plus-dispositivos" id="resumoControleDunaPlus">O comando será aplicado às TVs vinculadas ao código deste ponto.</div>
     </section>
