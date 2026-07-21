@@ -549,6 +549,9 @@
     .dunatv-plus-canal{border-color:rgba(255,255,255,.13);background:rgba(28,0,2,.72)}.dunatv-plus-canal-linha input{border-color:rgba(255,255,255,.16);background:rgba(12,0,1,.72)}.dunatv-plus-canal-linha button{background:#ed0018}
     .dunatv-plus-subtitulo{margin:16px 0 10px;color:#fff;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.dunatv-plus-atalhos{margin-top:0}.dunatv-plus-atalho{background:linear-gradient(145deg,rgba(78,0,5,.9),rgba(38,0,2,.88));border-color:rgba(255,255,255,.13);min-height:88px}.dunatv-plus-atalho:hover{border-color:#ff6571;transform:translateY(-2px)}.dunatv-plus-atalho small{color:#d9bfc1}
     .dunatv-plus-logo{width:38px;height:38px;margin:0 auto 7px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fff,#aeb4c1);color:#8b0010;font-size:17px;font-weight:900;box-shadow:0 5px 15px rgba(0,0,0,.35)}
+    .dunatv-plus-subtitulo-linha{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 10px}.dunatv-plus-subtitulo-linha .dunatv-plus-subtitulo{margin:0}.btn-criar-atalho{border:1px solid rgba(255,255,255,.3);border-radius:9px;background:#ed0018;color:#fff;padding:9px 13px;font-weight:900;cursor:pointer}
+    .dunatv-plus-atalho{position:relative;padding:0!important;overflow:visible}.dunatv-plus-atalho-abrir{width:100%;min-height:100%;border:0;border-radius:inherit;background:transparent;color:#fff;padding:10px;cursor:pointer;font-weight:900}.dunatv-plus-atalho-abrir small{display:block}.dunatv-plus-atalho-excluir{position:absolute;right:-7px;top:-8px;width:27px;height:27px;border:2px solid #fff;border-radius:50%;background:#ed0018;color:#fff;font-size:18px;font-weight:900;line-height:20px;cursor:pointer;z-index:2}.dunatv-plus-logo img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+    .dunatv-atalho-editor{display:none;margin-top:12px;padding:16px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(15,0,1,.88)}.dunatv-atalho-editor.visivel{display:block}.dunatv-atalho-editor h3{margin:0 0 13px;font-size:17px}.dunatv-atalho-campos{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,.45fr) minmax(0,1fr);gap:10px}.dunatv-atalho-campos label{display:grid;gap:6px;color:#e8d5d7;font-size:12px;font-weight:800}.dunatv-atalho-campos input{width:100%;min-height:46px;border:1px solid rgba(255,255,255,.2);border-radius:9px;background:#170002;color:#fff;padding:8px 11px}.dunatv-atalho-editor-acoes{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}.dunatv-atalho-editor-acoes button{min-height:42px;border-radius:9px;padding:0 16px;font-weight:900;cursor:pointer}.btn-cancelar-atalho{border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff}.btn-salvar-atalho{border:0;background:#ed0018;color:#fff}
     .dunatv-plus-rapidas{margin:18px 0 8px;color:#fff;font-size:16px;font-weight:900}.dunatv-plus-iniciar,.dunatv-plus-dispositivos{border-color:rgba(255,255,255,.13);background:rgba(24,0,2,.74)}.dunatv-plus-link input{background:rgba(12,0,1,.72);border-color:rgba(255,255,255,.16)}
     .dunatv-youtube-web{display:none;margin-top:18px;padding:16px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(20,0,2,.78)}.dunatv-youtube-web.visivel{display:block}
     .dunatv-youtube-busca{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.dunatv-youtube-busca input{min-height:52px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(8,0,1,.78);color:#fff;padding:0 16px}.dunatv-youtube-busca button{border:0;border-radius:11px;background:#ed0018;color:#fff;padding:0 22px;font-weight:900}
@@ -924,6 +927,7 @@
       .tv-aberta-card{border-radius:18px}.tv-aberta-topo{flex-direction:column}.tv-aberta-form{grid-template-columns:1fr}.tv-aberta-form button{height:48px}
       .dunatv-plus-controle{grid-template-columns:1fr}.dunatv-plus-canal-linha{grid-template-columns:1fr}.dunatv-plus-canal-linha button{min-height:50px}.dunatv-plus-atalhos{grid-template-columns:repeat(2,minmax(0,1fr))}.dunatv-plus-link.visivel{flex-direction:column}.dunatv-plus-link button{min-height:50px}
       .dunatv-youtube-busca{grid-template-columns:1fr}.dunatv-youtube-busca button{min-height:48px}.dunatv-youtube-resultados{grid-template-columns:1fr}.dunatv-youtube-agora{grid-template-columns:1fr}
+      .dunatv-atalho-campos{grid-template-columns:1fr}.dunatv-plus-subtitulo-linha{align-items:flex-start;flex-direction:column}
       .nome-unidade{font-size:42px}
       .grid-campos{grid-template-columns:1fr}
       .campo-completo{grid-column:auto}
@@ -1123,13 +1127,16 @@
           <input id="numeroCanalTv" type="text" inputmode="decimal" maxlength="8" placeholder="Digite o canal, exemplo: 5.1" aria-label="Numero do canal de TV" />
           <button id="btnAplicarCanal" type="button">Exibir nas TVs</button>
         </div>
-        <div class="dunatv-plus-subtitulo">Atalhos salvos</div>
-        <div class="dunatv-plus-atalhos" id="atalhosCanaisTv">
-          <button class="dunatv-plus-atalho" type="button" data-canal="5.1"><span class="dunatv-plus-logo">◉</span>Globo<small>5.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="7.1"><span class="dunatv-plus-logo">◒</span>Record<small>7.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="4.1"><span class="dunatv-plus-logo">sbt</span>SBT<small>4.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="13.1"><span class="dunatv-plus-logo">◉</span>Band<small>13.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="9.1"><span class="dunatv-plus-logo">!</span>RedeTV!<small>9.1</small></button>
+        <div class="dunatv-plus-subtitulo-linha"><div class="dunatv-plus-subtitulo">Atalhos salvos</div><button class="btn-criar-atalho" id="btnCriarAtalhoTv" type="button">＋ Criar atalho</button></div>
+        <div class="dunatv-plus-atalhos" id="atalhosCanaisTv"></div>
+        <div class="dunatv-atalho-editor" id="editorAtalhoTv">
+          <h3>Novo atalho de canal</h3>
+          <div class="dunatv-atalho-campos">
+            <label>Nome da emissora<input id="nomeAtalhoTv" type="text" maxlength="40" placeholder="Ex.: Globo" /></label>
+            <label>Número do canal<input id="canalAtalhoTv" type="text" inputmode="decimal" maxlength="8" placeholder="Ex.: 5.1" /></label>
+            <label>Imagem de capa<input id="imagemAtalhoTv" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /></label>
+          </div>
+          <div class="dunatv-atalho-editor-acoes"><button class="btn-cancelar-atalho" id="btnCancelarAtalhoTv" type="button">Cancelar</button><button class="btn-salvar-atalho" id="btnSalvarAtalhoTv" type="button">Salvar atalho</button></div>
         </div>
       </div>
       <div id="grupoYoutubePonto" style="display:none!important"><input id="youtubeUrlPonto" type="hidden" /><button id="btnSalvarYoutube" type="button">Aplicar</button></div>
@@ -1361,6 +1368,22 @@
 
     function normalizarConfiguracaoPonto(valor={}){
       const configuracao = valor && typeof valor === "object" ? valor : {};
+      const atalhosPadrao = [
+        {id:"globo",nome:"Globo",canal:"5.1",simbolo:"◉",imagem_url:""},
+        {id:"record",nome:"Record",canal:"7.1",simbolo:"◒",imagem_url:""},
+        {id:"sbt",nome:"SBT",canal:"4.1",simbolo:"sbt",imagem_url:""},
+        {id:"band",nome:"Band",canal:"13.1",simbolo:"◉",imagem_url:""},
+        {id:"redetv",nome:"RedeTV!",canal:"9.1",simbolo:"!",imagem_url:""}
+      ];
+      const atalhosOrigem = Array.isArray(configuracao.atalhos_canais) ? configuracao.atalhos_canais : atalhosPadrao;
+      const atalhosCanais = atalhosOrigem.map((atalho,index)=>({
+        id:String(atalho?.id || `atalho-${index}`),
+        nome:String(atalho?.nome || atalho?.titulo || "Canal").trim(),
+        canal:String(atalho?.canal || atalho?.numero || "").trim(),
+        simbolo:String(atalho?.simbolo || "TV").trim(),
+        imagem_url:String(atalho?.imagem_url || atalho?.imagem || "").trim(),
+        storage_path:String(atalho?.storage_path || "").trim()
+      })).filter(atalho=>atalho.canal);
       return {
         id:PONTO_CONFIG_ID,
         tipo:"configuracao_ponto",
@@ -1372,6 +1395,7 @@
         modo_exibicao:String(configuracao.modo_exibicao || configuracao.modo || "tv_aberta").toLowerCase() === "youtube" ? "youtube" : "tv_aberta",
         canal_tv:String(configuracao.canal_tv || configuracao.canal || "").trim(),
         reabrir_ao_ligar:configuracao.reabrir_ao_ligar !== false,
+        atalhos_canais:atalhosCanais,
         atualizado_em:configuracao.atualizado_em || null
       };
     }
@@ -1735,6 +1759,13 @@
     const btnPesquisarYoutube = document.getElementById("btnPesquisarYoutube");
     const resultadosYoutubePonto = document.getElementById("resultadosYoutubePonto");
     const youtubeExibindoAgora = document.getElementById("youtubeExibindoAgora");
+    const btnCriarAtalhoTv = document.getElementById("btnCriarAtalhoTv");
+    const editorAtalhoTv = document.getElementById("editorAtalhoTv");
+    const nomeAtalhoTv = document.getElementById("nomeAtalhoTv");
+    const canalAtalhoTv = document.getElementById("canalAtalhoTv");
+    const imagemAtalhoTv = document.getElementById("imagemAtalhoTv");
+    const btnCancelarAtalhoTv = document.getElementById("btnCancelarAtalhoTv");
+    const btnSalvarAtalhoTv = document.getElementById("btnSalvarAtalhoTv");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
@@ -1746,6 +1777,74 @@
     let itemEmEdicaoOrigemPasta = null;
     let timerEstadoEnergia = null;
 
+    function renderizarAtalhosTv(){
+      const atalhos = Array.isArray(configuracaoPontoAtual.atalhos_canais) ? configuracaoPontoAtual.atalhos_canais : [];
+      atalhosCanaisTv.innerHTML = atalhos.length ? atalhos.map(atalho=>{
+        const capa = atalho.imagem_url
+          ? `<img src="${escapeHtml(atalho.imagem_url)}" alt="${escapeHtml(atalho.nome)}">`
+          : escapeHtml(atalho.simbolo || "TV");
+        return `<div class="dunatv-plus-atalho">
+          <button class="dunatv-plus-atalho-excluir" type="button" data-excluir-atalho="${escapeHtml(atalho.id)}" aria-label="Excluir atalho ${escapeHtml(atalho.nome)}">×</button>
+          <button class="dunatv-plus-atalho-abrir" type="button" data-canal="${escapeHtml(atalho.canal)}"><span class="dunatv-plus-logo">${capa}</span>${escapeHtml(atalho.nome)}<small>${escapeHtml(atalho.canal)}</small></button>
+        </div>`;
+      }).join("") : '<div class="dunatv-youtube-vazio">Nenhum atalho salvo. Clique em “Criar atalho”.</div>';
+    }
+
+    function fecharEditorAtalhoTv(){
+      editorAtalhoTv.classList.remove("visivel");
+      nomeAtalhoTv.value = "";
+      canalAtalhoTv.value = "";
+      imagemAtalhoTv.value = "";
+    }
+
+    async function excluirAtalhoTv(id){
+      const atalhosAtuais = configuracaoPontoAtual.atalhos_canais || [];
+      const atalho = atalhosAtuais.find(item=>item.id === id);
+      if(!atalho || !confirm(`Excluir o atalho ${atalho.nome}?`)) return;
+      const anterior = configuracaoPontoAtual;
+      try{
+        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,atalhos_canais:atalhosAtuais.filter(item=>item.id !== id),atualizado_em:new Date().toISOString()});
+        playlistAtual = await salvarPlaylistR2(playlistAtual);
+        renderizarAtalhosTv();
+        mostrarStatus("Atalho excluído.","ok");
+      }catch(error){
+        configuracaoPontoAtual = anterior;
+        renderizarAtalhosTv();
+        mostrarStatus(error.message || "Não foi possível excluir o atalho.","erro");
+      }
+    }
+
+    async function criarAtalhoTv(){
+      const nome = nomeAtalhoTv.value.trim();
+      const canal = canalAtalhoTv.value.trim();
+      const imagem = imagemAtalhoTv.files?.[0];
+      if(!nome || !canal || !imagem){mostrarStatus("Informe nome, número do canal e imagem de capa.","erro");return}
+      if(!imagem.type.startsWith("image/")){mostrarStatus("A capa precisa ser uma imagem.","erro");return}
+      if(imagem.size > 5*1024*1024){mostrarStatus("A imagem deve ter no máximo 5 MB.","erro");return}
+      btnSalvarAtalhoTv.disabled = true;
+      btnSalvarAtalhoTv.textContent = "Salvando...";
+      try{
+        const nomeArquivo = `atalho-${Date.now()}-${limparNomeArquivo(imagem.name)}`;
+        const upload = await enviarMidiaR2(imagem,nomeArquivo);
+        const novoAtalho = {
+          id:globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `atalho-${Date.now()}`,
+          nome,canal,simbolo:"TV",imagem_url:upload.publicUrl,
+          storage_path:upload.key || `midias/pontos/${CODIGO_FIXO}/${nomeArquivo}`
+        };
+        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,atalhos_canais:[...(configuracaoPontoAtual.atalhos_canais || []),novoAtalho],atualizado_em:new Date().toISOString()});
+        playlistAtual = await salvarPlaylistR2(playlistAtual);
+        renderizarAtalhosTv();
+        fecharEditorAtalhoTv();
+        mostrarStatus("Atalho criado e salvo.","ok");
+      }catch(error){
+        console.error(error);
+        mostrarStatus(error.message || "Não foi possível criar o atalho.","erro");
+      }finally{
+        btnSalvarAtalhoTv.disabled = false;
+        btnSalvarAtalhoTv.textContent = "Salvar atalho";
+      }
+    }
+
     function aplicarModoPonto(){
       const tvAberta = configuracaoPontoAtual.tipo_ponto === "tv_aberta";
       conteudosCard.classList.toggle("oculto",tvAberta);
@@ -1753,6 +1852,7 @@
       youtubeUrlPonto.value = configuracaoPontoAtual.youtube_url || "";
       numeroCanalTv.value = configuracaoPontoAtual.canal_tv || "";
       reabrirAoLigar.checked = configuracaoPontoAtual.reabrir_ao_ligar !== false;
+      renderizarAtalhosTv();
       const modo = configuracaoPontoAtual.modo_exibicao === "youtube" ? "youtube" : "tv_aberta";
       btnModoTvAberta.classList.toggle("selecionado",tvAberta && modo === "tv_aberta");
       btnModoYoutube.classList.toggle("selecionado",tvAberta && modo === "youtube");
@@ -1883,11 +1983,22 @@
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
     btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
     atalhosCanaisTv.addEventListener("click",event=>{
+      const excluir = event.target.closest("[data-excluir-atalho]");
+      if(excluir){
+        excluirAtalhoTv(excluir.dataset.excluirAtalho);
+        return;
+      }
       const botao = event.target.closest("[data-canal]");
       if(!botao) return;
       numeroCanalTv.value = botao.dataset.canal || "";
       salvarControleDunaPlus("tv_aberta");
     });
+    btnCriarAtalhoTv.addEventListener("click",()=>{
+      editorAtalhoTv.classList.add("visivel");
+      nomeAtalhoTv.focus();
+    });
+    btnCancelarAtalhoTv.addEventListener("click",fecharEditorAtalhoTv);
+    btnSalvarAtalhoTv.addEventListener("click",criarAtalhoTv);
     reabrirAoLigar.addEventListener("change",()=>salvarControleDunaPlus(configuracaoPontoAtual.modo_exibicao));
     btnPreviewYoutube.addEventListener("click",()=>{
       const id = obterIdYoutube(youtubeUrlPonto.value);
