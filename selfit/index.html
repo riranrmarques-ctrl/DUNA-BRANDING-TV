@@ -550,6 +550,11 @@
     .dunatv-plus-subtitulo{margin:16px 0 10px;color:#fff;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.dunatv-plus-atalhos{margin-top:0}.dunatv-plus-atalho{background:linear-gradient(145deg,rgba(78,0,5,.9),rgba(38,0,2,.88));border-color:rgba(255,255,255,.13);min-height:88px}.dunatv-plus-atalho:hover{border-color:#ff6571;transform:translateY(-2px)}.dunatv-plus-atalho small{color:#d9bfc1}
     .dunatv-plus-logo{width:38px;height:38px;margin:0 auto 7px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fff,#aeb4c1);color:#8b0010;font-size:17px;font-weight:900;box-shadow:0 5px 15px rgba(0,0,0,.35)}
     .dunatv-plus-rapidas{margin:18px 0 8px;color:#fff;font-size:16px;font-weight:900}.dunatv-plus-iniciar,.dunatv-plus-dispositivos{border-color:rgba(255,255,255,.13);background:rgba(24,0,2,.74)}.dunatv-plus-link input{background:rgba(12,0,1,.72);border-color:rgba(255,255,255,.16)}
+    .dunatv-youtube-web{display:none;margin-top:18px;padding:16px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(20,0,2,.78)}.dunatv-youtube-web.visivel{display:block}
+    .dunatv-youtube-busca{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.dunatv-youtube-busca input{min-height:52px;border:1px solid rgba(255,255,255,.17);border-radius:11px;background:rgba(8,0,1,.78);color:#fff;padding:0 16px}.dunatv-youtube-busca button{border:0;border-radius:11px;background:#ed0018;color:#fff;padding:0 22px;font-weight:900}
+    .dunatv-youtube-resultados{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:15px}.dunatv-youtube-video{overflow:hidden;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:#210002;color:#fff;text-align:left;padding:0;cursor:pointer}.dunatv-youtube-video:hover{border-color:#ff5c6a;transform:translateY(-2px)}.dunatv-youtube-video img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#090909}.dunatv-youtube-video span{display:block;padding:10px;font-weight:800}.dunatv-youtube-video small{display:block;margin-top:4px;color:#c9aeb0;font-weight:500}
+    .dunatv-youtube-agora{display:none;grid-template-columns:180px minmax(0,1fr);gap:15px;align-items:center;margin-top:15px;padding:14px;border:1px solid #ff4858;border-radius:14px;background:rgba(104,0,9,.72)}.dunatv-youtube-agora.visivel{display:grid}.dunatv-youtube-agora img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:9px}.dunatv-youtube-agora strong,.dunatv-youtube-agora span{display:block}.dunatv-youtube-agora span{color:#ffc7cc;margin-bottom:5px;font-size:12px;font-weight:900;text-transform:uppercase}.dunatv-youtube-agora button{margin-top:10px;border:1px solid rgba(255,255,255,.4);border-radius:9px;background:transparent;color:#fff;padding:8px 12px;font-weight:800}
+    .dunatv-youtube-vazio{grid-column:1/-1;padding:24px;text-align:center;color:#d1b7b9;border:1px dashed rgba(255,255,255,.18);border-radius:12px}
     .tipo-ponto-selo{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#e8edf5;color:#252d3b;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
     .tipo-ponto-selo.tv-aberta{background:#171f31;color:#ff6673}
 
@@ -918,6 +923,7 @@
       .unidade-card,.conteudos-card{border-radius:18px}
       .tv-aberta-card{border-radius:18px}.tv-aberta-topo{flex-direction:column}.tv-aberta-form{grid-template-columns:1fr}.tv-aberta-form button{height:48px}
       .dunatv-plus-controle{grid-template-columns:1fr}.dunatv-plus-canal-linha{grid-template-columns:1fr}.dunatv-plus-canal-linha button{min-height:50px}.dunatv-plus-atalhos{grid-template-columns:repeat(2,minmax(0,1fr))}.dunatv-plus-link.visivel{flex-direction:column}.dunatv-plus-link button{min-height:50px}
+      .dunatv-youtube-busca{grid-template-columns:1fr}.dunatv-youtube-busca button{min-height:48px}.dunatv-youtube-resultados{grid-template-columns:1fr}.dunatv-youtube-agora{grid-template-columns:1fr}
       .nome-unidade{font-size:42px}
       .grid-campos{grid-template-columns:1fr}
       .campo-completo{grid-column:auto}
@@ -1117,24 +1123,26 @@
           <input id="numeroCanalTv" type="text" inputmode="decimal" maxlength="8" placeholder="Digite o canal, exemplo: 5.1" aria-label="Numero do canal de TV" />
           <button id="btnAplicarCanal" type="button">Exibir nas TVs</button>
         </div>
-        <div class="dunatv-plus-subtitulo">Atalhos de canais</div>
+        <div class="dunatv-plus-subtitulo">Atalhos salvos</div>
         <div class="dunatv-plus-atalhos" id="atalhosCanaisTv">
-          <button class="dunatv-plus-atalho" type="button" data-canal="5.1"><span class="dunatv-plus-logo">G</span>Globo<small>5.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="7.1"><span class="dunatv-plus-logo">R</span>Record<small>7.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="4.1"><span class="dunatv-plus-logo">S</span>SBT<small>4.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="13.1"><span class="dunatv-plus-logo">B</span>Band<small>13.1</small></button>
-          <button class="dunatv-plus-atalho" type="button" data-canal="9.1"><span class="dunatv-plus-logo">R</span>RedeTV!<small>9.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="5.1"><span class="dunatv-plus-logo">◉</span>Globo<small>5.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="7.1"><span class="dunatv-plus-logo">◒</span>Record<small>7.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="4.1"><span class="dunatv-plus-logo">sbt</span>SBT<small>4.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="13.1"><span class="dunatv-plus-logo">◉</span>Band<small>13.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="9.1"><span class="dunatv-plus-logo">!</span>RedeTV!<small>9.1</small></button>
         </div>
       </div>
-      <div class="dunatv-plus-link" id="grupoYoutubePonto">
-        <input id="youtubeUrlPonto" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." aria-label="Link do YouTube" />
-        <button id="btnSalvarYoutube" type="button">Aplicar YouTube</button>
+      <div id="grupoYoutubePonto" style="display:none!important"><input id="youtubeUrlPonto" type="hidden" /><button id="btnSalvarYoutube" type="button">Aplicar</button></div>
+      <div id="acoesYoutubePonto" style="display:none!important"><button id="btnPreviewYoutube" type="button">Preview</button></div>
+      <div id="previewYoutubePonto" style="display:none!important"></div>
+      <div class="dunatv-youtube-web" id="youtubeWebPonto">
+        <div class="dunatv-youtube-busca">
+          <input id="pesquisaYoutubePonto" type="search" placeholder="Pesquisar vídeos no YouTube" aria-label="Pesquisar vídeos no YouTube" />
+          <button id="btnPesquisarYoutube" type="button">🔎 Pesquisar</button>
+        </div>
+        <div class="dunatv-youtube-agora" id="youtubeExibindoAgora"></div>
+        <div class="dunatv-youtube-resultados" id="resultadosYoutubePonto"><div class="dunatv-youtube-vazio">Pesquise um vídeo para exibir nas TVs.</div></div>
       </div>
-      <div class="dunatv-plus-youtube-acoes" id="acoesYoutubePonto">
-        <a href="https://www.youtube.com/" target="_blank" rel="noopener">Abrir YouTube para escolher</a>
-        <button class="dunatv-plus-atalho" id="btnPreviewYoutube" type="button">Ver antes</button>
-      </div>
-      <div class="dunatv-plus-preview" id="previewYoutubePonto"></div>
       <div class="dunatv-plus-rapidas">⚡ Ações rápidas</div>
       <label class="dunatv-plus-iniciar"><input id="reabrirAoLigar" type="checkbox" checked /><span><strong>Reabrir automaticamente ao ligar</strong><br><small>Abre sempre o último canal ou vídeo escolhido, até que este controle seja mudado.</small></span></label>
       <div class="dunatv-plus-dispositivos" id="resumoControleDunaPlus">O comando será aplicado às TVs vinculadas ao código deste ponto.</div>
@@ -1359,6 +1367,8 @@
         codigo:CODIGO_FIXO,
         tipo_ponto:String(configuracao.tipo_ponto || "").toLowerCase() === "tv_aberta" ? "tv_aberta" : "publicidade",
         youtube_url:String(configuracao.youtube_url || "").trim(),
+        youtube_titulo:String(configuracao.youtube_titulo || "").trim(),
+        youtube_thumbnail:String(configuracao.youtube_thumbnail || "").trim(),
         modo_exibicao:String(configuracao.modo_exibicao || configuracao.modo || "tv_aberta").toLowerCase() === "youtube" ? "youtube" : "tv_aberta",
         canal_tv:String(configuracao.canal_tv || configuracao.canal || "").trim(),
         reabrir_ao_ligar:configuracao.reabrir_ao_ligar !== false,
@@ -1720,6 +1730,11 @@
     const btnPreviewYoutube = document.getElementById("btnPreviewYoutube");
     const previewYoutubePonto = document.getElementById("previewYoutubePonto");
     const reabrirAoLigar = document.getElementById("reabrirAoLigar");
+    const youtubeWebPonto = document.getElementById("youtubeWebPonto");
+    const pesquisaYoutubePonto = document.getElementById("pesquisaYoutubePonto");
+    const btnPesquisarYoutube = document.getElementById("btnPesquisarYoutube");
+    const resultadosYoutubePonto = document.getElementById("resultadosYoutubePonto");
+    const youtubeExibindoAgora = document.getElementById("youtubeExibindoAgora");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
@@ -1744,6 +1759,8 @@
       grupoYoutubePonto.classList.toggle("visivel",tvAberta && modo === "youtube");
       acoesYoutubePonto.classList.toggle("visivel",tvAberta && modo === "youtube");
       grupoCanalTv.classList.toggle("visivel",tvAberta && modo === "tv_aberta");
+      youtubeWebPonto.classList.toggle("visivel",tvAberta && modo === "youtube");
+      renderizarYoutubeExibindoAgora();
       if(modo !== "youtube"){
         previewYoutubePonto.classList.remove("visivel");
         previewYoutubePonto.innerHTML = "";
@@ -1796,6 +1813,55 @@
       }catch{return ""}
     }
 
+    function renderizarYoutubeExibindoAgora(){
+      const id = obterIdYoutube(configuracaoPontoAtual.youtube_url);
+      if(configuracaoPontoAtual.modo_exibicao !== "youtube" || !id){
+        youtubeExibindoAgora.classList.remove("visivel");
+        youtubeExibindoAgora.innerHTML = "";
+        return;
+      }
+      const miniatura = configuracaoPontoAtual.youtube_thumbnail || `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg`;
+      const titulo = configuracaoPontoAtual.youtube_titulo || "Vídeo selecionado";
+      youtubeExibindoAgora.innerHTML = `<img src="${escapeHtml(miniatura)}" alt=""><div><span>Exibindo agora</span><strong>${escapeHtml(titulo)}</strong><button type="button" id="btnEscolherOutroYoutube">← Voltar e escolher outro</button></div>`;
+      youtubeExibindoAgora.classList.add("visivel");
+      document.getElementById("btnEscolherOutroYoutube")?.addEventListener("click",()=>{
+        pesquisaYoutubePonto.focus();
+        resultadosYoutubePonto.scrollIntoView({behavior:"smooth",block:"nearest"});
+      });
+    }
+
+    async function pesquisarYoutubeNoPainel(){
+      const termo = pesquisaYoutubePonto.value.trim();
+      if(!termo){pesquisaYoutubePonto.focus();return}
+      btnPesquisarYoutube.disabled = true;
+      btnPesquisarYoutube.textContent = "Pesquisando...";
+      resultadosYoutubePonto.innerHTML = '<div class="dunatv-youtube-vazio">Buscando vídeos...</div>';
+      try{
+        const resposta = await requisitarWorker(`/api/youtube/search?q=${encodeURIComponent(termo)}`);
+        const itensBrutos = Array.isArray(resposta) ? resposta : (resposta?.items || resposta?.resultados || []);
+        const itens = itensBrutos.map(item=>({
+          id:String(item.videoId || item.id?.videoId || item.id || ""),
+          titulo:String(item.title || item.snippet?.title || "Vídeo do YouTube"),
+          canal:String(item.channelTitle || item.snippet?.channelTitle || "YouTube"),
+          thumbnail:String(item.thumbnail || item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url || "")
+        })).filter(item=>item.id);
+        if(!itens.length){resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">Nenhum vídeo encontrado.</div>';return}
+        resultadosYoutubePonto.innerHTML = itens.map((item,index)=>`<button class="dunatv-youtube-video" type="button" data-youtube-index="${index}"><img src="${escapeHtml(item.thumbnail)}" alt=""><span>${escapeHtml(item.titulo)}<small>${escapeHtml(item.canal)}</small></span></button>`).join("");
+        resultadosYoutubePonto.querySelectorAll("[data-youtube-index]").forEach(botao=>botao.addEventListener("click",async()=>{
+          const item = itens[Number(botao.dataset.youtubeIndex)];
+          youtubeUrlPonto.value = `https://www.youtube.com/watch?v=${encodeURIComponent(item.id)}`;
+          configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,youtube_titulo:item.titulo,youtube_thumbnail:item.thumbnail});
+          await salvarControleDunaPlus("youtube");
+        }));
+      }catch(error){
+        console.error(error);
+        resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">A pesquisa do YouTube ainda precisa ser ativada no servidor Duna TV+.</div>';
+      }finally{
+        btnPesquisarYoutube.disabled = false;
+        btnPesquisarYoutube.textContent = "🔎 Pesquisar";
+      }
+    }
+
     btnModoTvAberta.addEventListener("click",()=>{
       configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tv_aberta"});
       aplicarModoPonto();
@@ -1804,7 +1870,7 @@
     btnModoYoutube.addEventListener("click",()=>{
       configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"youtube"});
       aplicarModoPonto();
-      youtubeUrlPonto.focus();
+      pesquisaYoutubePonto.focus();
     });
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
     btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
@@ -1820,6 +1886,13 @@
       if(!id){ mostrarStatus("Informe primeiro um link válido do YouTube.","erro"); return; }
       previewYoutubePonto.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}" title="Preview do YouTube" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       previewYoutubePonto.classList.add("visivel");
+    });
+    btnPesquisarYoutube.addEventListener("click",pesquisarYoutubeNoPainel);
+    pesquisaYoutubePonto.addEventListener("keydown",event=>{
+      if(event.key === "Enter"){
+        event.preventDefault();
+        pesquisarYoutubeNoPainel();
+      }
     });
 
     atalhosDuracao.forEach((botao)=>{
