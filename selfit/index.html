@@ -1825,8 +1825,11 @@
       youtubeExibindoAgora.innerHTML = `<img src="${escapeHtml(miniatura)}" alt=""><div><span>Exibindo agora</span><strong>${escapeHtml(titulo)}</strong><button type="button" id="btnEscolherOutroYoutube">← Voltar e escolher outro</button></div>`;
       youtubeExibindoAgora.classList.add("visivel");
       document.getElementById("btnEscolherOutroYoutube")?.addEventListener("click",()=>{
+        youtubeExibindoAgora.classList.remove("visivel");
+        youtubeExibindoAgora.innerHTML = "";
+        resultadosYoutubePonto.innerHTML = '<div class="dunatv-youtube-vazio">Digite uma nova pesquisa para escolher outro vídeo.</div>';
+        pesquisaYoutubePonto.select();
         pesquisaYoutubePonto.focus();
-        resultadosYoutubePonto.scrollIntoView({behavior:"smooth",block:"nearest"});
       });
     }
 
@@ -1855,7 +1858,12 @@
         }));
       }catch(error){
         console.error(error);
-        resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">A pesquisa do YouTube ainda precisa ser ativada no servidor Duna TV+.</div>';
+        resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">A pesquisa do YouTube ainda precisa ser ativada no servidor Duna TV+.<br><button class="dunatv-plus-atalho" id="btnVoltarTvBusca" type="button" style="min-height:42px;margin-top:12px">Voltar para TV aberta</button></div>';
+        document.getElementById("btnVoltarTvBusca")?.addEventListener("click",()=>{
+          configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tv_aberta"});
+          aplicarModoPonto();
+          numeroCanalTv.focus();
+        });
       }finally{
         btnPesquisarYoutube.disabled = false;
         btnPesquisarYoutube.textContent = "🔎 Pesquisar";
