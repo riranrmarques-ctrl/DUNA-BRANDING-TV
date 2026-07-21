@@ -541,16 +541,16 @@
     .dunatv-plus-iniciar{display:flex;align-items:center;gap:11px;margin-top:16px;padding:14px;border:1px solid #293247;border-radius:14px;background:#0c1220;color:#dce3ee}.dunatv-plus-iniciar input{width:20px;height:20px;accent-color:#ed101b}
     .dunatv-plus-youtube-acoes{display:none;gap:10px;margin-top:12px;flex-wrap:wrap}.dunatv-plus-youtube-acoes.visivel{display:flex}.dunatv-plus-youtube-acoes a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;background:#242d40;color:#fff;text-decoration:none;font-weight:800}
     .dunatv-plus-preview{display:none;margin-top:14px;aspect-ratio:16/9;max-width:720px;border:1px solid #35415a;border-radius:14px;overflow:hidden;background:#080d17}.dunatv-plus-preview.visivel{display:block}.dunatv-plus-preview iframe{width:100%;height:100%;border:0}
-    .tv-aberta-card{position:relative;overflow:hidden;background:radial-gradient(circle at 18% 15%,#d40012 0,#8e0009 28%,#390003 70%,#190001 100%);border:1px solid rgba(255,255,255,.16);box-shadow:0 24px 60px rgba(35,0,0,.35)}
-    .tv-aberta-card::after{content:"";position:absolute;width:330px;height:330px;border-radius:50%;right:-150px;bottom:-190px;background:rgba(255,20,40,.13);pointer-events:none}.tv-aberta-card>*{position:relative;z-index:1}
+    .tv-aberta-card{position:relative;overflow:visible;background:transparent;border:0;box-shadow:none}
+    .tv-aberta-card::after{display:none}.tv-aberta-card>*{position:relative;z-index:1}
     .dunatv-plus-legenda{margin:2px 0 12px;text-align:center;color:#fff;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
     .dunatv-plus-controle{margin-top:0}.dunatv-plus-modo{display:grid;grid-template-columns:58px minmax(0,1fr) 34px;align-items:center;column-gap:14px;min-height:90px;border:1px solid rgba(255,255,255,.14);border-radius:13px;background:rgba(30,0,2,.76);padding:14px 18px;box-shadow:none}.dunatv-plus-modo strong{font-size:17px;margin:0}.dunatv-plus-modo small{margin-top:5px;font-size:12px}.dunatv-plus-modo.selecionado{border-color:#fff!important;background:linear-gradient(135deg,#ee0019,#96000b)!important;box-shadow:0 0 22px rgba(255,35,52,.58);transform:none!important}
     .dunatv-plus-icone{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:rgba(255,0,25,.25);font-size:25px}.dunatv-plus-seta{width:27px;height:27px;border:2px solid rgba(255,255,255,.75);border-radius:50%;display:grid;place-items:center;font-size:17px}.dunatv-plus-texto{min-width:0}
     .dunatv-plus-canal{border-color:rgba(255,255,255,.13);background:rgba(28,0,2,.72)}.dunatv-plus-canal-linha input{border-color:rgba(255,255,255,.16);background:rgba(12,0,1,.72)}.dunatv-plus-canal-linha button{background:#ed0018}
     .dunatv-plus-subtitulo{margin:16px 0 10px;color:#fff;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.dunatv-plus-atalhos{margin-top:0}.dunatv-plus-atalho{background:linear-gradient(145deg,rgba(78,0,5,.9),rgba(38,0,2,.88));border-color:rgba(255,255,255,.13);min-height:88px}.dunatv-plus-atalho:hover{border-color:#ff6571;transform:translateY(-2px)}.dunatv-plus-atalho small{color:#d9bfc1}
-    .dunatv-plus-logo{width:38px;height:38px;margin:0 auto 7px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fff,#aeb4c1);color:#8b0010;font-size:17px;font-weight:900;box-shadow:0 5px 15px rgba(0,0,0,.35)}
+    .dunatv-plus-logo{width:72px;height:72px;margin:0 auto 9px;border-radius:12px;display:grid;place-items:center;background:#fff;color:#8b0010;font-size:20px;font-weight:900;box-shadow:0 6px 18px rgba(0,0,0,.22);overflow:hidden}
     .dunatv-plus-subtitulo-linha{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 10px}.dunatv-plus-subtitulo-linha .dunatv-plus-subtitulo{margin:0}.btn-criar-atalho{border:1px solid rgba(255,255,255,.3);border-radius:9px;background:#ed0018;color:#fff;padding:9px 13px;font-weight:900;cursor:pointer}
-    .dunatv-plus-atalho{position:relative;padding:0!important;overflow:visible}.dunatv-plus-atalho-abrir{width:100%;min-height:100%;border:0;border-radius:inherit;background:transparent;color:#fff;padding:10px;cursor:pointer;font-weight:900}.dunatv-plus-atalho-abrir small{display:block}.dunatv-plus-atalho-excluir{position:absolute;right:-7px;top:-8px;width:27px;height:27px;border:2px solid #fff;border-radius:50%;background:#ed0018;color:#fff;font-size:18px;font-weight:900;line-height:20px;cursor:pointer;z-index:2}.dunatv-plus-logo img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+    .dunatv-plus-atalho{position:relative;padding:0!important;overflow:visible}.dunatv-plus-atalho-abrir{width:100%;min-height:100%;border:0;border-radius:inherit;background:transparent;color:#fff;padding:14px 10px 12px;cursor:pointer;font-weight:900}.dunatv-plus-atalho-abrir small{display:block;margin-top:4px}.dunatv-plus-atalho-excluir{position:absolute;right:-7px;top:-8px;width:27px;height:27px;border:2px solid #fff;border-radius:50%;background:#ed0018;color:#fff;font-size:18px;font-weight:900;line-height:20px;cursor:pointer;z-index:2}.dunatv-plus-logo img{width:100%;height:100%;padding:6px;border-radius:10px;object-fit:contain;background:#fff}
     .dunatv-atalho-editor{display:none;margin-top:12px;padding:16px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(15,0,1,.88)}.dunatv-atalho-editor.visivel{display:block}.dunatv-atalho-editor h3{margin:0 0 13px;font-size:17px}.dunatv-atalho-campos{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,.45fr) minmax(0,1fr);gap:10px}.dunatv-atalho-campos label{display:grid;gap:6px;color:#e8d5d7;font-size:12px;font-weight:800}.dunatv-atalho-campos input{width:100%;min-height:46px;border:1px solid rgba(255,255,255,.2);border-radius:9px;background:#170002;color:#fff;padding:8px 11px}.dunatv-atalho-editor-acoes{display:flex;justify-content:flex-end;gap:9px;margin-top:12px}.dunatv-atalho-editor-acoes button{min-height:42px;border-radius:9px;padding:0 16px;font-weight:900;cursor:pointer}.btn-cancelar-atalho{border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff}.btn-salvar-atalho{border:0;background:#ed0018;color:#fff}
     .dunatv-plus-rapidas{margin:18px 0 8px;color:#fff;font-size:16px;font-weight:900}.dunatv-plus-iniciar,.dunatv-plus-dispositivos{border-color:rgba(255,255,255,.13);background:rgba(24,0,2,.74)}.dunatv-plus-link input{background:rgba(12,0,1,.72);border-color:rgba(255,255,255,.16)}
     .dunatv-youtube-web{display:none;margin-top:18px;padding:16px;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(20,0,2,.78)}.dunatv-youtube-web.visivel{display:block}
@@ -558,6 +558,7 @@
     .dunatv-youtube-resultados{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:15px}.dunatv-youtube-video{overflow:hidden;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:#210002;color:#fff;text-align:left;padding:0;cursor:pointer}.dunatv-youtube-video:hover{border-color:#ff5c6a;transform:translateY(-2px)}.dunatv-youtube-video img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#090909}.dunatv-youtube-video span{display:block;padding:10px;font-weight:800}.dunatv-youtube-video small{display:block;margin-top:4px;color:#c9aeb0;font-weight:500}
     .dunatv-youtube-agora{display:none;grid-template-columns:180px minmax(0,1fr);gap:15px;align-items:center;margin-top:15px;padding:14px;border:1px solid #ff4858;border-radius:14px;background:rgba(104,0,9,.72)}.dunatv-youtube-agora.visivel{display:grid}.dunatv-youtube-agora img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:9px}.dunatv-youtube-agora strong,.dunatv-youtube-agora span{display:block}.dunatv-youtube-agora span{color:#ffc7cc;margin-bottom:5px;font-size:12px;font-weight:900;text-transform:uppercase}.dunatv-youtube-agora button{margin-top:10px;border:1px solid rgba(255,255,255,.4);border-radius:9px;background:transparent;color:#fff;padding:8px 12px;font-weight:800}
     .dunatv-youtube-vazio{grid-column:1/-1;padding:24px;text-align:center;color:#d1b7b9;border:1px dashed rgba(255,255,255,.18);border-radius:12px}
+    .dunatv-youtube-direto{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:16px;padding:18px;border:1px solid #343434;border-radius:15px;background:#111;color:#fff}.dunatv-youtube-direto-icone{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#d90018;font-size:25px}.dunatv-youtube-direto strong,.dunatv-youtube-direto small{display:block}.dunatv-youtube-direto small{color:#aaa;margin-top:5px}.dunatv-youtube-direto button{min-height:48px;border:0;border-radius:10px;background:#ed0018;color:#fff;padding:0 18px;font-weight:900;cursor:pointer}
     .tipo-ponto-selo{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#e8edf5;color:#252d3b;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
     .tipo-ponto-selo.tv-aberta{background:#171f31;color:#ff6673}
 
@@ -928,6 +929,7 @@
       .dunatv-plus-controle{grid-template-columns:1fr}.dunatv-plus-canal-linha{grid-template-columns:1fr}.dunatv-plus-canal-linha button{min-height:50px}.dunatv-plus-atalhos{grid-template-columns:repeat(2,minmax(0,1fr))}.dunatv-plus-link.visivel{flex-direction:column}.dunatv-plus-link button{min-height:50px}
       .dunatv-youtube-busca{grid-template-columns:1fr}.dunatv-youtube-busca button{min-height:48px}.dunatv-youtube-resultados{grid-template-columns:1fr}.dunatv-youtube-agora{grid-template-columns:1fr}
       .dunatv-atalho-campos{grid-template-columns:1fr}.dunatv-plus-subtitulo-linha{align-items:flex-start;flex-direction:column}
+      .dunatv-youtube-direto{grid-template-columns:1fr;text-align:center}.dunatv-youtube-direto-icone{margin:auto}
       .nome-unidade{font-size:42px}
       .grid-campos{grid-template-columns:1fr}
       .campo-completo{grid-column:auto}
@@ -1143,12 +1145,13 @@
       <div id="acoesYoutubePonto" style="display:none!important"><button id="btnPreviewYoutube" type="button">Preview</button></div>
       <div id="previewYoutubePonto" style="display:none!important"></div>
       <div class="dunatv-youtube-web" id="youtubeWebPonto">
-        <div class="dunatv-youtube-busca">
+        <div class="dunatv-youtube-direto"><span class="dunatv-youtube-direto-icone">▶</span><span><strong>Abrir YouTube nas TVs</strong><small>A pesquisa e a escolha do vídeo serão feitas pelo controle remoto de cada TV.</small></span><button id="btnAbrirYoutubeTvs" type="button">Abrir YouTube</button></div>
+        <div style="display:none!important" class="dunatv-youtube-busca">
           <input id="pesquisaYoutubePonto" type="search" placeholder="Pesquisar vídeos no YouTube" aria-label="Pesquisar vídeos no YouTube" />
           <button id="btnPesquisarYoutube" type="button">🔎 Pesquisar</button>
         </div>
-        <div class="dunatv-youtube-agora" id="youtubeExibindoAgora"></div>
-        <div class="dunatv-youtube-resultados" id="resultadosYoutubePonto"><div class="dunatv-youtube-vazio">Pesquise um vídeo para exibir nas TVs.</div></div>
+        <div style="display:none!important" class="dunatv-youtube-agora" id="youtubeExibindoAgora"></div>
+        <div style="display:none!important" class="dunatv-youtube-resultados" id="resultadosYoutubePonto"></div>
       </div>
       <div class="dunatv-plus-rapidas">⚡ Ações rápidas</div>
       <label class="dunatv-plus-iniciar"><input id="reabrirAoLigar" type="checkbox" checked /><span><strong>Reabrir automaticamente ao ligar</strong><br><small>Abre sempre o último canal ou vídeo escolhido, até que este controle seja mudado.</small></span></label>
@@ -1490,7 +1493,14 @@
         ? documento.operacao
         : itemControle?.operacao;
       operacaoAtual = normalizarOperacao(configuracao);
-      configuracaoPontoAtual = normalizarConfiguracaoPonto((!Array.isArray(documento) && documento?.configuracao_ponto) || itemConfiguracao);
+      const configuracaoDocumento = !Array.isArray(documento) ? documento?.configuracao_ponto : null;
+      configuracaoPontoAtual = normalizarConfiguracaoPonto({
+        ...(configuracaoDocumento || {}),
+        ...(itemConfiguracao || {}),
+        atalhos_canais:Array.isArray(itemConfiguracao?.atalhos_canais)
+          ? itemConfiguracao.atalhos_canais
+          : configuracaoDocumento?.atalhos_canais
+      });
       if(tipoPontoCadastroAtual === "tv_aberta") configuracaoPontoAtual.tipo_ponto = "tv_aberta";
       renderizarOperacao();
       aplicarModoPonto();
@@ -1518,10 +1528,20 @@
         operacao:operacaoAtual
       };
 
+      const itemConfiguracao = {
+        ...normalizarConfiguracaoPonto(configuracaoPontoAtual),
+        id:PONTO_CONFIG_ID,
+        codigo:CODIGO_FIXO,
+        tipo:"configuracao_ponto",
+        nome:"Configuração do ponto",
+        ordem:lista.length+2,
+        atualizado_em:new Date().toISOString()
+      };
+
       const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(CODIGO_FIXO)}`,{
         method:"PUT",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({items:[...lista,itemControle],operacao:operacaoAtual,configuracao_ponto:{...configuracaoPontoAtual,codigo:CODIGO_FIXO,atualizado_em:new Date().toISOString()}})
+        body:JSON.stringify({items:[...lista,itemControle,itemConfiguracao],operacao:operacaoAtual,configuracao_ponto:itemConfiguracao})
       });
 
       const itemsSalvos = Array.isArray(documento) ? documento : (documento?.items || lista);
@@ -1529,7 +1549,15 @@
       operacaoAtual = normalizarOperacao(documento?.operacao || controleSalvo?.operacao || operacaoAtual);
       renderizarOperacao();
       const configuracaoSalva = !Array.isArray(documento) && documento?.configuracao_ponto;
-      if(configuracaoSalva) configuracaoPontoAtual = normalizarConfiguracaoPonto(configuracaoSalva);
+      const configuracaoSalvaItem = itemsSalvos.find(item=>String(item?.id || "") === PONTO_CONFIG_ID || item?.tipo === "configuracao_ponto");
+      if(configuracaoSalva || configuracaoSalvaItem) configuracaoPontoAtual = normalizarConfiguracaoPonto({
+        ...configuracaoPontoAtual,
+        ...(configuracaoSalva || {}),
+        ...(configuracaoSalvaItem || {}),
+        atalhos_canais:Array.isArray(configuracaoSalvaItem?.atalhos_canais)
+          ? configuracaoSalvaItem.atalhos_canais
+          : (Array.isArray(configuracaoSalva?.atalhos_canais) ? configuracaoSalva.atalhos_canais : configuracaoPontoAtual.atalhos_canais)
+      });
       aplicarModoPonto();
       return itemsSalvos.filter(item=>!["__dunatv_operacao__",PONTO_CONFIG_ID].includes(String(item?.id || "")) && item?.tipo !== "controle" && item?.tipo !== "configuracao_ponto");
     }
@@ -1766,6 +1794,7 @@
     const imagemAtalhoTv = document.getElementById("imagemAtalhoTv");
     const btnCancelarAtalhoTv = document.getElementById("btnCancelarAtalhoTv");
     const btnSalvarAtalhoTv = document.getElementById("btnSalvarAtalhoTv");
+    const btnAbrirYoutubeTvs = document.getElementById("btnAbrirYoutubeTvs");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
@@ -1981,6 +2010,11 @@
       pesquisaYoutubePonto.focus();
     });
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
+    btnAbrirYoutubeTvs.addEventListener("click",()=>{
+      youtubeUrlPonto.value = "";
+      configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,youtube_url:"",youtube_titulo:"YouTube",youtube_thumbnail:""});
+      salvarControleDunaPlus("youtube");
+    });
     btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
     atalhosCanaisTv.addEventListener("click",event=>{
       const excluir = event.target.closest("[data-excluir-atalho]");
