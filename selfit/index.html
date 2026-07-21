@@ -1,112 +1,110 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel da Unidade | Selfit</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root{
-      --vermelho:#ed101b;
-      --vermelho-escuro:#a80008;
-      --fundo:#050505;
-      --card:#111111;
-      --card-2:#171717;
-      --linha:#303030;
-      --texto:#ffffff;
-      --texto-2:#b9b9b9;
-      --sombra:0 22px 70px rgba(0,0,0,.42);
+
+    formAdicionar.addEventListener("submit",async(event)=>{
+      event.preventDefault();
+      const file = arquivoConteudo.files[0];
+      if(!file){
+        mostrarStatus("Selecione um arquivo.","erro");
+        return;
+      }
+      if(!dataPostagem.value || !dataVencimento.value){
+        mostrarStatus("Informe a data de postagem e o vencimento.","erro");
+        return;
+      }
+      const inicioSelecionado = new Date(dataPostagem.value);
+      const fimSelecionado = new Date(dataVencimento.value);
+      if(fimSelecionado <= inicioSelecionado){
+        mostrarStatus("O vencimento deve ser posterior à postagem.","erro");
+        return;
+      }
+      const duracaoSelecionada = Number(duracaoConteudo.value);
+      if(!Number.isInteger(duracaoSelecionada) || duracaoSelecionada < 1 || duracaoSelecionada > 86400){
+        mostrarStatus("Informe uma duração válida em segundos.","erro");
+        return;
+      }
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = "Enviando...";
+      let storagePath = "";
+      try{
+        const nomeLimpo = limparNomeArquivo(file.name);
+        const nomeR2 = `${Date.now()}-${nomeLimpo}`;
+        const upload = await enviarMidiaR2(file,nomeR2);
+        storagePath = upload.key || `midias/pontos/${CODIGO_FIXO}/${nomeR2}`;
+        const tipo = detectarTipoArquivo(file);
+        const payload = {
+          id:globalThis.crypto?.randomUUID
+            ? globalThis.crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          codigo:CODIGO_FIXO,
+          nome:file.name,
+          titulo_arquivo:file.name,
+          video_url:upload.publicUrl,
+          url:upload.publicUrl,
+          storage_path:storagePath,
+          codigo_cliente:null,
+          tipo,
+          ordem:playlistAtual.length+1,
+          created_at:new Date().toISOString(),
+          data_inicio:new Date(dataPostagem.value).toISOString(),
+          data_fim:new Date(dataVencimento.value).toISOString(),
+          duracao:String(duracaoSelecionada)
+        };
+        const destino = destinoConteudo.value;
+        if(destino === "principal"){
+          playlistAtual = await salvarPlaylistR2([...playlistAtual,payload]);
+        }else{
+          let pastaEncontrada = false;
+          const listaComArquivo = playlistAtual.map(item=>{
+            if(item.tipo !== "pasta" || String(item.id) !== String(destino)) return item;
+            pastaEncontrada = true;
+            const itens = Array.isArray(item.itens) ? item.itens : [];
+            return {...item,itens:[...itens,{...payload,ordem:itens.length+1,pasta_id:item.id}]};
+          });
+          if(!pastaEncontrada) throw new Error("A pasta de destino não foi encontrada.");
+          playlistAtual = await salvarPlaylistR2(listaComArquivo);
+        }
+        fecharModal();
+        mostrarStatus(destino === "principal" ? "Conteúdo adicionado com sucesso." : "Conteúdo adicionado à pasta.","ok");
+        renderizarPlaylist();
+      }catch(error){
+        console.error(error);
+        if(storagePath){
+          try{ await excluirMidiaR2(storagePath); }
+          catch(cleanupError){ console.warn("Não foi possível limpar o upload incompleto:",cleanupError); }
+        }
+        mostrarStatus(error.message || "Erro ao enviar conteúdo.","erro");
+      }finally{
+        btnEnviar.disabled = false;
+        btnEnviar.textContent = "Enviar conteúdo";
+      }
+    });
+    imagemUnidade.addEventListener("error",()=>{
+      imagemUnidade.src = "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
+    });
+    document.addEventListener("click",(event)=>{
+      const botao = event.target.closest("button");
+      if(!botao || botao.disabled) return;
+      botao.classList.remove("botao-clicado");
+      void botao.offsetWidth;
+      botao.classList.add("botao-clicado");
+      setTimeout(()=>botao.classList.remove("botao-clicado"),340);
+    });
+    [filtroHistoricoIp,filtroHistoricoData,filtroHistoricoStatus].forEach(campo=>{
+      campo.addEventListener(campo.tagName === "INPUT" && campo.type === "search" ? "input" : "change",renderizarLinhasHistorico);
+    });
+    btnLimparFiltrosHistorico.addEventListener("click",()=>{
+      filtroHistoricoIp.value=""; filtroHistoricoData.value=""; filtroHistoricoStatus.value="todos";
+      renderizarLinhasHistorico();
+    });
+    setInterval(()=>{
+      if(!telaPastas.classList.contains("oculto")) renderizarPastas();
+      if(!painel.classList.contains("oculto")) renderizarResumoTvs();
+    },10*60*1000);
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState === "visible" && !painel.classList.contains("oculto")) renderizarResumoTvs();
+    });
+    if(sessionStorage.getItem(CHAVE_SESSAO) === "1"){
+      abrirSelecaoPastas();
     }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      min-height:100vh;
-      font-family:Arial,Helvetica,sans-serif;
-      color:var(--texto);
-      background:
-        radial-gradient(circle at 75% 8%,rgba(255,70,70,.18),transparent 30%),
-        radial-gradient(circle at 15% 88%,rgba(150,0,0,.18),transparent 30%),
-        linear-gradient(145deg,#ed101b 0%,#b10812 45%,#730008 100%);
-      overflow-x:hidden;
-    }
-    body::before,
-    body::after{
-      content:"";
-      position:fixed;
-      width:480px;
-      height:480px;
-      border:1px solid rgba(220,0,0,.14);
-      border-radius:50%;
-      pointer-events:none;
-      z-index:-1;
-    }
-    body::before{right:-270px;top:75px;box-shadow:0 0 0 35px rgba(220,0,0,.035),0 0 0 75px rgba(220,0,0,.025)}
-    body::after{left:-320px;bottom:-250px;box-shadow:0 0 0 35px rgba(220,0,0,.025),0 0 0 75px rgba(220,0,0,.018)}
-    button,input{font:inherit}
-    button{cursor:pointer}
-    .oculto{display:none!important}
-    /* LOGIN */
-    #telaLogin{
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      padding:42px 24px 24px;
-    }
-    .login-layout{
-      width:min(100%,1080px);
-      margin:auto;
-      display:grid;
-      grid-template-columns:1fr 420px;
-      align-items:center;
-      gap:90px;
-    }
-    .login-logo-area{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:420px;
-    }
-    .login-logo{
-      width:min(100%,430px);
-      max-height:300px;
-      object-fit:contain;
-      filter:brightness(0) invert(1);
-    }
-    .login-coluna{
-      width:100%;
-    }
-    .login-card{
-      width:100%;
-      padding:32px;
-      border:1px solid rgba(255,255,255,.9);
-      border-radius:20px;
-      background:#ffffff;
-      color:#111111;
-      box-shadow:0 22px 70px rgba(0,0,0,.28);
-    }
-    .login-card h1{
-      margin:0 0 24px;
-      text-align:center;
-      color:#111111;
-      font-size:29px;
-      font-weight:900;
-      letter-spacing:-.8px;
-    }
-    .login-descricao{
-      margin:16px auto 0;
-      max-width:390px;
-      color:#ffffff;
-      text-align:center;
-      line-height:1.5;
-      font-size:14px;
-      font-weight:400;
-    }
-    .campo{
-      display:flex;
-      flex-direction:column;
-      gap:7px;
-      margin-bottom:14px;
-    }
-    .campo label{
+  </script>
+</body>
+</html>
