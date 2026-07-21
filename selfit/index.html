@@ -527,6 +527,16 @@
     .acoes-cabecalho-conteudos{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;flex:none}
     .btn-criar-pasta{background:#fff;color:#111;border-color:#fff}
     .btn-criar-pasta:hover{background:#f0f0f0;color:#111}
+    .dunatv-plus-controle{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+    .dunatv-plus-modo{min-height:150px;border:2px solid #30384c;border-radius:22px;background:#11182a;color:#fff;padding:24px;text-align:left;cursor:pointer;transition:.2s ease;box-shadow:0 16px 34px rgba(0,0,0,.2)}
+    .dunatv-plus-modo strong{display:block;font-size:27px;margin-bottom:8px}.dunatv-plus-modo small{display:block;color:#aeb8ca;font-size:14px;line-height:1.45}
+    .dunatv-plus-modo.tv.selecionado{background:#14795f;border-color:#55efba;transform:translateY(-2px)}
+    .dunatv-plus-modo.youtube.selecionado{background:#971724;border-color:#ff6673;transform:translateY(-2px)}
+    .dunatv-plus-dispositivos{margin-top:18px;padding:15px 18px;border:1px solid #293247;border-radius:14px;background:#0c1220;color:#b9c3d4;font-size:14px}
+    .dunatv-plus-link{display:none;margin-top:18px}.dunatv-plus-link.visivel{display:flex;gap:12px}.dunatv-plus-link input{flex:1;min-height:54px;border:1px solid #414b60;border-radius:12px;background:#0d1423;color:#fff;padding:0 16px;font-size:15px}
+    .dunatv-plus-link button{min-width:190px;border:0;border-radius:12px;background:#e21a2c;color:#fff;font-weight:900;padding:0 20px}
+    .tipo-ponto-selo{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#e8edf5;color:#252d3b;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+    .tipo-ponto-selo.tv-aberta{background:#171f31;color:#ff6673}
 
     .btn-preview{
       min-width:132px;
@@ -1078,14 +1088,18 @@
 
     <section class="card tv-aberta-card oculto" id="tvAbertaCard">
       <div class="tv-aberta-topo">
-        <div><h2>TV aberta</h2><p>Defina o vídeo do YouTube que este ponto reproduzirá.</p></div>
-        <span class="tv-aberta-selo">YOUTUBE</span>
+        <div><h2>Controle Duna TV+</h2><p>Escolha o modo que todas as TVs deste ponto devem abrir.</p></div>
+        <span class="tv-aberta-selo">TV ABERTA</span>
       </div>
-      <div class="tv-aberta-form">
+      <div class="dunatv-plus-controle">
+        <button class="dunatv-plus-modo tv" id="btnModoTvAberta" type="button"><strong>● TV ABERTA</strong><small>Abre os canais ao vivo da televisão.</small></button>
+        <button class="dunatv-plus-modo youtube" id="btnModoYoutube" type="button"><strong>▶ YOUTUBE</strong><small>Abre o YouTube na página inicial ou no link informado.</small></button>
+      </div>
+      <div class="dunatv-plus-link" id="grupoYoutubePonto">
         <input id="youtubeUrlPonto" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." aria-label="Link do YouTube" />
-        <button id="btnSalvarYoutube" type="button">Salvar link</button>
+        <button id="btnSalvarYoutube" type="button">Aplicar YouTube</button>
       </div>
-      <p class="tv-aberta-ajuda">Quando a TV estiver ligada, este link será reproduzido continuamente.</p>
+      <div class="dunatv-plus-dispositivos" id="resumoControleDunaPlus">O comando será aplicado às TVs vinculadas ao código deste ponto.</div>
     </section>
 
     <section class="card resumo-tvs" aria-labelledby="tituloResumoTvs">
@@ -1307,6 +1321,7 @@
         codigo:CODIGO_FIXO,
         tipo_ponto:String(configuracao.tipo_ponto || "").toLowerCase() === "tv_aberta" ? "tv_aberta" : "publicidade",
         youtube_url:String(configuracao.youtube_url || "").trim(),
+        modo_exibicao:String(configuracao.modo_exibicao || configuracao.modo || "tv_aberta").toLowerCase() === "youtube" ? "youtube" : "tv_aberta",
         atualizado_em:configuracao.atualizado_em || null
       };
     }
@@ -1622,6 +1637,10 @@
       };
     }
 
+    function normalizarTipoPonto(valor){
+      return String(valor || "").trim().toLowerCase() === "tv_aberta" ? "tv_aberta" : "publicidade";
+    }
+
     const modalAdicionar = document.getElementById("modalAdicionar");
     const btnAbrirAdicionar = document.getElementById("btnAbrirAdicionar");
     const btnFecharModal = document.getElementById("btnFecharModal");
@@ -1649,6 +1668,10 @@
     const tvAbertaCard = document.getElementById("tvAbertaCard");
     const youtubeUrlPonto = document.getElementById("youtubeUrlPonto");
     const btnSalvarYoutube = document.getElementById("btnSalvarYoutube");
+    const btnModoTvAberta = document.getElementById("btnModoTvAberta");
+    const btnModoYoutube = document.getElementById("btnModoYoutube");
+    const grupoYoutubePonto = document.getElementById("grupoYoutubePonto");
+    const resumoControleDunaPlus = document.getElementById("resumoControleDunaPlus");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
@@ -1665,6 +1688,13 @@
       conteudosCard.classList.toggle("oculto",tvAberta);
       tvAbertaCard.classList.toggle("oculto",!tvAberta);
       youtubeUrlPonto.value = configuracaoPontoAtual.youtube_url || "";
+      const modo = configuracaoPontoAtual.modo_exibicao === "youtube" ? "youtube" : "tv_aberta";
+      btnModoTvAberta.classList.toggle("selecionado",tvAberta && modo === "tv_aberta");
+      btnModoYoutube.classList.toggle("selecionado",tvAberta && modo === "youtube");
+      grupoYoutubePonto.classList.toggle("visivel",tvAberta && modo === "youtube");
+      if(tvAberta) resumoControleDunaPlus.textContent = modo === "youtube"
+        ? "Modo atual: YouTube • o comando vale para as TVs vinculadas ao código " + CODIGO_FIXO
+        : "Modo atual: TV aberta • o comando vale para as TVs vinculadas ao código " + CODIGO_FIXO;
     }
 
     function urlYoutubeValida(valor){
@@ -1677,29 +1707,37 @@
       }
     }
 
-    async function salvarYoutubePonto(){
+    async function salvarControleDunaPlus(modo){
       const link = youtubeUrlPonto.value.trim();
-      if(!urlYoutubeValida(link)){
+      if(modo === "youtube" && link && !urlYoutubeValida(link)){
         mostrarStatus("Informe um link válido do YouTube.","erro");
         youtubeUrlPonto.focus();
         return;
       }
 
-      btnSalvarYoutube.disabled = true;
-      btnSalvarYoutube.textContent = "Salvando...";
+      [btnModoTvAberta,btnModoYoutube,btnSalvarYoutube].forEach(botao=>botao.disabled=true);
+      if(modo === "youtube") btnSalvarYoutube.textContent = "Aplicando...";
       try{
-        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,tipo_ponto:"tv_aberta",youtube_url:link,atualizado_em:new Date().toISOString()});
+        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,tipo_ponto:"tv_aberta",modo_exibicao:modo,youtube_url:link,atualizado_em:new Date().toISOString()});
         playlistAtual = await salvarPlaylistR2(playlistAtual);
         aplicarModoPonto();
-        mostrarStatus("Link do YouTube salvo.","ok");
+        mostrarStatus(modo === "youtube" ? "YouTube aplicado às TVs do ponto." : "TV aberta aplicada às TVs do ponto.","ok");
       }catch(error){
         console.error(error);
-        mostrarStatus(error.message || "Não foi possível salvar o link do YouTube.","erro");
+        mostrarStatus(error.message || "Não foi possível enviar o controle.","erro");
       }finally{
-        btnSalvarYoutube.disabled = false;
-        btnSalvarYoutube.textContent = "Salvar link";
+        [btnModoTvAberta,btnModoYoutube,btnSalvarYoutube].forEach(botao=>botao.disabled=false);
+        btnSalvarYoutube.textContent = "Aplicar YouTube";
       }
     }
+
+    btnModoTvAberta.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
+    btnModoYoutube.addEventListener("click",()=>{
+      configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"youtube"});
+      aplicarModoPonto();
+      youtubeUrlPonto.focus();
+    });
+    btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
 
     atalhosDuracao.forEach((botao)=>{
       botao.addEventListener("click",()=>{
@@ -1943,6 +1981,19 @@
       }
     }
 
+    async function buscarTipoPontoR2(codigo){
+      try{
+        const documento = await requisitarWorker(`/api/playlist/${encodeURIComponent(codigo)}`);
+        const items = Array.isArray(documento) ? documento : (Array.isArray(documento?.items) ? documento.items : []);
+        const itemConfiguracao = items.find(item=>String(item?.id || "") === PONTO_CONFIG_ID || item?.tipo === "configuracao_ponto");
+        const configuracao = documento?.configuracao_ponto || itemConfiguracao || {};
+        return normalizarTipoPonto(configuracao.tipo_ponto || configuracao.tipo || "publicidade");
+      }catch(error){
+        console.warn(`Tipo do ponto indisponivel para ${codigo}:`,error);
+        return "publicidade";
+      }
+    }
+
     function obterStatusTv(ponto,statusRemoto=null){
       const datas = [
         statusRemoto?.ultima_atualizacao,
@@ -2025,21 +2076,25 @@
       renderizarLinhasHistorico();
     }
 
-    function htmlCartaoPonto(ponto,codigo,statusRemoto=null){
+    function htmlCartaoPonto(ponto,codigo,statusRemoto=null,tipoPontoR2=""){
       const nome = ponto.nome || ponto.nome_local || ponto.titulo || "Selfit";
       const cidade = ponto.cidade || ponto.cidade_regiao || ponto.municipio || "";
       const endereco = ponto.endereco || ponto.endereco_completo || ponto.local || "";
       const imagem = ponto.imagem_url || ponto.imagem || ponto.foto_url || "https://placehold.co/1200x700/120000/ffffff?text=SELFIT";
       const statusTv = obterStatusTv(ponto,statusRemoto);
+      const tipoLido = normalizarTipoPonto(tipoPontoR2 || inferirTipoPontoCadastro(ponto));
+      const tipo = tipoLido === "tv_aberta" ? "tv_aberta" : "publicidade";
+      const nomeTipo = tipo === "tv_aberta" ? "TV aberta" : "Publicidade";
       return `<article class="pasta-card">
         <div class="pasta-status ${statusTv.ativo ? "ativo" : "inativo"}"><span class="pasta-status-ponto"></span><span>${statusTv.texto}</span></div>
         <img class="pasta-imagem" src="${escapeHtml(imagem)}" alt="${escapeHtml(nome)}" onerror="this.src='https://placehold.co/1200x700/120000/ffffff?text=SELFIT'" />
+        <span class="tipo-ponto-selo ${tipo === "tv_aberta" ? "tv-aberta" : ""}">${nomeTipo}</span>
         <h3>${escapeHtml(nome)}</h3>
         <div class="pasta-meta">
           <p class="pasta-local">${escapeHtml([cidade,endereco].filter(Boolean).join(" | ") || "Selfit")}</p>
           <span class="pasta-codigo">${escapeHtml(codigo)}</span>
         </div>
-        <button class="btn-abrir-pasta" type="button" data-abrir-codigo="${escapeHtml(codigo)}">Abrir pasta</button>
+        <button class="btn-abrir-pasta" type="button" data-abrir-codigo="${escapeHtml(codigo)}">${tipo === "tv_aberta" ? "Abrir controle" : "Abrir pasta"}</button>
       </article>`;
     }
 
@@ -2047,14 +2102,14 @@
       gradePastas.innerHTML = '<p style="color:#fff">Carregando pontos...</p>';
       const resultados = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
         try{
-          const [ponto,statusRemoto] = await Promise.all([buscarPontoPorCodigo(codigo),buscarStatusTv(codigo)]);
-          return {codigo,ponto,statusRemoto};
+          const [ponto,statusRemoto,tipoPonto] = await Promise.all([buscarPontoPorCodigo(codigo),buscarStatusTv(codigo),buscarTipoPontoR2(codigo)]);
+          return {codigo,ponto,statusRemoto,tipoPonto};
         }
         catch(error){console.error(error);return {codigo,ponto:null,statusRemoto:null}}
       }));
       const encontrados = resultados.filter(item=>item.ponto);
       gradePastas.innerHTML = encontrados.length
-        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo,item.statusRemoto?.atual)).join("")
+        ? encontrados.map(item=>htmlCartaoPonto(item.ponto,item.codigo,item.statusRemoto?.atual,item.tipoPonto)).join("")
         : '<p style="color:#fff">Nenhum ponto encontrado.</p>';
     }
 
@@ -2631,11 +2686,10 @@
         console.error(error);mostrarStatus(error.message || "Erro ao salvar a pasta.","erro");
       }finally{btnSalvarPastaPlaylist.disabled=false}
     });
-    btnSalvarYoutube.addEventListener("click",salvarYoutubePonto);
     youtubeUrlPonto.addEventListener("keydown",(event)=>{
       if(event.key === "Enter"){
         event.preventDefault();
-        salvarYoutubePonto();
+        salvarControleDunaPlus("youtube");
       }
     });
 
