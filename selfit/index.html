@@ -535,6 +535,12 @@
     .dunatv-plus-dispositivos{margin-top:18px;padding:15px 18px;border:1px solid #293247;border-radius:14px;background:#0c1220;color:#b9c3d4;font-size:14px}
     .dunatv-plus-link{display:none;margin-top:18px}.dunatv-plus-link.visivel{display:flex;gap:12px}.dunatv-plus-link input{flex:1;min-height:54px;border:1px solid #414b60;border-radius:12px;background:#0d1423;color:#fff;padding:0 16px;font-size:15px}
     .dunatv-plus-link button{min-width:190px;border:0;border-radius:12px;background:#e21a2c;color:#fff;font-weight:900;padding:0 20px}
+    .dunatv-plus-canal{display:none;margin-top:18px;padding:18px;border:1px solid #293247;border-radius:16px;background:#0c1220}.dunatv-plus-canal.visivel{display:block}
+    .dunatv-plus-canal-linha{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}.dunatv-plus-canal input{min-height:54px;border:1px solid #414b60;border-radius:12px;background:#0d1423;color:#fff;padding:0 16px;font-size:17px}.dunatv-plus-canal-linha button,.dunatv-plus-atalho{border:0;border-radius:12px;background:#e21a2c;color:#fff;font-weight:900;padding:0 20px;cursor:pointer}
+    .dunatv-plus-atalhos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:13px}.dunatv-plus-atalho{min-height:58px;background:#182238;border:1px solid #35415a;padding:8px}.dunatv-plus-atalho small{display:block;color:#aeb8ca;margin-top:3px}
+    .dunatv-plus-iniciar{display:flex;align-items:center;gap:11px;margin-top:16px;padding:14px;border:1px solid #293247;border-radius:14px;background:#0c1220;color:#dce3ee}.dunatv-plus-iniciar input{width:20px;height:20px;accent-color:#ed101b}
+    .dunatv-plus-youtube-acoes{display:none;gap:10px;margin-top:12px;flex-wrap:wrap}.dunatv-plus-youtube-acoes.visivel{display:flex}.dunatv-plus-youtube-acoes a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;background:#242d40;color:#fff;text-decoration:none;font-weight:800}
+    .dunatv-plus-preview{display:none;margin-top:14px;aspect-ratio:16/9;max-width:720px;border:1px solid #35415a;border-radius:14px;overflow:hidden;background:#080d17}.dunatv-plus-preview.visivel{display:block}.dunatv-plus-preview iframe{width:100%;height:100%;border:0}
     .tipo-ponto-selo{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#e8edf5;color:#252d3b;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
     .tipo-ponto-selo.tv-aberta{background:#171f31;color:#ff6673}
 
@@ -902,6 +908,7 @@
       .btn-sair{min-height:46px;padding:0 14px}
       .unidade-card,.conteudos-card{border-radius:18px}
       .tv-aberta-card{border-radius:18px}.tv-aberta-topo{flex-direction:column}.tv-aberta-form{grid-template-columns:1fr}.tv-aberta-form button{height:48px}
+      .dunatv-plus-controle{grid-template-columns:1fr}.dunatv-plus-canal-linha{grid-template-columns:1fr}.dunatv-plus-canal-linha button{min-height:50px}.dunatv-plus-atalhos{grid-template-columns:repeat(2,minmax(0,1fr))}.dunatv-plus-link.visivel{flex-direction:column}.dunatv-plus-link button{min-height:50px}
       .nome-unidade{font-size:42px}
       .grid-campos{grid-template-columns:1fr}
       .campo-completo{grid-column:auto}
@@ -1095,10 +1102,29 @@
         <button class="dunatv-plus-modo tv" id="btnModoTvAberta" type="button"><strong>● TV ABERTA</strong><small>Abre os canais ao vivo da televisão.</small></button>
         <button class="dunatv-plus-modo youtube" id="btnModoYoutube" type="button"><strong>▶ YOUTUBE</strong><small>Abre o YouTube na página inicial ou no link informado.</small></button>
       </div>
+      <div class="dunatv-plus-canal" id="grupoCanalTv">
+        <div class="dunatv-plus-canal-linha">
+          <input id="numeroCanalTv" type="text" inputmode="decimal" maxlength="8" placeholder="Digite o canal, exemplo: 5.1" aria-label="Numero do canal de TV" />
+          <button id="btnAplicarCanal" type="button">Exibir nas TVs</button>
+        </div>
+        <div class="dunatv-plus-atalhos" id="atalhosCanaisTv">
+          <button class="dunatv-plus-atalho" type="button" data-canal="5.1">Globo<small>5.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="7.1">Record<small>7.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="4.1">SBT<small>4.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="13.1">Band<small>13.1</small></button>
+          <button class="dunatv-plus-atalho" type="button" data-canal="9.1">RedeTV!<small>9.1</small></button>
+        </div>
+      </div>
       <div class="dunatv-plus-link" id="grupoYoutubePonto">
         <input id="youtubeUrlPonto" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." aria-label="Link do YouTube" />
         <button id="btnSalvarYoutube" type="button">Aplicar YouTube</button>
       </div>
+      <div class="dunatv-plus-youtube-acoes" id="acoesYoutubePonto">
+        <a href="https://www.youtube.com/" target="_blank" rel="noopener">Abrir YouTube para escolher</a>
+        <button class="dunatv-plus-atalho" id="btnPreviewYoutube" type="button">Ver antes</button>
+      </div>
+      <div class="dunatv-plus-preview" id="previewYoutubePonto"></div>
+      <label class="dunatv-plus-iniciar"><input id="reabrirAoLigar" type="checkbox" checked /><span><strong>Reabrir automaticamente ao ligar</strong><br><small>Abre sempre o último canal ou vídeo escolhido, até que este controle seja mudado.</small></span></label>
       <div class="dunatv-plus-dispositivos" id="resumoControleDunaPlus">O comando será aplicado às TVs vinculadas ao código deste ponto.</div>
     </section>
 
@@ -1322,6 +1348,8 @@
         tipo_ponto:String(configuracao.tipo_ponto || "").toLowerCase() === "tv_aberta" ? "tv_aberta" : "publicidade",
         youtube_url:String(configuracao.youtube_url || "").trim(),
         modo_exibicao:String(configuracao.modo_exibicao || configuracao.modo || "tv_aberta").toLowerCase() === "youtube" ? "youtube" : "tv_aberta",
+        canal_tv:String(configuracao.canal_tv || configuracao.canal || "").trim(),
+        reabrir_ao_ligar:configuracao.reabrir_ao_ligar !== false,
         atualizado_em:configuracao.atualizado_em || null
       };
     }
@@ -1672,6 +1700,14 @@
     const btnModoYoutube = document.getElementById("btnModoYoutube");
     const grupoYoutubePonto = document.getElementById("grupoYoutubePonto");
     const resumoControleDunaPlus = document.getElementById("resumoControleDunaPlus");
+    const grupoCanalTv = document.getElementById("grupoCanalTv");
+    const numeroCanalTv = document.getElementById("numeroCanalTv");
+    const btnAplicarCanal = document.getElementById("btnAplicarCanal");
+    const atalhosCanaisTv = document.getElementById("atalhosCanaisTv");
+    const acoesYoutubePonto = document.getElementById("acoesYoutubePonto");
+    const btnPreviewYoutube = document.getElementById("btnPreviewYoutube");
+    const previewYoutubePonto = document.getElementById("previewYoutubePonto");
+    const reabrirAoLigar = document.getElementById("reabrirAoLigar");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
@@ -1688,13 +1724,21 @@
       conteudosCard.classList.toggle("oculto",tvAberta);
       tvAbertaCard.classList.toggle("oculto",!tvAberta);
       youtubeUrlPonto.value = configuracaoPontoAtual.youtube_url || "";
+      numeroCanalTv.value = configuracaoPontoAtual.canal_tv || "";
+      reabrirAoLigar.checked = configuracaoPontoAtual.reabrir_ao_ligar !== false;
       const modo = configuracaoPontoAtual.modo_exibicao === "youtube" ? "youtube" : "tv_aberta";
       btnModoTvAberta.classList.toggle("selecionado",tvAberta && modo === "tv_aberta");
       btnModoYoutube.classList.toggle("selecionado",tvAberta && modo === "youtube");
       grupoYoutubePonto.classList.toggle("visivel",tvAberta && modo === "youtube");
+      acoesYoutubePonto.classList.toggle("visivel",tvAberta && modo === "youtube");
+      grupoCanalTv.classList.toggle("visivel",tvAberta && modo === "tv_aberta");
+      if(modo !== "youtube"){
+        previewYoutubePonto.classList.remove("visivel");
+        previewYoutubePonto.innerHTML = "";
+      }
       if(tvAberta) resumoControleDunaPlus.textContent = modo === "youtube"
-        ? "Modo atual: YouTube • o comando vale para as TVs vinculadas ao código " + CODIGO_FIXO
-        : "Modo atual: TV aberta • o comando vale para as TVs vinculadas ao código " + CODIGO_FIXO;
+        ? "Modo atual: YouTube • " + (configuracaoPontoAtual.reabrir_ao_ligar ? "reabre ao ligar" : "somente agora") + " • código " + CODIGO_FIXO
+        : "Modo atual: TV aberta" + (configuracaoPontoAtual.canal_tv ? " • canal " + configuracaoPontoAtual.canal_tv : "") + " • " + (configuracaoPontoAtual.reabrir_ao_ligar ? "reabre ao ligar" : "somente agora") + " • código " + CODIGO_FIXO;
     }
 
     function urlYoutubeValida(valor){
@@ -1715,10 +1759,10 @@
         return;
       }
 
-      [btnModoTvAberta,btnModoYoutube,btnSalvarYoutube].forEach(botao=>botao.disabled=true);
+      [btnModoTvAberta,btnModoYoutube,btnSalvarYoutube,btnAplicarCanal].forEach(botao=>botao.disabled=true);
       if(modo === "youtube") btnSalvarYoutube.textContent = "Aplicando...";
       try{
-        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,tipo_ponto:"tv_aberta",modo_exibicao:modo,youtube_url:link,atualizado_em:new Date().toISOString()});
+        configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,tipo_ponto:"tv_aberta",modo_exibicao:modo,youtube_url:link,canal_tv:numeroCanalTv.value.trim(),reabrir_ao_ligar:reabrirAoLigar.checked,atualizado_em:new Date().toISOString()});
         playlistAtual = await salvarPlaylistR2(playlistAtual);
         aplicarModoPonto();
         mostrarStatus(modo === "youtube" ? "YouTube aplicado às TVs do ponto." : "TV aberta aplicada às TVs do ponto.","ok");
@@ -1726,18 +1770,45 @@
         console.error(error);
         mostrarStatus(error.message || "Não foi possível enviar o controle.","erro");
       }finally{
-        [btnModoTvAberta,btnModoYoutube,btnSalvarYoutube].forEach(botao=>botao.disabled=false);
+        [btnModoTvAberta,btnModoYoutube,btnSalvarYoutube,btnAplicarCanal].forEach(botao=>botao.disabled=false);
         btnSalvarYoutube.textContent = "Aplicar YouTube";
       }
     }
 
-    btnModoTvAberta.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
+    function obterIdYoutube(valor){
+      try{
+        const url = new URL(String(valor || "").trim());
+        if(url.hostname.toLowerCase().includes("youtu.be")) return url.pathname.split("/").filter(Boolean)[0] || "";
+        if(url.pathname.startsWith("/shorts/") || url.pathname.startsWith("/embed/")) return url.pathname.split("/")[2] || "";
+        return url.searchParams.get("v") || "";
+      }catch{return ""}
+    }
+
+    btnModoTvAberta.addEventListener("click",()=>{
+      configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tv_aberta"});
+      aplicarModoPonto();
+      numeroCanalTv.focus();
+    });
     btnModoYoutube.addEventListener("click",()=>{
       configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"youtube"});
       aplicarModoPonto();
       youtubeUrlPonto.focus();
     });
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
+    btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
+    atalhosCanaisTv.addEventListener("click",event=>{
+      const botao = event.target.closest("[data-canal]");
+      if(!botao) return;
+      numeroCanalTv.value = botao.dataset.canal || "";
+      salvarControleDunaPlus("tv_aberta");
+    });
+    reabrirAoLigar.addEventListener("change",()=>salvarControleDunaPlus(configuracaoPontoAtual.modo_exibicao));
+    btnPreviewYoutube.addEventListener("click",()=>{
+      const id = obterIdYoutube(youtubeUrlPonto.value);
+      if(!id){ mostrarStatus("Informe primeiro um link válido do YouTube.","erro"); return; }
+      previewYoutubePonto.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}" title="Preview do YouTube" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+      previewYoutubePonto.classList.add("visivel");
+    });
 
     atalhosDuracao.forEach((botao)=>{
       botao.addEventListener("click",()=>{
