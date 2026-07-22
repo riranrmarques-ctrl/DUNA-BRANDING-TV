@@ -1120,11 +1120,11 @@
     <section class="card tv-aberta-card oculto" id="tvAbertaCard">
       <div class="tv-aberta-topo">
         <div><h2>Controle Duna TV</h2><p>Escolha o modo que todas as TVs deste ponto devem abrir.</p></div>
-        <span class="tv-aberta-selo">TV ABERTA</span>
+        <span class="tv-aberta-selo">TCL CHANNEL+</span>
       </div>
       <div class="dunatv-plus-legenda">Escolha o modo de controle</div>
       <div class="dunatv-plus-controle">
-        <button class="dunatv-plus-modo tv" id="btnModoTvAberta" type="button"><span class="dunatv-plus-icone">▣</span><span class="dunatv-plus-texto"><strong>TV ABERTA</strong><small>Abre os canais ao vivo da televisão.</small></span><span class="dunatv-plus-seta">›</span></button>
+        <button class="dunatv-plus-modo tv" id="btnModoTvAberta" type="button"><span class="dunatv-plus-icone">TV</span><span class="dunatv-plus-texto"><strong>TCL CHANNEL+</strong><small>Escolha um canal virtual disponivel nesta TV.</small></span><span class="dunatv-plus-seta">&gt;</span></button>
         <button class="dunatv-plus-modo youtube" id="btnModoYoutube" type="button"><span class="dunatv-plus-icone">▶</span><span class="dunatv-plus-texto"><strong>YOUTUBE</strong><small>Escolha um vídeo e envie para as TVs.</small></span><span class="dunatv-plus-seta">›</span></button>
       </div>
       <div class="dunatv-plus-canal" id="grupoCanalTv">
@@ -1398,7 +1398,7 @@
         youtube_url:String(configuracao.youtube_url || "").trim(),
         youtube_titulo:String(configuracao.youtube_titulo || "").trim(),
         youtube_thumbnail:String(configuracao.youtube_thumbnail || "").trim(),
-        modo_exibicao:String(configuracao.modo_exibicao || configuracao.modo || "tv_aberta").toLowerCase() === "youtube" ? "youtube" : "tv_aberta",
+        modo_exibicao:["youtube","tcl_channel_plus","channel_plus"].includes(String(configuracao.modo_exibicao || configuracao.modo || "tcl_channel_plus").toLowerCase()) ? (String(configuracao.modo_exibicao || configuracao.modo || "tcl_channel_plus").toLowerCase() === "youtube" ? "youtube" : "tcl_channel_plus") : "tcl_channel_plus",
         canal_tv:String(configuracao.canal_tv || configuracao.canal || "").trim(),
         reabrir_ao_ligar:configuracao.reabrir_ao_ligar !== false,
         atalhos_canais:atalhosCanais,
@@ -1803,7 +1803,16 @@
     const canalAtalhoTv = document.getElementById("canalAtalhoTv");
     const btnCancelarAtalhoTv = document.getElementById("btnCancelarAtalhoTv");
     const btnSalvarAtalhoTv = document.getElementById("btnSalvarAtalhoTv");
-    let canaisDisponiveisTv = [];
+    let canaisDisponiveisTv = [
+      {numero:"100",nome:"Grjngo"},
+      {numero:"105",nome:"MasterChef Brasil"},
+      {numero:"110",nome:"Record News"},
+      {numero:"115",nome:"CNN Brasil"},
+      {numero:"120",nome:"Mr.Bean"},
+      {numero:"125",nome:"BABY SHARK TV"},
+      {numero:"130",nome:"NatureTime"},
+      {numero:"135",nome:"Highway To Heaven"}
+    ];
 
     function selecionarCanalTv(numero,fechar=true){
       const canal=canaisDisponiveisTv.find(item=>item.numero===String(numero || ""));
@@ -1814,20 +1823,10 @@
     }
 
     async function carregarCanaisDisponiveisTv(){
-      try{
-        const dados = await requisitarWorker(`/api/status/${encodeURIComponent(CODIGO_FIXO)}`);
-        const fontes = [dados?.atual,...(Array.isArray(dados?.dispositivos) ? dados.dispositivos : [])];
-        const mapa = new Map();
-        fontes.forEach(fonte=>(Array.isArray(fonte?.canais_disponiveis) ? fonte.canais_disponiveis : []).forEach(canal=>{
-          const numero=String(canal?.numero || "").trim(), nome=String(canal?.nome || "").trim();
-          if(numero && nome) mapa.set(numero,{numero,nome});
-        }));
-        canaisDisponiveisTv=[...mapa.values()].sort((a,b)=>Number(a.numero)-Number(b.numero) || a.nome.localeCompare(b.nome,"pt-BR"));
-        const atual=String(configuracaoPontoAtual.canal_tv || "");
-        canalPickerMenu.innerHTML=canaisDisponiveisTv.map(c=>`<button type="button" data-picker-canal="${escapeHtml(c.numero)}">${escapeHtml(c.numero)} — ${escapeHtml(c.nome)}</button>`).join("");
-        canalAtalhoTv.innerHTML='<option value="">Selecione um canal</option>'+canaisDisponiveisTv.map(c=>`<option value="${escapeHtml(c.numero)}">${escapeHtml(c.numero)} — ${escapeHtml(c.nome)}</option>`).join("");
-        selecionarCanalTv(atual,false);
-      }catch(error){ canalPickerToggle.textContent="Aguardando lista enviada pela TV..."; canalAtalhoTv.innerHTML='<option value="">Aguardando lista enviada pela TV...</option>'; }
+      const atual=String(configuracaoPontoAtual.canal_tv || "");
+      canalPickerMenu.innerHTML=canaisDisponiveisTv.map(c=>`<button type="button" data-picker-canal="${escapeHtml(c.numero)}">${escapeHtml(c.numero)} - ${escapeHtml(c.nome)}</button>`).join("");
+      canalAtalhoTv.innerHTML='<option value="">Selecione um canal</option>'+canaisDisponiveisTv.map(c=>`<option value="${escapeHtml(c.numero)}">${escapeHtml(c.numero)} - ${escapeHtml(c.nome)}</option>`).join("");
+      selecionarCanalTv(atual || canaisDisponiveisTv[0]?.numero || "",false);
     }
 
     let playlistAtual = [];
@@ -1923,7 +1922,7 @@
       }
       if(tvAberta) resumoControleDunaPlus.textContent = modo === "youtube"
         ? "Modo atual: YouTube • " + (configuracaoPontoAtual.reabrir_ao_ligar ? "reabre ao ligar" : "somente agora") + " • código " + CODIGO_FIXO
-        : "Modo atual: TV aberta" + (configuracaoPontoAtual.canal_tv ? " • canal " + configuracaoPontoAtual.canal_tv : "") + " • " + (configuracaoPontoAtual.reabrir_ao_ligar ? "reabre ao ligar" : "somente agora") + " • código " + CODIGO_FIXO;
+        : "Modo atual: TCL Channel+" + (configuracaoPontoAtual.canal_tv ? " • canal " + configuracaoPontoAtual.canal_tv : "") + " • " + (configuracaoPontoAtual.reabrir_ao_ligar ? "reabre ao ligar" : "somente agora") + " • código " + CODIGO_FIXO;
     }
 
     function urlYoutubeValida(valor){
@@ -2014,9 +2013,9 @@
         }));
       }catch(error){
         console.error(error);
-        resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">A pesquisa do YouTube está temporariamente indisponível no servidor Duna TV.<br><button class="dunatv-plus-atalho" id="btnVoltarTvBusca" type="button" style="min-height:42px;margin-top:12px">Voltar para TV aberta</button></div>';
+        resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">A pesquisa do YouTube está temporariamente indisponível no servidor Duna TV.<br><button class="dunatv-plus-atalho" id="btnVoltarTvBusca" type="button" style="min-height:42px;margin-top:12px">Voltar para TCL Channel+</button></div>';
         document.getElementById("btnVoltarTvBusca")?.addEventListener("click",()=>{
-          configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tv_aberta"});
+          configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tcl_channel_plus"});
           aplicarModoPonto();
           numeroCanalTv.focus();
         });
@@ -2027,7 +2026,7 @@
     }
 
     btnModoTvAberta.addEventListener("click",()=>{
-      configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tv_aberta"});
+      configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tcl_channel_plus"});
       aplicarModoPonto();
       numeroCanalTv.focus();
     });
@@ -2037,7 +2036,7 @@
       pesquisaYoutubePonto.focus();
     });
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
-    btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
+    btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tcl_channel_plus"));
     canalPickerToggle.addEventListener("click",()=>canalPickerTv.classList.toggle("aberto"));
     canalPickerMenu.addEventListener("click",event=>{const botao=event.target.closest("[data-picker-canal]");if(botao) selecionarCanalTv(botao.dataset.pickerCanal)});
     document.addEventListener("click",event=>{if(!canalPickerTv.contains(event.target)) canalPickerTv.classList.remove("aberto")});
@@ -2059,7 +2058,7 @@
       const botao = event.target.closest("[data-canal]");
       if(!botao) return;
       selecionarCanalTv(botao.dataset.canal || "");
-      salvarControleDunaPlus("tv_aberta");
+      salvarControleDunaPlus("tcl_channel_plus");
     });
     btnCancelarAtalhoTv.addEventListener("click",fecharEditorAtalhoTv);
     btnSalvarAtalhoTv.addEventListener("click",criarAtalhoTv);
