@@ -1116,7 +1116,7 @@
 
     <section class="card tv-aberta-card oculto" id="tvAbertaCard">
       <div class="tv-aberta-topo">
-        <div><h2>Controle Duna TV+</h2><p>Escolha o modo que todas as TVs deste ponto devem abrir.</p></div>
+        <div><h2>Controle Duna TV</h2><p>Escolha o modo que todas as TVs deste ponto devem abrir.</p></div>
         <span class="tv-aberta-selo">TV ABERTA</span>
       </div>
       <div class="dunatv-plus-legenda">Escolha o modo de controle</div>
@@ -1985,7 +1985,7 @@
         }));
       }catch(error){
         console.error(error);
-        resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">A pesquisa do YouTube ainda precisa ser ativada no servidor Duna TV+.<br><button class="dunatv-plus-atalho" id="btnVoltarTvBusca" type="button" style="min-height:42px;margin-top:12px">Voltar para TV aberta</button></div>';
+        resultadosYoutubePonto.innerHTML='<div class="dunatv-youtube-vazio">A pesquisa do YouTube está temporariamente indisponível no servidor Duna TV.<br><button class="dunatv-plus-atalho" id="btnVoltarTvBusca" type="button" style="min-height:42px;margin-top:12px">Voltar para TV aberta</button></div>';
         document.getElementById("btnVoltarTvBusca")?.addEventListener("click",()=>{
           configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"tv_aberta"});
           aplicarModoPonto();
