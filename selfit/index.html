@@ -537,6 +537,8 @@
     .dunatv-plus-link button{min-width:190px;border:0;border-radius:12px;background:#e21a2c;color:#fff;font-weight:900;padding:0 20px}
     .dunatv-plus-canal{display:none;margin-top:18px;padding:18px;border:1px solid #293247;border-radius:16px;background:#0c1220}.dunatv-plus-canal.visivel{display:block}
     .dunatv-plus-canal-linha{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}.dunatv-plus-canal input,.dunatv-plus-canal select{min-height:54px;border:1px solid #414b60;border-radius:12px;background:#0d1423;color:#fff;padding:0 16px;font-size:17px}.dunatv-plus-canal-linha button,.dunatv-plus-atalho{border:0;border-radius:12px;background:#e21a2c;color:#fff;font-weight:900;padding:0 20px;cursor:pointer}
+    .dunatv-canal-picker{position:relative;min-width:0}.dunatv-canal-picker-toggle{width:100%;min-height:54px!important;text-align:left;background:#0d1423!important;border:1px solid #414b60!important;color:#fff;padding:0 48px 0 16px!important;position:relative}.dunatv-canal-picker-toggle:after{content:"⌄";position:absolute;right:18px;font-size:23px}.dunatv-canal-picker-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:80;max-height:330px;overflow:auto;padding:7px;border:1px solid #414b60;border-radius:12px;background:#101725;box-shadow:0 18px 38px rgba(0,0,0,.55)}.dunatv-canal-picker.aberto .dunatv-canal-picker-menu{display:grid;gap:4px}.dunatv-canal-picker-menu button{min-height:44px!important;border-radius:8px!important;background:transparent!important;color:#fff;text-align:left;padding:8px 12px!important}.dunatv-canal-picker-menu button:hover,.dunatv-canal-picker-menu button:focus{background:#263553!important}.btn-adicionar-canal-atalho:disabled{opacity:.45;cursor:not-allowed}
+    .dunatv-atalho-campos{grid-template-columns:minmax(0,1fr) minmax(180px,.7fr)!important}
     .dunatv-plus-atalhos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:13px}.dunatv-plus-atalho{min-height:58px;background:#182238;border:1px solid #35415a;padding:8px}.dunatv-plus-atalho small{display:block;color:#aeb8ca;margin-top:3px}
     .dunatv-plus-iniciar{display:flex;align-items:center;gap:11px;margin-top:16px;padding:14px;border:1px solid #293247;border-radius:14px;background:#0c1220;color:#dce3ee}.dunatv-plus-iniciar input{width:20px;height:20px;accent-color:#ed101b}
     .dunatv-plus-youtube-acoes{display:none;gap:10px;margin-top:12px;flex-wrap:wrap}.dunatv-plus-youtube-acoes.visivel{display:flex}.dunatv-plus-youtube-acoes a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:10px;background:#242d40;color:#fff;text-decoration:none;font-weight:800}
@@ -1126,8 +1128,9 @@
       </div>
       <div class="dunatv-plus-canal" id="grupoCanalTv">
         <div class="dunatv-plus-canal-linha">
-          <select id="numeroCanalTv" aria-label="Canal disponível na TV"><option value="">Carregando canais da TV...</option></select>
+          <div class="dunatv-canal-picker" id="canalPickerTv"><input id="numeroCanalTv" type="hidden" value=""><button class="dunatv-canal-picker-toggle" id="canalPickerToggle" type="button">Carregando canais da TV...</button><div class="dunatv-canal-picker-menu" id="canalPickerMenu"></div></div>
           <button id="btnAplicarCanal" type="button">Exibir nas TVs</button>
+          <button class="btn-adicionar-canal-atalho" id="btnAdicionarCanalAtalho" type="button" disabled>＋ Adicionar atalho</button>
         </div>
         <div class="dunatv-plus-subtitulo-linha"><div class="dunatv-plus-subtitulo">Atalhos salvos</div><button class="btn-criar-atalho" id="btnCriarAtalhoTv" type="button">＋ Criar atalho</button></div>
         <div class="dunatv-plus-atalhos" id="atalhosCanaisTv"></div>
@@ -1136,7 +1139,6 @@
           <div class="dunatv-atalho-campos">
             <label>Nome da emissora<input id="nomeAtalhoTv" type="text" maxlength="40" placeholder="Ex.: Globo" /></label>
             <label>Canal da TV<select id="canalAtalhoTv"><option value="">Carregando canais...</option></select></label>
-            <label>Imagem de capa<input id="imagemAtalhoTv" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /></label>
           </div>
           <div class="dunatv-atalho-editor-acoes"><button class="btn-cancelar-atalho" id="btnCancelarAtalhoTv" type="button">Cancelar</button><button class="btn-salvar-atalho" id="btnSalvarAtalhoTv" type="button">Salvar atalho</button></div>
         </div>
@@ -1776,6 +1778,10 @@
     const grupoCanalTv = document.getElementById("grupoCanalTv");
     const numeroCanalTv = document.getElementById("numeroCanalTv");
     const btnAplicarCanal = document.getElementById("btnAplicarCanal");
+    const canalPickerTv = document.getElementById("canalPickerTv");
+    const canalPickerToggle = document.getElementById("canalPickerToggle");
+    const canalPickerMenu = document.getElementById("canalPickerMenu");
+    const btnAdicionarCanalAtalho = document.getElementById("btnAdicionarCanalAtalho");
     const atalhosCanaisTv = document.getElementById("atalhosCanaisTv");
     const acoesYoutubePonto = document.getElementById("acoesYoutubePonto");
     const btnPreviewYoutube = document.getElementById("btnPreviewYoutube");
@@ -1790,9 +1796,17 @@
     const editorAtalhoTv = document.getElementById("editorAtalhoTv");
     const nomeAtalhoTv = document.getElementById("nomeAtalhoTv");
     const canalAtalhoTv = document.getElementById("canalAtalhoTv");
-    const imagemAtalhoTv = document.getElementById("imagemAtalhoTv");
     const btnCancelarAtalhoTv = document.getElementById("btnCancelarAtalhoTv");
     const btnSalvarAtalhoTv = document.getElementById("btnSalvarAtalhoTv");
+    let canaisDisponiveisTv = [];
+
+    function selecionarCanalTv(numero,fechar=true){
+      const canal=canaisDisponiveisTv.find(item=>item.numero===String(numero || ""));
+      numeroCanalTv.value=canal?.numero || String(numero || "");
+      canalPickerToggle.textContent=canal ? `${canal.numero} — ${canal.nome}` : "Selecione um canal do TCL Channel+";
+      btnAdicionarCanalAtalho.disabled=!canal;
+      if(fechar) canalPickerTv.classList.remove("aberto");
+    }
 
     async function carregarCanaisDisponiveisTv(){
       try{
@@ -1803,13 +1817,12 @@
           const numero=String(canal?.numero || "").trim(), nome=String(canal?.nome || "").trim();
           if(numero && nome) mapa.set(numero,{numero,nome});
         }));
-        const canais=[...mapa.values()].sort((a,b)=>Number(a.numero)-Number(b.numero) || a.nome.localeCompare(b.nome,"pt-BR"));
+        canaisDisponiveisTv=[...mapa.values()].sort((a,b)=>Number(a.numero)-Number(b.numero) || a.nome.localeCompare(b.nome,"pt-BR"));
         const atual=String(configuracaoPontoAtual.canal_tv || "");
-        const opcoes='<option value="">Selecione um canal do TCL Channel+</option>'+canais.map(c=>`<option value="${escapeHtml(c.numero)}">${escapeHtml(c.numero)} — ${escapeHtml(c.nome)}</option>`).join("");
-        numeroCanalTv.innerHTML=opcoes;
-        canalAtalhoTv.innerHTML=opcoes;
-        if(canais.some(c=>c.numero===atual)) numeroCanalTv.value=atual;
-      }catch(error){ numeroCanalTv.innerHTML='<option value="">Aguardando lista enviada pela TV...</option>'; canalAtalhoTv.innerHTML=numeroCanalTv.innerHTML; }
+        canalPickerMenu.innerHTML=canaisDisponiveisTv.map(c=>`<button type="button" data-picker-canal="${escapeHtml(c.numero)}">${escapeHtml(c.numero)} — ${escapeHtml(c.nome)}</button>`).join("");
+        canalAtalhoTv.innerHTML='<option value="">Selecione um canal</option>'+canaisDisponiveisTv.map(c=>`<option value="${escapeHtml(c.numero)}">${escapeHtml(c.numero)} — ${escapeHtml(c.nome)}</option>`).join("");
+        selecionarCanalTv(atual,false);
+      }catch(error){ canalPickerToggle.textContent="Aguardando lista enviada pela TV..."; canalAtalhoTv.innerHTML='<option value="">Aguardando lista enviada pela TV...</option>'; }
     }
 
     let playlistAtual = [];
@@ -1839,7 +1852,6 @@
       editorAtalhoTv.classList.remove("visivel");
       nomeAtalhoTv.value = "";
       canalAtalhoTv.value = "";
-      imagemAtalhoTv.value = "";
     }
 
     async function excluirAtalhoTv(id){
@@ -1862,19 +1874,13 @@
     async function criarAtalhoTv(){
       const nome = nomeAtalhoTv.value.trim();
       const canal = canalAtalhoTv.value.trim();
-      const imagem = imagemAtalhoTv.files?.[0];
-      if(!nome || !canal || !imagem){mostrarStatus("Informe nome, número do canal e imagem de capa.","erro");return}
-      if(!imagem.type.startsWith("image/")){mostrarStatus("A capa precisa ser uma imagem.","erro");return}
-      if(imagem.size > 5*1024*1024){mostrarStatus("A imagem deve ter no máximo 5 MB.","erro");return}
+      if(!nome || !canal){mostrarStatus("Informe o nome e selecione o canal.","erro");return}
       btnSalvarAtalhoTv.disabled = true;
       btnSalvarAtalhoTv.textContent = "Salvando...";
       try{
-        const nomeArquivo = `atalho-${Date.now()}-${limparNomeArquivo(imagem.name)}`;
-        const upload = await enviarMidiaR2(imagem,nomeArquivo);
         const novoAtalho = {
           id:globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `atalho-${Date.now()}`,
-          nome,canal,simbolo:"TV",imagem_url:upload.publicUrl,
-          storage_path:upload.key || `midias/pontos/${CODIGO_FIXO}/${nomeArquivo}`
+          nome,canal,simbolo:"TV",imagem_url:"",storage_path:""
         };
         configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,atalhos_canais:[...(configuracaoPontoAtual.atalhos_canais || []),novoAtalho],atualizado_em:new Date().toISOString()});
         playlistAtual = await salvarPlaylistR2(playlistAtual);
@@ -1895,7 +1901,7 @@
       conteudosCard.classList.toggle("oculto",tvAberta);
       tvAbertaCard.classList.toggle("oculto",!tvAberta);
       youtubeUrlPonto.value = configuracaoPontoAtual.youtube_url || "";
-      numeroCanalTv.value = configuracaoPontoAtual.canal_tv || "";
+      selecionarCanalTv(configuracaoPontoAtual.canal_tv || "",false);
       reabrirAoLigar.checked = configuracaoPontoAtual.reabrir_ao_ligar !== false;
       renderizarAtalhosTv();
       const modo = configuracaoPontoAtual.modo_exibicao === "youtube" ? "youtube" : "tv_aberta";
@@ -2027,6 +2033,18 @@
     });
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
     btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
+    canalPickerToggle.addEventListener("click",()=>canalPickerTv.classList.toggle("aberto"));
+    canalPickerMenu.addEventListener("click",event=>{const botao=event.target.closest("[data-picker-canal]");if(botao) selecionarCanalTv(botao.dataset.pickerCanal)});
+    document.addEventListener("click",event=>{if(!canalPickerTv.contains(event.target)) canalPickerTv.classList.remove("aberto")});
+    btnAdicionarCanalAtalho.addEventListener("click",()=>{
+      const canal=canaisDisponiveisTv.find(item=>item.numero===numeroCanalTv.value);
+      if(!canal) return;
+      nomeAtalhoTv.value=canal.nome;
+      canalAtalhoTv.value=canal.numero;
+      editorAtalhoTv.classList.add("visivel");
+      nomeAtalhoTv.select();
+      nomeAtalhoTv.focus();
+    });
     atalhosCanaisTv.addEventListener("click",event=>{
       const excluir = event.target.closest("[data-excluir-atalho]");
       if(excluir){
@@ -2035,7 +2053,7 @@
       }
       const botao = event.target.closest("[data-canal]");
       if(!botao) return;
-      numeroCanalTv.value = botao.dataset.canal || "";
+      selecionarCanalTv(botao.dataset.canal || "");
       salvarControleDunaPlus("tv_aberta");
     });
     btnCriarAtalhoTv.addEventListener("click",()=>{
