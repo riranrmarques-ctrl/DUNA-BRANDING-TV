@@ -537,7 +537,7 @@
     .dunatv-plus-link button{min-width:190px;border:0;border-radius:12px;background:#e21a2c;color:#fff;font-weight:900;padding:0 20px}
     .dunatv-plus-canal{display:none;margin-top:18px;padding:18px;border:1px solid #293247;border-radius:16px;background:#0c1220}.dunatv-plus-canal.visivel{display:block}
     .dunatv-plus-canal-linha{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}.dunatv-plus-canal input,.dunatv-plus-canal select{min-height:54px;border:1px solid #414b60;border-radius:12px;background:#0d1423;color:#fff;padding:0 16px;font-size:17px}.dunatv-plus-canal-linha button,.dunatv-plus-atalho{border:0;border-radius:12px;background:#e21a2c;color:#fff;font-weight:900;padding:0 20px;cursor:pointer}
-    .dunatv-canal-picker{position:relative;min-width:0}.dunatv-canal-picker-toggle{width:100%;min-height:54px!important;text-align:left;background:#0d1423!important;border:1px solid #414b60!important;color:#fff;padding:0 48px 0 16px!important;position:relative}.dunatv-canal-picker-toggle:after{content:"⌄";position:absolute;right:18px;font-size:23px}.dunatv-canal-picker-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:80;max-height:330px;overflow:auto;padding:7px;border:1px solid #414b60;border-radius:12px;background:#101725;box-shadow:0 18px 38px rgba(0,0,0,.55)}.dunatv-canal-picker.aberto .dunatv-canal-picker-menu{display:grid;gap:4px}.dunatv-canal-picker-menu button{min-height:44px!important;border-radius:8px!important;background:transparent!important;color:#fff;text-align:left;padding:8px 12px!important}.dunatv-canal-picker-menu button:hover,.dunatv-canal-picker-menu button:focus{background:#263553!important}.btn-adicionar-canal-atalho:disabled{opacity:.45;cursor:not-allowed}
+    .dunatv-plus-canal{position:relative;z-index:30;overflow:visible}.dunatv-canal-picker{position:relative;min-width:0;z-index:100}.dunatv-canal-picker-toggle{width:100%;min-height:54px!important;text-align:left;background:#0d1423!important;border:1px solid #414b60!important;color:#fff;padding:0 48px 0 16px!important;position:relative}.dunatv-canal-picker-toggle:after{content:"⌄";position:absolute;right:18px;font-size:23px}.dunatv-canal-picker-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:9999;max-height:330px;overflow:auto;padding:7px;border:1px solid #414b60;border-radius:12px;background:#101725;box-shadow:0 18px 38px rgba(0,0,0,.75)}.dunatv-canal-picker.aberto .dunatv-canal-picker-menu{display:grid;gap:4px}.dunatv-canal-picker-menu button{min-height:44px!important;border-radius:8px!important;background:transparent!important;color:#fff;text-align:left;padding:8px 12px!important}.dunatv-canal-picker-menu button:hover,.dunatv-canal-picker-menu button:focus{background:#263553!important}.dunatv-plus-rapidas,.dunatv-plus-iniciar{position:relative;z-index:1}.btn-adicionar-canal-atalho:disabled{opacity:.45;cursor:not-allowed}
     .dunatv-atalho-campos{grid-template-columns:minmax(0,1fr) minmax(180px,.7fr)!important}
     .dunatv-plus-atalhos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:13px}.dunatv-plus-atalho{min-height:58px;background:#182238;border:1px solid #35415a;padding:8px}.dunatv-plus-atalho small{display:block;color:#aeb8ca;margin-top:3px}
     .dunatv-plus-iniciar{display:flex;align-items:center;gap:11px;margin-top:16px;padding:14px;border:1px solid #293247;border-radius:14px;background:#0c1220;color:#dce3ee}.dunatv-plus-iniciar input{width:20px;height:20px;accent-color:#ed101b}
@@ -1129,10 +1129,10 @@
       <div class="dunatv-plus-canal" id="grupoCanalTv">
         <div class="dunatv-plus-canal-linha">
           <div class="dunatv-canal-picker" id="canalPickerTv"><input id="numeroCanalTv" type="hidden" value=""><button class="dunatv-canal-picker-toggle" id="canalPickerToggle" type="button">Carregando canais da TV...</button><div class="dunatv-canal-picker-menu" id="canalPickerMenu"></div></div>
-          <button id="btnAplicarCanal" type="button">Exibir nas TVs</button>
+          <button id="btnAplicarCanal" type="button">Reproduzir</button>
           <button class="btn-adicionar-canal-atalho" id="btnAdicionarCanalAtalho" type="button" disabled>＋ Adicionar atalho</button>
         </div>
-        <div class="dunatv-plus-subtitulo-linha"><div class="dunatv-plus-subtitulo">Atalhos salvos</div><button class="btn-criar-atalho" id="btnCriarAtalhoTv" type="button">＋ Criar atalho</button></div>
+        <div class="dunatv-plus-subtitulo-linha"><div class="dunatv-plus-subtitulo">Atalhos salvos</div></div>
         <div class="dunatv-plus-atalhos" id="atalhosCanaisTv"></div>
         <div class="dunatv-atalho-editor" id="editorAtalhoTv">
           <h3>Novo atalho de canal</h3>
@@ -1177,6 +1177,7 @@
         <button class="btn-limpar-filtros" id="btnLimparFiltrosHistorico" type="button">Limpar filtros</button>
       </div>
       <div class="lista-tvs" id="listaResumoTvs"><span class="tv-resumo-ip">Carregando...</span></div>
+      <button class="btn-limpar-filtros" id="btnVerHistoricoCompleto" type="button" style="display:none;margin:14px auto 0">Ver histórico completo</button>
     </section>
 
     <footer class="rodape">Desenvolvido por <strong>DUNA BRANDING</strong></footer>
@@ -1644,7 +1645,9 @@
     const filtroHistoricoData = document.getElementById("filtroHistoricoData");
     const filtroHistoricoStatus = document.getElementById("filtroHistoricoStatus");
     const btnLimparFiltrosHistorico = document.getElementById("btnLimparFiltrosHistorico");
+    const btnVerHistoricoCompleto = document.getElementById("btnVerHistoricoCompleto");
     let historicoTvsAtual = [];
+    let historicoCompletoVisivel = false;
     const CHAVE_STATUS_LOCAL_TVS = "dunatv_status_visual_v1";
     const INTERVALO_VERIFICACAO_STATUS = 10*60*1000;
     const TENTATIVAS_PARA_INATIVO = 3;
@@ -1661,7 +1664,9 @@
     }
 
     function salvarStatusLocalTvs(controle){
+      const limite72Horas = Date.now()-72*60*60*1000;
       controle.historico = controle.historico
+        .filter(item=>new Date(item.atualizado_em||0).getTime()>=limite72Horas)
         .sort((a,b)=>new Date(b.atualizado_em||0)-new Date(a.atualizado_em||0))
         .slice(0,LIMITE_HISTORICO_LOCAL);
       localStorage.setItem(CHAVE_STATUS_LOCAL_TVS,JSON.stringify(controle));
@@ -1792,7 +1797,6 @@
     const btnPesquisarYoutube = document.getElementById("btnPesquisarYoutube");
     const resultadosYoutubePonto = document.getElementById("resultadosYoutubePonto");
     const youtubeExibindoAgora = document.getElementById("youtubeExibindoAgora");
-    const btnCriarAtalhoTv = document.getElementById("btnCriarAtalhoTv");
     const editorAtalhoTv = document.getElementById("editorAtalhoTv");
     const nomeAtalhoTv = document.getElementById("nomeAtalhoTv");
     const canalAtalhoTv = document.getElementById("canalAtalhoTv");
@@ -1845,7 +1849,7 @@
           <button class="dunatv-plus-atalho-excluir" type="button" data-excluir-atalho="${escapeHtml(atalho.id)}" aria-label="Excluir atalho ${escapeHtml(atalho.nome)}">×</button>
           <button class="dunatv-plus-atalho-abrir" type="button" data-canal="${escapeHtml(atalho.canal)}"><span class="dunatv-plus-logo">${capa}</span>${escapeHtml(atalho.nome)}<small>${escapeHtml(atalho.canal)}</small></button>
         </div>`;
-      }).join("") : '<div class="dunatv-youtube-vazio">Nenhum atalho salvo. Clique em “Criar atalho”.</div>';
+      }).join("") : '<div class="dunatv-youtube-vazio">Nenhum atalho salvo. Selecione um canal e clique em “Adicionar atalho”.</div>';
     }
 
     function fecharEditorAtalhoTv(){
@@ -2055,10 +2059,6 @@
       if(!botao) return;
       selecionarCanalTv(botao.dataset.canal || "");
       salvarControleDunaPlus("tv_aberta");
-    });
-    btnCriarAtalhoTv.addEventListener("click",()=>{
-      editorAtalhoTv.classList.add("visivel");
-      nomeAtalhoTv.focus();
     });
     btnCancelarAtalhoTv.addEventListener("click",fecharEditorAtalhoTv);
     btnSalvarAtalhoTv.addEventListener("click",criarAtalhoTv);
@@ -2371,13 +2371,19 @@
       const ipBusca = filtroHistoricoIp.value.trim().toLowerCase();
       const dataBusca = filtroHistoricoData.value;
       const statusBusca = filtroHistoricoStatus.value;
-      const itens = historicoTvsAtual.filter(item=>{
+      const limite72Horas = Date.now()-72*60*60*1000;
+      const itensFiltrados = historicoTvsAtual.filter(item=>{
         const instante = new Date(item.atualizado_em || item.ultima_atualizacao || 0);
         const dataIso = Number.isNaN(instante.getTime()) ? "" : `${instante.getFullYear()}-${String(instante.getMonth()+1).padStart(2,"0")}-${String(instante.getDate()).padStart(2,"0")}`;
-        return (!ipBusca || String(item.ip_publico || "").toLowerCase().includes(ipBusca)) &&
+        return instante.getTime()>=limite72Horas &&
+          String(item.codigo || item.ponto_codigo || "").toUpperCase()===String(CODIGO_FIXO).toUpperCase() &&
+          (!ipBusca || String(item.ip_publico || "").toLowerCase().includes(ipBusca)) &&
           (!dataBusca || dataIso === dataBusca) &&
           (statusBusca === "todos" || item.status === statusBusca);
       });
+      const itens = historicoCompletoVisivel ? itensFiltrados : itensFiltrados.slice(0,5);
+      btnVerHistoricoCompleto.style.display=itensFiltrados.length>5 ? "block" : "none";
+      btnVerHistoricoCompleto.textContent=historicoCompletoVisivel ? "Mostrar somente os 5 mais recentes" : `Ver histórico completo (${itensFiltrados.length})`;
       listaResumoTvs.innerHTML = itens.length ? itens.map(item=>{
         const quando = formatarDataHoraHistorico(item.atualizado_em || item.ultima_atualizacao);
         const ativo = item.status === "ativo";
@@ -2392,7 +2398,7 @@
 
     async function renderizarResumoTvs(){
       listaResumoTvs.innerHTML = '<span class="tv-resumo-ip">Atualizando status...</span>';
-      const registros = await Promise.all(codigosPontosSalvos().map(async(codigo)=>{
+      const registros = await Promise.all([CODIGO_FIXO].map(async(codigo)=>{
         try{
           const [ponto,statusRemoto] = await Promise.all([buscarPontoPorCodigo(codigo),buscarStatusTv(codigo)]);
           return {codigo,ponto,statusRemoto};
@@ -2460,6 +2466,7 @@
 
     async function abrirPainel(codigo=CODIGO_FIXO){
       CODIGO_FIXO = String(codigo || "R6V0G8V").trim().toUpperCase();
+      historicoCompletoVisivel = false;
       tipoPontoCadastroAtual = "";
       configuracaoPontoAtual = normalizarConfiguracaoPonto();
       aplicarModoPonto();
@@ -3256,6 +3263,7 @@
       filtroHistoricoIp.value=""; filtroHistoricoData.value=""; filtroHistoricoStatus.value="todos";
       renderizarLinhasHistorico();
     });
+    btnVerHistoricoCompleto.addEventListener("click",()=>{historicoCompletoVisivel=!historicoCompletoVisivel;renderizarLinhasHistorico()});
 
     setInterval(()=>{
       if(!telaPastas.classList.contains("oculto")) renderizarPastas();
