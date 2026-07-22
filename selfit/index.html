@@ -1145,13 +1145,12 @@
       <div id="acoesYoutubePonto" style="display:none!important"><button id="btnPreviewYoutube" type="button">Preview</button></div>
       <div id="previewYoutubePonto" style="display:none!important"></div>
       <div class="dunatv-youtube-web" id="youtubeWebPonto">
-        <div class="dunatv-youtube-direto"><span class="dunatv-youtube-direto-icone">▶</span><span><strong>Abrir YouTube nas TVs</strong><small>A pesquisa e a escolha do vídeo serão feitas pelo controle remoto de cada TV.</small></span><button id="btnAbrirYoutubeTvs" type="button">Abrir YouTube</button></div>
-        <div style="display:none!important" class="dunatv-youtube-busca">
+        <div class="dunatv-youtube-busca">
           <input id="pesquisaYoutubePonto" type="search" placeholder="Pesquisar vídeos no YouTube" aria-label="Pesquisar vídeos no YouTube" />
           <button id="btnPesquisarYoutube" type="button">🔎 Pesquisar</button>
         </div>
-        <div style="display:none!important" class="dunatv-youtube-agora" id="youtubeExibindoAgora"></div>
-        <div style="display:none!important" class="dunatv-youtube-resultados" id="resultadosYoutubePonto"></div>
+        <div class="dunatv-youtube-agora" id="youtubeExibindoAgora"></div>
+        <div class="dunatv-youtube-resultados" id="resultadosYoutubePonto"><div class="dunatv-youtube-vazio">Pesquise um vídeo e clique nele para exibir nas TVs.</div></div>
       </div>
       <div class="dunatv-plus-rapidas">⚡ Ações rápidas</div>
       <label class="dunatv-plus-iniciar"><input id="reabrirAoLigar" type="checkbox" checked /><span><strong>Reabrir automaticamente ao ligar</strong><br><small>Abre sempre o último canal ou vídeo escolhido, até que este controle seja mudado.</small></span></label>
@@ -1794,7 +1793,6 @@
     const imagemAtalhoTv = document.getElementById("imagemAtalhoTv");
     const btnCancelarAtalhoTv = document.getElementById("btnCancelarAtalhoTv");
     const btnSalvarAtalhoTv = document.getElementById("btnSalvarAtalhoTv");
-    const btnAbrirYoutubeTvs = document.getElementById("btnAbrirYoutubeTvs");
 
     let playlistAtual = [];
     let operacaoAtual = normalizarOperacao();
@@ -2010,11 +2008,6 @@
       pesquisaYoutubePonto.focus();
     });
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
-    btnAbrirYoutubeTvs.addEventListener("click",()=>{
-      youtubeUrlPonto.value = "";
-      configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,youtube_url:"",youtube_titulo:"YouTube",youtube_thumbnail:""});
-      salvarControleDunaPlus("youtube");
-    });
     btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tv_aberta"));
     atalhosCanaisTv.addEventListener("click",event=>{
       const excluir = event.target.closest("[data-excluir-atalho]");
