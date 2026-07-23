@@ -1979,13 +1979,16 @@
       const titulo = configuracaoPontoAtual.youtube_titulo || "Vídeo selecionado";
       youtubeExibindoAgora.innerHTML = `<img src="${escapeHtml(miniatura)}" alt=""><div><span>Exibindo agora</span><strong>${escapeHtml(titulo)}</strong><button type="button" id="btnEscolherOutroYoutube">← Voltar e escolher outro</button></div>`;
       youtubeExibindoAgora.classList.add("visivel");
-      document.getElementById("btnEscolherOutroYoutube")?.addEventListener("click",()=>{
-        youtubeExibindoAgora.classList.remove("visivel");
-        youtubeExibindoAgora.innerHTML = "";
-        resultadosYoutubePonto.innerHTML = '<div class="dunatv-youtube-vazio">Digite uma nova pesquisa para escolher outro vídeo.</div>';
-        pesquisaYoutubePonto.select();
-        pesquisaYoutubePonto.focus();
-      });
+      document.getElementById("btnEscolherOutroYoutube")?.addEventListener("click",prepararNovaBuscaYoutube);
+    }
+
+    function prepararNovaBuscaYoutube(){
+      youtubeExibindoAgora.classList.remove("visivel");
+      youtubeExibindoAgora.innerHTML = "";
+      youtubeWebPonto.classList.add("visivel");
+      resultadosYoutubePonto.innerHTML = '<div class="dunatv-youtube-vazio">Digite uma nova pesquisa para escolher outro vídeo.</div>';
+      pesquisaYoutubePonto.value = "";
+      pesquisaYoutubePonto.focus();
     }
 
     async function pesquisarYoutubeNoPainel(){
@@ -2033,10 +2036,11 @@
     btnModoYoutube.addEventListener("click",()=>{
       configuracaoPontoAtual = normalizarConfiguracaoPonto({...configuracaoPontoAtual,modo_exibicao:"youtube"});
       aplicarModoPonto();
-      pesquisaYoutubePonto.focus();
+      prepararNovaBuscaYoutube();
     });
     btnSalvarYoutube.addEventListener("click",()=>salvarControleDunaPlus("youtube"));
     btnAplicarCanal.addEventListener("click",()=>salvarControleDunaPlus("tcl_channel_plus"));
+    pesquisaYoutubePonto.addEventListener("keydown",event=>{if(event.key === "Enter"){event.preventDefault();pesquisarYoutubeNoPainel()}});
     canalPickerToggle.addEventListener("click",()=>canalPickerTv.classList.toggle("aberto"));
     canalPickerMenu.addEventListener("click",event=>{const botao=event.target.closest("[data-picker-canal]");if(botao) selecionarCanalTv(botao.dataset.pickerCanal)});
     document.addEventListener("click",event=>{if(!canalPickerTv.contains(event.target)) canalPickerTv.classList.remove("aberto")});
